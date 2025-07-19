@@ -149,15 +149,7 @@ const NewsTicker = ({ isMobile = false }) => {
     );
   }
   
-  const desktopMaskStyle = {
-    maskImage: `linear-gradient(to right, black ${maskStartPosition}px, black calc(${themeButtonLeft}px - ${pauseButtonWidth / 2}px - 5px), transparent calc(${themeButtonLeft}px - ${pauseButtonWidth / 2}px))`,
-    WebkitMaskImage: `linear-gradient(to right, black ${maskStartPosition}px, black calc(${themeButtonLeft}px - ${pauseButtonWidth / 2}px - 5px), transparent calc(${themeButtonLeft}px - ${pauseButtonWidth / 2}px))`
-  };
-  const mobileMaskStyle = {
-    maskImage: `linear-gradient(to right, black 0%, black 100%)`,
-    WebkitMaskImage: `linear-gradient(to right, black 0%, black 100%)`
-  };
-
+  const tickerVisibleWidth = (themeButtonLeft > 0 && !isMobile) ? (themeButtonLeft - (pauseButtonWidth / 2)) : containerWidth;
 
   return (
     <div 
@@ -167,10 +159,10 @@ const NewsTicker = ({ isMobile = false }) => {
       <motion.div
         key={animationKey}
         ref={textRef}
-        className="absolute whitespace-nowrap h-full flex items-center z-30"
+        className="absolute whitespace-nowrap h-full flex items-center z-30 overflow-hidden"
         animate={controls}
         initial={{ x: containerWidth }}
-        style={isMobile ? mobileMaskStyle : desktopMaskStyle}
+        style={{ width: tickerVisibleWidth }}
       >
         <p className="font-arial italic text-xs px-4" style={{ color: tickerTextColor }}>
           {displayedText}
