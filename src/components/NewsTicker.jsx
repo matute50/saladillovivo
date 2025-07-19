@@ -167,7 +167,7 @@ const NewsTicker = ({ isMobile = false }) => {
       <motion.div
         key={animationKey}
         ref={textRef}
-        className="absolute whitespace-nowrap h-full flex items-center"
+        className="absolute whitespace-nowrap h-full flex items-center z-30"
         animate={controls}
         initial={{ x: containerWidth }}
       >
