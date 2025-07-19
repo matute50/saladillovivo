@@ -181,7 +181,7 @@ const NewsTicker = ({ isMobile = false }) => {
             className="absolute top-0 h-full z-50"
             style={{ 
               left: `calc(${themeButtonLeft}px + ${pauseButtonWidth / 2}px)`, 
-              width: `calc(100% - (${themeButtonLeft}px + ${pauseButtonWidth / 2}px - 5px))`, 
+              width: `calc(100% - (${themeButtonLeft}px + ${pauseButtonWidth / 2}px))`, 
               backgroundColor: tickerBackgroundColor
             }}
           />
