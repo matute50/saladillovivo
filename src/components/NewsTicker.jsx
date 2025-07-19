@@ -149,7 +149,7 @@ const NewsTicker = ({ isMobile = false }) => {
     );
   }
   
-  const tickerVisibleWidth = (themeButtonLeft > 0 && !isMobile) ? (themeButtonLeft - (pauseButtonWidth / 2)) : containerWidth;
+  const tickerVisibleWidth = (themeButtonLeft > 0 && !isMobile) ? (themeButtonLeft - (pauseButtonWidth / 2) - 10) : containerWidth;
 
   return (
     <div 
