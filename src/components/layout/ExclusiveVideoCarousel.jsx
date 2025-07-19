@@ -133,7 +133,7 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
   const prevButtonId = `prev-${carouselId}`;
   const nextButtonId = `next-${carouselId}`;
   
-  const slidesPerView = isMobile ? 'auto' : 3;
+  const slidesPerView = videos.length === 1 ? 1 : (isMobile ? 'auto' : 3);
   const showNavButtons = videos.length > (isMobile ? 1 : (isTwoItemCarousel ? 0 : 3)) && !isLive;
   
   const handleNext = () => swiperRef.current.swiper.slideNext();
