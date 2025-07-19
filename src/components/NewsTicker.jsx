@@ -151,40 +151,7 @@ const NewsTicker = ({ isMobile = false }) => {
     );
   }
   
-  const tickerVisibleWidth = (themeButtonLeft > 0 && !isMobile) ? (themeButtonLeft - (pauseButtonWidth / 2) - 10) : containerWidth;
-
-  return (
-    <div 
-      ref={containerRef} 
-      className="bg-background dark:bg-background overflow-hidden relative h-8 flex items-center container mx-auto px-0 ticker-container z-30 -mb-px"
-    >
-      <motion.div
-        key={animationKey}
-        ref={textRef}
-        className="whitespace-nowrap h-full flex items-center z-30 overflow-hidden"
-        animate={controls}
-        initial={{ x: containerWidth }}
-        style={{ width: tickerVisibleWidth }}
-      >
-        <p className="font-arial italic text-xs px-4" style={{ color: tickerTextColor }}>
-          {displayedText}
-        </p>
-      </motion.div>
-      {!isMobile && themeButtonLeft > 0 && (
-        <Button
-          ref={pauseButtonRef}
-          variant="ghost"
-          size="icon"
-          className="control-button absolute top-1/2 transform -translate-y-1/2 z-40 p-1 h-8 w-8 rounded-md"
-          style={{ right: `calc(100% - ${themeButtonLeft}px + ${pauseButtonWidth / 2}px)` }}
-          onClick={() => setIsPaused(!isPaused)}
-          aria-label={isPaused ? "Reanudar scroll" : "Pausar scroll"}
-        >
-          {isPaused ? <Play size={18} className="text-foreground" /> : <Pause size={18} className="text-foreground" />}
-        </Button>
-      )}
-    </div>
-  );
+  const tickerBackgroundColor = isDarkTheme ? 'hsl(var(--background))' : 'hsl(var(--background))';
 };
 
 export default NewsTicker;
