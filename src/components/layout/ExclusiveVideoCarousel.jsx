@@ -121,7 +121,7 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`absolute inset-0 p-2 bg-gradient-to-t from-black/80 to-transparent flex justify-center text-center ${video.isEvent || video.isLiveThumbnail ? 'items-center' : 'items-end'}`}
+                  className={`absolute inset-0 p-2 bg-gradient-to-t from-black/80 to-transparent flex justify-center text-center ${video.isEvent || video.isLiveThumbnail ? 'items-end' : 'items-end'}`}
                 >
                   <p className={`text-white font-['Century_Gothic'] uppercase leading-tight ${video.isEvent || video.isLiveThumbnail ? "text-sm" : "text-xs"} ${isMobile ? 'font-bold' : 'font-thin'}`}>{video.nombre}</p>
                 </motion.div>
