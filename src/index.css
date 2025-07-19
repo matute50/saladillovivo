@@ -1,0 +1,247 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Century Gothic';
+  src: url('/fonts/CenturyGothic.woff2') format('woff2'),
+       url('/fonts/CenturyGothic.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Century Gothic';
+  src: url('/fonts/CenturyGothic-Bold.woff2') format('woff2'),
+       url('/fonts/CenturyGothic-Bold.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+
+@layer base {
+  :root {
+    /* Light Mode */
+    --background-start: 223 44% 88%; /* #d2daed */
+    --background-end: 0 0% 78%; /* #c6c6c6 */
+    --background: hsl(var(--background-start)); /* Fallback */
+    --foreground: 0 0% 0%; /* black */
+    --card-start: 223 44% 88%; /* #d2daed */
+    --card-end: 0 0% 78%; /* #c6c6c6 */
+    --card: hsl(var(--card-start)); /* Fallback */
+    --card-foreground: 0 0% 0%; /* black */
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+    --primary: 225 100% 30%; /* #003399 */
+    --primary-foreground: 0 0% 100%; 
+    --secondary: 240 100% 60%; 
+    --secondary-foreground: 0 0% 100%; 
+    --muted: 0 0% 90%; 
+    --muted-foreground: 0 0% 45%; 
+    --accent: hsl(var(--background-start));
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 100% 50%; /* red */
+    --destructive-foreground: 0 0% 100%;
+    --border: 107 7% 47%; /* #707f6f */
+    --input: hsl(var(--background-start));
+    --ring: 225 100% 30%;
+    --radius: 0.5rem;
+
+    --footer-bg-color: #aaaaaa;
+    --shadow-color: rgba(0, 0, 0, 0.25);
+
+    --footer-height: 100px;
+    --footer-height-mobile: 60px;
+    --player-height-mobile: calc((100vw * 9 / 16));
+    --player-info-bar-height: 24px;
+    --video-carousel-fixed-height: 10rem;
+    --header-height: 56px;
+    --desktop-header-height: 72px;
+    --ticker-height: 32px;
+  }
+
+  .dark {
+    /* Dark Mode */
+    --background-start: 0 0% 13%; /* #212121 */
+    --background-end: 0 0% 24%; /* #3d3d3d */
+    --background: hsl(var(--background-start)); /* Fallback */
+    --foreground: 0 0% 100%; /* #FFFFFF */
+    --card-start: 0 0% 13%; /* #212121 */
+    --card-end: 0 0% 24%; /* #3d3d3d */
+    --card: hsl(var(--card-start)); /* Fallback */
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 220 100% 70%; /* #6699ff */
+    --primary-foreground: 0 0% 0%;
+    --secondary: 210 100% 40%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 15%; 
+    --muted-foreground: 0 0% 80%; /* #CCCCCC */
+    --accent: 0 0% 13%; 
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 100% 50%; /* red */
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 24%; /* #3d3d3d */
+    --input: hsl(var(--background-start));
+    --ring: 220 100% 70%;
+
+    --footer-bg-start: 0 0% 13%;
+    --footer-bg-end: 0 0% 24%;
+    --shadow-color: rgba(0, 0, 0, 0.5);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    height: 100%; 
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    @apply text-foreground;
+    background-image: linear-gradient(to bottom, hsl(var(--background-start)), hsl(var(--background-end)));
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    overflow-x: hidden; 
+    min-height: 100%;
+  }
+  #root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .hide-scrollbar {
+    overflow-y: scroll;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  }
+  .hide-scrollbar::-webkit-scrollbar { /* WebKit */
+    display: none;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-foreground;
+  }
+
+  a {
+    @apply text-primary;
+  }
+
+  .font-futura-bold {
+    font-family: "Futura", "Trebuchet MS", Arial, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.2 !important;
+  }
+  .font-century-gothic {
+    font-family: 'Century Gothic', sans-serif;
+  }
+}
+
+@layer components {
+  .card {
+    background-image: linear-gradient(to bottom, hsl(var(--card-start)), hsl(var(--card-end)));
+    @apply rounded-lg text-card-foreground shadow-card;
+  }
+  .dark .card:hover {
+    background-image: linear-gradient(to bottom, hsl(var(--card-start) / 0.85), hsl(var(--card-end) / 0.85));
+  }
+  :not(.dark) .card:hover {
+     background-image: linear-gradient(to bottom, hsl(var(--card-start) / 1.05), hsl(var(--card-end) / 1.05));
+  }
+
+  .card-blur {
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+    -webkit-transform: translate3d(0, 0, 0);
+    -moz-transform: translate3d(0, 0, 0);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 0.5rem;
+  }
+
+  .card-blur-player {
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+    -webkit-transform: translate3d(0, 0, 0);
+    -moz-transform: translate3d(0, 0, 0);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 0;
+  }
+  @media (min-width: 768px) {
+    .card-blur-player {
+      border-radius: 0.75rem;
+    }
+  }
+
+  .shadow-card {
+     box-shadow: 0 6px 10px -2px var(--shadow-color), 0 3px 6px -3px var(--shadow-color);
+  }
+  .shadow-player {
+     box-shadow: 0 12px 20px -4px var(--shadow-color), 0 5px 8px -5px var(--shadow-color);
+  }
+  .shadow-thumbnail {
+    box-shadow: 0 4px 6px -2px var(--shadow-color);
+  }
+  .shadow-header {
+    box-shadow: 0 5px 8px -2px var(--shadow-color);
+  }
+  .shadow-footer {
+    box-shadow: 0 -5px 8px -2px var(--shadow-color);
+  }
+  
+  .control-button {
+    @apply bg-transparent hover:bg-accent focus-visible:bg-accent;
+  }
+
+  .carousel-nav-button {
+    animation: pulse-color-nav-dark 4s infinite ease-in-out;
+  }
+  :not(.dark) .carousel-nav-button {
+    animation-name: pulse-color-nav-light;
+    animation-duration: 5s;
+  }
+
+  .date-on-image {
+    @apply absolute bottom-2 left-2 bg-black/60 text-white text-xs font-semibold px-2 py-1 rounded-md flex items-center;
+  }
+  
+  .search-box {
+    @apply bg-input text-foreground placeholder:text-foreground/70 border-none;
+  }
+  .dark .search-box {
+    @apply text-white placeholder:text-white/70;
+  }
+  .search-box-icon {
+    @apply text-foreground;
+  }
+  .dark .search-box-icon {
+    @apply text-white;
+  }
+}
+
+@keyframes pulse-color-nav-dark {
+  0%, 100% {
+    background-color: #212121;
+  }
+  50% {
+    background-color: #3d3d3d;
+  }
+}
+
+@keyframes pulse-color-nav-light {
+  0%, 100% {
+    background-color: #3d3d3d;
+  }
+  50% {
+    background-color: #aaaaaa;
+  }
+}
