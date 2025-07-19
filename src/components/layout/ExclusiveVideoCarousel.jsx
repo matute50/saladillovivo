@@ -172,7 +172,7 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
         <>
           <Swiper {...swiperProps}>
             {videos.map((video) => (
-              <SwiperSlide key={video.id || video.url} className={'!w-auto flex justify-center'}>
+              <SwiperSlide key={video.id || video.url} className={`!w-auto flex ${categoryName === 'Ver en VIVO' ? 'justify-start' : 'justify-center'}`}>
                  {renderSlide(video)}
               </SwiperSlide>
             ))}
