@@ -77,12 +77,7 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
   
   const isTwoItemCarousel = videos.length === 2;
 
-  let slideWidthClass;
-  if (categoryName === 'Lo más visto de la Semana' || categoryName === 'Hacelo Corto') {
-    slideWidthClass = isMobile ? "w-36" : "w-48";
-  } else {
-    slideWidthClass = isMobile ? "w-48" : "w-56";
-  }
+  let slideWidthClass = isMobile ? "w-48" : "w-56";
   
   let scaleActive, scaleInactive;
   if(isLive || isEventCarousel) {
@@ -120,7 +115,7 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
                   loading="lazy"
                   src={getYoutubeThumbnail(video)}
                   alt={video.nombre || "Miniatura de video"}
-                  className={`w-full h-full ${isLive ? 'object-contain' : 'object-cover'}`}
+                  className={`w-full h-full ${isLiveOrEvent ? 'object-contain' : 'object-cover'}`}
                 />
             </div>
             <div 
