@@ -159,29 +159,26 @@ const NewsTicker = ({ isMobile = false }) => {
       <motion.div
         key={animationKey}
         ref={textRef}
-        className="absolute whitespace-nowrap h-full flex items-center z-30 overflow-hidden"
+        className="whitespace-nowrap h-full flex items-center z-30 flex-grow"
         animate={controls}
         initial={{ x: containerWidth }}
-        style={{ width: tickerVisibleWidth }}
       >
         <p className="font-arial italic text-xs px-4" style={{ color: tickerTextColor }}>
           {displayedText}
         </p>
       </motion.div>
       {!isMobile && themeButtonLeft > 0 && (
-        <>
-          <Button
-            ref={pauseButtonRef}
-            variant="ghost"
-            size="icon"
-            className="control-button absolute top-1/2 transform -translate-y-1/2 z-40 p-1 h-8 w-8 rounded-md"
-            style={{ left: `calc(${themeButtonLeft}px - ${pauseButtonWidth / 2}px)` }}
-            onClick={() => setIsPaused(!isPaused)}
-            aria-label={isPaused ? "Reanudar scroll" : "Pausar scroll"}
-          >
-            {isPaused ? <Play size={18} className="text-foreground" /> : <Pause size={18} className="text-foreground" />}
-          </Button>
-        </>
+        <Button
+          ref={pauseButtonRef}
+          variant="ghost"
+          size="icon"
+          className="control-button absolute top-1/2 transform -translate-y-1/2 z-40 p-1 h-8 w-8 rounded-md"
+          style={{ right: `calc(100% - ${themeButtonLeft}px + ${pauseButtonWidth / 2}px)` }}
+          onClick={() => setIsPaused(!isPaused)}
+          aria-label={isPaused ? "Reanudar scroll" : "Pausar scroll"}
+        >
+          {isPaused ? <Play size={18} className="text-foreground" /> : <Pause size={18} className="text-foreground" />}
+        </Button>
       )}
     </div>
   );
