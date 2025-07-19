@@ -95,7 +95,7 @@ export const usePlaybackLogic = ({
     };
     setIsMuted(false);
     userVolume.current = volume > 0 ? volume : 1.0;
-    playMedia(mediaData);
+    playMedia(mediaData, true);
   }, [playMedia, volume]);
 
   const togglePlayPause = useCallback(() => setIsPlaying(prev => !prev), []);
