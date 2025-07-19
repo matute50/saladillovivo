@@ -77,7 +77,12 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
   
   const isTwoItemCarousel = videos.length === 2;
 
-  let slideWidthClass = isMobile ? "w-48" : "w-56";
+  let slideWidthClass;
+  if (categoryName === 'Ver en VIVO') {
+    slideWidthClass = isMobile ? "w-36" : "w-48";
+  } else {
+    slideWidthClass = isMobile ? "w-48" : "w-56";
+  }
   
   let scaleActive = isMobile ? 1.15 : 1.1; // Default active scale
   let scaleInactive = isMobile ? 1 : 0.7; // Default inactive scale
