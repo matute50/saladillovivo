@@ -215,7 +215,7 @@
   }
   
   .search-box {
-    @apply bg-input text-foreground placeholder:text-foreground/70 border-none;
+    @apply bg-input text-foreground placeholder:text-foreground/70 border border-white;
   }
   .dark .search-box {
     @apply text-white placeholder:text-white/70;
