@@ -76,7 +76,7 @@ export const useVideoPlayer = () => {
     handleProgress: (state) => playbackLogic.setProgress(state.played),
     handleDuration: (d) => playbackLogic.setDuration(d),
     handleSeek: (value) => {
-      if (playerRef.current && currentMedia?.type === 'video') {
+      if (playerRef.current && currentMedia?.type === 'video' && value < progress) {
         playerRef.current.seekTo(value, 'fraction');
       }
     },
