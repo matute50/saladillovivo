@@ -178,10 +178,10 @@ const NewsTicker = ({ isMobile = false }) => {
       {!isMobile && themeButtonLeft > 0 && (
         <>
           <div 
-            className="absolute top-0 h-full z-45"
+            className="absolute top-0 h-full z-50"
             style={{ 
-              left: `calc(${themeButtonLeft}px + ${pauseButtonWidth / 2}px)`, 
-              width: `calc(100% - (${themeButtonLeft}px + ${pauseButtonWidth / 2}px))`, 
+              left: `calc(${themeButtonLeft}px + ${pauseButtonWidth / 2}px - 5px)`, 
+              width: `calc(100% - (${themeButtonLeft}px + ${pauseButtonWidth / 2}px - 5px))`, 
               backgroundColor: tickerBackgroundColor
             }}
           />
