@@ -79,7 +79,7 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
 
   let slideWidthClass;
   if (categoryName === 'Ver en VIVO') {
-    slideWidthClass = isMobile ? "w-18" : "w-24";
+    slideWidthClass = isMobile ? "w-48" : "w-56";
   } else {
     slideWidthClass = isMobile ? "w-48" : "w-56";
   }
@@ -111,7 +111,7 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
             transition={{ type: 'spring', stiffness: 300, damping: 25 }}
             data-video-id={video.id}
         >
-            <div className={`${slideWidthClass} flex items-center justify-center`}>
+            <div className={`${slideWidthClass} aspect-video flex items-center justify-center`}>
                 <img
                   loading="lazy"
                   src={getYoutubeThumbnail(video)}
