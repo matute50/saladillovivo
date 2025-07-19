@@ -79,16 +79,12 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
 
   let slideWidthClass = isMobile ? "w-48" : "w-56";
   
-  let scaleActive, scaleInactive;
-  if(isLive || isEventCarousel) {
-    scaleActive = 1;
-    scaleInactive = 1;
-  } else if (isTwoItemCarousel && !isMobile) {
+  let scaleActive = isMobile ? 1.15 : 1.1; // Default active scale
+  let scaleInactive = isMobile ? 1 : 0.7; // Default inactive scale
+
+  if (isTwoItemCarousel && !isMobile) { // Special case for two items
     scaleActive = 0.9;
     scaleInactive = 0.9;
-  } else {
-    scaleActive = isMobile ? 1.15 : 1.1; // Active thumbnail 15% larger on mobile
-    scaleInactive = isMobile ? 1 : 0.7;
   }
   
   const renderSlide = (video, forceActive = false) => {
@@ -102,7 +98,7 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
             onMouseEnter={() => !isTwoItemCarousel && !isMobile && handleMouseEnter(video)}
             className="relative cursor-pointer group rounded-lg overflow-hidden card-blur shadow-thumbnail"
             animate={{ 
-                scale: isLiveOrEvent ? scaleActive : (isActive ? scaleActive : scaleInactive),
+                scale: isActive ? scaleActive : (isLiveOrEvent ? 1 : scaleInactive),
                 zIndex: isActive ? 10 : 1,
                 filter: isBlurred ? 'blur(2px)' : 'blur(0px)',
                 opacity: isLiveOrEvent ? 1 : (isActive ? 1 : 0.7)
