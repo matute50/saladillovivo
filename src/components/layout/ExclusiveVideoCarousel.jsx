@@ -110,7 +110,7 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
             transition={{ type: 'spring', stiffness: 300, damping: 25 }}
             data-video-id={video.id}
         >
-            <div className={`${slideWidthClass} aspect-video flex items-center justify-center`}>
+            <div className={`${slideWidthClass} flex items-center justify-center`}>
                 <img
                   loading="lazy"
                   src={getYoutubeThumbnail(video)}
