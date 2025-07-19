@@ -252,7 +252,7 @@ const VideoSection = ({
 
   return (
     <div className={wrapperClasses}>
-       <div className={`relative ${isMobile ? '' : 'px-2 pt-2'}`}>
+       <div className="relative">
           {playerCore}
            <div className="absolute top-2 right-2 z-20 m-2">
                 {isCastAvailable && !showControls && (
