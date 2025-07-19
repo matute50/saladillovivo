@@ -79,7 +79,7 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
 
   let slideWidthClass;
   if (categoryName === 'Ver en VIVO') {
-    slideWidthClass = isMobile ? "w-36" : "w-48";
+    slideWidthClass = isMobile ? "w-18" : "w-24";
   } else {
     slideWidthClass = isMobile ? "w-48" : "w-56";
   }
