@@ -150,8 +150,8 @@ const NewsTicker = ({ isMobile = false }) => {
   }
   
   const desktopMaskStyle = {
-    maskImage: `linear-gradient(to right, black ${maskStartPosition}px, black calc(${maskEndPosition}px - ${pauseButtonWidth / 2}px - 5px), transparent calc(${maskEndPosition}px - ${pauseButtonWidth / 2}px))`,
-    WebkitMaskImage: `linear-gradient(to right, black ${maskStartPosition}px, black calc(${maskEndPosition}px - ${pauseButtonWidth / 2}px - 5px), transparent calc(${maskEndPosition}px - ${pauseButtonWidth / 2}px))`
+    maskImage: `linear-gradient(to right, black ${maskStartPosition}px, black calc(${themeButtonLeft}px - ${pauseButtonWidth / 2}px - 5px), transparent calc(${themeButtonLeft}px - ${pauseButtonWidth / 2}px))`,
+    WebkitMaskImage: `linear-gradient(to right, black ${maskStartPosition}px, black calc(${themeButtonLeft}px - ${pauseButtonWidth / 2}px - 5px), transparent calc(${themeButtonLeft}px - ${pauseButtonWidth / 2}px))`
   };
   const mobileMaskStyle = {
     maskImage: `linear-gradient(to right, black 0%, black 100%)`,
@@ -170,6 +170,7 @@ const NewsTicker = ({ isMobile = false }) => {
         className="absolute whitespace-nowrap h-full flex items-center z-30"
         animate={controls}
         initial={{ x: containerWidth }}
+        style={isMobile ? mobileMaskStyle : desktopMaskStyle}
       >
         <p className="font-arial italic text-xs px-4" style={{ color: tickerTextColor }}>
           {displayedText}
@@ -177,14 +178,6 @@ const NewsTicker = ({ isMobile = false }) => {
       </motion.div>
       {!isMobile && themeButtonLeft > 0 && (
         <>
-          <div 
-            className="absolute top-0 h-full z-50"
-            style={{ 
-              left: `calc(${themeButtonLeft}px + ${pauseButtonWidth / 2}px)`, 
-              width: `calc(100% - (${themeButtonLeft}px + ${pauseButtonWidth / 2}px))`, 
-              backgroundColor: tickerBackgroundColor
-            }}
-          />
           <Button
             ref={pauseButtonRef}
             variant="ghost"
