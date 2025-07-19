@@ -199,7 +199,7 @@
   }
   
   .control-button {
-    @apply bg-transparent hover:bg-accent focus-visible:bg-accent;
+    @apply bg-background hover:bg-accent focus-visible:bg-accent;
   }
 
   .carousel-nav-button {
