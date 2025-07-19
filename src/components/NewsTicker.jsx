@@ -170,7 +170,6 @@ const NewsTicker = ({ isMobile = false }) => {
         className="absolute whitespace-nowrap h-full flex items-center"
         animate={controls}
         initial={{ x: containerWidth }}
-        style={isMobile ? mobileMaskStyle : desktopMaskStyle}
       >
         <p className="font-arial italic text-xs px-4" style={{ color: tickerTextColor }}>
           {displayedText}
@@ -181,8 +180,8 @@ const NewsTicker = ({ isMobile = false }) => {
           <div 
             className="absolute top-0 h-full z-35"
             style={{ 
-              left: `${maskEndPosition}px`, 
-              width: `calc(100% - ${maskEndPosition}px)`, 
+              left: `calc(${themeButtonLeft}px + ${pauseButtonWidth / 2}px)`, 
+              width: `calc(100% - (${themeButtonLeft}px + ${pauseButtonWidth / 2}px))`, 
               backgroundColor: tickerBackgroundColor
             }}
           />
