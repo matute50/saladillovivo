@@ -11,6 +11,8 @@ const NewsTicker = ({ isMobile = false }) => {
   const [containerWidth, setContainerWidth] = useState(0);
   const [textWidth, setTextWidth] = useState(0);
   const [themeButtonLeft, setThemeButtonLeft] = useState(0);
+  const [themeButtonTop, setThemeButtonTop] = useState(0);
+  const [themeButtonHeight, setThemeButtonHeight] = useState(0);
   const [pauseButtonWidth, setPauseButtonWidth] = useState(0);
   const textRef = useRef(null);
   const containerRef = useRef(null);
@@ -63,8 +65,12 @@ const NewsTicker = ({ isMobile = false }) => {
           if (containerRef.current) {
               const containerRect = containerRef.current.getBoundingClientRect();
               setThemeButtonLeft(rect.left - containerRect.left + (rect.width / 2));
+              setThemeButtonTop(rect.top - containerRect.top);
+              setThemeButtonHeight(rect.height);
           } else {
               setThemeButtonLeft(rect.left + (rect.width / 2));
+              setThemeButtonTop(rect.top);
+              setThemeButtonHeight(rect.height);
           }
         }
         if (pauseButtonRef.current) {
@@ -169,17 +175,30 @@ const NewsTicker = ({ isMobile = false }) => {
         </p>
       </motion.div>
       {!isMobile && themeButtonLeft > 0 && (
-        <Button
-          ref={pauseButtonRef}
-          variant="ghost"
-          size="icon"
-          className="control-button absolute top-1/2 transform -translate-y-1/2 z-40 p-1 h-8 w-8 rounded-md"
-          style={{ right: `calc(100% - ${themeButtonLeft}px + ${pauseButtonWidth / 2}px)` }}
-          onClick={() => setIsPaused(!isPaused)}
-          aria-label={isPaused ? "Reanudar scroll" : "Pausar scroll"}
-        >
-          {isPaused ? <Play size={18} className="text-foreground" /> : <Pause size={18} className="text-foreground" />}
-        </Button>
+        <>
+          <Button
+            ref={pauseButtonRef}
+            variant="ghost"
+            size="icon"
+            className="control-button absolute z-40 p-1 h-8 w-8 rounded-md"
+            style={{ 
+              left: `calc(${themeButtonLeft}px - ${pauseButtonWidth / 2}px)`, 
+              top: `calc(${themeButtonTop}px + ${themeButtonHeight}px + 5px)` 
+            }}
+            onClick={() => setIsPaused(!isPaused)}
+            aria-label={isPaused ? "Reanudar scroll" : "Pausar scroll"}
+          >
+            {isPaused ? <Play size={18} className="text-foreground" /> : <Pause size={18} className="text-foreground" />}
+          </Button>
+          <div 
+            className="absolute top-0 h-full z-39"
+            style={{ 
+              left: `calc(${themeButtonLeft}px + ${pauseButtonWidth / 2}px)`, 
+              width: `calc(100% - (${themeButtonLeft}px + ${pauseButtonWidth / 2}px))`, 
+              backgroundColor: tickerBackgroundColor
+            }}
+          />
+        </>
       )}
     </div>
   );
