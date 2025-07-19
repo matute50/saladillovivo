@@ -101,7 +101,7 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
         <motion.div
             onClick={() => handleVideoClick(video)}
             onMouseEnter={() => !isTwoItemCarousel && !isMobile && handleMouseEnter(video)}
-            className="relative cursor-pointer group rounded-lg overflow-hidden card-blur shadow-thumbnail"
+            className="relative cursor-pointer group rounded-lg overflow-hidden card-blur shadow-thumbnail overflow-visible"
             animate={{ 
                 scale: isActive ? scaleActive : (isLiveOrEvent ? 1 : scaleInactive),
                 zIndex: isActive ? 10 : 1,
