@@ -178,7 +178,7 @@ const NewsTicker = ({ isMobile = false }) => {
       {!isMobile && themeButtonLeft > 0 && (
         <>
           <div 
-            className="absolute top-0 h-full z-35"
+            className="absolute top-0 h-full z-45"
             style={{ 
               left: `calc(${themeButtonLeft}px + ${pauseButtonWidth / 2}px)`, 
               width: `calc(100% - (${themeButtonLeft}px + ${pauseButtonWidth / 2}px))`, 
