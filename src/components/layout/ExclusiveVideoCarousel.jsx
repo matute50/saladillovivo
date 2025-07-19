@@ -77,12 +77,7 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
   
   const isTwoItemCarousel = videos.length === 2;
 
-  let slideWidthClass;
-  if (categoryName === 'Ver en VIVO') {
-    slideWidthClass = isMobile ? "w-48" : "w-56";
-  } else {
-    slideWidthClass = isMobile ? "w-48" : "w-56";
-  }
+  let slideWidthClass = isMobile ? "w-48" : "w-56";
   
   let scaleActive = isMobile ? 1.15 : 1.1; // Default active scale
   let scaleInactive = isMobile ? 1 : 0.7; // Default inactive scale
@@ -126,7 +121,7 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="absolute inset-0 p-2 bg-gradient-to-t from-black/80 to-transparent flex items-end justify-center text-center"
+                  className={`absolute inset-0 p-2 bg-gradient-to-t from-black/80 to-transparent flex justify-center text-center ${video.isEvent || video.isLiveThumbnail ? 'items-center' : 'items-end'}`}
                 >
                   <p className={`text-white font-['Century_Gothic'] uppercase leading-tight ${video.isEvent || video.isLiveThumbnail ? "text-sm" : "text-xs"} ${isMobile ? 'font-bold' : 'font-thin'}`}>{video.nombre}</p>
                 </motion.div>
