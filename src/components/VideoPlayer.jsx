@@ -76,6 +76,11 @@ const VideoPlayer = ({
         config={playerConfig}
         style={playerStyle}
       />
+      {/* Overlay to prevent clicks on the player itself */}
+      <div
+        className="absolute inset-0 z-10"
+        onClick={(e) => e.stopPropagation()}
+      ></div>
     </div>
   );
 };
