@@ -97,13 +97,13 @@ const NewsTicker = ({ isMobile = false }) => {
 
   useEffect(() => {
     if (textWidth > 0 && containerWidth > 0) {
-      const duration = Math.max(40, (textWidth / tickerVisibleWidth) * 15); 
+      const duration = Math.max(40, (textWidth / containerWidth) * 15); 
       
       if (isPaused && !isMobile) {
         controls.stop();
       } else {
         controls.start({
-          x: [tickerVisibleWidth, -textWidth],
+          x: [containerWidth, -textWidth],
           transition: {
             x: {
               repeat: Infinity,
@@ -120,7 +120,7 @@ const NewsTicker = ({ isMobile = false }) => {
              transition: { duration: 0.01 } 
         });
     }
-  }, [isPaused, textWidth, containerWidth, controls, animationKey, isMobile, tickerVisibleWidth]);
+  }, [isPaused, textWidth, containerWidth, controls, animationKey, isMobile]);
 
   useEffect(() => {
     setAnimationKey(prevKey => prevKey + 1);
@@ -159,10 +159,9 @@ const NewsTicker = ({ isMobile = false }) => {
       <motion.div
         key={animationKey}
         ref={textRef}
-        className="whitespace-nowrap h-full flex items-center z-30 flex-grow overflow-hidden"
+        className="whitespace-nowrap h-full flex items-center z-30 flex-grow"
         animate={controls}
         initial={{ x: containerWidth }}
-        style={{ width: tickerVisibleWidth }}
       >
         <p className="font-arial italic text-xs px-4" style={{ color: tickerTextColor }}>
           {displayedText}
