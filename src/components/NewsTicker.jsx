@@ -159,7 +159,7 @@ const NewsTicker = ({ isMobile = false }) => {
       <motion.div
         key={animationKey}
         ref={textRef}
-        className="whitespace-nowrap h-full flex items-center z-30 overflow-hidden"
+        className="whitespace-nowrap h-full flex items-center z-30 flex-grow overflow-hidden"
         animate={controls}
         initial={{ x: containerWidth }}
         style={{ width: tickerVisibleWidth }}
@@ -184,5 +184,7 @@ const NewsTicker = ({ isMobile = false }) => {
     </div>
   );
 };
+
+export default NewsTicker;
 
 export default NewsTicker;
