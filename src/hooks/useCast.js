@@ -48,10 +48,27 @@ export const useCast = (currentMedia) => {
     const castContext = window.cast.framework.CastContext.getInstance();
     castContext.requestSession().then((session) => {
       castSession.current = session;
-      const mediaInfo = new window.chrome.cast.media.MediaInfo(currentMedia.url, 'video/mp4');
+
+      let mediaInfo;
+      let contentType;
+
+      if (currentMedia.type === 'video' && currentMedia.url.includes('youtube.com')) {
+        // For YouTube videos, use the YouTube URL directly
+        contentType = 'video/youtube';
+        mediaInfo = new window.chrome.cast.media.MediaInfo(currentMedia.url, contentType);
+      } else if (currentMedia.type === 'stream') {
+        // For HLS streams, use application/x-mpegURL
+        contentType = 'application/x-mpegURL';
+        mediaInfo = new window.chrome.cast.media.MediaInfo(currentMedia.url, contentType);
+      } else {
+        // Default to video/mp4 for other video types
+        contentType = 'video/mp4';
+        mediaInfo = new window.chrome.cast.media.MediaInfo(currentMedia.url, contentType);
+      }
+      
       mediaInfo.metadata = new window.chrome.cast.media.GenericMediaMetadata();
       mediaInfo.metadata.metadataType = window.chrome.cast.media.MetadataType.GENERIC;
-      mediaInfo.metadata.title = "ESTÁS VIENDO SALADILLO VIVO";
+      mediaInfo.metadata.title = currentMedia.title || "Saladillo Vivo";
       
       const request = new window.chrome.cast.media.LoadRequest(mediaInfo);
       session.loadMedia(request).then(
