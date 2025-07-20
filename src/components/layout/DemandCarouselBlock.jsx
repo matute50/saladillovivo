@@ -132,7 +132,7 @@ const DemandCarouselBlock = ({
             <ChevronRight size={isMobile ? 13 : 10} className="text-white" />
           </button>
       </div>
-      <div className={`carrusel-${blockNumber} w-full min-h-[var(--video-carousel-fixed-height)] flex items-center justify-center`}>
+      <div className={`carrusel-${blockNumber} w-full flex items-center justify-center`}>
         <AnimatePresence mode="wait">
           <motion.div
             key={selectedFriendlyCategory}
