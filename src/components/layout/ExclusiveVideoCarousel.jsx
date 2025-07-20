@@ -68,11 +68,11 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
   const carouselContainerClasses = `relative w-full flex items-center justify-center`;
 
   if (isLoading) {
-    return <div className={`${carouselContainerClasses} h-[var(--video-carousel-fixed-height)] w-full bg-muted/50 animate-pulse rounded-lg`}></div>;
+    return <div className={`${carouselContainerClasses} w-full bg-muted/50 animate-pulse rounded-lg`}></div>;
   }
 
   if (!videos || videos.length === 0) {
-    return <div className={`${carouselContainerClasses} h-[var(--video-carousel-fixed-height)] flex items-center justify-center text-muted-foreground rounded-lg bg-muted/20`}>No hay contenido disponible.</div>;
+    return <div className={`${carouselContainerClasses} flex items-center justify-center text-muted-foreground rounded-lg bg-muted/20`}>No hay contenido disponible.</div>;
   }
   
   const isTwoItemCarousel = videos.length === 2;
