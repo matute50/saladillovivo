@@ -26,7 +26,7 @@ export const NewsProvider = ({ children }) => {
 
   const [calendarEvents, setCalendarEvents] = useState([]);
   const [eventsLoading, setEventsLoading] = useState(true);
-  const [isLoadingConfig, setIsLoadingConfig] = useState(true);
+  const [isLoadingConfig, setIsLoadingConfig] = useState(false);
   
   const [isDarkTheme, setIsDarkTheme] = useState(() => document.documentElement.classList.contains('dark'));
 
