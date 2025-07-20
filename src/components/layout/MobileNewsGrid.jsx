@@ -50,7 +50,7 @@ const MobileNewsGrid = ({ newsItems, openModal }) => {
 
   return (
     <div className="mb-4">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {newsItems.map((item) => (
           item && <MobileNewsCard key={item.id} newsItem={item} openModal={openModal} />
         ))}
