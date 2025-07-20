@@ -120,7 +120,7 @@ const NewsAndMostWatchedCarousel = ({ isMobile }) => {
           <ChevronRight size={10} className="text-white" />
         </button>
       </div>
-      <div className="min-h-[var(--video-carousel-fixed-height)] flex items-center justify-center">
+      <div className="flex items-center justify-center">
         <ExclusiveVideoCarousel
           videos={content}
           isLoading={isLoading}
