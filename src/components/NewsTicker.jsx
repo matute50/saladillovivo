@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, useAnimationControls } from 'framer-motion';
 import { useNews } from '@/context/NewsContext';
-import { Button } from '@/components/ui/button';
 import { Pause, Play } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 
@@ -11,8 +10,6 @@ const NewsTicker = ({ isMobile = false }) => {
   const [containerWidth, setContainerWidth] = useState(0);
   const [textWidth, setTextWidth] = useState(0);
   const [themeButtonLeft, setThemeButtonLeft] = useState(0);
-  const [themeButtonTop, setThemeButtonTop] = useState(0);
-  const [themeButtonHeight, setThemeButtonHeight] = useState(0);
   const [pauseButtonWidth, setPauseButtonWidth] = useState(0);
   const textRef = useRef(null);
   const containerRef = useRef(null);
@@ -65,8 +62,6 @@ const NewsTicker = ({ isMobile = false }) => {
           if (containerRef.current) {
               const containerRect = containerRef.current.getBoundingClientRect();
               setThemeButtonLeft(rect.left - containerRect.left + (rect.width / 2));
-              setThemeButtonTop(rect.top - containerRect.top);
-              setThemeButtonHeight(rect.height);
           } else {
               setThemeButtonLeft(rect.left + (rect.width / 2));
               setThemeButtonTop(rect.top);
@@ -141,8 +136,6 @@ const NewsTicker = ({ isMobile = false }) => {
 
   const displayedText = concatenatedTickerText;
 
-  const maskEndPosition = (themeButtonLeft > 0 && !isMobile) ? themeButtonLeft : containerWidth;
-  const maskStartPosition = 0; 
   const tickerBackgroundColor = isDarkTheme ? 'hsl(var(--background))' : 'hsl(var(--background))';
 
   if ((newsLoading && allTickerTexts.length === 0) || !tickerTextColor) {
@@ -177,14 +170,6 @@ const NewsTicker = ({ isMobile = false }) => {
       {!isMobile && themeButtonLeft > 0 && (
         <>
           
-          <div 
-            className="absolute top-0 h-full z-39"
-            style={{ 
-              left: `calc(${themeButtonLeft}px + ${pauseButtonWidth / 2}px)`, 
-              width: `calc(100% - (${themeButtonLeft}px + ${pauseButtonWidth / 2}px))`, 
-              backgroundColor: tickerBackgroundColor
-            }}
-          />
         </>
       )}
     </div>
