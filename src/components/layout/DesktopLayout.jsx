@@ -125,7 +125,7 @@ const DesktopLayout = ({
     });
   };
   
-  const mainColumnClasses = "card card-blur p-4 flex flex-col";
+  const mainColumnClasses = "card card-blur flex flex-col";
 
   return <>
       <header className="sticky top-[var(--desktop-header-height)] z-40 bg-background/80 backdrop-blur-sm mb-0 md:mb-3">
@@ -137,7 +137,7 @@ const DesktopLayout = ({
             <aside className="lg:w-1/2 flex flex-col w-full">
               <div className="sticky top-[calc(var(--desktop-header-height)+var(--ticker-height)+1rem)] z-30 flex flex-col gap-2 h-full">
                 <VideoSection isMobile={isMobile} />
-                <div className={`flex-grow flex flex-col items-center justify-around mt-4 ${mainColumnClasses}`}>
+                <div className={`flex-grow flex flex-col items-center justify-around mt-4 ${mainColumnClasses} p-4`}>
                     <LiveCarouselBlock isMobile={isMobile} />
                     <NewsAndMostWatchedCarousel isMobile={isMobile} />
                 </div>
@@ -175,7 +175,7 @@ const DesktopLayout = ({
                     <img loading="lazy" src={botonDemandUrl} alt="Botón para ver Videos On Demand" className="h-12 object-contain" />
                   </button>
               </div>
-              <div className="flex flex-col gap-2 flex-grow justify-between">
+              <div className="flex flex-col gap-2 flex-grow justify-between p-4">
                 {[...Array(4)].map((_, index) => (
                   <DemandCarouselBlock 
                     key={index}
