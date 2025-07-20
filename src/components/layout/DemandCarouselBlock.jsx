@@ -63,6 +63,21 @@ const DemandCarouselBlock = ({
              if (error) console.error('Error fetching upcoming events:', error);
              else newVideos = (data || []).map(event => ({ id: `event-${event.id}`, nombre: new Date(event.fecha).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }), imagen: event.imagen, isEvent: true }));
           }
+      } else if (category === 'Últimas Noticias') {
+          const { data, error } = await supabase
+            .from('videos')
+            .select('id, nombre, url, categoria, imagen, createdAt')
+            .eq('categoria', 'noticias')
+            .order('createdAt', { ascending: false });
+
+          if (error) console.error('Error fetching latest news videos:', error);
+          else {
+            newVideos = data || [];
+            if (newVideos.length > 0) {
+              const latestVideo = newVideos.shift();
+              newVideos.unshift(latestVideo);
+            }
+          }
       } else if (category === 'Novedades') {
           const { data, error } = await supabase.from('videos').select('id, nombre, url, categoria, imagen, createdAt, novedad').eq('novedad', true).order('createdAt', { ascending: false });
           if(error) console.error(error); else newVideos = data;
