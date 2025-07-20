@@ -1,13 +1,13 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import HomePage from '@/pages/HomePage';
-import ArticlePage from '@/pages/ArticlePage'; 
-import CategoryPage from '@/pages/CategoryPage';
-import SitemapGenerator from '@/pages/SitemapGenerator';
+const HomePage = lazy(() => import('@/pages/HomePage'));
+const ArticlePage = lazy(() => import('@/pages/ArticlePage')); 
+const CategoryPage = lazy(() => import('@/pages/CategoryPage'));
+const SitemapGenerator = lazy(() => import('@/pages/SitemapGenerator'));
 import { NewsProvider } from '@/context/NewsContext';
 import { MediaPlayerProvider } from '@/context/MediaPlayerContext';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
@@ -36,14 +36,16 @@ const AppContent = () => {
       <Header isMobile={isMobile} />
       
       <main className={`flex-grow pb-[var(--footer-height-mobile)] md:pb-[var(--footer-height)]`}>
-        <Routes>
-          <Route 
-            path="/" 
-            element={<HomePage isMobile={isMobile} />} 
-          />
-          <Route path="/noticia/:slug" element={<ArticlePage />} />
-          <Route path="/categoria/:categoria" element={<CategoryPage />} />
-        </Routes>
+        <Suspense fallback={<div>Cargando...</div>}>
+          <Routes>
+            <Route 
+              path="/" 
+              element={<HomePage isMobile={isMobile} />} 
+            />
+            <Route path="/noticia/:slug" element={<ArticlePage />} />
+            <Route path="/categoria/:categoria" element={<CategoryPage />} />
+          </Routes>
+        </Suspense>
       </main>
       
       <Footer />
