@@ -116,7 +116,7 @@ const DemandCarouselBlock = ({
 
   const titleContainerClasses = isMobile
     ? 'flex items-center justify-center w-full gap-x-3 z-10'
-    : 'flex items-center justify-center w-full gap-x-3 z-10 transform -translate-y-4';
+    : 'flex items-center justify-center w-full gap-x-3 z-10 transform translate-y-0';
 
 
   return (

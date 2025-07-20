@@ -67,7 +67,13 @@ const DesktopLayout = ({
   const [searchResults, setSearchResults] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
 
-  const stopWords = useMemo(() => new Set(['el', 'la', 'de', 'con', 'por', 'para', 'sin', 'si', 'no', 'desde', 'hasta', 'a', 'ante', 'bajo', 'contra', 'durante', 'en', 'entre', 'hacia', 'según', 'sobre', 'tras', 'cabe', 'mediante', 'versus', 'vía', 'perl', 'copiar', 'editar']), []);
+  const removeAccents = (str) => {
+    return str.normalize("NFD").replace(/\p{M}/gu, "");
+  };
+
+  const stopWords = useMemo(() => new Set([
+    'el', 'la', 'los', 'las', 'a', 'de', 'en', 'con', 'por', 'para', 'sobre', 'ante', 'bajo', 'cabe', 'contra', 'desde', 'durante', 'mediante', 'entre', 'hacia', 'hasta', 'según', 'sin', 'tras', 'y', 'e', 'ni', 'o', 'u', 'pero', 'mas', 'sino', 'aunque', 'como', 'cuando', 'donde', 'que', 'quien', 'cual', 'cuanto', 'si', 'me', 'te', 'se', 'nos', 'os', 'lo', 'le', 'les', 'mi', 'ti', 'si', 'conmigo', 'contigo', 'consigo', 'nuestro', 'nuestra', 'nuestros', 'nuestras', 'vuestro', 'vuestra', 'vuestros', 'vuestras', 'un', 'una', 'unos', 'unas', 'ya', 'tambien', 'aun', 'solo', 'solo', 'todavia', 'etc'
+  ]), []);
 
   const handleSearch = useCallback(async () => {
     if (!searchQuery.trim()) {
@@ -76,14 +82,15 @@ const DesktopLayout = ({
     }
     setIsSearching(true);
     
-    const searchTerms = searchQuery.toLowerCase().split(' ').filter(term => !stopWords.has(term) && term.length > 0);
+    const normalizedQuery = removeAccents(searchQuery.toLowerCase());
+    const searchTerms = normalizedQuery.split(' ').filter(term => !stopWords.has(term) && term.length > 0);
     if (searchTerms.length === 0) {
       setSearchResults([]);
       setIsSearching(false);
       return;
     }
 
-    const query = searchTerms.map(term => `'${term}'`).join(' & ');
+    const query = searchTerms.map(term => `'${term}'`).join(' | ');
 
     try {
       const { data, error } = await supabase
