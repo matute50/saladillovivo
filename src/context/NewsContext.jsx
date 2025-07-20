@@ -39,13 +39,7 @@ export const NewsProvider = ({ children }) => {
     return () => observer.disconnect();
   }, []);
 
-  useEffect(() => {
-    const fetchInitialConfig = async () => {
-      setIsLoadingConfig(true);
-      setTimeout(() => setIsLoadingConfig(false), 100); 
-    };
-    fetchInitialConfig();
-  }, []);
+  
 
   useEffect(() => {
     const fetchCalendarEvents = async () => {
@@ -76,14 +70,17 @@ export const NewsProvider = ({ children }) => {
         setIsLoadingBanners(true);
         setAdsLoading(true);
 
-        let { data: articles, error: articlesError } = await supabase
-          .from('articles')
-          .select('id, title, text, imageUrl, featureStatus, updatedAt, createdAt, slug, description')
-          .order('createdAt', { ascending: false });
+        const [articlesResponse, tickerResponse, videosResponse, interviewsResponse, bannersResponse, adsResponse] = await Promise.all([
+          supabase.from('articles').select('id, title, text, imageUrl, featureStatus, updatedAt, createdAt, slug, description').order('createdAt', { ascending: false }),
+          supabase.from('textos_ticker').select('text, isActive').eq('isActive', true).order('createdAt', { ascending: true }),
+          supabase.from('videos').select('id, nombre, url, createdAt, categoria, imagen').order('createdAt', { ascending: false }),
+          supabase.from('entrevistas').select('id, nombre, url, created_at, updated_at, categoria, imagen').order('created_at', { ascending: false }),
+          supabase.from('banner').select('id, imageUrl, nombre, isActive').eq('isActive', true).order('createdAt', { ascending: false }),
+          supabase.from('anuncios').select('id, imageUrl, name, isActive, linkUrl').eq('isActive', true).order('createdAt', { ascending: false })
+        ]);
 
-        if (articlesError) throw articlesError;
-        
-        const processedNews = articles.map(item => ({
+        if (articlesResponse.error) throw articlesResponse.error;
+        const processedNews = articlesResponse.data.map(item => ({
           id: item.id,
           titulo: item.title,
           slug: item.slug || item.id.toString(), 
@@ -94,11 +91,10 @@ export const NewsProvider = ({ children }) => {
           createdAt: item.createdAt,
           updatedAt: item.updatedAt,
           autor: 'Equipo Editorial',
-          categoria: item.featureStatus || 'General',
+          categoria: item.featureStatus,
           imageUrl: item.imageUrl || 'https://images.unsplash.com/photo-1495020689067-958852a7765e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1169&q=80',
           featureStatus: item.featureStatus,
         }));
-        
         setNews(processedNews);
 
         const featured = processedNews.find(n => n.featureStatus === 'destacada');
@@ -117,42 +113,28 @@ export const NewsProvider = ({ children }) => {
         );
         setOtherNews(others);
 
-        let { data: tickerData, error: tickerError } = await supabase
-          .from('textos_ticker')
-          .select('text, isActive') 
-          .eq('isActive', true)
-          .order('createdAt', { ascending: true });
-
-        if (tickerError) {
-           console.warn('Error fetching ticker texts:', tickerError);
+        if (tickerResponse.error) {
+           console.warn('Error fetching ticker texts:', tickerResponse.error);
            setAllTickerTexts(["Últimas noticias de última hora - Siga nuestra cobertura en vivo."]);
-        } else if (tickerData && tickerData.length > 0) {
-          setAllTickerTexts(tickerData.map(t => t.text).filter(Boolean)); 
+        } else if (tickerResponse.data && tickerResponse.data.length > 0) {
+          setAllTickerTexts(tickerResponse.data.map(t => t.text).filter(Boolean)); 
         } else {
           setAllTickerTexts(["Bienvenido a Saladillo Vivo - Manténgase informado."]);
         }
 
-        let { data: videosData, error: videosError } = await supabase
-          .from('videos')
-          .select('id, nombre, url, createdAt, categoria, imagen')
-          .order('createdAt', { ascending: false });
-        if (videosError) {
-          console.error('Error fetching videos:', videosError);
+        if (videosResponse.error) {
+          console.error('Error fetching videos:', videosResponse.error);
           setGalleryVideos([]);
         } else {
-          setGalleryVideos(videosData || []); 
+          setGalleryVideos(videosResponse.data || []); 
         }
         setIsLoadingVideos(false);
 
-        let { data: interviewsData, error: interviewsError } = await supabase
-          .from('entrevistas')
-          .select('id, nombre, url, created_at, updated_at, categoria, imagen')
-          .order('created_at', { ascending: false });
-        if (interviewsError) {
-          console.error('Error fetching interviews:', interviewsError);
+        if (interviewsResponse.error) {
+          console.error('Error fetching interviews:', interviewsResponse.error);
           setInterviews([]);
         } else {
-          const processedInterviews = (interviewsData || []).map(item => ({
+          const processedInterviews = (interviewsResponse.data || []).map(item => ({
             ...item,
             createdAt: item.created_at,
             updatedAt: item.updated_at,
@@ -161,29 +143,19 @@ export const NewsProvider = ({ children }) => {
         }
         setIsLoadingInterviews(false);
 
-        let { data: bannersData, error: bannersError } = await supabase
-          .from('banner')
-          .select('id, imageUrl, nombre, isActive')
-          .eq('isActive', true)
-          .order('createdAt', { ascending: false });
-        if (bannersError) {
-          console.error('Error fetching banners:', bannersError);
+        if (bannersResponse.error) {
+          console.error('Error fetching banners:', bannersResponse.error);
           setActiveBanners([]);
         } else {
-          setActiveBanners(bannersData || []);
+          setActiveBanners(bannersResponse.data || []);
         }
         setIsLoadingBanners(false);
 
-        let { data: adsData, error: adsError } = await supabase
-          .from('anuncios')
-          .select('id, imageUrl, name, isActive, linkUrl')
-          .eq('isActive', true)
-          .order('createdAt', { ascending: false });
-        if (adsError) {
-          console.error('Error fetching ads:', adsError);
+        if (adsResponse.error) {
+          console.error('Error fetching ads:', adsResponse.error);
           setActiveAds([]);
         } else {
-          setActiveAds(adsData || []);
+          setActiveAds(adsResponse.data || []);
         }
         setAdsLoading(false);
         
