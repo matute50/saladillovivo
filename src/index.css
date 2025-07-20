@@ -56,7 +56,7 @@
     --footer-height-mobile: 60px;
     --player-height-mobile: calc((100vw * 9 / 16));
     --player-info-bar-height: 24px;
-    --video-carousel-fixed-height: 10rem;
+    
     --header-height: 56px;
     --desktop-header-height: 72px;
     --ticker-height: 32px;
