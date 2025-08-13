@@ -1,0 +1,47 @@
+[
+  {
+    "id": "evento-789",
+    "tipo": "evento",
+    "titulo": "Próximo evento: Festival de Food Trucks en la plaza principal",
+    "descripcion": "El próximo fin de semana, la plaza se llena de sabores con el festival de Food Trucks. Música en vivo, gastronomía y diversión para toda la familia.",
+    "url": "https://www.saladillovivo.com.ar/evento/evento-food-trucks",
+    "imagen": "https://www.saladillovivo.com.ar/images/evento-789.jpg",
+    "categoria": "Eventos",
+    "fecha": "2025-08-06T23:38:46.655Z",
+    "tags": [
+      "#Noticias",
+      "#Saladillo"
+    ],
+    "prioridad": "baja"
+  },
+  {
+    "id": "noticia-123",
+    "tipo": "noticia",
+    "titulo": "El HCD aprobó el nuevo presupuesto municipal",
+    "descripcion": "En una sesión extensa, el Honorable Concejo Deliberante de Saladillo dio luz verde al presupuesto para el próximo año fiscal, con foco en obras públicas y desarrollo social.",
+    "url": "https://www.saladillovivo.com.ar/noticia/hcd-aprobo-presupuesto",
+    "imagen": "https://www.saladillovivo.com.ar/images/noticia-123.jpg",
+    "categoria": "HCD de Saladillo",
+    "fecha": "2025-08-06T21:38:46.654Z",
+    "tags": [
+      "#PoliticaLocal",
+      "#HCD"
+    ],
+    "prioridad": "media"
+  },
+  {
+    "id": "video-456",
+    "tipo": "video",
+    "titulo": "Nuevo video en Gente de Acá: Entrevista con el artista local",
+    "descripcion": "No te pierdas la última entrega de \"Gente de Acá\", donde conversamos con un reconocido pintor sobre su trayectoria y sus nuevas obras.",
+    "url": "https://www.saladillovivo.com.ar/video/video-gente-de-aca-pintor",
+    "imagen": "https://www.saladillovivo.com.ar/images/video-456.jpg",
+    "categoria": "Gente de Acá",
+    "fecha": "2025-08-05T23:38:46.655Z",
+    "tags": [
+      "#Cultura",
+      "#Entrevistas"
+    ],
+    "prioridad": "alta"
+  }
+]

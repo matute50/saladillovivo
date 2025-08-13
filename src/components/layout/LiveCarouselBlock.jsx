@@ -61,11 +61,17 @@ const LiveCarouselBlock = ({ isMobile }) => {
 
   const isStreamActive = streamStatus ? streamStatus.isActive : false;
 
+  const titleContainerClasses = isMobile
+    ? 'flex items-center justify-center w-full gap-x-3 z-10'
+    : 'flex items-center justify-center w-full gap-x-3 z-10 transform translate-y-0';
+
   return (
     <div className="live-carousel-block w-full">
-      <h2 className="text-2xl font-futura-bold text-foreground text-center mb-[-1.25rem] z-10 relative">
-        Ver en VIVO
-      </h2>
+      <div className={titleContainerClasses}>
+        <h2 className="text-2xl font-futura-bold text-foreground text-center">
+          Ver en VIVO
+        </h2>
+      </div>
       <div className="min-h-[var(--video-carousel-fixed-height)] flex items-center justify-center">
         <ExclusiveVideoCarousel
           videos={carouselContent}

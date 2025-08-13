@@ -179,10 +179,10 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
           </Swiper>
            {showNavButtons && (
               <>
-                  <button id={prevButtonId} onClick={handlePrev} className="carousel-nav-button absolute top-1/2 -translate-y-1/2 left-0 z-20 transition-colors text-white rounded-full p-2 cursor-pointer">
+                  <button id={prevButtonId} onClick={handlePrev} className="carousel-nav-button absolute top-1/2 -translate-y-1/2 left-0 z-20 transition-colors text-white rounded-full p-2 cursor-pointer dark:active:bg-accent-blue dark:active:text-white">
                       <ChevronLeft size={16} className="text-white" />
                   </button>
-                  <button id={nextButtonId} onClick={handleNext} className="carousel-nav-button absolute top-1/2 -translate-y-1/2 right-0 z-20 transition-colors text-white rounded-full p-2 cursor-pointer">
+                  <button id={nextButtonId} onClick={handleNext} className="carousel-nav-button absolute top-1/2 -translate-y-1/2 right-0 z-20 transition-colors text-white rounded-full p-2 cursor-pointer dark:active:bg-accent-blue dark:active:text-white">
                       <ChevronRight size={16} className="text-white" />
                   </button>
               </>

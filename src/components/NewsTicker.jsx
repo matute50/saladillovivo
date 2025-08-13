@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, useAnimationControls } from 'framer-motion';
 import { useNews } from '@/context/NewsContext';
 import { Pause, Play } from 'lucide-react';
-import { supabase } from '@/lib/supabaseClient';
 
 const NewsTicker = ({ isMobile = false }) => {
   const { allTickerTexts, isLoading: newsLoading } = useNews();
@@ -28,22 +27,7 @@ const NewsTicker = ({ isMobile = false }) => {
   }, []);
 
   useEffect(() => {
-    const fetchTickerColor = async () => {
-      const { data, error } = await supabase
-        .from('textos_ticker')
-        .select('color')
-        .eq('isActive', true)
-        .limit(1)
-        .single();
-      
-      if (error) {
-        console.error("Error fetching ticker color:", error);
-        setTickerTextColor(isDarkTheme ? '#6699ff' : 'rgb(90,90,90)');
-      } else {
-        setTickerTextColor(data?.color || (isDarkTheme ? '#6699ff' : 'rgb(90,90,90)'));
-      }
-    };
-    fetchTickerColor();
+    setTickerTextColor(isDarkTheme ? '#6699ff' : 'rgb(90,90,90)');
   }, [isDarkTheme]);
 
 

@@ -44,7 +44,7 @@ const Footer = () => {
                 Saladillo Vivo declarado de interés cultural y municipal {' '}
                 <span
                   onClick={() => setDecretoModalOpen(true)}
-                  className="font-bold underline cursor-pointer hover:text-primary/80"
+                  className="font-bold underline cursor-pointer"
                 >
                   DECRETO H.C.D. Nro. 37/2022
                 </span>
@@ -53,7 +53,7 @@ const Footer = () => {
                 © {currentYear} Saladillo Vivo. Desarrollo de software y contenidos por{' '}
                 <span 
                   onClick={() => setCreatorModalOpen(true)}
-                  className="font-bold underline cursor-pointer hover:text-primary/80"
+                  className="font-bold underline cursor-pointer"
                 >
                   Matías Vidal
                 </span>

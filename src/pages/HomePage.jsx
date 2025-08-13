@@ -70,14 +70,14 @@ const HomePage = ({ isMobile }) => {
         <meta name="keywords" content={mainFeaturedNews?.meta_keywords || 'Saladillo, noticias, actualidad, vivo, streaming, eventos, cultura, HCD'} />
         <meta property="og:title" content={mainFeaturedNews?.meta_title || 'Saladillo Vivo - Noticias y Actualidad'} />
         <meta property="og:description" content={mainFeaturedNews?.meta_description || 'Saladillo Vivo es el canal temático de noticias, eventos y cultura de Saladillo. Mirá streaming en vivo y contenido on demand las 24hs.'} />
-        <meta property="og:image" content={mainFeaturedNews?.imageUrl || 'https://www.saladillovivo.com/default-og-image.png'} /> 
-        <meta property="og:url" content={`https://www.saladillovivo.com${mainFeaturedNews?.slug ? '/noticia/' + mainFeaturedNews.slug : ''}`} />
+        <meta property="og:image" content={mainFeaturedNews?.imageUrl || 'https://www.saladillovivo.com.ar/default-og-image.png'} /> 
+        <meta property="og:url" content={`https://www.saladillovivo.com.ar${mainFeaturedNews?.slug ? '/noticia/' + mainFeaturedNews.slug : ''}`} />
         <meta property="og:type" content={mainFeaturedNews ? 'article' : 'website'} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={mainFeaturedNews?.meta_title || 'Saladillo Vivo - Noticias y Actualidad'} />
         <meta name="twitter:description" content={mainFeaturedNews?.meta_description || 'Saladillo Vivo es el canal temático de noticias, eventos y cultura de Saladillo.'} />
-        <meta name="twitter:image" content={mainFeaturedNews?.imageUrl || 'https://www.saladillovivo.com/default-og-image.png'} />
-        {mainFeaturedNews && <link rel="canonical" href={`https://www.saladillovivo.com/noticia/${mainFeaturedNews.slug}`} />}
+        <meta name="twitter:image" content={mainFeaturedNews?.imageUrl || 'https://www.saladillovivo.com.ar/default-og-image.png'} />
+        {mainFeaturedNews && <link rel="canonical" href={`https://www.saladillovivo.com.ar/noticia/${mainFeaturedNews.slug}`} />}
       </Helmet>
 
       {isMobile ? (

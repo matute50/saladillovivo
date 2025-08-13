@@ -103,27 +103,7 @@ function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  useEffect(() => {
-    const handleContextMenu = (e) => e.preventDefault();
-    const handleKeyDown = (e) => {
-      if (
-        e.key === 'F12' ||
-        (e.ctrlKey && e.shiftKey && e.key === 'I') ||
-        (e.ctrlKey && e.shiftKey && e.key === 'J') ||
-        (e.ctrlKey && e.key === 'U')
-      ) {
-        e.preventDefault();
-      }
-    };
-
-    document.addEventListener('contextmenu', handleContextMenu);
-    document.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.removeEventListener('contextmenu', handleContextMenu);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []);
+  
 
 
   useEffect(() => {
@@ -135,11 +115,9 @@ function App() {
 
   if (isLoading) {
     return (
-      <div className={`flex items-center justify-center min-h-screen`}>
-        <div className="text-center">
-          <div className={`w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4`}></div>
-          <h2 className={`text-xl font-semibold text-primary`}>Cargando Saladillo Vivo...</h2>
-        </div>
+      <div id="loading-screen">
+        <div id="loading-spinner"></div>
+        <h2 id="loading-text">Cargando Saladillo Vivo...</h2>
       </div>
     );
   }

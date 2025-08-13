@@ -5,7 +5,9 @@
   "private": true,
   "scripts": {
     "dev": "vite",
+    "prebuild": "node tools/generate-feed.js",
     "build": "vite build",
+    "postbuild": "node tools/generate-rss.js",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -24,6 +26,7 @@
     "@supabase/supabase-js": "2.30.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
+    "dotenv": "^17.2.1",
     "framer-motion": "^10.16.4",
     "hls.js": "^1.5.8",
     "lucide-react": "^0.292.0",
@@ -32,6 +35,7 @@
     "react-helmet-async": "^2.0.5",
     "react-player": "^2.14.1",
     "react-router-dom": "^6.16.0",
+    "rss": "^1.2.2",
     "swiper": "^11.0.5",
     "tailwind-merge": "^1.14.0",
     "tailwindcss-animate": "^1.0.7"

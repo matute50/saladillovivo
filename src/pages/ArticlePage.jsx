@@ -64,7 +64,7 @@ const ArticlePage = () => {
           <title>Artículo no encontrado - Saladillo Vivo</title>
         </Helmet>
         <h2 className="text-2xl font-bold mb-4">Artículo no encontrado</h2>
-        <p className="text-gray-600 dark:text-gray-400 mb-8">
+        <p className="text-gray-600 mb-8">
           Lo sentimos, el artículo que estás buscando no existe o ha sido eliminado.
         </p>
         <Link to="/">
@@ -76,7 +76,7 @@ const ArticlePage = () => {
     );
   }
   
-  const siteBaseUrl = "https://www.saladillovivo.com"; 
+  const siteBaseUrl = "https://www.saladillovivo.com.ar"; 
   const articleUrl = `${siteBaseUrl}/noticia/${noticia.slug}`;
   const logoUrl = `${siteBaseUrl}/logo.png`; // Asegúrate que este logo exista
 
@@ -147,7 +147,7 @@ const ArticlePage = () => {
               {noticia.titulo}
             </motion.h1>
             
-            <div className="flex flex-wrap items-center text-sm text-gray-600 dark:text-gray-400 mb-6 gap-4">
+            <div className="flex flex-wrap items-center text-sm text-gray-600 mb-6 gap-4">
               <div className="flex items-center">
                 <Calendar size={16} className="mr-1" />
                 <span>{formatDate(noticia.fecha)}</span>
@@ -156,7 +156,7 @@ const ArticlePage = () => {
                 <User size={16} className="mr-1" />
                 <span>{noticia.autor}</span>
               </div>
-              <div className="flex items-center text-blue-600 dark:text-blue-400">
+              <div className="flex items-center text-blue-600">
                 <Tag size={16} className="mr-1" />
                 <span>{noticia.categoria || 'General'}</span>
               </div>
@@ -169,7 +169,7 @@ const ArticlePage = () => {
                src={noticia.imageUrl || "https://images.unsplash.com/photo-1456339445756-beb5120afc42"} />
             </div>
             
-            <div className="text-lg font-medium mb-6 text-gray-700 dark:text-gray-300">
+            <div className="text-lg font-medium mb-6 text-gray-700">
               {noticia.resumen}
             </div>
           </header>

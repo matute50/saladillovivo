@@ -71,7 +71,7 @@ const CategoryPage = () => {
         >
           Categoría: {categoria}
         </motion.h1>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-gray-600">
           Explora las últimas noticias sobre {categoria}
         </p>
       </div>
@@ -89,7 +89,7 @@ const CategoryPage = () => {
       ) : (
         <div className="text-center py-12">
           <h3 className="text-xl font-medium mb-2">No hay noticias disponibles</h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
+          <p className="text-gray-600 mb-6">
             No se encontraron noticias en esta categoría.
           </p>
           <Link to="/">

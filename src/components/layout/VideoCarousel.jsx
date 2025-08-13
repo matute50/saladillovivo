@@ -55,13 +55,13 @@ const VideoCarousel = ({
     return null;
   }
   
-  const navButtonClasses = "swiper-nav-button absolute top-1/2 -translate-y-1/2 z-10 bg-black/50 hover:bg-primary transition-all text-white rounded-full p-1 cursor-pointer";
+  const navButtonClasses = "swiper-nav-button absolute top-1/2 -translate-y-1/2 z-10 bg-black/50 hover:bg-primary transition-all text-white rounded-full p-1 cursor-pointer dark:active:bg-accent-blue dark:active:text-white";
   const nextButtonId = `next-${carouselId}`;
   const prevButtonId = `prev-${carouselId}`;
 
   return (
     <div className="video-carousel-container w-full relative">
-       {title && <h2 className="text-lg font-futura-bold mb-2 text-foreground dark:text-foreground">{title}</h2>}
+       {title && <h2 className="text-lg font-futura-bold mb-2 text-foreground">{title}</h2>}
         <Swiper
           ref={swiperRef}
           grabCursor={true}
@@ -86,7 +86,7 @@ const VideoCarousel = ({
                 />
                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-all"></div>
               </div>
-              <p className="text-center font-semibold text-xs text-foreground dark:text-foreground mt-1.5 truncate group-hover:text-primary transition-colors">
+              <p className="text-center font-semibold text-xs text-foreground mt-1.5 truncate group-hover:text-primary transition-colors">
                 {video.nombre}
               </p>
             </SwiperSlide>

@@ -9,9 +9,11 @@ import { useNews } from '@/context/NewsContext';
 import { useToast } from '@/components/ui/use-toast';
 import { Search } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
-import NewsAndMostWatchedCarousel from '@/components/layout/NewsAndMostWatchedCarousel';
+import NewsCarousel from '@/components/layout/NewsCarousel';
+import NovedadesCarousel from '@/components/layout/NewsAndMostWatchedCarousel';
 import FeaturedNewsSection from '@/components/layout/FeaturedNewsSection';
 import SecondaryNewsCard from '@/components/layout/SecondaryNewsCard';
+import NoResultsCard from '@/components/layout/NoResultsCard';
 
 const DesktopLayout = ({
   newsContext: newsContextFromProps,
@@ -41,7 +43,6 @@ const DesktopLayout = ({
   }, [secondaryFeaturedNews1, secondaryFeaturedNews2, otherNews]);
 
   const categoryMap = useMemo(() => ({
-    "Últimas Noticias": "noticias",
     "Sembrando Futuro": "SEMBRANDO FUTURO",
     "Hacelo Corto": "cortos",
     "Lo que Fuimos": "historia",
@@ -57,10 +58,10 @@ const DesktopLayout = ({
   const findIndex = (catName) => selectableCategories.findIndex(c => c === catName);
 
   const [categoryIndices, setCategoryIndices] = useState([
-    findIndex("Últimas Noticias"),
     findIndex("Sembrando Futuro"),
     findIndex("Saladillo Canta"),
-    findIndex("Hacelo Corto")
+    findIndex("Hacelo Corto"),
+    findIndex("Lo que Fuimos")
   ]);
   
   const [searchQuery, setSearchQuery] = useState('');
@@ -82,7 +83,7 @@ const DesktopLayout = ({
     }
     setIsSearching(true);
     
-    const normalizedQuery = removeAccents(searchQuery.toLowerCase());
+    const normalizedQuery = removeAccents(searchQuery.toLowerCase()).replace(/[.,/#!$%^&*;:{}=\-_`~()]/g," ").replace(/\s{2,}/g," ");
     const searchTerms = normalizedQuery.split(' ').filter(term => !stopWords.has(term) && term.length > 0);
     if (searchTerms.length === 0) {
       setSearchResults([]);
@@ -115,9 +116,6 @@ const DesktopLayout = ({
   }, [searchQuery, stopWords, toast]);
 
   const handleCategoryChange = (blockIndex, direction) => {
-    if (blockIndex === 0 && searchResults !== null) {
-      setSearchResults(null);
-    }
     setCategoryIndices(prevIndices => {
       const newIndices = [...prevIndices];
       const numCategories = selectableCategories.length;
@@ -146,14 +144,14 @@ const DesktopLayout = ({
                 <VideoSection isMobile={isMobile} />
                 <div className={`flex-grow flex flex-col items-center justify-around mt-4 ${mainColumnClasses} p-4`}>
                     <LiveCarouselBlock isMobile={isMobile} />
-                    <NewsAndMostWatchedCarousel isMobile={isMobile} />
+                    <NovedadesCarousel isMobile={isMobile} />
                 </div>
               </div>
             </aside>
             
             <section className={`lg:w-1/2 w-full ${mainColumnClasses}`} aria-labelledby="on-demand-title">
               <h2 id="on-demand-title" className="sr-only">Contenido On Demand y Búsqueda</h2>
-              <div className="flex justify-between items-center mb-1 mt-[-8px]">
+              <div className="flex justify-between items-center mb-1">
                 <div className="relative w-2/5">
                   <label htmlFor="search-input" className="sr-only">Buscar persona o evento</label>
                   <input
@@ -183,20 +181,41 @@ const DesktopLayout = ({
                   </button>
               </div>
               <div className="flex flex-col gap-2 flex-grow justify-between p-4">
-                {[...Array(4)].map((_, index) => (
-                  <DemandCarouselBlock 
-                    key={index}
-                    blockNumber={index + 1}
-                    isSelectable={true}
-                    selectableCategories={selectableCategories}
-                    categoryMap={categoryMap}
-                    categoryIndex={categoryIndices[index]}
-                    onCategoryChange={(direction) => handleCategoryChange(index, direction)}
-                    isSearchBlock={index === 0}
+                {(searchQuery.trim() !== '' && searchResults !== null && searchResults.length > 0) ? (
+                  <DemandCarouselBlock
+                    key="search-results-carousel"
+                    blockNumber={0}
+                    isSelectable={false}
+                    isSearchBlock={true}
                     searchResults={searchResults}
                     isSearching={isSearching}
+                    isMobile={isMobile}
                   />
-                ))}
+                ) : (searchQuery.trim() !== '' && searchResults !== null && searchResults.length === 0 && !isSearching) ? (
+                  <NoResultsCard onClearSearch={() => { setSearchQuery(''); setSearchResults(null); }} />
+                ) : (
+                  <NewsCarousel isMobile={isMobile} />
+                )}
+
+                {[...Array(3)].map((_, index) => {
+                  const categoryIndexForBlock = index + 1;
+
+                  return (
+                    <DemandCarouselBlock
+                      key={categoryIndexForBlock}
+                      blockNumber={categoryIndexForBlock + 1}
+                      isSelectable={true}
+                      selectableCategories={selectableCategories}
+                      categoryMap={categoryMap}
+                      categoryIndex={categoryIndices[categoryIndexForBlock]}
+                      onCategoryChange={(direction) => handleCategoryChange(categoryIndexForBlock, direction)}
+                      isSearchBlock={false}
+                      searchResults={null}
+                      isSearching={false}
+                      isMobile={isMobile}
+                    />
+                  );
+                })}
               </div>
             </section>
           </div>

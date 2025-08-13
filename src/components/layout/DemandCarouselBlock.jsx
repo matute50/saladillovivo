@@ -126,13 +126,17 @@ const DemandCarouselBlock = ({
     onCategoryChange(direction);
   };
   
-  const titleNavButtonClasses = "carousel-nav-button flex-shrink-0 transition-colors text-white rounded-full p-1 cursor-pointer";
+  const titleNavButtonClasses = "carousel-nav-button flex-shrink-0 transition-colors text-white rounded-full p-1 cursor-pointer dark:active:bg-[#6699ff] dark:active:text-white";
   const titleStyles = `titulo-${blockNumber} text-2xl font-futura-bold text-foreground truncate text-center`;
 
   const titleContainerClasses = isMobile
     ? 'flex items-center justify-center w-full gap-x-3 z-10'
     : 'flex items-center justify-center w-full gap-x-3 z-10 transform translate-y-0';
 
+
+  if (isSearchBlock && (searchResults === null || searchResults.length === 0)) {
+    return null;
+  }
 
   return (
     <div className={`demand-block demand-block-${blockNumber} flex flex-col items-start w-full relative`}>
@@ -147,7 +151,7 @@ const DemandCarouselBlock = ({
             <ChevronRight size={isMobile ? 13 : 10} className="text-white" />
           </button>
       </div>
-      <div className={`carrusel-${blockNumber} w-full flex items-center justify-center`}>
+      <div className={`carrusel-${blockNumber} w-full flex items-center justify-center min-h-[var(--video-carousel-fixed-height)]`}>
         <AnimatePresence mode="wait">
           <motion.div
             key={selectedFriendlyCategory}

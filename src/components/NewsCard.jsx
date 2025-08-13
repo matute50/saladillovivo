@@ -41,7 +41,7 @@ const NewsCard = ({ noticia, index = 0 }) => {
         </div>
         
         <div className="p-2 flex-grow flex items-center">
-          <h3 className="font-futura-bold text-base text-card-foreground group-hover:text-primary transition-colors line-clamp-4">
+          <h3 className="font-futura-bold text-base text-card-foreground transition-colors duration-300 line-clamp-4">
             {titulo}
           </h3>
         </div>

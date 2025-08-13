@@ -69,7 +69,7 @@ const FeaturedNewsSection = ({ mainFeaturedNews, openModal, isMobile = false }) 
       </div>
       <div className="p-2 flex flex-col mt-2">
         <h1 
-          className="font-futura-bold text-lg md:text-xl mb-2 text-card-foreground hover:text-primary transition-colors cursor-pointer line-clamp-4"
+          className="font-futura-bold text-lg md:text-xl mb-2 text-card-foreground transition-colors cursor-pointer line-clamp-4"
           onClick={() => openModal(mainFeaturedNews)}
         >
           {mainFeaturedNews.titulo}

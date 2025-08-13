@@ -1,6 +1,9 @@
+/* src/index.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
 
 @font-face {
   font-family: 'Century Gothic';
@@ -35,11 +38,11 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 0%;
     --primary: 225 100% 30%; /* #003399 */
-    --primary-foreground: 0 0% 100%; 
-    --secondary: 240 100% 60%; 
-    --secondary-foreground: 0 0% 100%; 
-    --muted: 0 0% 90%; 
-    --muted-foreground: 0 0% 45%; 
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 100% 60%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 90%;
+    --muted-foreground: 0 0% 45%;
     --accent: hsl(var(--background-start));
     --accent-foreground: 0 0% 0%;
     --destructive: 0 100% 50%; /* red */
@@ -56,7 +59,7 @@
     --footer-height-mobile: 60px;
     --player-height-mobile: calc((100vw * 9 / 16));
     --player-info-bar-height: 24px;
-    
+
     --header-height: 56px;
     --desktop-header-height: 72px;
     --ticker-height: 32px;
@@ -78,9 +81,9 @@
     --primary-foreground: 0 0% 0%;
     --secondary: 210 100% 40%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 0 0% 15%; 
+    --muted: 0 0% 15%;
     --muted-foreground: 0 0% 80%; /* #CCCCCC */
-    --accent: 0 0% 13%; 
+    --accent: 0 0% 13%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 100% 50%; /* red */
     --destructive-foreground: 0 0% 100%;
@@ -91,15 +94,14 @@
     --footer-bg-start: 0 0% 13%;
     --footer-bg-end: 0 0% 24%;
     --shadow-color: rgba(0, 0, 0, 0.5);
+    --link-color-dark: #6699ff;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
   html {
-    height: 100%; 
+    height: 100%;
     margin: 0;
     padding: 0;
   }
@@ -109,7 +111,7 @@
     background-repeat: no-repeat;
     background-attachment: fixed;
     font-feature-settings: "rlig" 1, "calt" 1;
-    overflow-x: hidden; 
+    overflow-x: hidden;
     min-height: 100%;
   }
   #root {
@@ -125,13 +127,87 @@
   .hide-scrollbar::-webkit-scrollbar { /* WebKit */
     display: none;
   }
-  
+
   h1, h2, h3, h4, h5, h6 {
     @apply text-foreground;
   }
 
   a {
     @apply text-primary;
+  }
+
+  /* Estilos para modo oscuro */
+  html.dark a {
+    color: #6699ff !important;
+    transition: color 0.3s ease;
+  }
+
+  /* Títulos de noticias (todas las tarjetas + noticia destacada) */
+  html.dark .card h3,
+  html.dark .card a h3,
+  html.dark .featured-news-card h1,
+  html.dark .featured-news-card a h1 {
+      color: #ffffff !important;
+      transition: color 0.3s linear !important;
+  }
+
+  /* Al pasar el mouse */
+  html.dark .card h3:hover,
+  html.dark .card a:hover h3,
+  html.dark .featured-news-card h1:hover,
+  html.dark .featured-news-card a:hover h1 {
+      color: #6699ff !important;
+  }
+
+  html.dark button:active {
+    background-color: #6699ff !important;
+    transition: background-color 0.3s ease;
+  }
+
+  html.dark .carousel-nav-button:active {
+    background-color: #6699ff !important;
+    transition: background-color 0.3s ease;
+  }
+
+  /* --- ESTILOS PARA LA PANTALLA DE CARGA --- */
+  #loading-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: black;
+    color: #6699ff;
+    height: 100vh;
+    width: 100%;
+    position: fixed;
+    z-index: 9999;
+  }
+
+  #loading-spinner {
+    width: 60px;
+    height: 60px;
+    border: 6px solid #333;
+    border-top: 6px solid #6699ff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+  }
+
+   @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* ===== LINKS DEL FOOTER ===== */
+  html.dark footer a,
+  html.dark footer a:visited {
+      color: #ffffff !important;
+      transition: color 0.3s ease-in-out !important;
+  }
+
+  html.dark footer a:hover {
+      color: #6699ff !important;
   }
 
   .font-futura-bold {
@@ -197,7 +273,7 @@
   .shadow-footer {
     box-shadow: 0 -5px 8px -2px var(--shadow-color);
   }
-  
+
   .control-button {
     @apply bg-background hover:bg-accent focus-visible:bg-accent;
   }
@@ -213,7 +289,7 @@
   .date-on-image {
     @apply absolute bottom-2 left-2 bg-black/60 text-white text-xs font-semibold px-2 py-1 rounded-md flex items-center;
   }
-  
+
   .search-box {
     @apply bg-input text-foreground placeholder:text-foreground/70 border border-white;
   }

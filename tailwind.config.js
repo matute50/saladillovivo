@@ -21,6 +21,8 @@ module.exports = {
 		},
 		extend: {
 			colors: {
+        'link-dark': 'var(--link-color-dark)',
+        'accent-blue': '#6699ff',
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
