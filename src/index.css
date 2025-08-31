@@ -27,12 +27,12 @@
 @layer base {
   :root {
     /* Light Mode */
-    --background-start: 223 44% 88%; /* #d2daed */
-    --background-end: 0 0% 78%; /* #c6c6c6 */
+    --background-start: 223 44% 95%; /* lighter */
+    --background-end: 0 0% 65%; /* darker */
     --background: hsl(var(--background-start)); /* Fallback */
     --foreground: 0 0% 0%; /* black */
-    --card-start: 223 44% 88%; /* #d2daed */
-    --card-end: 0 0% 78%; /* #c6c6c6 */
+    --card-start: 223 44% 95%; /* lighter */
+    --card-end: 0 0% 65%; /* darker */
     --card: hsl(var(--card-start)); /* Fallback */
     --card-foreground: 0 0% 0%; /* black */
     --popover: 0 0% 100%;
@@ -67,12 +67,12 @@
 
   .dark {
     /* Dark Mode */
-    --background-start: 0 0% 13%; /* #212121 */
-    --background-end: 0 0% 24%; /* #3d3d3d */
+    --background-start: 0 0% 8%; /* darker */
+    --background-end: 0 0% 28%; /* lighter */
     --background: hsl(var(--background-start)); /* Fallback */
     --foreground: 0 0% 100%; /* #FFFFFF */
-    --card-start: 0 0% 13%; /* #212121 */
-    --card-end: 0 0% 24%; /* #3d3d3d */
+    --card-start: 0 0% 8%; /* darker */
+    --card-end: 0 0% 28%; /* lighter */
     --card: hsl(var(--card-start)); /* Fallback */
     --card-foreground: 0 0% 100%;
     --popover: 0 0% 7%;
@@ -87,12 +87,12 @@
     --accent-foreground: 0 0% 100%;
     --destructive: 0 100% 50%; /* red */
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 24%; /* #3d3d3d */
+    --border: 0 0% 28%; /* lighter */
     --input: hsl(var(--background-start));
     --ring: 220 100% 70%;
 
-    --footer-bg-start: 0 0% 13%;
-    --footer-bg-end: 0 0% 24%;
+    --footer-bg-start: 0 0% 8%; /* darker */
+    --footer-bg-end: 0 0% 28%; /* lighter */
     --shadow-color: rgba(0, 0, 0, 0.5);
     --link-color-dark: #6699ff;
   }
@@ -200,14 +200,20 @@
   }
 
   /* ===== LINKS DEL FOOTER ===== */
+  footer a,
+  footer a:visited {
+      color: #6699ff !important;
+      transition: color 0.3s ease-in-out !important;
+  }
+
   html.dark footer a,
   html.dark footer a:visited {
-      color: #ffffff !important;
+      color: #6699ff !important;
       transition: color 0.3s ease-in-out !important;
   }
 
   html.dark footer a:hover {
-      color: #6699ff !important;
+      color: #ffffff !important;
   }
 
   .font-futura-bold {

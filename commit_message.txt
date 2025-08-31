@@ -1,1 +1,0 @@
-fix(ui): Corrige la superposición del título del carrusel

@@ -5,7 +5,7 @@ import { Toaster } from '@/components/ui/toaster';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 const HomePage = lazy(() => import('@/pages/HomePage'));
-const ArticlePage = lazy(() => import('@/pages/ArticlePage')); 
+const ContentPage = lazy(() => import('@/pages/ContentPage')); 
 const CategoryPage = lazy(() => import('@/pages/CategoryPage'));
 const SitemapGenerator = lazy(() => import('@/pages/SitemapGenerator'));
 import { NewsProvider } from '@/context/NewsContext';
@@ -42,7 +42,7 @@ const AppContent = () => {
               path="/" 
               element={<HomePage isMobile={isMobile} />} 
             />
-            <Route path="/noticia/:slug" element={<ArticlePage />} />
+            <Route path="/noticia/:slug" element={<ContentPage />} />
             <Route path="/categoria/:categoria" element={<CategoryPage />} />
           </Routes>
         </Suspense>

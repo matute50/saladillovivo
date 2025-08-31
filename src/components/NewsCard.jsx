@@ -3,6 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Calendar } from 'lucide-react';
+import { slugify } from '@/lib/utils';
 
 const NewsCard = ({ noticia, index = 0 }) => {
   const { titulo, fecha, slug, imageUrl, id } = noticia;
@@ -17,7 +18,7 @@ const NewsCard = ({ noticia, index = 0 }) => {
     }
   };
 
-  const articleLink = slug ? `/noticia/${slug}` : `/articulo/${id}`;
+  const articleLink = `/noticia/${slugify(titulo, id)}`;
 
   return (
     <motion.article 
@@ -30,7 +31,7 @@ const NewsCard = ({ noticia, index = 0 }) => {
         <div className="aspect-video relative overflow-hidden">
           <img   
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" 
-            alt={`Imagen de la noticia: ${titulo}`}
+            alt={`Imagen de: ${titulo}`}
             src={imageUrl || "https://images.unsplash.com/photo-1456339445756-beb5120afc42"} 
             loading="lazy"
           />

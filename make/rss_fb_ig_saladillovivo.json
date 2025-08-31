@@ -1,0 +1,53 @@
+{
+  "name": "Publicar RSS en Facebook e Instagram",
+  "description": "Toma las publicaciones nuevas del feed RSS de Saladillo Vivo y las publica en Facebook Pages e Instagram Business.",
+  "modules": [
+    {
+      "id": 1,
+      "name": "Watch RSS Feed Items",
+      "type": "rss:watchFeedItems",
+      "parameters": {
+        "feed_url": "https://www.saladillovivo.com.ar/feed.xml",
+        "limit": 1
+      }
+    },
+    {
+      "id": 2,
+      "name": "Create Facebook Page Post",
+      "type": "facebookpages:createPagePost",
+      "parameters": {
+        "page_id": "<TU_PAGE_ID>",
+        "message": "📰 {{1.title}}\n\n{{1.description}}\n\nLeer más aquí: {{1.link}}"
+      }
+    },
+    {
+      "id": 3,
+      "name": "Create Instagram Photo Post",
+      "type": "instagramforbusiness:createPhotoPost",
+      "parameters": {
+        "page_id": "<TU_PAGE_ID>",
+        "caption": "📰 {{1.title}}\n\n{{1.description}}\n\nMás en saladillovivo.com.ar",
+        "image_url": "{{1.enclosure.url}}"
+      }
+    }
+  ],
+  "connections": {
+    "facebookpages": {
+      "name": "Facebook Pages Connection",
+      "type": "facebookpages",
+      "data": {}
+    },
+    "instagramforbusiness": {
+      "name": "Instagram for Business Connection",
+      "type": "instagramforbusiness",
+      "data": {}
+    }
+  },
+  "triggers": [
+    {
+      "moduleId": 1,
+      "type": "polling",
+      "interval": 900
+    }
+  ]
+}

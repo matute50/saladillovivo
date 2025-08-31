@@ -1,0 +1,148 @@
+{
+    "name": "Publicar Novedades de RSS en Facebook e Instagram",
+    "flow": [
+        {
+            "id": 1,
+            "module": "rss:2",
+            "version": 1,
+            "parameters": {
+                "limit": 5
+            },
+            "mapper": {
+                "url": null
+            },
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 0,
+                    "messages": [
+                        {
+                            "category": "setup",
+                            "severity": "error",
+                            "message": "Value must not be empty."
+                        }
+                    ]
+                },
+                "restore": {
+                    "parameters": {
+                        "limit": {}
+                    }
+                },
+                "expect": {
+                    "url": {
+                        "label": "URL del feed RSS",
+                        "type": "text",
+                        "required": true
+                    }
+                }
+            }
+        },
+        {
+            "id": 4,
+            "module": "router",
+            "version": 1,
+            "routes": [
+                {
+                    "flow": "2",
+                    "filter": {}
+                },
+                {
+                    "flow": "3",
+                    "filter": {}
+                }
+            ],
+            "metadata": {
+                "designer": {
+                    "x": 200,
+                    "y": 0
+                }
+            }
+        },
+        {
+            "id": 2,
+            "module": "facebook-pages:6",
+            "version": 1,
+            "parameters": {},
+            "mapper": {
+                "page": null,
+                "connection": null,
+                "message": "{{1.title}}\n\n{{1.description}}",
+                "link": "{{1.link}}"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 400,
+                    "y": -100,
+                    "messages": [
+                        {
+                            "category": "setup",
+                            "severity": "error",
+                            "message": "Value must not be empty."
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "id": 3,
+            "module": "instagram-for-business:12",
+            "version": 1,
+            "parameters": {},
+            "mapper": {
+                "page": null,
+                "connection": null,
+                "photo_url": "{{1.enclosures[].url}}",
+                "caption": "{{1.title}}\n\n{{1.description}}\n\n#novedades #tuMarca #noticias"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 400,
+                    "y": 100,
+                    "messages": [
+                        {
+                            "category": "setup",
+                            "severity": "error",
+                            "message": "Value must not be empty."
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": {
+        "instant": false,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "confidential": false
+        },
+        "designer": {
+            "connections": [
+                {
+                    "from": "1",
+                    "to": "4"
+                },
+                {
+                    "from": "4",
+                    "to": "2"
+                },
+                {
+                    "from": "4",
+                    "to": "3"
+                }
+            ],
+            "orphans": []
+        },
+        "zone": "us1.make.com",
+        "notes": [
+            {
+                "id": "8a3c8e47-4f6c-4b1e-8a0a-9d6c7b2e3f4d",
+                "text": "### ¡IMPORTANTE! Pasos para configurar:\n\n1.  **Módulo RSS (izquierda):** Haz clic y pega la URL de tu feed RSS.\n2.  **Módulo Facebook Pages (arriba):** Conecta tu cuenta, selecciona la página de destino y ajusta el texto del post si lo deseas.\n3.  **Módulo Instagram (abajo):** Conecta tu cuenta y selecciona el perfil. **Importante:** Asegúrate de que tu feed RSS incluya una URL de imagen para cada post. Puede que necesites ajustar el mapeo del campo 'Photo URL' (`{{1.enclosures[].url}}`) según la estructura de tu feed."
+            }
+        ]
+    }
+}

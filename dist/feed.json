@@ -1,13 +1,13 @@
 [
   {
-    "id": "evento-789",
-    "tipo": "evento",
-    "titulo": "Próximo evento: Festival de Food Trucks en la plaza principal",
-    "descripcion": "El próximo fin de semana, la plaza se llena de sabores con el festival de Food Trucks. Música en vivo, gastronomía y diversión para toda la familia.",
-    "url": "https://www.saladillovivo.com.ar/evento/evento-food-trucks",
-    "imagen": "https://www.saladillovivo.com.ar/images/evento-789.jpg",
-    "categoria": "Eventos",
-    "fecha": "2025-08-06T23:38:46.655Z",
+    "id": 1,
+    "tipo": "noticia",
+    "titulo": "Descubren nueva especie de coral en el Océano Pacífico",
+    "descripcion": "Científicos han descubierto una nueva especie de coral que podría ser clave para la recuperación de los arrecifes dañados.",
+    "url": "https://www.saladillovivo.com.ar/noticia/descubren-nueva-especie-de-coral-en-el-oceano-pacifico-1",
+    "imagen": "https://www.saladillovivo.com.ar/images/coral_pacifico.jpg",
+    "categoria": "Ciencia",
+    "fecha": "2025-05-30",
     "tags": [
       "#Noticias",
       "#Saladillo"
@@ -15,33 +15,168 @@
     "prioridad": "baja"
   },
   {
-    "id": "noticia-123",
+    "id": 2,
     "tipo": "noticia",
-    "titulo": "El HCD aprobó el nuevo presupuesto municipal",
-    "descripcion": "En una sesión extensa, el Honorable Concejo Deliberante de Saladillo dio luz verde al presupuesto para el próximo año fiscal, con foco en obras públicas y desarrollo social.",
-    "url": "https://www.saladillovivo.com.ar/noticia/hcd-aprobo-presupuesto",
-    "imagen": "https://www.saladillovivo.com.ar/images/noticia-123.jpg",
-    "categoria": "HCD de Saladillo",
-    "fecha": "2025-08-06T21:38:46.654Z",
+    "titulo": "Nueva tecnología de baterías promete revolucionar los vehículos eléctricos",
+    "descripcion": "Una startup ha desarrollado una batería que puede cargarse en menos de 5 minutos y ofrece una autonomía de 800 km.",
+    "url": "https://www.saladillovivo.com.ar/noticia/nueva-tecnologia-de-baterias-promete-revolucionar-los-vehiculos-electricos-2",
+    "imagen": "https://www.saladillovivo.com.ar/images/bateria_electrica.jpg",
+    "categoria": "Tecnología",
+    "fecha": "2025-05-29",
     "tags": [
-      "#PoliticaLocal",
-      "#HCD"
+      "#Noticias",
+      "#Saladillo"
     ],
-    "prioridad": "media"
+    "prioridad": "baja"
   },
   {
-    "id": "video-456",
-    "tipo": "video",
-    "titulo": "Nuevo video en Gente de Acá: Entrevista con el artista local",
-    "descripcion": "No te pierdas la última entrega de \"Gente de Acá\", donde conversamos con un reconocido pintor sobre su trayectoria y sus nuevas obras.",
-    "url": "https://www.saladillovivo.com.ar/video/video-gente-de-aca-pintor",
-    "imagen": "https://www.saladillovivo.com.ar/images/video-456.jpg",
-    "categoria": "Gente de Acá",
-    "fecha": "2025-08-05T23:38:46.655Z",
+    "id": 3,
+    "tipo": "noticia",
+    "titulo": "El mercado inmobiliario muestra signos de recuperación tras años de crisis",
+    "descripcion": "Después de una prolongada recesión, el sector inmobiliario comienza a mostrar indicadores positivos en varias regiones.",
+    "url": "https://www.saladillovivo.com.ar/noticia/el-mercado-inmobiliario-muestra-signos-de-recuperacion-tras-anos-de-crisis-3",
+    "imagen": "https://www.saladillovivo.com.ar/images/mercado_inmobiliario.jpg",
+    "categoria": "Economía",
+    "fecha": "2025-05-28",
     "tags": [
-      "#Cultura",
-      "#Entrevistas"
+      "#Noticias",
+      "#Saladillo"
     ],
-    "prioridad": "alta"
+    "prioridad": "baja"
+  },
+  {
+    "id": 4,
+    "tipo": "noticia",
+    "titulo": "Estudio revela beneficios inesperados del ayuno intermitente",
+    "descripcion": "Una investigación de largo plazo muestra que el ayuno intermitente podría tener efectos positivos más allá de la pérdida de peso.",
+    "url": "https://www.saladillovivo.com.ar/noticia/estudio-revela-beneficios-inesperados-del-ayuno-intermitente-4",
+    "imagen": "https://www.saladillovivo.com.ar/images/ayuno_intermitente.jpg",
+    "categoria": "Salud",
+    "fecha": "2025-05-27",
+    "tags": [
+      "#Noticias",
+      "#Saladillo"
+    ],
+    "prioridad": "baja"
+  },
+  {
+    "id": 5,
+    "tipo": "noticia",
+    "titulo": "Histórico acuerdo climático entre las principales potencias mundiales",
+    "descripcion": "Las mayores economías del mundo han firmado un compromiso sin precedentes para reducir emisiones de carbono en un 60% para 2035.",
+    "url": "https://www.saladillovivo.com.ar/noticia/historico-acuerdo-climatico-entre-las-principales-potencias-mundiales-5",
+    "imagen": "https://www.saladillovivo.com.ar/images/acuerdo_climatico.jpg",
+    "categoria": "Política",
+    "fecha": "2025-05-26",
+    "tags": [
+      "#Noticias",
+      "#Saladillo"
+    ],
+    "prioridad": "baja"
+  },
+  {
+    "id": 6,
+    "tipo": "noticia",
+    "titulo": "Revolucionaria técnica quirúrgica permite trasplantes sin rechazo inmunológico",
+    "descripcion": "Médicos han desarrollado un método que elimina la necesidad de medicamentos inmunosupresores en pacientes trasplantados.",
+    "url": "https://www.saladillovivo.com.ar/noticia/revolucionaria-tecnica-quirurgica-permite-trasplantes-sin-rechazo-inmunologico-6",
+    "imagen": "https://www.saladillovivo.com.ar/images/trasplante_innovador.jpg",
+    "categoria": "Salud",
+    "fecha": "2025-05-25",
+    "tags": [
+      "#Noticias",
+      "#Saladillo"
+    ],
+    "prioridad": "baja"
+  },
+  {
+    "id": 7,
+    "tipo": "noticia",
+    "titulo": "Arqueólogos descubren ciudad perdida en la selva amazónica",
+    "descripcion": "Una civilización desconocida que floreció hace 2.000 años ha sido hallada gracias a tecnología de escaneo láser.",
+    "url": "https://www.saladillovivo.com.ar/noticia/arqueologos-descubren-ciudad-perdida-en-la-selva-amazonica-7",
+    "imagen": "https://www.saladillovivo.com.ar/images/ciudad_amazonica.jpg",
+    "categoria": "Ciencia",
+    "fecha": "2025-05-24",
+    "tags": [
+      "#Noticias",
+      "#Saladillo"
+    ],
+    "prioridad": "baja"
+  },
+  {
+    "id": 8,
+    "tipo": "noticia",
+    "titulo": "Inteligencia artificial logra predecir terremotos con una semana de antelación",
+    "descripcion": "Un sistema de IA ha demostrado una precisión del 87% en la predicción de seísmos durante pruebas en zonas de alta actividad.",
+    "url": "https://www.saladillovivo.com.ar/noticia/inteligencia-artificial-logra-predecir-terremotos-con-una-semana-de-antelacion-8",
+    "imagen": "https://www.saladillovivo.com.ar/images/ia_terremotos.jpg",
+    "categoria": "Tecnología",
+    "fecha": "2025-05-23",
+    "tags": [
+      "#Noticias",
+      "#Saladillo"
+    ],
+    "prioridad": "baja"
+  },
+  {
+    "id": 9,
+    "tipo": "noticia",
+    "titulo": "Histórico: Primer partido de fútbol profesional con árbitro de inteligencia artificial",
+    "descripcion": "Un sistema automatizado de arbitraje ha debutado en un partido de primera división, marcando un antes y un después en el deporte.",
+    "url": "https://www.saladillovivo.com.ar/noticia/historico-primer-partido-de-futbol-profesional-con-arbitro-de-inteligencia-artificial-9",
+    "imagen": "https://www.saladillovivo.com.ar/images/arbitro_ia.jpg",
+    "categoria": "Deportes",
+    "fecha": "2025-05-22",
+    "tags": [
+      "#Noticias",
+      "#Saladillo"
+    ],
+    "prioridad": "baja"
+  },
+  {
+    "id": 10,
+    "tipo": "noticia",
+    "titulo": "Economía circular genera 2 millones de nuevos empleos en el último año",
+    "descripcion": "El sector del reciclaje y la reutilización se consolida como uno de los más dinámicos en creación de empleo.",
+    "url": "https://www.saladillovivo.com.ar/noticia/economia-circular-genera-2-millones-de-nuevos-empleos-en-el-ultimo-ano-10",
+    "imagen": "https://www.saladillovivo.com.ar/images/economia_circular.jpg",
+    "categoria": "Economía",
+    "fecha": "2025-05-21",
+    "tags": [
+      "#Noticias",
+      "#Saladillo"
+    ],
+    "prioridad": "baja"
+  },
+  {
+    "id": 11,
+    "tipo": "noticia",
+    "titulo": "Partido de la oposición gana las elecciones tras promesa de reforma fiscal",
+    "descripcion": "Los votantes han respaldado un programa que promete reducir impuestos a las clases medias y aumentarlos a las grandes fortunas.",
+    "url": "https://www.saladillovivo.com.ar/noticia/partido-de-la-oposicion-gana-las-elecciones-tras-promesa-de-reforma-fiscal-11",
+    "imagen": "https://www.saladillovivo.com.ar/images/elecciones_reforma.jpg",
+    "categoria": "Política",
+    "fecha": "2025-05-20",
+    "tags": [
+      "#Noticias",
+      "#Saladillo"
+    ],
+    "prioridad": "baja"
+  },
+  {
+    "id": 12,
+    "tipo": "noticia",
+    "titulo": "Equipo femenino rompe récord mundial en relevos 4x100",
+    "descripcion": "Las atletas han superado una marca que se mantenía imbatida desde hace 15 años en una actuación histórica.",
+    "url": "https://www.saladillovivo.com.ar/noticia/equipo-femenino-rompe-record-mundial-en-relevos-4x100-12",
+    "imagen": "https://www.saladillovivo.com.ar/images/record_relevos.jpg",
+    "categoria": "Deportes",
+    "fecha": "2025-05-19",
+    "tags": [
+      "#Noticias",
+      "#Saladillo"
+    ],
+    "prioridad": "baja"
   }
 ]

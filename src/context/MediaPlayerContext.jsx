@@ -19,6 +19,7 @@ export const MediaPlayerProvider = ({ children }) => {
   const value = {
     ...mediaPlayerLogic,
     streamStatus,
+    
   };
 
   return (

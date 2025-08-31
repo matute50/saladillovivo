@@ -2,153 +2,133 @@
     <channel>
         <title><![CDATA[Últimos Videos - Saladillo Vivo]]></title>
         <description><![CDATA[Mantente al día con los últimos videos de Saladillo Vivo.]]></description>
-        <link>http://github.com/dylang/node-rss</link>
+        <link>https://www.saladillovivo.com.ar</link>
         <generator>RSS for Node</generator>
-        <lastBuildDate>Wed, 06 Aug 2025 23:37:49 GMT</lastBuildDate>
-        <atom:link href="undefined/feed.xml" rel="self" type="application/rss+xml"/>
-        <pubDate>Wed, 06 Aug 2025 23:37:49 GMT</pubDate>
+        <lastBuildDate>Fri, 15 Aug 2025 15:08:51 GMT</lastBuildDate>
+        <atom:link href="https://www.saladillovivo.com.ar/feed" rel="self" type="application/rss+xml"/>
+        <pubDate>Fri, 15 Aug 2025 15:08:51 GMT</pubDate>
         <language><![CDATA[es]]></language>
         <ttl>60</ttl>
         <item>
             <title><![CDATA[Noticias]]></title>
-            <link>https://tuplataforma.com/video/468</link>
             <guid isPermaLink="false">468</guid>
-            <dc:creator><![CDATA[El equipo de TuPlataforma]]></dc:creator>
+            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
             <pubDate>Sun, 20 Jul 2025 19:59:37 GMT</pubDate>
         </item>
         <item>
             <title><![CDATA[8va SESIÓN ORDINARIA]]></title>
-            <link>https://tuplataforma.com/video/466</link>
             <guid isPermaLink="false">466</guid>
-            <dc:creator><![CDATA[El equipo de TuPlataforma]]></dc:creator>
+            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
             <pubDate>Fri, 18 Jul 2025 02:39:43 GMT</pubDate>
             <enclosure url="https://otwvfihzaznyjvjtkvvd.supabase.co/storage/v1/object/public/imagenvideos/imagenvideos_1753107350931_59tstb1.png" length="0" type="image/jpeg"/>
         </item>
         <item>
             <title><![CDATA[9na SESIÓN ORDINARIA]]></title>
-            <link>https://tuplataforma.com/video/465</link>
             <guid isPermaLink="false">465</guid>
-            <dc:creator><![CDATA[El equipo de TuPlataforma]]></dc:creator>
+            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
             <pubDate>Fri, 18 Jul 2025 02:39:12 GMT</pubDate>
             <enclosure url="https://otwvfihzaznyjvjtkvvd.supabase.co/storage/v1/object/public/imagenvideos/imagenvideos_1753107376987_ha1qk2o.png" length="0" type="image/jpeg"/>
         </item>
         <item>
             <title><![CDATA[AMILCAR VALERIANI]]></title>
-            <link>https://tuplataforma.com/video/464</link>
             <guid isPermaLink="false">464</guid>
-            <dc:creator><![CDATA[El equipo de TuPlataforma]]></dc:creator>
+            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
             <pubDate>Fri, 18 Jul 2025 02:26:52 GMT</pubDate>
         </item>
         <item>
             <title><![CDATA[CLAUDIO MOLFINO]]></title>
-            <link>https://tuplataforma.com/video/463</link>
             <guid isPermaLink="false">463</guid>
-            <dc:creator><![CDATA[El equipo de TuPlataforma]]></dc:creator>
+            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
             <pubDate>Fri, 18 Jul 2025 02:22:33 GMT</pubDate>
         </item>
         <item>
             <title><![CDATA[ALE COSOLI MANO A MANO]]></title>
-            <link>https://tuplataforma.com/video/462</link>
             <guid isPermaLink="false">462</guid>
-            <dc:creator><![CDATA[El equipo de TuPlataforma]]></dc:creator>
+            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
             <pubDate>Fri, 18 Jul 2025 02:20:32 GMT</pubDate>
         </item>
         <item>
             <title><![CDATA[DR. EDUARDO DE SANTIBAÑEZ]]></title>
-            <link>https://tuplataforma.com/video/461</link>
             <guid isPermaLink="false">461</guid>
-            <dc:creator><![CDATA[El equipo de TuPlataforma]]></dc:creator>
+            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
             <pubDate>Fri, 18 Jul 2025 02:19:30 GMT</pubDate>
         </item>
         <item>
             <title><![CDATA[ELVIO MANO A MANO]]></title>
-            <link>https://tuplataforma.com/video/460</link>
             <guid isPermaLink="false">460</guid>
-            <dc:creator><![CDATA[El equipo de TuPlataforma]]></dc:creator>
+            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
             <pubDate>Fri, 18 Jul 2025 02:14:10 GMT</pubDate>
         </item>
         <item>
             <title><![CDATA[ESTEBAN URÚS]]></title>
-            <link>https://tuplataforma.com/video/459</link>
             <guid isPermaLink="false">459</guid>
-            <dc:creator><![CDATA[El equipo de TuPlataforma]]></dc:creator>
+            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
             <pubDate>Fri, 18 Jul 2025 02:13:03 GMT</pubDate>
         </item>
         <item>
             <title><![CDATA[ CANDELARIA PACHECO]]></title>
-            <link>https://tuplataforma.com/video/458</link>
             <guid isPermaLink="false">458</guid>
-            <dc:creator><![CDATA[El equipo de TuPlataforma]]></dc:creator>
+            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
             <pubDate>Fri, 18 Jul 2025 02:11:38 GMT</pubDate>
         </item>
         <item>
             <title><![CDATA[FERNANDA BRUNO]]></title>
-            <link>https://tuplataforma.com/video/457</link>
             <guid isPermaLink="false">457</guid>
-            <dc:creator><![CDATA[El equipo de TuPlataforma]]></dc:creator>
+            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
             <pubDate>Fri, 18 Jul 2025 02:11:02 GMT</pubDate>
         </item>
         <item>
             <title><![CDATA[GLORIA SALVATIERRA]]></title>
-            <link>https://tuplataforma.com/video/456</link>
             <guid isPermaLink="false">456</guid>
-            <dc:creator><![CDATA[El equipo de TuPlataforma]]></dc:creator>
+            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
             <pubDate>Fri, 18 Jul 2025 02:10:21 GMT</pubDate>
         </item>
         <item>
             <title><![CDATA[JIMENA CÁRDENAS]]></title>
-            <link>https://tuplataforma.com/video/455</link>
             <guid isPermaLink="false">455</guid>
-            <dc:creator><![CDATA[El equipo de TuPlataforma]]></dc:creator>
+            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
             <pubDate>Fri, 18 Jul 2025 02:09:03 GMT</pubDate>
         </item>
         <item>
             <title><![CDATA[JORGE DI ZEO]]></title>
-            <link>https://tuplataforma.com/video/454</link>
             <guid isPermaLink="false">454</guid>
-            <dc:creator><![CDATA[El equipo de TuPlataforma]]></dc:creator>
+            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
             <pubDate>Fri, 18 Jul 2025 02:08:09 GMT</pubDate>
         </item>
         <item>
             <title><![CDATA[JORGE MAZZA]]></title>
-            <link>https://tuplataforma.com/video/453</link>
             <guid isPermaLink="false">453</guid>
-            <dc:creator><![CDATA[El equipo de TuPlataforma]]></dc:creator>
+            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
             <pubDate>Fri, 18 Jul 2025 02:07:28 GMT</pubDate>
         </item>
         <item>
             <title><![CDATA[JUAN CARLOS FRANCO]]></title>
-            <link>https://tuplataforma.com/video/452</link>
             <guid isPermaLink="false">452</guid>
-            <dc:creator><![CDATA[El equipo de TuPlataforma]]></dc:creator>
+            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
             <pubDate>Fri, 18 Jul 2025 02:06:45 GMT</pubDate>
         </item>
         <item>
             <title><![CDATA[JUSTINA SARLO]]></title>
-            <link>https://tuplataforma.com/video/451</link>
             <guid isPermaLink="false">451</guid>
-            <dc:creator><![CDATA[El equipo de TuPlataforma]]></dc:creator>
+            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
             <pubDate>Fri, 18 Jul 2025 02:06:00 GMT</pubDate>
         </item>
         <item>
             <title><![CDATA[LETICIA PARDO]]></title>
-            <link>https://tuplataforma.com/video/450</link>
             <guid isPermaLink="false">450</guid>
-            <dc:creator><![CDATA[El equipo de TuPlataforma]]></dc:creator>
+            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
             <pubDate>Fri, 18 Jul 2025 02:04:43 GMT</pubDate>
         </item>
         <item>
             <title><![CDATA[MARÍA CABADA]]></title>
-            <link>https://tuplataforma.com/video/449</link>
             <guid isPermaLink="false">449</guid>
-            <dc:creator><![CDATA[El equipo de TuPlataforma]]></dc:creator>
+            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
             <pubDate>Fri, 18 Jul 2025 02:03:58 GMT</pubDate>
         </item>
         <item>
             <title><![CDATA[MARÍA PRADO]]></title>
-            <link>https://tuplataforma.com/video/448</link>
             <guid isPermaLink="false">448</guid>
-            <dc:creator><![CDATA[El equipo de TuPlataforma]]></dc:creator>
+            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
             <pubDate>Fri, 18 Jul 2025 02:03:25 GMT</pubDate>
         </item>
     </channel>
