@@ -48,11 +48,18 @@ app.get('/feed', async (req, res) => {
       const descriptionElement = $(el).find('div.entry-summary');
 
       if (titleElement.length && descriptionElement.length) {
+      const title = titleElement.text();
+      const url = titleElement.attr('href');
+      const description = descriptionElement.text().trim();
+
+      // Defensive check: only add item if all core fields are present
+      if (title && url && description) {
         articles.push({
-          title: titleElement.text(),
-          url: titleElement.attr('href'),
-          description: descriptionElement.text().trim(),
+          title: title,
+          url: url,
+          description: description,
         });
+      }
       }
     });
     console.log(`Se encontraron ${articles.length} artículos.`);
