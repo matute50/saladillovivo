@@ -44,8 +44,7 @@ app.get('/feed', async (req, res) => {
       ignoreHTTPSErrors: true,
     });
     const page = await browser.newPage();
-    await page.goto(SITE_URL, { waitUntil: 'networkidle2' });
-    console.log('Página cargada en Puppeteer.');
+    await page.goto(SITE_URL, { waitUntil: 'domcontentloaded' });
 
     // 2. EXTRAER LA INFORMACIÓN DE LAS NOTICIAS
     // Se ejecuta este código dentro del navegador para acceder al DOM
