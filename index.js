@@ -1,6 +1,6 @@
 const express = require('express');
-const puppeteer = require('puppeteer-core');
-const chromium = require('chrome-aws-lambda');
+const axios = require('axios');
+const cheerio = require('cheerio');
 const RSS = require('rss');
 
 const app = express();
@@ -35,38 +35,25 @@ app.get('/feed', async (req, res) => {
   console.log('Solicitud recibida en /feed. Iniciando scraping...');
 
   try {
-    // 1. INICIAR PUPPETEER Y NAVEGAR A LA PÁGINA
-    const browser = await puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath,
-      headless: chromium.headless,
-      ignoreHTTPSErrors: true,
-    });
-    const page = await browser.newPage();
-    await page.goto(SITE_URL, { waitUntil: 'domcontentloaded' });
+    // 1. OBTENER EL HTML DE LA PÁGINA
+    const response = await axios.get(SITE_URL);
+    const html = response.data;
 
-    // 2. EXTRAER LA INFORMACIÓN DE LAS NOTICIAS
-    // Se ejecuta este código dentro del navegador para acceder al DOM
-    const articles = await page.evaluate(() => {
-      // Selector de los contenedores de cada noticia.
-      // Este es el paso más frágil, depende de la estructura del HTML del sitio.
-      const articleElements = document.querySelectorAll('article.post');
-      
-      const articlesData = [];
-      articleElements.forEach(article => {
-        const titleElement = article.querySelector('h2.entry-title a');
-        const descriptionElement = article.querySelector('div.entry-summary');
+    // 2. PARSEAR EL HTML Y EXTRAER LA INFORMACIÓN
+    const $ = cheerio.load(html);
+    const articles = [];
 
-        if (titleElement && descriptionElement) {
-          articlesData.push({
-            title: titleElement.innerText,
-            url: titleElement.href,
-            description: descriptionElement.innerText.trim(),
-          });
-        }
-      });
-      return articlesData;
+    $('article.post').each((_idx, el) => {
+      const titleElement = $(el).find('h2.entry-title a');
+      const descriptionElement = $(el).find('div.entry-summary');
+
+      if (titleElement.length && descriptionElement.length) {
+        articles.push({
+          title: titleElement.text(),
+          url: titleElement.attr('href'),
+          description: descriptionElement.text().trim(),
+        });
+      }
     });
     console.log(`Se encontraron ${articles.length} artículos.`);
 
