@@ -60,10 +60,14 @@ app.get('/feed', async (req, res) => {
     await browser.close();
 
     // 3. CREAR EL FEED RSS
+    const protocol = req.headers['x-forwarded-proto'] || 'http';
+    const host = req.headers['x-forwarded-host'] || req.headers.host;
+    const publicUrl = `${protocol}://${host}/feed`;
+
     const feed = new RSS({
       title: 'Saladillo Vivo - Feed no oficial',
       description: 'Feed RSS generado automáticamente de las últimas noticias de saladillovivo.com.ar',
-      feed_url: `http://localhost:${PORT}/feed`,
+      feed_url: publicUrl,
       site_url: SITE_URL,
       language: 'es',
     });
