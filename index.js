@@ -99,7 +99,7 @@ app.get('/feed', async (req, res) => {
 
   } catch (error) {
     console.error('Error durante el scraping o la generación del feed:', error);
-    res.status(500).send('Error al generar el feed RSS. Revisa la consola del servidor.');
+    res.status(500).send(`Error details: ${error.message}`);
   }
 });
 
