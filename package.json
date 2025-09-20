@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "prebuild": "node tools/generate-feed.js",
-    "build": "vite build",
+    "build": "npx vite build",
     "postbuild": "node tools/generate-rss.js",
     "preview": "vite preview"
   },
