@@ -1,10 +1,9 @@
-
 import dotenv from 'dotenv';
 import fs from 'fs';
 import RSS from 'rss';
 import { createClient } from '@supabase/supabase-js';
 
-// Cargar variables de entorno desde .env.local
+// Cargar variables de entorno desde .env
 dotenv.config({ path: '.env' });
 
 // Inicializar Supabase
@@ -21,31 +20,31 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 async function generateRssFeed() {
   try {
-    console.log('Iniciando la generación del feed RSS...');
+    console.log('Iniciando la generación del feed RSS de noticias...');
 
-    // 1. Obtener los últimos videos de Supabase
-    const { data: videos, error } = await supabase
-      .from('videos')
-      .select('id, nombre, url, createdAt, categoria, imagen')
-      .order('createdAt', { ascending: false })
+    // 1. Obtener los últimos artículos de Supabase, ordenados por fecha de actualización
+    const { data: articles, error } = await supabase
+      .from('articles')
+      .select('id, title, slug, description, updated_at')
+      .order('updated_at', { ascending: false })
       .limit(20);
 
     if (error) {
-      throw new Error(`Error al obtener videos de Supabase: ${error.message}`);
+      throw new Error(`Error al obtener artículos de Supabase: ${error.message}`);
     }
 
-    if (!videos || videos.length === 0) {
-      console.warn('No se encontraron videos para generar el feed RSS.');
+    if (!articles || articles.length === 0) {
+      console.warn('No se encontraron artículos para generar el feed RSS.');
       return;
     }
 
-    console.log(`Se encontraron ${videos.length} videos.`);
+    console.log(`Se encontraron ${articles.length} artículos.`);
 
     // 2. Configurar el feed RSS
     const feed = new RSS({
-      title: 'Últimos Videos - Saladillo Vivo',
-      description: 'Mantente al día con los últimos videos de Saladillo Vivo.',
-      feed_url: `https://www.saladillovivo.com.ar/feed`,
+      title: 'Últimas Noticias - Saladillo Vivo',
+      description: 'Mantente al día con las últimas noticias y novedades de Saladillo Vivo.',
+      feed_url: `https://www.saladillovivo.com.ar/feed.xml`,
       site_url: 'https://www.saladillovivo.com.ar',
       image_url: process.env.VITE_PUBLIC_LOGO_URL,
       language: 'es',
@@ -53,20 +52,18 @@ async function generateRssFeed() {
       ttl: 60, // Tiempo de vida del feed en minutos
     });
 
-    // 3. Añadir cada video como un item al feed
-    for (const video of videos) {
-      feed.item({
-        title: video.nombre,
-        description: '', // No description available
-                    link: `https://www.saladillovivo.com.ar/video/${video.id}`,
-        guid: video.id,
-        date: new Date(video.createdAt).toUTCString(),
-        enclosure: {
-          url: video.imagen,
-          type: 'image/jpeg',
-        },
-        author: video.author || 'Saladillo Vivo',
-      });
+    // 3. Añadir cada artículo como un item al feed
+    for (const article of articles) {
+      if (article.slug && article.updated_at) {
+        feed.item({
+          title: article.title,
+          description: article.description || '',
+          url: `https://www.saladillovivo.com.ar/noticia/${article.slug}`,
+          guid: article.id,
+          date: new Date(article.updated_at).toUTCString(),
+          author: 'Saladillo Vivo',
+        });
+      }
     }
 
     // 4. Generar el XML
@@ -75,7 +72,7 @@ async function generateRssFeed() {
     // 5. Escribir el archivo en la carpeta public
     fs.writeFileSync('./public/feed.xml', xml);
 
-    console.log('¡Feed RSS generado con éxito en public/feed.xml!');
+    console.log('¡Feed RSS de noticias generado con éxito en public/feed.xml!');
 
   } catch (error) {
     console.error('Ocurrió un error durante la generación del feed RSS:');
