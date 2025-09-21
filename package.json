@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "build": "node tools/generate-rss.js && node tools/generate-feed.js && npx vite build",
+    "build": "node tools/generate-rss.js && node tools/generate-feed.js && echo '--- Contents of public directory before build ---' && ls -R public && echo '--- End of public directory contents ---' && npx vite build",
     "postbuild": "",
     "preview": "vite preview"
   },
