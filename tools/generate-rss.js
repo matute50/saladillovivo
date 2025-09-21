@@ -34,8 +34,8 @@ async function generateRssFeed() {
     }
 
     if (!articles || articles.length === 0) {
-      console.warn('No se encontraron artículos para generar el feed RSS.');
-      return;
+      console.error('Error crítico: No se encontraron artículos para generar el feed RSS. El build fallará.');
+      process.exit(1); // Salir con un código de error para que el build falle
     }
 
     console.log(`Se encontraron ${articles.length} artículos.`);
