@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/noticias.xml", "destination": "/noticias.xml" },
     { "source": "/feed", "destination": "/feed" }
   ]
 }
