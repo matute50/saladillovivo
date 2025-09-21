@@ -44,7 +44,7 @@ async function generateRssFeed() {
     const feed = new RSS({
       title: 'Últimas Noticias - Saladillo Vivo',
       description: 'Mantente al día con las últimas noticias y novedades de Saladillo Vivo.',
-      feed_url: `https://www.saladillovivo.com.ar/feed.xml`,
+      feed_url: `https://www.saladillovivo.com.ar/noticias.xml`,
       site_url: 'https://www.saladillovivo.com.ar',
       image_url: process.env.VITE_PUBLIC_LOGO_URL,
       language: 'es',
@@ -70,9 +70,9 @@ async function generateRssFeed() {
     const xml = feed.xml({ indent: true });
 
     // 5. Escribir el archivo en la carpeta public
-    fs.writeFileSync('./public/feed.xml', xml);
+    fs.writeFileSync('./public/noticias.xml', xml);
 
-    console.log('¡Feed RSS de noticias generado con éxito en public/feed.xml!');
+    console.log('¡Feed RSS de noticias generado con éxito en public/noticias.xml!');
 
   } catch (error) {
     console.error('Ocurrió un error durante la generación del feed RSS:');
