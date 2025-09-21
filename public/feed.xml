@@ -1,135 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
     <channel>
-        <title><![CDATA[Últimos Videos - Saladillo Vivo]]></title>
-        <description><![CDATA[Mantente al día con los últimos videos de Saladillo Vivo.]]></description>
+        <title><![CDATA[Últimas Noticias - Saladillo Vivo]]></title>
+        <description><![CDATA[Mantente al día con las últimas noticias y novedades de Saladillo Vivo.]]></description>
         <link>https://www.saladillovivo.com.ar</link>
         <generator>RSS for Node</generator>
-        <lastBuildDate>Fri, 15 Aug 2025 19:14:18 GMT</lastBuildDate>
-        <atom:link href="https://www.saladillovivo.com.ar/feed" rel="self" type="application/rss+xml"/>
-        <pubDate>Fri, 15 Aug 2025 19:14:18 GMT</pubDate>
+        <lastBuildDate>Sun, 21 Sep 2025 13:44:58 GMT</lastBuildDate>
+        <atom:link href="https://www.saladillovivo.com.ar/feed.xml" rel="self" type="application/rss+xml"/>
+        <pubDate>Sun, 21 Sep 2025 13:44:58 GMT</pubDate>
         <language><![CDATA[es]]></language>
         <ttl>60</ttl>
         <item>
-            <title><![CDATA[Noticias]]></title>
-            <guid isPermaLink="false">468</guid>
+            <title><![CDATA[Saladillo en alerta naranja: Fuertes tormentas y vientos intensos en camino]]></title>
+            <link>https://www.saladillovivo.com.ar/noticia/saladillo-en-alerta-naranja-fuertes-tormentas-y-vientos-intensos-en-camino</link>
+            <guid isPermaLink="false">35</guid>
             <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
-            <pubDate>Sun, 20 Jul 2025 19:59:37 GMT</pubDate>
+            <pubDate>Sat, 20 Sep 2025 22:18:09 GMT</pubDate>
         </item>
         <item>
-            <title><![CDATA[8va SESIÓN ORDINARIA]]></title>
-            <guid isPermaLink="false">466</guid>
+            <title><![CDATA[Kicillof en la provincia: inauguración de la Casa de la Provincia y más actividades el viernes]]></title>
+            <link>https://www.saladillovivo.com.ar/noticia/kicillof-en-la-provincia-inauguracion-de-la-casa-de-la-provincia-y-mas-actividades-el-viernes</link>
+            <guid isPermaLink="false">34</guid>
             <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
-            <pubDate>Fri, 18 Jul 2025 02:39:43 GMT</pubDate>
-            <enclosure url="https://otwvfihzaznyjvjtkvvd.supabase.co/storage/v1/object/public/imagenvideos/imagenvideos_1753107350931_59tstb1.png" length="0" type="image/jpeg"/>
+            <pubDate>Fri, 19 Sep 2025 19:12:01 GMT</pubDate>
         </item>
         <item>
-            <title><![CDATA[9na SESIÓN ORDINARIA]]></title>
-            <guid isPermaLink="false">465</guid>
+            <title><![CDATA[Saladillo celebra la designación de nuevo fiscal tras larga espera]]></title>
+            <link>https://www.saladillovivo.com.ar/noticia/saladillo-celebra-la-designacion-de-nuevo-fiscal-tras-larga-espera</link>
+            <guid isPermaLink="false">33</guid>
             <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
-            <pubDate>Fri, 18 Jul 2025 02:39:12 GMT</pubDate>
-            <enclosure url="https://otwvfihzaznyjvjtkvvd.supabase.co/storage/v1/object/public/imagenvideos/imagenvideos_1753107376987_ha1qk2o.png" length="0" type="image/jpeg"/>
+            <pubDate>Fri, 19 Sep 2025 19:10:22 GMT</pubDate>
         </item>
         <item>
-            <title><![CDATA[AMILCAR VALERIANI]]></title>
-            <guid isPermaLink="false">464</guid>
+            <title><![CDATA[¡Impulsa tu negocio! Capital Semilla con tasa 0% en [Nombre de la comunidad]]]></title>
+            <link>https://www.saladillovivo.com.ar/noticia/impulsa-tu-negocio-capital-semilla-con-tasa-0-en-nombre-de-la-comunidad</link>
+            <guid isPermaLink="false">32</guid>
             <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
-            <pubDate>Fri, 18 Jul 2025 02:26:52 GMT</pubDate>
+            <pubDate>Fri, 19 Sep 2025 19:05:52 GMT</pubDate>
         </item>
         <item>
-            <title><![CDATA[CLAUDIO MOLFINO]]></title>
-            <guid isPermaLink="false">463</guid>
+            <title><![CDATA[Cazón se ilumina: Avanzan las obras de recableado y acondicionamiento eléctrico]]></title>
+            <link>https://www.saladillovivo.com.ar/noticia/cazon-se-ilumina-avanzan-las-obras-de-recableado-y-acondicionamiento-electrico</link>
+            <guid isPermaLink="false">31</guid>
             <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
-            <pubDate>Fri, 18 Jul 2025 02:22:33 GMT</pubDate>
+            <pubDate>Fri, 19 Sep 2025 19:04:01 GMT</pubDate>
         </item>
         <item>
-            <title><![CDATA[ALE COSOLI MANO A MANO]]></title>
-            <guid isPermaLink="false">462</guid>
+            <title><![CDATA[¡Casa propia! Se anuncia el listado final de adjudicatarios de las 13 viviendas]]></title>
+            <link>https://www.saladillovivo.com.ar/noticia/casa-propia-se-anuncia-el-listado-final-de-adjudicatarios-de-las-13-viviendas</link>
+            <guid isPermaLink="false">30</guid>
             <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
-            <pubDate>Fri, 18 Jul 2025 02:20:32 GMT</pubDate>
-        </item>
-        <item>
-            <title><![CDATA[DR. EDUARDO DE SANTIBAÑEZ]]></title>
-            <guid isPermaLink="false">461</guid>
-            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
-            <pubDate>Fri, 18 Jul 2025 02:19:30 GMT</pubDate>
-        </item>
-        <item>
-            <title><![CDATA[ELVIO MANO A MANO]]></title>
-            <guid isPermaLink="false">460</guid>
-            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
-            <pubDate>Fri, 18 Jul 2025 02:14:10 GMT</pubDate>
-        </item>
-        <item>
-            <title><![CDATA[ESTEBAN URÚS]]></title>
-            <guid isPermaLink="false">459</guid>
-            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
-            <pubDate>Fri, 18 Jul 2025 02:13:03 GMT</pubDate>
-        </item>
-        <item>
-            <title><![CDATA[ CANDELARIA PACHECO]]></title>
-            <guid isPermaLink="false">458</guid>
-            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
-            <pubDate>Fri, 18 Jul 2025 02:11:38 GMT</pubDate>
-        </item>
-        <item>
-            <title><![CDATA[FERNANDA BRUNO]]></title>
-            <guid isPermaLink="false">457</guid>
-            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
-            <pubDate>Fri, 18 Jul 2025 02:11:02 GMT</pubDate>
-        </item>
-        <item>
-            <title><![CDATA[GLORIA SALVATIERRA]]></title>
-            <guid isPermaLink="false">456</guid>
-            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
-            <pubDate>Fri, 18 Jul 2025 02:10:21 GMT</pubDate>
-        </item>
-        <item>
-            <title><![CDATA[JIMENA CÁRDENAS]]></title>
-            <guid isPermaLink="false">455</guid>
-            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
-            <pubDate>Fri, 18 Jul 2025 02:09:03 GMT</pubDate>
-        </item>
-        <item>
-            <title><![CDATA[JORGE DI ZEO]]></title>
-            <guid isPermaLink="false">454</guid>
-            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
-            <pubDate>Fri, 18 Jul 2025 02:08:09 GMT</pubDate>
-        </item>
-        <item>
-            <title><![CDATA[JORGE MAZZA]]></title>
-            <guid isPermaLink="false">453</guid>
-            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
-            <pubDate>Fri, 18 Jul 2025 02:07:28 GMT</pubDate>
-        </item>
-        <item>
-            <title><![CDATA[JUAN CARLOS FRANCO]]></title>
-            <guid isPermaLink="false">452</guid>
-            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
-            <pubDate>Fri, 18 Jul 2025 02:06:45 GMT</pubDate>
-        </item>
-        <item>
-            <title><![CDATA[JUSTINA SARLO]]></title>
-            <guid isPermaLink="false">451</guid>
-            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
-            <pubDate>Fri, 18 Jul 2025 02:06:00 GMT</pubDate>
-        </item>
-        <item>
-            <title><![CDATA[LETICIA PARDO]]></title>
-            <guid isPermaLink="false">450</guid>
-            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
-            <pubDate>Fri, 18 Jul 2025 02:04:43 GMT</pubDate>
-        </item>
-        <item>
-            <title><![CDATA[MARÍA CABADA]]></title>
-            <guid isPermaLink="false">449</guid>
-            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
-            <pubDate>Fri, 18 Jul 2025 02:03:58 GMT</pubDate>
-        </item>
-        <item>
-            <title><![CDATA[MARÍA PRADO]]></title>
-            <guid isPermaLink="false">448</guid>
-            <dc:creator><![CDATA[Saladillo Vivo]]></dc:creator>
-            <pubDate>Fri, 18 Jul 2025 02:03:25 GMT</pubDate>
+            <pubDate>Fri, 19 Sep 2025 19:03:45 GMT</pubDate>
         </item>
     </channel>
 </rss>

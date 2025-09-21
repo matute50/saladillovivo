@@ -25,8 +25,8 @@ async function generateRssFeed() {
     // 1. Obtener los últimos artículos de Supabase, ordenados por fecha de actualización
     const { data: articles, error } = await supabase
       .from('articles')
-      .select('id, title, slug, description, updated_at')
-      .order('updated_at', { ascending: false })
+      .select('id, title, slug, description, updatedAt, createdAt')
+      .order('createdAt', { ascending: false })
       .limit(20);
 
     if (error) {
@@ -54,13 +54,13 @@ async function generateRssFeed() {
 
     // 3. Añadir cada artículo como un item al feed
     for (const article of articles) {
-      if (article.slug && article.updated_at) {
+      if (article.slug && (article.updatedAt || article.createdAt)) {
         feed.item({
           title: article.title,
           description: article.description || '',
           url: `https://www.saladillovivo.com.ar/noticia/${article.slug}`,
           guid: article.id,
-          date: new Date(article.updated_at).toUTCString(),
+          date: new Date(article.updatedAt || article.createdAt).toUTCString(),
           author: 'Saladillo Vivo',
         });
       }
