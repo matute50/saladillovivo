@@ -5,9 +5,9 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "prebuild": "node tools/generate-feed.js",
+    "prebuild": "node tools/generate-rss.js && node tools/generate-feed.js",
     "build": "npx vite build",
-    "postbuild": "node tools/generate-rss.js",
+    "postbuild": "",
     "preview": "vite preview"
   },
   "dependencies": {
