@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import RSS from 'rss';
 import { getArticles } from '@/lib/data';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.saladillovivo.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://saladillovivo.vercel.app';
 
 export async function GET() {
   const feed = new RSS({

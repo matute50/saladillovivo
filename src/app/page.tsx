@@ -26,8 +26,9 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title: mainFeaturedNews?.meta_title || 'Saladillo Vivo - Noticias y Actualidad',
       description: mainFeaturedNews?.meta_description || 'Saladillo Vivo es el canal temático de noticias, eventos y cultura de Saladillo.',
-      images: [mainFeaturedNews?.imageUrl || 'https://www.saladillovivo.com.ar/default-og-image.png'],
-      url: `https://www.saladillovivo.com.ar${mainFeaturedNews?.slug ? '/noticia/' + mainFeaturedNews.slug : ''}`,
+      images: [mainFeaturedNews?.imageUrl || 'https://saladillovivo.vercel.app/default-og-image.png'],
+      url: `https://saladillovivo.vercel.app${mainFeaturedNews?.slug ? '/noticia/' + mainFeaturedNews.slug : ''}`,
+
       type: mainFeaturedNews ? 'article' : 'website',
     },
   };

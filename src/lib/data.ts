@@ -38,7 +38,7 @@ export async function getArticles() {
       updatedAt: item.updatedAt,
       autor: 'Equipo Editorial',
       categoria: item.featureStatus,
-      imageUrl: item.imageUrl || 'https://www.saladillovivo.com.ar/default-og-image.png',
+      imageUrl: item.imageUrl || 'https://saladillovivo.vercel.app/default-og-image.png',
       featureStatus: item.featureStatus,
       meta_title: item.meta_title,
       meta_description: item.meta_description,
