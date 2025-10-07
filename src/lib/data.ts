@@ -1,56 +1,64 @@
 import { supabase } from './supabaseClient';
 
-export async function getArticles() {
-  const { data: articles, error } = await supabase
-    .from('articles')
-    .select('id, title, text, imageUrl, featureStatus, updatedAt, createdAt, slug, description, meta_title, meta_description, meta_keywords')
-    .order('createdAt', { ascending: false });
 
-  if (error) {
-    console.error('Error fetching articles:', error.message || error);
-    throw new Error('Could not fetch articles.');
+export async function getArticles() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('Supabase URL or Anon Key is not defined.');
+    throw new Error('Supabase configuration is missing.');
   }
 
-  const processedNews = articles.map(item => ({
-    id: item.id,
-    titulo: item.title,
-    slug: item.slug || item.id.toString(),
-    description: item.description || (item.text ? item.text.substring(0, 160) : 'Descripción no disponible.'),
-    resumen: item.text ? item.text.substring(0, 150) + (item.text.length > 150 ? '...' : '') : 'Resumen no disponible.',
-    contenido: item.text || 'Contenido no disponible.',
-    fecha: item.updatedAt || item.createdAt,
-    createdAt: item.createdAt,
-    updatedAt: item.updatedAt,
-    autor: 'Equipo Editorial',
-    categoria: item.featureStatus,
-    imageUrl: item.imageUrl || 'https://www.saladillovivo.com.ar/default-og-image.png',
-    featureStatus: item.featureStatus,
-    meta_title: item.meta_title,
-    meta_description: item.meta_description,
-    meta_keywords: item.meta_keywords,
-  }));
+  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,imageUrl,featureStatus,updatedAt,createdAt,slug,description,meta_title,meta_description,meta_keywords&order=createdAt.desc`;
 
-  // Define the sort order for featureStatus
-  const statusOrder = {
-    'featured': 1,
-    'secondary': 2,
-    'tertiary': 3
-  };
+  try {
+    const response = await fetch(apiUrl, {
+      headers: {
+        'apikey': supabaseAnonKey,
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+      },
+      cache: 'no-store', // Explicitly disable caching
+    });
 
-  // Sort news based on the defined order, then by date
-  processedNews.sort((a, b) => {
-    const aOrder = statusOrder[a.featureStatus] || 4;
-    const bOrder = statusOrder[b.featureStatus] || 4;
-    if (aOrder !== bOrder) {
-      return aOrder - bOrder;
+    if (!response.ok) {
+      throw new Error(`Supabase fetch failed: ${response.statusText}`);
     }
-    // If status is the same, sort by creation date
-    return new Date(b.createdAt) - new Date(a.createdAt);
-  });
 
-  return {
-    allNews: processedNews,
-  };
+    const articles = await response.json();
+
+    const processedNews = articles.map(item => ({
+      id: item.id,
+      titulo: item.title,
+      slug: item.slug || item.id.toString(),
+      description: item.description || (item.text ? item.text.substring(0, 160) : 'Descripción no disponible.'),
+      resumen: item.text ? item.text.substring(0, 150) + (item.text.length > 150 ? '...' : '') : 'Resumen no disponible.',
+      contenido: item.text || 'Contenido no disponible.',
+      fecha: item.updatedAt || item.createdAt,
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
+      autor: 'Equipo Editorial',
+      categoria: item.featureStatus,
+      imageUrl: item.imageUrl || 'https://www.saladillovivo.com.ar/default-og-image.png',
+      featureStatus: item.featureStatus,
+      meta_title: item.meta_title,
+      meta_description: item.meta_description,
+      meta_keywords: item.meta_keywords,
+    }));
+
+    const statusOrder = { 'featured': 1, 'secondary': 2, 'tertiary': 3 };
+    processedNews.sort((a, b) => {
+      const aOrder = statusOrder[a.featureStatus] || 4;
+      const bOrder = statusOrder[b.featureStatus] || 4;
+      if (aOrder !== bOrder) return aOrder - bOrder;
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+
+    return { allNews: processedNews };
+  } catch (error) {
+    console.error('Error fetching articles directly:', error);
+    throw new Error('Could not fetch articles.');
+  }
 }
 
 export async function getTickerTexts() {

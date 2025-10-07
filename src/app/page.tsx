@@ -1,7 +1,7 @@
 import HomePageClient from "@/components/HomePageClient";
 import type { Metadata } from 'next';
 
-export const dynamic = 'force-dynamic'; // Force dynamic rendering
+export const revalidate = 60; // Revalidate this page every 60 seconds
 
 import {
   getArticles,
