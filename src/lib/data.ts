@@ -1,6 +1,8 @@
 import { supabase } from './supabaseClient';
+import { unstable_noStore as noStore } from 'next/cache';
 
 export async function getArticles() {
+  noStore();
   const { data: articles, error } = await supabase
     .from('articles')
     .select('id, title, text, imageUrl, featureStatus, updatedAt, createdAt, slug, description, meta_title, meta_description, meta_keywords')
