@@ -18,7 +18,6 @@ export async function getArticles() {
         'apikey': supabaseAnonKey,
         'Authorization': `Bearer ${supabaseAnonKey}`,
       },
-      cache: 'no-store', // Explicitly disable caching
     });
 
     if (!response.ok) {
