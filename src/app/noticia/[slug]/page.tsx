@@ -4,6 +4,7 @@ import { Calendar, User, Tag } from 'lucide-react';
 import NoResultsCard from '@/components/layout/NoResultsCard';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 
 // Define the shape of the article data
 interface Article {
@@ -20,6 +21,54 @@ interface Article {
 interface ContentPageProps {
   params: {
     slug: string;
+  };
+}
+
+export async function generateMetadata(
+  { params }: ContentPageProps
+): Promise<Metadata> {
+  const newsItem = await getNews(params.slug);
+
+  if (!newsItem) {
+    return {
+      title: 'Noticia no encontrada',
+      description: 'La noticia que estás buscando no existe o fue eliminada.',
+    };
+  }
+
+  const siteUrl = 'https://saladillovivo.vercel.app';
+  const fullUrl = `${siteUrl}/noticia/${newsItem.slug}`;
+  const imageUrl = newsItem.imageUrl || `${siteUrl}/default-og-image.png`;
+
+  return {
+    title: newsItem.title,
+    description: newsItem.description,
+    alternates: {
+      canonical: fullUrl,
+    },
+    openGraph: {
+      title: newsItem.title,
+      description: newsItem.description,
+      url: fullUrl,
+      siteName: 'Saladillo Vivo',
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: newsItem.title,
+        },
+      ],
+      locale: 'es_AR',
+      type: 'article',
+      publishedTime: newsItem.createdAt,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: newsItem.title,
+      description: newsItem.description,
+      images: [imageUrl],
+    },
   };
 }
 
