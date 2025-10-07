@@ -1,9 +1,6 @@
 import { supabase } from './supabaseClient';
-import { unstable_noStore as noStore } from 'next/cache';
 
 export async function getArticles() {
-  noStore();
-  console.log("--- Running getArticles ---"); // DEBUG LOG
   const { data: articles, error } = await supabase
     .from('articles')
     .select('id, title, text, imageUrl, featureStatus, updatedAt, createdAt, slug, description, meta_title, meta_description, meta_keywords')
@@ -12,11 +9,6 @@ export async function getArticles() {
   if (error) {
     console.error('Error fetching articles:', error.message || error);
     throw new Error('Could not fetch articles.');
-  }
-
-  console.log(`--- Fetched ${articles ? articles.length : 0} articles ---`); // DEBUG LOG
-  if (articles && articles.length > 0) {
-    console.log(`--- Most recent article createdAt: ${articles[0].createdAt} ---`); // DEBUG LOG
   }
 
   const processedNews = articles.map(item => ({
