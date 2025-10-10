@@ -22,3 +22,20 @@ export const slugify = (text: string | undefined | null, id: number | string): s
     .replace(/^-+/, '') // Trim - from start of text
     .replace(/-+$/, '') + '-' + id // Trim - from end of text and append id
 }
+
+export const formatDate = (dateString: string, format: 'short' | 'numeric' = 'numeric'): string => {
+  if (!dateString) return 'Fecha no disponible';
+
+  const options: Intl.DateTimeFormatOptions = {
+    day: 'numeric',
+    month: format === 'short' ? 'short' : 'numeric',
+    year: format === 'short' ? 'numeric' : '2-digit',
+  };
+
+  try {
+    return new Date(dateString).toLocaleDateString('es-ES', options);
+  } catch (error) {
+    console.error("Error al formatear fecha:", dateString, error);
+    return 'Fecha inválida';
+  }
+};

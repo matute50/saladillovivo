@@ -9,8 +9,7 @@ import DemandCarouselBlock from './DemandCarouselBlock';
 import LiveCarouselBlock from './LiveCarouselBlock';
 import NewsCarousel from './NewsCarousel';
 import NewsAndMostWatchedCarousel from './NewsAndMostWatchedCarousel';
-import FeaturedNewsSection from './FeaturedNewsSection';
-import SecondaryNewsCard from './SecondaryNewsCard';
+import NewsCard from '../NewsCard'; // Importar el nuevo componente consolidado
 import NoResultsCard from './NoResultsCard';
 import { useToast } from '@/components/ui/use-toast';
 import { Search } from 'lucide-react';
@@ -223,17 +222,24 @@ const DesktopLayout = ({ data, openModal, isMobile }) => {
 
           <section className="grid grid-cols-1 lg:grid-cols-5 gap-6" aria-label="Sección de noticias">
               <div className="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 auto-rows-fr gap-4">
-                  {destacada && <div className="lg:col-span-2 lg:row-span-2">
-                      <FeaturedNewsSection mainFeaturedNews={destacada} />
-                    </div>}
+                  {destacada && (
+                    <div className="lg:col-span-2 lg:row-span-2">
+                      <NewsCard newsItem={destacada} variant="featured-desktop" />
+                    </div>
+                  )}
                   
-                  {otherNews.slice(0, 2).map(noticia => <div key={noticia.id} className="lg:col-span-1 h-full">
-                        <SecondaryNewsCard newsItem={noticia} />
-                      </div>)}
-
-                  {otherNews.slice(2).map((noticia, index) => <div key={noticia.id} className="lg:col-span-1 h-full">
-                      <SecondaryNewsCard newsItem={noticia} index={index} />
-                    </div>)}
+                  {otherNews.map((noticia, index) => {
+                      const variant = noticia.featureStatus === 'secondary' 
+                                      ? 'secondary' 
+                                      : noticia.featureStatus === 'tertiary' 
+                                      ? 'tertiary' 
+                                      : 'default';
+                      return (
+                        <div key={noticia.id} className="lg:col-span-1 h-full">
+                          <NewsCard newsItem={noticia} variant={variant} index={index} />
+                        </div>
+                      )
+                  })}
               </div>
 
               <aside className="lg:col-span-1 hidden lg:block" aria-label="Anuncios adicionales">
