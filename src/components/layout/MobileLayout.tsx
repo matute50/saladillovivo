@@ -16,9 +16,9 @@ import { supabase } from '@/lib/supabaseClient';
 
 const MobileLayout = ({ data, openModal, isMobile }) => {
   const { articles, banners, ads, videos } = data;
-  const { allNews } = articles;
+  const { destacada, noticias2, noticias3, otrasNoticias } = articles;
 
-  const allNewsForMobile = allNews; // The list is already sorted by priority
+  const allNewsForMobile = [destacada, ...noticias2, ...noticias3, ...otrasNoticias].filter(Boolean); // Combine and filter out null/undefined
 
   // Simplified category logic for mobile
   const categoryMap = {

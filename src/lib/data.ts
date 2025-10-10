@@ -45,15 +45,42 @@ export async function getArticles() {
       meta_keywords: item.meta_keywords,
     }));
 
-    const statusOrder = { 'featured': 1, 'secondary': 2, 'tertiary': 3 };
-    processedNews.sort((a, b) => {
-      const aOrder = statusOrder[a.featureStatus] || 4;
-      const bOrder = statusOrder[b.featureStatus] || 4;
-      if (aOrder !== bOrder) return aOrder - bOrder;
-      return new Date(b.createdAt) - new Date(a.createdAt);
-    });
+    // Ordenar una vez para asegurar que la noticia 'featured' más reciente sea la primera.
+    processedNews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-    return { allNews: processedNews };
+    const destacada = [];
+    const noticias2 = [];
+    const noticias3 = [];
+    const otrasNoticias = [];
+
+    for (const news of processedNews) {
+      switch (news.featureStatus) {
+        case 'featured':
+          if (destacada.length === 0) {
+            destacada.push(news);
+          } else {
+            otrasNoticias.push(news); // Si ya hay una destacada, las demás van a otras.
+          }
+          break;
+        case 'secondary':
+          noticias2.push(news);
+          break;
+        case 'tertiary':
+          noticias3.push(news);
+          break;
+        default:
+          otrasNoticias.push(news);
+          break;
+      }
+    }
+
+    return {
+      destacada: destacada[0] || null,
+      noticias2,
+      noticias3,
+      otrasNoticias,
+    };
+
   } catch (error) {
     console.error('Error fetching articles directly:', error);
     throw new Error('Could not fetch articles.');

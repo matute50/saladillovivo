@@ -15,9 +15,11 @@ import {
 
 // This function generates metadata on the server.
 export async function generateMetadata(): Promise<Metadata> {
-  const { allNews } = await getArticles();
-  // Use the first 'featured' article, or the first article overall as a fallback for metadata.
-  const mainFeaturedNews = allNews.find(n => n.featureStatus === 'featured') || allNews[0] || null;
+  const { destacada, noticias2, noticias3, otrasNoticias } = await getArticles();
+  const allNews = [destacada, ...noticias2, ...noticias3, ...otrasNoticias].filter(Boolean);
+  
+  // Use the featured article, or the first article overall as a fallback for metadata.
+  const mainFeaturedNews = destacada || allNews[0] || null;
  
   return {
     title: mainFeaturedNews?.meta_title || 'Saladillo Vivo - Noticias, Eventos y Cultura',
@@ -37,7 +39,7 @@ export async function generateMetadata(): Promise<Metadata> {
 // This is the main page component, rendered on the server.
 export default async function Page() {
   // Fetch all data concurrently for performance.
-  const [{ allNews }, tickerTexts, videos, interviews, banners, ads, events] = await Promise.all([
+  const [articles, tickerTexts, videos, interviews, banners, ads, events] = await Promise.all([
     getArticles(),
     getTickerTexts(),
     getVideos(),
@@ -48,7 +50,7 @@ export default async function Page() {
   ]);
 
   const pageData = {
-    articles: { allNews }, // Pass the articles object as is
+    articles, // Pass the structured articles object { destacada, noticias2, ... }
     tickerTexts,
     videos,
     interviews,

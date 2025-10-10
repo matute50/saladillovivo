@@ -15,7 +15,7 @@ export interface Article {
   autor: string;
   categoria: string; // O un tipo más específico si tienes categorías predefinidas
   imageUrl: string;
-  featureStatus: 'destacada' | 'noticia2' | 'noticia3' | string; // Ajusta según los estados que uses
+  featureStatus: 'featured' | 'secondary' | 'tertiary' | string; // Corregido para coincidir con la BD
 }
 
 // Define la estructura de un video
