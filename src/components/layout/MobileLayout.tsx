@@ -18,7 +18,7 @@ const MobileLayout = ({ data, openModal, isMobile }) => {
   const { articles, banners, ads, videos } = data;
   const { destacada, noticias2, noticias3, otrasNoticias } = articles;
 
-  const allNewsForMobile = [destacada, ...noticias2, ...noticias3, ...otrasNoticias].filter(Boolean); // Combine and filter out null/undefined
+  const otherNews = [...noticias2, ...noticias3, ...otrasNoticias];
 
   // Simplified category logic for mobile
   const categoryMap = {
@@ -165,7 +165,8 @@ const MobileLayout = ({ data, openModal, isMobile }) => {
 
               <section aria-label="Grilla de noticias" className="px-2">
                 <MobileNewsGrid
-                  newsItems={allNewsForMobile}
+                  featuredItem={destacada}
+                  gridItems={otherNews}
                 />
               </section>
 
