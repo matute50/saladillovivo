@@ -1,0 +1,1 @@
+Se corrigió un error 500 en el feed RSS de saladillovivo.vercel.app. El problema era que la función `getArticles` no devolvía la propiedad `allNews` que esperaba el generador de RSS. Se modificó `src/lib/data.ts` para incluir esta propiedad. Los cambios se subieron a GitHub y se está esperando el despliegue en Vercel para verificar la solución.

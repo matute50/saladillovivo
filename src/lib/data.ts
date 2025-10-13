@@ -21,6 +21,7 @@ export async function getArticles() {
     });
 
     if (!response.ok) {
+      console.error('Supabase fetch failed. Status:', response.status, 'Text:', await response.text());
       throw new Error(`Supabase fetch failed: ${response.statusText}`);
     }
 
