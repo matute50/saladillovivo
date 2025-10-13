@@ -79,6 +79,7 @@ export async function getArticles() {
       noticias2,
       noticias3,
       otrasNoticias,
+      allNews: processedNews,
     };
 
   } catch (error) {

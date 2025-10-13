@@ -26,9 +26,7 @@ const DesktopLayout = ({ data, openModal, isMobile }) => {
     interviews
   } = data;
 
-  // Directly use the new data structure
   const { destacada, noticias2, noticias3, otrasNoticias } = articles;
-  const otherNews = [...noticias2, ...noticias3, ...otrasNoticias];
 
   const [isDarkTheme, setIsDarkTheme] = useState(true);
 
@@ -220,33 +218,37 @@ const DesktopLayout = ({ data, openModal, isMobile }) => {
              <BannerSection activeBanners={banners} isLoadingBanners={false} className="w-full" />
           </section>
 
-          <section className="grid grid-cols-1 lg:grid-cols-5 gap-6" aria-label="Sección de noticias">
-              <div className="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 auto-rows-fr gap-4">
-                  {destacada && (
-                    <div className="lg:col-span-2 lg:row-span-2">
-                      <NewsCard newsItem={destacada} variant="featured-desktop" />
-                    </div>
-                  )}
-                  
-                  {otherNews.map((noticia, index) => {
-                      const variant = noticia.featureStatus === 'secondary' 
-                                      ? 'secondary' 
-                                      : noticia.featureStatus === 'tertiary' 
-                                      ? 'tertiary' 
-                                      : 'default';
-                      return (
-                        <div key={noticia.id} className="lg:col-span-1 h-full">
-                          <NewsCard newsItem={noticia} variant={variant} index={index} />
-                        </div>
-                      )
-                  })}
+          <section className="flex flex-col gap-8" aria-label="Sección de noticias">
+            {/* Bloque Superior */}
+            <div className="flex flex-row gap-8">
+              {/* Columna Izquierda: Noticia Destacada */}
+              <div className="w-2/3">
+                {destacada && <NewsCard newsItem={destacada} variant="destacada-principal" />}
               </div>
 
-              <aside className="lg:col-span-1 hidden lg:block" aria-label="Anuncios adicionales">
-                  <div className="sticky top-[calc(var(--desktop-header-height)+var(--ticker-height)+1rem)] card card-blur p-2">
-                      <AdsSection activeAds={ads} adsLoading={false} isMobile={false} />
-                  </div>
-              </aside>
+              {/* Columna Derecha: Noticia 2 y 3 */}
+              <div className="w-1/3 flex flex-col gap-4">
+                {/* Fila Superior: Noticia 2 */}
+                <div className="grid grid-cols-2 gap-4">
+                  {noticias2.slice(0, 2).map((noticia, index) => (
+                    <NewsCard key={noticia.id} newsItem={noticia} variant="secundaria" index={index} />
+                  ))}
+                </div>
+                {/* Fila Inferior: Noticia 3 */}
+                <div className="grid grid-cols-2 gap-4">
+                  {noticias3.slice(0, 2).map((noticia, index) => (
+                    <NewsCard key={noticia.id} newsItem={noticia} variant="secundaria" index={index + 2} />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Bloque Inferior: Noticias Sin Categoría */}
+            <div className="grid grid-cols-4 gap-4">
+              {otrasNoticias.slice(0, 4).map((noticia, index) => (
+                <NewsCard key={noticia.id} newsItem={noticia} variant="default" index={index} />
+              ))}
+            </div>
           </section>
 
         </div>
