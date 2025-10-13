@@ -10,7 +10,8 @@ export async function getArticles() {
     throw new Error('Supabase configuration is missing.');
   }
 
-  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,imageUrl,featureStatus,updatedAt,createdAt,slug,description,meta_title,meta_description,meta_keywords&order=createdAt.desc`;
+  const now = new Date().toISOString();
+  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,imageUrl,featureStatus,updatedAt,createdAt,slug,description,meta_title,meta_description,meta_keywords,published_at&or=(published_at.is.null,published_at.lte.${now})&order=createdAt.desc`;
 
   try {
     const response = await fetch(apiUrl, {
