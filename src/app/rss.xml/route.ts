@@ -20,6 +20,7 @@ export async function GET() {
     const { allNews } = await getArticles();
 
     allNews.forEach(article => {
+      const imageUrl = article.imageUrl || 'https://saladillovivo.vercel.app/default-og-image.png';
       feed.item({
         title: article.titulo,
         description: article.description,
@@ -27,7 +28,7 @@ export async function GET() {
         guid: article.slug,
         date: article.createdAt,
         author: article.autor,
-        enclosure: article.imageUrl ? { url: article.imageUrl, type: 'image/jpeg' } : undefined,
+        enclosure: { url: imageUrl, type: 'image/jpeg' },
       });
     });
 
