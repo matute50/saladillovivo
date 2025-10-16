@@ -13,9 +13,8 @@ import Image from 'next/image';
 
 const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = false, isLive = false, isEventCarousel = false, categoryName }) => {
   const { playUserSelectedVideo, playLiveStream, streamStatus } = useMediaPlayer();
-  const { toast } = useToast(); // Assuming you have a Toaster component set up in your layout
+  const { toast } = useToast();
   const swiperRef = useRef(null);
-  
   const [activeVideoId, setActiveVideoId] = useState(null);
 
   useEffect(() => {
@@ -29,7 +28,8 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
     if (!video) return 'https://via.placeholder.com/320x180.png?text=No+disponible';
     if (video.isLiveThumbnail || isEventCarousel) return video.imagen;
     if (video.url && (video.url.includes('youtube.com') || video.url.includes('youtu.be'))) {
-      const videoIdMatch = video.url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+      const youtubeRegex = new RegExp('(?:https?://)?(?:www\.)?(?:youtube\.com/(?:[^/\n\s]+/[^/\n\s]+/|(?:v|e(?:mbed)?)/|[^/\n\s]*?[?&]v=)|youtu\.be/)([a-zA-Z0-9_-]{11})');
+      const videoIdMatch = video.url.match(youtubeRegex);
       return videoIdMatch ? `https://img.youtube.com/vi/${videoIdMatch[1]}/mqdefault.jpg` : (video.imagen || 'https://via.placeholder.com/320x180.png?text=Miniatura');
     }
     return video.imagen || 'https://via.placeholder.com/320x180.png?text=Miniatura';
@@ -80,7 +80,7 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
       <motion.div
         onClick={() => handleVideoClick(video)}
         onMouseEnter={() => handleMouseEnter(video)}
-        className="relative cursor-pointer group rounded-lg overflow-hidden shadow-thumbnail"
+        className="relative cursor-pointer group rounded-xl overflow-hidden shadow-thumbnail"
         animate={{
           scale: isActive ? 1.1 : 1,
           zIndex: isActive ? 10 : 1,
@@ -116,7 +116,7 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
   const showNavButtons = videos.length > (isMobile ? 1 : 3) && !isLive;
 
   return (
-    <div className="relative w-full flex items-center justify-center" onMouseLeave={!isMobile ? handleMouseLeave : undefined}>
+    <div className="relative w-full flex items-center justify-center rounded-xl overflow-hidden" onMouseLeave={!isMobile ? handleMouseLeave : undefined}>
       <Swiper
         ref={swiperRef}
         slidesPerView={'auto'}
@@ -140,8 +140,21 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
       </Swiper>
       {showNavButtons && (
         <>
-          <button id={`prev-${carouselId}`} className="carousel-nav-button absolute top-1/2 -translate-y-1/2 left-0 z-20 transition-colors text-white rounded-full p-2 cursor-pointer"><ChevronLeft size={16} /></button>
-          <button id={`next-${carouselId}`} className="carousel-nav-button absolute top-1/2 -translate-y-1/2 right-0 z-20 transition-colors text-white rounded-full p-2 cursor-pointer"><ChevronRight size={16} /></button>
+          <motion.button 
+            className="carousel-nav-button absolute top-1/2 -translate-y-1/2 left-0 z-20 rounded-md p-2 cursor-pointer shadow-xl shadow-black/50 bg-black/30"
+            whileHover={{ color: ['#ffffff', '#FF0000', '#ef4444', '#ffffff'], background: '#ef4444' }}
+            transition={{ duration: 0.6, times: [0, 0.25, 0.75, 1] }}
+            initial={{ color: '#ffffff', background: 'linear-gradient(to right, rgba(30, 58, 138, 0.8), rgba(59, 130, 246, 0.8))' }}
+          >
+            <ChevronLeft size={20} />
+          </motion.button>          <motion.button 
+            className="carousel-nav-button absolute top-1/2 -translate-y-1/2 right-0 z-20 rounded-md p-2 cursor-pointer shadow-xl shadow-black/50 bg-black/30"
+            whileHover={{ color: ['#ffffff', '#FF0000', '#ef4444', '#ffffff'], background: '#ef4444' }}
+            transition={{ duration: 0.6, times: [0, 0.25, 0.75, 1] }}
+            initial={{ color: '#ffffff', background: 'linear-gradient(to right, rgba(30, 58, 138, 0.8), rgba(59, 130, 246, 0.8))' }}
+          >
+            <ChevronRight size={20} />
+          </motion.button>
         </>
       )}
     </div>

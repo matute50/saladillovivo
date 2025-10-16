@@ -12,7 +12,7 @@ const NewsAndMostWatchedCarousel = ({ content, isLoading, isMobile }) => {
   return (
     <div className="w-full">
       <div className="flex items-center justify-center w-full gap-x-3 z-10 mb-2">
-        <h2 className="text-2xl font-futura-bold text-foreground truncate text-center">
+        <h2 className="text-2xl font-futura-bold text-foreground truncate text-center shadow-xl shadow-black/50 rounded-lg px-2 py-1">
           Novedades
         </h2>
       </div>
