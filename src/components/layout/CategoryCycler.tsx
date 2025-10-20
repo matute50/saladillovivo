@@ -56,7 +56,7 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
         >
           <ChevronLeft size="16" />
         </motion.button>
-        <h2 className="text-2xl font-bold tracking-tight text-foreground/90 truncate text-center w-80 shadow-xl shadow-black/50 rounded-lg px-2 py-1">
+        <h2 className="text-2xl font-bold tracking-tight text-foreground/90 truncate text-center w-80">
           {activeCategory.display}
         </h2>
         <motion.button 

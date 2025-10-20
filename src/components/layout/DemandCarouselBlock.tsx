@@ -25,7 +25,7 @@ const DemandCarouselBlock = ({
             <ChevronLeft size={isMobile ? 13 : 10} />
           </button>
         )}
-        <h2 className="text-2xl font-futura-bold text-foreground truncate text-center shadow-xl shadow-black/50 rounded-lg px-2 py-1">
+        <h2 className="text-2xl font-futura-bold text-foreground truncate text-center">
           {title}
         </h2>
         {onCategoryChange && (
