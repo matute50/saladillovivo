@@ -12,7 +12,6 @@ export const useStreamStatus = ({ playMedia, playingMedia, isPlaying }) => {
     imagen: null,
   });
   const checkIntervalRef = useRef(null);
-  const lastPlayedSvIdRef = useRef(null);
   const isMounted = useRef(true);
   const { toast } = useToast();
 
@@ -25,44 +24,6 @@ export const useStreamStatus = ({ playMedia, playingMedia, isPlaying }) => {
       }
     };
   }, []);
-
-  const fetchRandomSvVideo = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('videos')
-        .select('id, url, nombre')
-        .eq('categoria', 'SV')
-        .range(0, 28); 
-
-      if (error) throw error;
-      if (!data || data.length === 0) throw new Error("No SV videos found");
-
-      let availableVideos = data.filter(v => v.id !== lastPlayedSvIdRef.current);
-      if (availableVideos.length === 0) {
-        availableVideos = data; 
-      }
-      
-      const randomIndex = Math.floor(Math.random() * availableVideos.length);
-      const randomVideo = availableVideos[randomIndex];
-      lastPlayedSvIdRef.current = randomVideo.id;
-
-      return {
-        url: randomVideo.url,
-        title: randomVideo.nombre,
-        type: 'video',
-        isUserSelected: false,
-        category: 'SV',
-      };
-    } catch (error) {
-        console.error('Error fetching SV videos:', error);
-        toast({
-            title: "Error de Red",
-            description: "No se pudieron cargar los videos de respaldo. Revisa tu conexión o desactiva bloqueadores de anuncios.",
-            variant: "destructive"
-        });
-        return null;
-    }
-  }, [toast]);
 
   const checkStreamStatus = useCallback(async () => {
     try {
@@ -134,18 +95,13 @@ export const useStreamStatus = ({ playMedia, playingMedia, isPlaying }) => {
             type: 'stream',
             isUserSelected: false,
             category: 'EN VIVO',
-          }, true);
-        } else {
-          const svVideo = await fetchRandomSvVideo();
-          if (svVideo) {
-            playMedia(svVideo, true);
-          }
+          }, true); // Pass true for isAutoPlay
         }
+        // If stream is not active, the main HomePageClient will trigger the random video loop.
       }
     };
     initialCheck();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [checkStreamStatus, playMedia]);
 
   useEffect(() => {
     if (checkIntervalRef.current) {
@@ -157,40 +113,18 @@ export const useStreamStatus = ({ playMedia, playingMedia, isPlaying }) => {
       const newStatus = await checkStreamStatus();
       if (!isMounted.current) return;
 
-      const isWatchingSv = playingMedia?.category === 'SV';
-      const isWatchingUserSelected = playingMedia?.isUserSelected;
-
+      // If live stream becomes active and we are not currently watching a stream, switch to it.
       if (newStatus.isActive && playingMedia?.type !== 'stream') {
-        if (isWatchingSv) {
-          playMedia({
-            url: newStatus.url,
-            title: newStatus.nombre,
-            type: 'stream',
-            isUserSelected: false,
-            category: 'EN VIVO',
-          });
-        }
+        playMedia({
+          url: newStatus.url,
+          title: newStatus.nombre,
+          type: 'stream',
+          isUserSelected: false,
+          category: 'EN VIVO',
+        }, true); // Pass true for isAutoPlay
       }
-
-      if (!newStatus.isActive && playingMedia?.type === 'stream') {
-        const svVideo = await fetchRandomSvVideo();
-        if (svVideo) playMedia(svVideo);
-      }
-      
-      if (isWatchingUserSelected && !isPlaying && playingMedia) {
-         if (newStatus.isActive) {
-            playMedia({
-                url: newStatus.url,
-                title: newStatus.nombre,
-                type: 'stream',
-                isUserSelected: false,
-                category: 'EN VIVO',
-            });
-         } else {
-            const svVideo = await fetchRandomSvVideo();
-            if (svVideo) playMedia(svVideo);
-         }
-      }
+      // If live stream goes offline, the handleEnded in usePlaybackLogic will take over.
+      // If a user-selected video ends, handleEnded in usePlaybackLogic will take over.
 
     }, 15000);
 
@@ -199,7 +133,7 @@ export const useStreamStatus = ({ playMedia, playingMedia, isPlaying }) => {
         clearInterval(checkIntervalRef.current);
       }
     };
-  }, [checkStreamStatus, fetchRandomSvVideo, playMedia, playingMedia, isPlaying]);
+  }, [checkStreamStatus, playMedia, playingMedia]);
 
   return streamStatus;
 };

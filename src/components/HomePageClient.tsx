@@ -29,19 +29,25 @@ const HomePageClient = ({ data }) => {
   }, []);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const videoUrl = params.get('videoUrl');
+    // This effect runs once when the component has mounted and data is available.
+    if (hasMounted && videos && interviews) {
+      const params = new URLSearchParams(window.location.search);
+      const videoUrl = params.get('videoUrl');
 
-    if (videoUrl && videos && interviews) {
+      if (videoUrl) {
+        // If a specific video is requested in the URL, play it.
         const combinedVideos = [...interviews, ...videos];
         const videoToPlay = combinedVideos.find(v => v.url === videoUrl);
 
         if (videoToPlay) {
             playUserSelectedVideo(videoToPlay);
+            // Clean the URL
             window.history.replaceState(null, '', window.location.pathname);
         }
+      }
     }
-  }, [videos, interviews, playUserSelectedVideo]);
+  // The dependency array ensures this runs only once after everything is ready.
+  }, [hasMounted, videos, interviews, playUserSelectedVideo]);
 
 
   if (!hasMounted) {

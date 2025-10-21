@@ -53,7 +53,7 @@
     --radius: 0.5rem;
 
     --footer-bg-color: #aaaaaa;
-    --shadow-color: rgba(0, 0, 0, 0.25);
+    --shadow-color: rgba(0, 0, 0, 0.5);
 
     --footer-height: 49px;
     --footer-height-mobile: 60px;
@@ -229,14 +229,9 @@
 @layer components {
   .card {
     background-image: linear-gradient(to bottom, hsl(var(--card-start)), hsl(var(--card-end)));
-    @apply rounded-lg text-card-foreground shadow-card;
+    @apply rounded-lg text-card-foreground;
   }
-  .dark .card:hover {
-    background-image: linear-gradient(to bottom, hsl(var(--card-start) / 0.85), hsl(var(--card-end) / 0.85));
-  }
-  :not(.dark) .card:hover {
-     background-image: linear-gradient(to bottom, hsl(var(--card-start) / 1.05), hsl(var(--card-end) / 1.05));
-  }
+
 
   .card-blur {
     -webkit-backface-visibility: hidden;
@@ -279,17 +274,15 @@
     box-shadow: 0 -5px 8px -2px var(--shadow-color);
   }
 
+  .shadow-pop {
+     box-shadow: 0 35px 60px -15px var(--shadow-color);
+  }
+
   .control-button {
     @apply bg-background hover:bg-accent focus-visible:bg-accent;
   }
 
-  .carousel-nav-button {
-    animation: pulse-color-nav-dark 4s infinite ease-in-out;
-  }
-  :not(.dark) .carousel-nav-button {
-    animation-name: pulse-color-nav-light;
-    animation-duration: 5s;
-  }
+
 
   .date-on-image {
     @apply absolute bottom-2 left-2 bg-black/60 text-white text-xs font-semibold px-2 py-1 rounded-md flex items-center;

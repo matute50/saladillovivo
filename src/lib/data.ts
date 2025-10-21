@@ -1,7 +1,8 @@
 import { supabase } from './supabaseClient';
+import type { Article, Video, Interview, Banner, Ad, CalendarEvent, TickerText } from './types';
 
-
-export async function getArticles() {
+// Helper to ensure Supabase credentials are set
+function checkSupabaseCredentials() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -9,7 +10,16 @@ export async function getArticles() {
     console.error('Supabase URL or Anon Key is not defined.');
     throw new Error('Supabase configuration is missing.');
   }
+  return { supabaseUrl, supabaseAnonKey };
+}
 
+/**
+ * Fetches articles from Supabase and categorizes them into featured and secondary.
+ * - featuredNews: The most recent article with featureStatus = 'featured'.
+ * - secondaryNews: All other articles, sorted by creation date.
+ */
+export async function getArticlesForHome(limitSecondary: number = 5) {
+  const { supabaseUrl, supabaseAnonKey } = checkSupabaseCredentials();
   const now = new Date().toISOString();
   const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,imageUrl,featureStatus,updatedAt,createdAt,slug,description,meta_title,meta_description,meta_keywords,published_at&or=(published_at.is.null,published_at.lte.${now})&order=createdAt.desc`;
 
@@ -19,16 +29,17 @@ export async function getArticles() {
         'apikey': supabaseAnonKey,
         'Authorization': `Bearer ${supabaseAnonKey}`,
       },
+      next: { revalidate: 60 } // Revalidate every 60 seconds
     });
 
     if (!response.ok) {
-      console.error('Supabase fetch failed. Status:', response.status, 'Text:', await response.text());
+      console.error('Supabase fetch failed for articles. Status:', response.status, 'Text:', await response.text());
       throw new Error(`Supabase fetch failed: ${response.statusText}`);
     }
 
-    const articles = await response.json();
+    const articles: any[] = await response.json();
 
-    const processedNews = articles.map(item => ({
+    const processedNews = articles.map((item): Article => ({
       id: item.id,
       titulo: item.title,
       slug: item.slug || item.id.toString(),
@@ -47,50 +58,136 @@ export async function getArticles() {
       meta_keywords: item.meta_keywords,
     }));
 
-    // Ordenar una vez para asegurar que la noticia 'featured' más reciente sea la primera.
-    processedNews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    let featuredNews: Article | null = null;
+    const secondaryNews: Article[] = [];
 
-    const destacada = [];
-    const noticias2 = [];
-    const noticias3 = [];
-    const otrasNoticias = [];
-
-    for (const news of processedNews) {
-      switch (news.featureStatus) {
-        case 'featured':
-          if (destacada.length === 0) {
-            destacada.push(news);
-          } else {
-            otrasNoticias.push(news); // Si ya hay una destacada, las demás van a otras.
-          }
-          break;
-        case 'secondary':
-          noticias2.push(news);
-          break;
-        case 'tertiary':
-          noticias3.push(news);
-          break;
-        default:
-          otrasNoticias.push(news);
-          break;
-      }
+    const featuredIndex = processedNews.findIndex(news => news.featureStatus === 'featured');
+    
+    if (featuredIndex !== -1) {
+      featuredNews = processedNews.splice(featuredIndex, 1)[0];
+    } else if (processedNews.length > 0) {
+      // If no featured article, use the most recent one as featured
+      featuredNews = processedNews.shift()!;
     }
 
+    // The rest of the articles are secondary
+    secondaryNews.push(...processedNews);
+
     return {
-      destacada: destacada[0] || null,
-      noticias2,
-      noticias3,
-      otrasNoticias,
-      allNews: processedNews,
+      featuredNews,
+      secondaryNews: secondaryNews.slice(0, limitSecondary),
+      allNews: [featuredNews, ...secondaryNews].filter((n): n is Article => n !== null),
     };
 
   } catch (error) {
-    console.error('Error fetching articles directly:', error);
-    throw new Error('Could not fetch articles.');
+    console.error('Error in getArticlesForHome:', error);
+    return { featuredNews: null, secondaryNews: [], allNews: [] };
   }
 }
 
-export async function getTickerTexts() {
+/**
+ * Fetches videos from Supabase and categorizes them for the home page.
+ * - featuredVideo: The most recent video marked as 'novedad' (novelty).
+ * - recentVideos: Other recent videos.
+ */
+export async function getVideosForHome(limitRecent: number = 4) {
+  const { data, error } = await supabase
+    .from('videos')
+    .select('id, nombre, url, createdAt, categoria, imagen, novedad')
+    .order('createdAt', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching videos:', error);
+    return { featuredVideo: null, recentVideos: [], videoCategories: [] };
+  }
+
+  let videos: Video[] = data || [];
+
+  // Fisher-Yates shuffle to randomize the video order on each load
+  for (let i = videos.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [videos[i], videos[j]] = [videos[j], videos[i]];
+  }
+  
+  // Derive categories from the full list of videos
+  const videoCategories = [...new Set(videos.map(v => v.categoria).filter(Boolean))].sort();
+
+  let featuredVideo: Video | null = null;
+  const recentVideos: Video[] = [];
+
+  // Use a copy for mutation to preserve the original videos array for category derivation
+  const mutableVideos = [...videos];
+
+  const featuredIndex = mutableVideos.findIndex(video => video.novedad === true);
+
+  if (featuredIndex !== -1) {
+    featuredVideo = mutableVideos.splice(featuredIndex, 1)[0];
+  } else if (mutableVideos.length > 0) {
+    // Fallback to the most recent video if none is marked as 'novedad'
+    featuredVideo = mutableVideos.shift()!;
+  }
+  
+  recentVideos.push(...mutableVideos);
+
+  return {
+    featuredVideo,
+    recentVideos: recentVideos.slice(0, limitRecent),
+    allVideos: videos, // Return the full, original list of videos
+    videoCategories, // Return all unique categories
+  };
+}
+
+/**
+ * Fetches a single random video from the database, excluding the 'SV' category.
+ * Uses a custom Supabase RPC function for efficiency.
+ */
+export async function getRandomVideo(): Promise<Video | null> {
+  const { data, error } = await supabase.rpc('get_random_video_excluding_sv');
+
+  if (error) {
+    console.error('Error fetching random video:', error);
+    return null;
+  }
+
+  // The RPC with LIMIT 1 returns an array with a single item, or an empty array.
+  return data && data.length > 0 ? data[0] : null;
+}
+
+/**
+ * Fetches all videos and returns a random one, optionally excluding the current one.
+ * @param currentId - The ID of the video to exclude from the random selection.
+ */
+export async function getNewRandomVideo(currentId?: string): Promise<Video | null> {
+  const { data, error } = await supabase
+    .from('videos')
+    .select('id, nombre, url, categoria, imagen, novedad');
+
+  if (error) {
+    console.error('Error fetching videos for random selection:', error);
+    return null;
+  }
+
+  if (!data || data.length === 0) {
+    return null;
+  }
+
+  let selectableVideos = data;
+  if (currentId && data.length > 1) {
+    selectableVideos = data.filter(video => video.id !== currentId);
+  }
+  
+  if (selectableVideos.length === 0) {
+    selectableVideos = data; // Fallback to the full list if filtering left nothing
+  }
+
+  const randomIndex = Math.floor(Math.random() * selectableVideos.length);
+  return selectableVideos[randomIndex];
+}
+
+
+// --- Other existing functions ---
+
+export async function getTickerTexts(): Promise<string[]> {
   const { data, error } = await supabase
     .from('textos_ticker')
     .select('text, isActive')
@@ -107,20 +204,7 @@ export async function getTickerTexts() {
   return ["Últimas noticias de última hora - Siga nuestra cobertura en vivo."];
 }
 
-export async function getVideos() {
-  const { data, error } = await supabase
-    .from('videos')
-    .select('id, nombre, url, createdAt, categoria, imagen, novedad')
-    .order('createdAt', { ascending: false });
-  
-  if (error) {
-    console.error('Error fetching videos:', error);
-    return [];
-  }
-  return data || [];
-}
-
-export async function getInterviews() {
+export async function getInterviews(): Promise<Interview[]> {
   const { data, error } = await supabase
     .from('entrevistas')
     .select('id, nombre, url, created_at, updated_at, categoria, imagen')
@@ -130,15 +214,14 @@ export async function getInterviews() {
     console.error('Error fetching interviews:', error);
     return [];
   }
-  const processedInterviews = (data || []).map(item => ({
+  return (data || []).map(item => ({
     ...item,
     createdAt: item.created_at,
     updatedAt: item.updated_at,
   }));
-  return processedInterviews;
 }
 
-export async function getActiveBanners() {
+export async function getActiveBanners(): Promise<Banner[]> {
   const { data, error } = await supabase
     .from('banner')
     .select('id, imageUrl, nombre, isActive')
@@ -152,7 +235,7 @@ export async function getActiveBanners() {
   return data || [];
 }
 
-export async function getActiveAds() {
+export async function getActiveAds(): Promise<Ad[]> {
   const { data, error } = await supabase
     .from('anuncios')
     .select('id, imageUrl, name, isActive, linkUrl')
@@ -166,7 +249,7 @@ export async function getActiveAds() {
   return data || [];
 }
 
-export async function getCalendarEvents() {
+export async function getCalendarEvents(): Promise<CalendarEvent[]> {
   const { data, error } = await supabase
     .from('eventos')
     .select('nombre, fecha, hora')
@@ -175,6 +258,40 @@ export async function getCalendarEvents() {
 
   if (error) {
     console.warn('Error fetching calendar events:', error);
+    return [];
+  }
+  return data || [];
+}
+
+// This function is kept for other potential uses, but getArticlesForHome is preferred for the main page.
+export async function getArticles() {
+  // ... (original getArticles implementation can be kept or deprecated)
+  // For now, let's just re-route it to the new function to avoid breaking other parts.
+  const { allNews } = await getArticlesForHome(100); // Large limit to get all
+  
+  // Recreate the old structure if needed elsewhere, otherwise this can be removed.
+  const destacada = allNews.find(a => a.featureStatus === 'featured') || null;
+  const noticias2 = allNews.filter(a => a.featureStatus === 'secondary');
+  const noticias3 = allNews.filter(a => a.featureStatus === 'tertiary');
+  const otrasNoticias = allNews.filter(a => !a.featureStatus);
+
+  return {
+    destacada,
+    noticias2,
+    noticias3,
+    otrasNoticias,
+    allNews,
+  };
+}
+
+export async function getVideos() {
+  const { data, error } = await supabase
+    .from('videos')
+    .select('id, nombre, url, createdAt, categoria, imagen, novedad')
+    .order('createdAt', { ascending: false });
+  
+  if (error) {
+    console.error('Error fetching videos:', error);
     return [];
   }
   return data || [];

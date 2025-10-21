@@ -30,12 +30,12 @@ const VideoControls = ({
   };
 
   const handleSeekChange = (value: number[]) => {
-    if (!isLive) {
-      onSeek(value[0]);
+    if (!isLive && duration > 0) {
+      onSeek(value[0] / duration);
     }
   };
 
-  const handleVolumeChangeWrapper = (value: number[]) => {
+  const handleVolumeChangeWrapper = (value: number) => {
     onVolumeChange(value);
   };
 
@@ -76,10 +76,10 @@ const VideoControls = ({
             {showVolume && !isMobileFixed && (
               <div className="w-20 ml-2">
                 <Slider
-                  defaultValue={[isMuted ? 0 : volume * 100]}
+                  value={[isMuted ? 0 : volume * 100]}
                   max={100}
                   step={1}
-                  onValueChange={handleVolumeChangeWrapper}
+                  onValueChange={(value) => handleVolumeChangeWrapper(value[0])}
                   className="w-full h-1 cursor-pointer"
                 />
               </div>

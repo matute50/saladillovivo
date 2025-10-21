@@ -2,7 +2,12 @@
 
 import React, { useCallback, useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import VideoPlayer from '@/components/VideoPlayer';
+import dynamic from 'next/dynamic';
+
+const VideoPlayer = dynamic(() => import('@/components/VideoPlayer'), {
+  ssr: false,
+  loading: () => <div className="w-full h-full bg-black flex items-center justify-center"><p className="text-white">Cargando reproductor...</p></div>,
+});
 import VideoControls from '@/components/VideoControls';
 import VideoTitleBar from '@/components/VideoTitleBar';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -10,8 +15,8 @@ import Image from 'next/image';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
 import { Play, Cast, VolumeX } from 'lucide-react';
 
-const VideoSection = ({ 
-  isMobileFixed = false, 
+const VideoSection = ({
+  isMobileFixed = false,
   isMobile
 }) => {
   const [isMobileFullscreen, setIsMobileFullscreen] = useState(false);
@@ -27,7 +32,6 @@ const VideoSection = ({
     showControls,
     progress,
     duration,
-    videoOpacity,
     isCastAvailable,
     handlePlayerReady,
     handleError,
@@ -44,7 +48,11 @@ const VideoSection = ({
     handlePlay,
     handlePause,
     handleEnded,
-    playingMedia
+    playingMedia,
+    mainSrc,
+    transitionSrc,
+    isTransitioning,
+    activeCategory,
   } = useMediaPlayer();
 
   const customHandleMouseLeaveControls = useCallback(() => {
@@ -53,7 +61,7 @@ const VideoSection = ({
 
 
   const toggleFullScreen = useCallback(async () => {
-    const playerElement = playerRef.current?.wrapper;
+    const playerElement = playerRef.current?.getWrapper();
     if (!playerElement) return;
 
     if (!document.fullscreenElement) {
@@ -107,65 +115,75 @@ const VideoSection = ({
     
     switch (playerStatus) {
       case 'loading':
-        return (
-          <div className={baseClasses}>
-            <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-            <p className="mt-4 text-lg">Cargando...</p>
-          </div>
-        );
+        return null;
       // Other cases would go here
       default:
         return null;
     }
   };
 
+  const getThumbnailUrl = (media) => {
+    if (!media?.url) return '/placeholder.png'; // A default placeholder
+    const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([\w-]{11})/;
+    const videoIdMatch = media.url.match(youtubeRegex);
+    if (videoIdMatch) {
+      return `https://img.youtube.com/vi/${videoIdMatch[1]}/maxresdefault.jpg`;
+    }
+    return media.url;
+  };
+
   const playerCore = (
     <div 
-      className="relative w-full h-full aspect-video bg-black overflow-hidden border-0 md:border md:rounded-xl shadow-player card-blur-player"
+      className="relative w-full h-full aspect-video bg-black overflow-hidden border-0 md:border md:rounded-xl shadow-pop card-blur-player"
       onMouseEnter={handleMouseEnterControls}
       onMouseLeave={customHandleMouseLeaveControls}
       onTouchStart={handleTouchShowControls}
     >
       <div className="absolute inset-0 w-full h-full md:rounded-xl overflow-hidden">
         {renderPlayerState()}
+
+        {isMuted && ( // Conditional rendering for blinking mute icon
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 1, 0] }} // Blinking effect
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-2 left-2 z-40 cursor-pointer p-2" // Positioned top-left, clickable
+            onClick={toggleMute} // Activate audio on click
+          >
+            <VolumeX size={isMobile ? 24 : 38} className="text-white drop-shadow-lg" />
+          </motion.div>
+        )}
         
         {currentMedia?.type !== 'image' && (
-          <motion.div
-            className="w-full h-full"
-            animate={{ opacity: videoOpacity }}
-            transition={{ duration: 2, ease: 'linear' }}
-          >
-            <VideoPlayer
-              key={`${currentMedia?.url}-${isMobileFullscreen}`}
-              playerRef={playerRef}
-              src={currentMedia?.url}
-              playing={isPlaying}
-              volume={volume}
-              muted={isMuted}
-              onReady={handlePlayerReady}
-              onPlay={() => handlePlay(currentMedia)}
-              onPause={handlePause}
-              onEnded={handleEnded}
-              onError={handleError}
-              onProgress={handleProgress}
-              onDuration={handleDuration}
-              isMobile={isMobile}
-            />
-          </motion.div>
+          <VideoPlayer
+            key={`${currentMedia?.url}-${isMobileFullscreen}`}
+            playerRef={playerRef}
+            mainSrc={mainSrc}
+            transitionSrc={transitionSrc}
+            isTransitioning={isTransitioning}
+            playing={isPlaying}
+            volume={volume}
+            muted={isMuted}
+            onReady={handlePlayerReady}
+            onPlay={() => handlePlay(currentMedia)}
+            onPause={handlePause}
+            onEnded={handleEnded}
+            onError={handleError}
+            onProgress={handleProgress}
+            onDuration={handleDuration}
+            isMobile={isMobile}
+          />
         )}
 
         {/* Custom Image overlay for LCP optimization */}
         {!isPlaying && currentMedia?.type === 'video' && currentMedia?.url && (
           <Image
-            src={currentMedia.url.includes('v=') 
-              ? `https://img.youtube.com/vi/${currentMedia.url.split('v=')[1].split('&')[0]}/maxresdefault.jpg`
-              : currentMedia.url // Fallback if not a YouTube video, or handle other types
-            } // Extract YouTube video ID
+            src={getThumbnailUrl(currentMedia)}
             alt={`Miniatura de ${currentMedia.title}`}
-            layout="fill"
-            objectFit="cover"
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="absolute inset-0 z-0 object-cover"
             priority
-            className="absolute inset-0 z-0"
           />
         )}
         <AnimatePresence>
@@ -233,9 +251,17 @@ const VideoSection = ({
        <div className="relative">
           {playerCore}
        </div>
-      <VideoTitleBar playingMedia={playingMedia} isMobile={isMobile} />
+      <VideoTitleBar 
+        playingMedia={playingMedia} 
+        activeCategory={activeCategory} 
+        isMobile={isMobile}
+        isPlaying={isPlaying}
+        progress={progress}
+        duration={duration}
+      />
     </div>
   );
+  
 };
 
 export default VideoSection;

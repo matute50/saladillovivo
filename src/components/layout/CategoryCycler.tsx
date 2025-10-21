@@ -39,6 +39,7 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
     return allVideos.filter(video => dbCategories.includes(video.categoria));
   }, [allVideos, activeCategory]);
 
+
   if (!activeCategory) {
     return null;
   }
@@ -48,25 +49,23 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
       {/* Title with Category Cycle Controls */}
       <div className="flex items-center justify-center w-full gap-x-3 z-10">
         <motion.button 
-          onClick={onPrev} 
-          className="carousel-nav-button-title shadow-xl shadow-black/50 bg-black/30 p-0.5 rounded-md"
-          whileHover={{ color: ['#ffffff', '#FF0000', '#ef4444', '#ffffff'], background: '#ef4444' }}
-          transition={{ duration: 0.6, times: [0, 0.25, 0.75, 1] }}
-          initial={{ color: '#ffffff', background: 'linear-gradient(to right, rgba(30, 58, 138, 0.8), rgba(59, 130, 246, 0.8))' }}
+          onClick={onPrev}
+          className="carousel-nav-button-title p-0.5 rounded-md"
+          animate={{ color: ["#FFFFFF", "#6699ff", "#003399", "#000000"] }}
+          transition={{ duration: 2, repeat: Infinity, repeatType: 'reverse', ease: 'easeInOut' }}
         >
-          <ChevronLeft size="16" />
+          <ChevronLeft size="24" />
         </motion.button>
         <h2 className="text-2xl font-bold tracking-tight text-foreground/90 truncate text-center w-80">
           {activeCategory.display}
         </h2>
         <motion.button 
-          onClick={onNext} 
-          className="carousel-nav-button-title shadow-xl shadow-black/50 bg-black/30 p-0.5 rounded-md"
-          whileHover={{ color: ['#ffffff', '#FF0000', '#ef4444', '#ffffff'], background: '#ef4444' }}
-          transition={{ duration: 0.6, times: [0, 0.25, 0.75, 1] }}
-          initial={{ color: '#ffffff', background: 'linear-gradient(to right, rgba(30, 58, 138, 0.8), rgba(59, 130, 246, 0.8))' }}
+          onClick={onNext}
+          className="carousel-nav-button-title p-0.5 rounded-md"
+          animate={{ color: ["#FFFFFF", "#6699ff", "#003399", "#000000"] }}
+          transition={{ duration: 2, repeat: Infinity, repeatType: 'reverse', ease: 'easeInOut' }}
         >
-          <ChevronRight size="16" />
+          <ChevronRight size="24" />
         </motion.button>
       </div>
 

@@ -28,7 +28,7 @@ const AdsSection = ({ activeAds, adsLoading, isMobile = false }) => {
             <Link key={ad.id || index} href={ad.linkUrl || "#"} target="_blank" rel="noopener noreferrer" className="block w-full">
               <Image 
                 loading="lazy"
-                className="w-full h-auto object-cover rounded-md" 
+                className="w-5/6 h-auto object-cover rounded-md mx-auto" 
                 alt={ad.name || `Anuncio publicitario ${index + 1}`} 
                 src={ad.imageUrl} 
                 width={300} // Base width

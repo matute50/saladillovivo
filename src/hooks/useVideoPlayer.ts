@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { usePlaybackLogic } from '@/hooks/usePlaybackLogic';
 import { useCast } from '@/hooks/useCast';
 
-export const useVideoPlayer = () => {
+export const useVideoPlayer = ({ userVolume, setIsMuted, ...audioState }: any) => { // Destructure userVolume and setIsMuted
   const playerRef = useRef<any>(null);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -10,49 +10,58 @@ export const useVideoPlayer = () => {
   const [playingMedia, setPlayingMedia] = useState<any>(null);
   const [playerStatus, setPlayerStatus] = useState('idle');
   const [showControls, setShowControls] = useState(false);
+  const [isPlayerReady, setIsPlayerReady] = useState(false);
   
   const playbackLogic = usePlaybackLogic({
+    playingMedia,
     setCurrentMedia,
     setPlayingMedia,
     setPlayerStatus,
+    ...audioState,
   });
+  const { setIsPlaying } = playbackLogic;
 
-  const { volume, isMuted } = playbackLogic; // Importar volume e isMuted
-
-  useEffect(() => {
-      if (!currentMedia) {
-          const placeholderImage = document.documentElement.classList.contains('dark') 
-              ? 'https://storage.googleapis.com/hostinger-horizons-assets-prod/77d159f1-0d45-4b01-ba42-c8ca9cbd0d70/4e1cb556338b8c5950a4d1d93339ecb7.png' 
-              : 'https://storage.googleapis.com/hostinger-horizons-assets-prod/77d159f1-0d45-4b01-ba42-c8ca9cbd0d70/a56317586a1474ed88f117395632e85a.png';
-          
-          setCurrentMedia({
-              url: placeholderImage,
-              title: 'Saladillo Vivo',
-              type: 'image',
-              isUserSelected: false
-          });
-          setPlayerStatus('static_image');
-      }
-  }, [currentMedia]);
+  const { volume, isMuted } = audioState;
 
   const { isCastAvailable, handleCast } = useCast(currentMedia);
 
   const handleError = useCallback((e: any) => {
     console.warn("Player error:", e);
     setPlayerStatus('error');
-  }, [setPlayerStatus]);
+    // On error, try to play the next video to avoid getting stuck
+    playbackLogic.playNextRandomVideo(playingMedia?.id);
+  }, [setPlayerStatus, playbackLogic, playingMedia]);
 
-  const handlePlayerReady = useCallback((player: any) => {
-    if (playerRef.current) {
-      const internalPlayer = playerRef.current.getInternalPlayer();
-      if (internalPlayer && typeof internalPlayer.setVolume === 'function') {
-        internalPlayer.setVolume(isMuted ? 0 : volume);
-      } else if (playerRef.current.setVolume && typeof playerRef.current.setVolume === 'function') {
-        // Fallback for other player types or if getInternalPlayer is not needed
-        playerRef.current.setVolume(isMuted ? 0 : volume);
+  const handlePlayerReady = useCallback(() => {
+    setIsPlayerReady(true);
+  }, []);
+
+  useEffect(() => {
+    console.log(`useVideoPlayer useEffect: isPlayerReady=${isPlayerReady}, isMuted=${isMuted}, volume=${volume}`);
+    if (isPlayerReady && playerRef.current && typeof playerRef.current.getMainPlayer === 'function') {
+      const mainPlayer = playerRef.current.getMainPlayer();
+      if (mainPlayer && typeof mainPlayer.getInternalPlayer === 'function') {
+        const internalPlayer = mainPlayer.getInternalPlayer();
+        if (internalPlayer) {
+          // Synchronize mute state
+          if (typeof internalPlayer.mute === 'function' && typeof internalPlayer.unMute === 'function') {
+            if (isMuted) {
+              internalPlayer.mute();
+              console.log('useVideoPlayer: internalPlayer.mute() called');
+            } else {
+              internalPlayer.unMute();
+              console.log('useVideoPlayer: internalPlayer.unMute() called');
+            }
+          }
+          // Synchronize volume state
+          if (typeof internalPlayer.setVolume === 'function') {
+            internalPlayer.setVolume(isMuted ? 0 : volume * 100);
+            console.log(`useVideoPlayer: useEffect setVolume on internalPlayer to ${isMuted ? 0 : volume * 100}`);
+          }
+        }
       }
     }
-  }, [playerRef, isMuted, volume]);
+  }, [isPlayerReady, isMuted, volume]);
 
   const handleMouseEnterControls = useCallback(() => {
     if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
@@ -83,7 +92,7 @@ export const useVideoPlayer = () => {
     handleMouseEnterControls,
     handleMouseLeaveControls,
     handleTouchShowControls,
-    handleProgress: (state: { played: number }) => playbackLogic.setProgress(state.played),
+    handleProgress: (state: any) => playbackLogic.handleProgress(state),
     handleDuration: (d: number) => playbackLogic.setDuration(d),
     handleSeek: (value: number) => {
       if (playerRef.current && currentMedia?.type === 'video' && value < playbackLogic.progress) {

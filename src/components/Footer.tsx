@@ -42,8 +42,8 @@ const Footer = () => {
                 src={isDarkTheme ? banerParaModoOscuro : banerParaModoClaro}
                 alt="Logo de Saladillo Vivo en el pie de página"
                 width={100}
-                height={24} // h-6
-                className="h-6 object-contain mb-2"
+                height={24}
+                className="object-contain mb-2"
               />
               <p className="text-[9px] mb-1">
                 Saladillo Vivo declarado de interés cultural y municipal {' '}

@@ -5,8 +5,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Calendar } from 'lucide-react';
-import { slugify, formatDate } from '@/lib/utils';
+import { formatDate } from '@/lib/utils';
 import { Article } from '@/lib/types';
+
 
 interface NewsCardProps {
   newsItem: Article;
@@ -16,12 +17,16 @@ interface NewsCardProps {
 }
 
 const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, className = '' }) => {
+
+
   if (!newsItem) return null;
 
   const { titulo, fecha, slug, imageUrl, id } = newsItem;
 
+
+
   // Definir estilos basados en la variante
-  let cardClass = 'card card-blur overflow-hidden flex flex-col group cursor-pointer';
+  let cardClass = 'card overflow-hidden flex flex-col group cursor-pointer';
   let titleClass = '';
   let imageContainerClass = 'aspect-video'; // Default aspect ratio
   let dateDisplay;
@@ -29,8 +34,8 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, class
 
   switch (variant) {
     case 'destacada-principal':
-      cardClass += ' shadow-strong';
-      titleClass = 'font-futura-bold text-2xl mt-2 text-card-foreground';
+      cardClass += ' shadow-pop';
+      titleClass = 'font-futura-bold text-3xl mt-2 text-card-foreground';
       priority = true;
       dateDisplay = (
         <div className="date-on-image">
@@ -41,8 +46,8 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, class
       break;
 
     case 'secundaria':
-      cardClass += ' shadow-md';
-      titleClass = 'font-futura-bold text-base text-card-foreground group-hover:text-primary transition-colors line-clamp-4';
+      cardClass += ' shadow-pop';
+      titleClass = 'font-futura-bold text-lg text-card-foreground group-hover:text-primary transition-colors line-clamp-4';
       dateDisplay = (
         <div className="date-on-image">
           <Calendar size={10} className="mr-1" />
@@ -52,8 +57,8 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, class
       break;
 
     default: // 'default' para las noticias sin categoría
-      cardClass += ' shadow';
-      titleClass = 'font-futura-bold text-sm text-card-foreground group-hover:text-primary transition-colors line-clamp-3';
+      cardClass += ' shadow-pop';
+      titleClass = 'font-futura-bold text-base text-card-foreground group-hover:text-primary transition-colors line-clamp-3';
       dateDisplay = (
         <div className="date-on-image">
           <Calendar size={10} className="mr-1" />
@@ -63,7 +68,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, class
       break;
   }
 
-  const articleLink = `/noticia/${slugify(titulo, id)}`;
+  const articleLink = `/noticia/${slug}`;
 
   return (
     <motion.article
@@ -73,25 +78,28 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, class
       className={`${cardClass} ${className}`}
       aria-label={`Noticia: ${titulo}`}
     >
-      <Link href={articleLink} passHref className="flex flex-col">
-        <div className={`relative news-image-container overflow-hidden ${imageContainerClass}`}>
-            <Image 
-              loading={priority ? 'eager' : 'lazy'}
-              priority={priority}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              alt={`Imagen de: ${titulo}`}
-              src={imageUrl || "https://images.unsplash.com/photo-1456339445756-beb5120afc42"}
-              fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            />
-            {dateDisplay}
-        </div>
-        <div className="p-2 flex flex-col">
-          <h3 className={titleClass}>
-            {titulo}
-          </h3>
-        </div>
+      <Link href={articleLink} passHref legacyBehavior>
+        <a className="flex flex-col">
+          <div className={`relative news-image-container overflow-hidden ${imageContainerClass}`}>
+              <Image 
+                loading={priority ? 'eager' : 'lazy'}
+                priority={priority}
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                alt={`Imagen de: ${titulo}`}
+                src={imageUrl || "https://images.unsplash.com/photo-1456339445756-beb5120afc42"}
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              />
+              {dateDisplay}
+          </div>
+          <div className="p-2 flex flex-col">
+            <h3 className={titleClass}>
+              {titulo}
+            </h3>
+          </div>
+        </a>
       </Link>
+
     </motion.article>
   );
 };

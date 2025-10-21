@@ -1,138 +1,141 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/components/ui/use-toast';
-
-const FADE_DURATION = 2000;
-
-const useFader = (initialVolume = 1.0) => {
-  const [volume, setVolume] = useState(initialVolume);
-  const animationFrameRef = useRef<number>();
-
-  const ramp = useCallback((targetVolume: number, duration: number, onComplete?: () => void) => {
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-    }
-    const startVolume = volume;
-    const startTime = performance.now();
-
-    const animate = (currentTime: number) => {
-      const elapsedTime = currentTime - startTime;
-      const progress = Math.min(elapsedTime / duration, 1);
-      const newVolume = startVolume + (targetVolume - startVolume) * progress;
-      setVolume(newVolume);
-
-      if (progress < 1) {
-        animationFrameRef.current = requestAnimationFrame(animate);
-      } else {
-        if (onComplete) onComplete();
-      }
-    };
-    animationFrameRef.current = requestAnimationFrame(animate);
-  }, [volume]);
-
-  return { volume, setVolume, ramp };
-};
+import { getNewRandomVideo } from '@/lib/data';
+import { getDisplayCategory } from '@/lib/categoryMappings';
 
 interface PlaybackLogicProps {
+  playingMedia: any;
   setCurrentMedia: (media: any) => void;
   setPlayingMedia: (media: any) => void;
   setPlayerStatus: (status: string) => void;
+  isMuted: boolean;
+  setIsMuted: (isMuted: boolean) => void;
+  isFirstPlay: boolean;
+  setIsFirstPlay: (isFirstPlay: boolean) => void;
+  setVolume: (volume: number) => void;
+  ramp: (targetVolume: number, duration: number, onComplete?: () => void) => void;
+  userVolume: React.MutableRefObject<number>;
 }
 
-export const usePlaybackLogic = ({ setCurrentMedia, setPlayingMedia, setPlayerStatus }: PlaybackLogicProps) => {
+export const usePlaybackLogic = ({
+  playingMedia,
+  setCurrentMedia,
+  setPlayingMedia,
+  setPlayerStatus,
+  isMuted,
+  setIsMuted,
+  isFirstPlay,
+  setIsFirstPlay,
+  setVolume,
+  ramp,
+  userVolume,
+}: PlaybackLogicProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isAutoplaying, setIsAutoplaying] = useState(true);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [videoOpacity, setVideoOpacity] = useState(0);
-  const { volume, setVolume, ramp } = useFader(1.0);
   const playbackEventSent = useRef(false);
-  const userVolume = useRef(1.0);
-  const [isMuted, setIsMuted] = useState(false);
+  const fadeOutInitiated = useRef(false);
+  // Removed: const isInitialPlay = useRef(true);
   const { toast } = useToast();
-
-  const performTransition = useCallback((callback?: () => void) => {
-    setIsTransitioning(true);
-    setVideoOpacity(0);
-    ramp(0, FADE_DURATION, () => {
-      if (callback) callback();
-      setTimeout(() => {
-        setVideoOpacity(1);
-        ramp(isMuted ? 0 : userVolume.current, FADE_DURATION, () => {
-          setIsTransitioning(false);
-        });
-      }, 50);
-    });
-  }, [ramp, isMuted]);
+  const [mainSrc, setMainSrc] = useState('');
+  const [transitionSrc, setTransitionSrc] = useState('');
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  
+  const introVideos = ['/azul.mp4', '/cuadros.mp4', '/cuadros2.mp4', '/lineal.mp4', '/ruido.mp4'];
 
   const playMedia = useCallback((mediaData: any, isAutoPlay = false) => {
     playbackEventSent.current = false;
+    fadeOutInitiated.current = false;
     setPlayerStatus('loading');
-    
-    const startMuted = isAutoPlay && (mediaData.type === 'stream' || mediaData.type === 'video');
 
-    if (startMuted) {
-      userVolume.current = 1.0;
-      setIsMuted(true);
-      setVolume(0);
+    if (isAutoPlay) {
+      // Autoplay is silent at first to comply with browser policies.
+      // The context starts with isMuted: true, so we don't need to do anything here.
     } else {
-      setIsMuted(false);
-      setVolume(userVolume.current);
+      // User-initiated play
+      if (isMuted) { // If it was muted, unmute and fade in.
+        setIsMuted(false);
+        setVolume(0);
+        ramp(userVolume.current, 1000);
+      }
     }
 
-    performTransition(() => {
-        setCurrentMedia(mediaData);
-        setPlayingMedia(mediaData);
-        setPlayerStatus(mediaData.type === 'stream' ? 'playing_stream' : 'playing_vod');
-        setIsPlaying(true);
-    });
-  }, [setCurrentMedia, setPlayingMedia, setPlayerStatus, performTransition, setVolume]);
+    setMainSrc(mediaData.url);
+    setCurrentMedia(mediaData);
+    setPlayingMedia(mediaData);
+
+    if (mediaData.url.includes('youtube.com') || mediaData.url.includes('youtu.be')) {
+        const randomIntro = introVideos[Math.floor(Math.random() * introVideos.length)];
+        setTransitionSrc(randomIntro);
+        setIsTransitioning(true);
+    }
+    
+    setIsPlaying(true);
+
+  }, [setCurrentMedia, setPlayingMedia, setPlayerStatus, ramp, introVideos, isMuted, setIsMuted, userVolume, setVolume]);
+
+  const playNextRandomVideo = useCallback(async (currentId?: string) => {
+    const randomVideo = await getNewRandomVideo(currentId);
+    if (randomVideo) {
+      const mediaData = {
+        ...randomVideo,
+        id: randomVideo.id,
+        url: randomVideo.url,
+        title: randomVideo.nombre,
+        type: 'video',
+        isUserSelected: false,
+        category: randomVideo.categoria,
+      };
+      setActiveCategory(getDisplayCategory(randomVideo.categoria));
+      playMedia(mediaData, true);
+    } else {
+      toast({
+        title: "Fin del Contenido Aleatorio",
+        description: "No se encontraron más videos para reproducir.",
+      });
+    }
+  }, [toast, playMedia]);
+
+  // Effect for initial video load
+  useEffect(() => {
+    playNextRandomVideo();
+  }, []); // Runs only once on mount
+
 
   const playUserSelectedVideo = useCallback((video: any, categoryName?: string) => {
+    setIsAutoplaying(false);
+    setActiveCategory(categoryName || getDisplayCategory(video.categoria));
+    
+    let videoUrl = video.url;
+    if (!videoUrl || !videoUrl.includes('youtu')) {
+      if (video.imagen && video.imagen.includes('youtu')) {
+        videoUrl = video.imagen;
+      }
+    }
+
     const mediaData = {
-      url: video.url,
+      ...video,
+      url: videoUrl,
       title: video.nombre,
       type: 'video',
       isUserSelected: true,
-      category: categoryName
+      category: video.categoria,
     };
-    setIsMuted(false);
-    userVolume.current = volume > 0 ? volume : 1.0;
-    playMedia(mediaData, true);
-  }, [playMedia, volume]);
-
-  const togglePlayPause = useCallback(() => setIsPlaying(prev => !prev), []);
-  
-  const unmute = useCallback(() => {
-    setIsMuted(false);
-    ramp(userVolume.current, 500);
-  }, [ramp]);
-  
-  const toggleMute = useCallback(() => {
-    const newMutedState = !isMuted;
-    setIsMuted(newMutedState);
-    ramp(newMutedState ? 0 : userVolume.current, 500);
-  }, [ramp, isMuted]);
-
-  const handleVolumeChange = useCallback((v: number) => {
-    const newVolume = v / 100;
-    userVolume.current = newVolume;
-    setVolume(newVolume);
-    setIsMuted(newVolume === 0);
-  }, [setVolume]);
+    playMedia(mediaData, false);
+  }, [playMedia]);
 
   const handlePlay = useCallback(async (media: any) => {
     setIsPlaying(true);
+    setPlayerStatus(media.type === 'stream' ? 'playing_stream' : 'playing_vod');
+
     if (media) {
       setPlayingMedia(media);
     }
 
     if (media && !playbackEventSent.current) {
-        if (media.category === 'SV') {
-            playbackEventSent.current = true;
-            return;
-        }
-
         playbackEventSent.current = true;
         try {
             const { error } = await supabase.from('reproducciones').insert({
@@ -152,39 +155,72 @@ export const usePlaybackLogic = ({ setCurrentMedia, setPlayingMedia, setPlayerSt
             }
         }
     }
-  }, [setPlayingMedia, toast]);
+  }, [setPlayingMedia, toast, setPlayerStatus]);
 
   const handlePause = useCallback(() => {
     setIsPlaying(false);
   }, []);
 
   const handleEnded = useCallback(() => {
-    setIsPlaying(false);
+    setIsAutoplaying(true);
+    const currentPlayingId = playingMedia?.id;
+    playNextRandomVideo(currentPlayingId);
+  }, [playNextRandomVideo, playingMedia]);
+
+  const handleProgress = useCallback((state: { played: number, playedSeconds: number }) => {
+    setProgress(state.played);
   }, []);
 
+  const togglePlayPause = useCallback(() => {
+    // If we are about to start playing and the context is muted (i.e., initial state)
+    if (!isPlaying && isMuted) {
+        setIsMuted(false);
+        setVolume(0);
+        ramp(userVolume.current, 1000);
+    }
+    setIsPlaying(prev => !prev);
+  }, [isPlaying, isMuted, setIsMuted, setVolume, ramp, userVolume]);
+
+  useEffect(() => {
+    if (isPlaying && isTransitioning) {
+      const transitionTimer = setTimeout(() => {
+        setIsTransitioning(false);
+        setTransitionSrc('');
+      }, 5500);          
+      return () => clearTimeout(transitionTimer);
+    }
+  }, [isPlaying, isTransitioning]);
+
+  // Effect for audio fade-out
+  useEffect(() => {
+    if (!isPlaying || duration <= 0 || isMuted) return;
+
+    const remainingTime = duration * (1 - progress);
+
+    if (remainingTime <= 1 && !fadeOutInitiated.current) {
+      fadeOutInitiated.current = true;
+      ramp(0, 1000);
+    }
+  }, [progress, duration, isPlaying, isMuted, ramp]);
+  
   return {
     isPlaying,
-    volume,
-    isMuted,
-    videoOpacity,
-    isTransitioning,
     progress,
     duration,
+    mainSrc,
+    transitionSrc,
+    isTransitioning,
+    activeCategory,
     setIsPlaying,
-    setVolume,
     setProgress,
     setDuration,
     playUserSelectedVideo,
     playMedia,
     togglePlayPause,
-    unmute,
-    toggleMute,
-    handleVolumeChange,
     handlePlay,
     handlePause,
     handleEnded,
-    // Exponer volume e isMuted para useVideoPlayer
-    volume,
-    isMuted,
+    playNextRandomVideo,
+    handleProgress,
   };
 };

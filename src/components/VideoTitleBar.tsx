@@ -3,19 +3,21 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const VideoTitleBar = ({ playingMedia, isMobile }) => {
+const VideoTitleBar = ({ playingMedia, activeCategory, isMobile, isPlaying, progress, duration }) => {
   const textRef = useRef<HTMLParagraphElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isOverflowing, setIsOverflowing] = useState(false);
-  const [animationKey, setAnimationKey] = useState(0);
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
+  const visibilityTimer = useRef<NodeJS.Timeout | null>(null);
+  const periodicTimer = useRef<NodeJS.Timeout | null>(null);
 
   let titleText = null;
   if (playingMedia) {
+    const categoryToShow = activeCategory || playingMedia.category;
     if (playingMedia.type === 'stream') {
-      titleText = `ESTÁS VIENDO EN VIVO ${playingMedia.title.toUpperCase()}`;
-    } else if (playingMedia.category !== 'SV') {
-      titleText = `ESTÁS VIENDO ${playingMedia.category.toUpperCase()}, ${playingMedia.title.toUpperCase()}`;
+      titleText = `EN VIVO: ${playingMedia.title.toUpperCase()}`;
+    } else if (categoryToShow && categoryToShow !== 'SV') {
+      titleText = `${categoryToShow.toUpperCase()}, ${playingMedia.title.toUpperCase()}`;
     } else {
       titleText = ' '; // Empty space for SV category
     }
@@ -34,7 +36,7 @@ const VideoTitleBar = ({ playingMedia, isMobile }) => {
     };
     
     checkOverflow();
-    const timeoutId = setTimeout(checkOverflow, 2100); // Re-check after fade-in
+    const timeoutId = setTimeout(checkOverflow, 2100);
     window.addEventListener('resize', checkOverflow);
     
     return () => {
@@ -44,38 +46,48 @@ const VideoTitleBar = ({ playingMedia, isMobile }) => {
   }, [titleText, isMobile, isOverflowing]);
 
   useEffect(() => {
-    if (!titleText || titleText.trim() === '') {
+    const cleanup = () => {
+      if (visibilityTimer.current) clearTimeout(visibilityTimer.current);
+      if (periodicTimer.current) clearInterval(periodicTimer.current);
+    };
+
+    if (!isPlaying || duration <= 0 || !titleText || titleText.trim() === '') {
       setIsVisible(false);
+      cleanup();
       return;
     }
 
-    setIsVisible(true);
-    let visibilityTimeout;
-    let animationInterval;
-
-    if (isMobile) {
-        const sequence = () => {
-            setIsVisible(true);
-            setAnimationKey(prev => prev + 1); // Trigger animation/scroll
-
-            visibilityTimeout = setTimeout(() => {
-                setIsVisible(false);
-            }, 8000); // 8s visible
-        };
-
-        sequence();
-        animationInterval = setInterval(sequence, 23000); // 8s visible + 15s delay
-    } else {
-        // Desktop logic, simple fade in/out
-        setIsVisible(true);
-    }
-    
-    return () => {
-      clearTimeout(visibilityTimeout);
-      clearInterval(animationInterval);
+    const showBar = () => {
+      setIsVisible(true);
+      visibilityTimer.current = setTimeout(() => {
+        setIsVisible(false);
+      }, 20000); // 20 seconds
     };
 
-  }, [isMobile, isOverflowing, titleText]);
+    // Initial show
+    showBar();
+
+    // Periodic show every 3 minutes
+    periodicTimer.current = setInterval(showBar, 3 * 60 * 1000);
+
+    return cleanup;
+  }, [isPlaying, duration, titleText]);
+
+  useEffect(() => {
+    if (!isPlaying || duration <= 0) return;
+
+    const currentTime = progress * duration;
+    const remainingTime = duration - currentTime;
+
+    if (remainingTime <= 20) {
+      if (!isVisible) {
+        setIsVisible(true);
+        // When it becomes visible due to the last 20 seconds, we don't want it to hide
+        if (visibilityTimer.current) clearTimeout(visibilityTimer.current);
+      }
+    }
+  }, [isPlaying, progress, duration, isVisible]);
+
 
   const mobileScrollVariants = {
     animate: {
@@ -84,7 +96,7 @@ const VideoTitleBar = ({ playingMedia, isMobile }) => {
         x: {
           duration: 7,
           ease: 'linear',
-          delay: 1, // Start scroll after 1 sec
+          delay: 1,
         },
       }
     }
@@ -93,20 +105,19 @@ const VideoTitleBar = ({ playingMedia, isMobile }) => {
   return (
     <div ref={containerRef} className="w-full pl-1 pt-1 overflow-hidden h-[20px]">
       <AnimatePresence>
-        {titleText && titleText.trim() !== '' && isVisible && (
+        {isVisible && (
           <motion.div
-            key={animationKey}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 2, ease: "easeInOut" }}
+            transition={{ duration: 1.5, ease: "easeInOut" }}
             className="w-full"
           >
             <motion.p
               ref={textRef}
               className="font-century-gothic text-xs uppercase text-foreground whitespace-nowrap"
               variants={isOverflowing ? mobileScrollVariants : {}}
-              animate="animate"
+              animate={isOverflowing ? "animate" : ""}
             >
               {titleText}
             </motion.p>
