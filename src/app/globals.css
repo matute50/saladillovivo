@@ -289,7 +289,7 @@
   }
 
   .search-box {
-    @apply bg-input text-foreground placeholder:text-foreground/70 border border-white;
+    @apply bg-input text-foreground placeholder:text-foreground/70 border border-black dark:border-white;
   }
   .dark .search-box {
     @apply text-white placeholder:text-white/70;
@@ -318,4 +318,30 @@
   50% {
     background-color: #aaaaaa;
   }
+}
+
+/* Intento de ocultar posibles overlays de silencio del reproductor de YouTube */
+.ytp-bezel-text-wrapper {
+  display: none !important;
+}
+
+.ytp-top-left-controls .ytp-mute-button,
+.ytp-top-left-controls .ytp-volume-area {
+  display: none !important;
+}
+
+.ytp-tooltip-text[aria-label*="silencio"],
+.ytp-tooltip-text[title*="silencio"],
+.ytp-tooltip-text[aria-label*="mute"],
+.ytp-tooltip-text[title*="mute"],
+.ytp-unmute-button {
+  display: none !important;
+}
+
+.ytp-chrome-bottom .ytp-mute-button {
+  display: none !important;
+}
+
+.ytp-volume-slider-handle {
+  display: none !important;
 }

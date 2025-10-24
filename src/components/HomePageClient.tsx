@@ -21,37 +21,25 @@ const useIsMobile = () => {
 const HomePageClient = ({ data }) => {
   const isMobile = useIsMobile();
   const [hasMounted, setHasMounted] = useState(false);
-  const { playUserSelectedVideo } = useMediaPlayer();
-  const { videos, interviews } = data;
+  const { loadInitialPlaylist } = useMediaPlayer();
 
   useEffect(() => {
     setHasMounted(true);
-  }, []);
+    // Una vez que el componente se monta, iniciamos la lógica de la playlist.
+    const params = new URLSearchParams(window.location.search);
+    const videoUrl = params.get('videoUrl');
+    
+    loadInitialPlaylist(videoUrl); // El contexto se encargará si el videoUrl es nulo o no
 
-  useEffect(() => {
-    // This effect runs once when the component has mounted and data is available.
-    if (hasMounted && videos && interviews) {
-      const params = new URLSearchParams(window.location.search);
-      const videoUrl = params.get('videoUrl');
-
-      if (videoUrl) {
-        // If a specific video is requested in the URL, play it.
-        const combinedVideos = [...interviews, ...videos];
-        const videoToPlay = combinedVideos.find(v => v.url === videoUrl);
-
-        if (videoToPlay) {
-            playUserSelectedVideo(videoToPlay);
-            // Clean the URL
-            window.history.replaceState(null, '', window.location.pathname);
-        }
-      }
+    // Limpiar la URL si venía con parámetro para no recargar el mismo video si el usuario refresca
+    if (videoUrl) {
+      window.history.replaceState(null, '', window.location.pathname);
     }
-  // The dependency array ensures this runs only once after everything is ready.
-  }, [hasMounted, videos, interviews, playUserSelectedVideo]);
+  }, [loadInitialPlaylist]); // Se ejecuta solo una vez
 
 
   if (!hasMounted) {
-    return null; // Return null on first render to avoid hydration mismatch
+    return null; // Evita mismatch de hidratación
   }
 
   if (isMobile) {

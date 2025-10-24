@@ -4,16 +4,15 @@ import React, { useCallback, useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import dynamic from 'next/dynamic';
 
-const VideoPlayer = dynamic(() => import('@/components/VideoPlayer'), {
-  ssr: false,
-  loading: () => <div className="w-full h-full bg-black flex items-center justify-center"><p className="text-white">Cargando reproductor...</p></div>,
-});
-import VideoControls from '@/components/VideoControls';
-import VideoTitleBar from '@/components/VideoTitleBar';
+import VideoPlayer from '@/components/VideoPlayer'; // New VideoPlayer import
 import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
-import { Play, Cast, VolumeX } from 'lucide-react';
+import { Play, Cast, VolumeX, Volume2 } from 'lucide-react';
+import VideoControls from '@/components/VideoControls';
+import { Slider } from '@/components/ui/slider';
+import { useCast } from '@/hooks/useCast';
+import VideoTitleBar from '@/components/VideoTitleBar';
 
 const VideoSection = ({
   isMobileFixed = false,
@@ -22,46 +21,54 @@ const VideoSection = ({
   const [isMobileFullscreen, setIsMobileFullscreen] = useState(false);
   
   const {
-    playerRef,
-    currentMedia,
-    playerStatus,
+    currentVideo,
     isPlaying,
     volume,
     isMuted,
-    unmute,
-    showControls,
-    progress,
-    duration,
-    isCastAvailable,
-    handlePlayerReady,
-    handleError,
-    togglePlayPause,
+    seekToFraction,
+    setSeekToFraction,
+    handleOnEnded,
+    handleOnProgress,
     toggleMute,
     handleVolumeChange,
-    handleMouseEnterControls,
-    handleMouseLeaveControls,
-    handleTouchShowControls,
-    handleProgress,
-    handleDuration,
-    handleSeek,
-    handleCast,
-    handlePlay,
-    handlePause,
-    handleEnded,
-    playingMedia,
-    mainSrc,
-    transitionSrc,
-    isTransitioning,
-    activeCategory,
   } = useMediaPlayer();
+  const { isCastAvailable, handleCast } = useCast(currentVideo);
+  const playerRef = useRef(null);
+  const [showControls, setShowControls] = useState(false);
+  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleShowControls = useCallback(() => {
+    setShowControls(true);
+    if (controlsTimeoutRef.current) {
+      clearTimeout(controlsTimeoutRef.current);
+    }
+    controlsTimeoutRef.current = setTimeout(() => {
+      setShowControls(false);
+    }, 3000);
+  }, []);
+
+  const handleTouchShowControls = () => {
+    setShowControls(prev => !prev);
+  };
+
+  const handleMouseEnter = () => {
+    if (!isMobile) {
+      handleShowControls();
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (!isMobile) {
+      setShowControls(false);
+    }
+  };
 
   const customHandleMouseLeaveControls = useCallback(() => {
-    handleMouseLeaveControls(true); // pass true for faster fade
-  }, [handleMouseLeaveControls]);
-
+    // Esta función ya no es necesaria con Plyr, pero la dejamos vacía por si está en uso en otro lugar.
+  }, []);
 
   const toggleFullScreen = useCallback(async () => {
-    const playerElement = playerRef.current?.getWrapper();
+    const playerElement = playerRef.current?.getInternalPlayer()?.elements.container; // Access Plyr container
     if (!playerElement) return;
 
     if (!document.fullscreenElement) {
@@ -111,23 +118,18 @@ const VideoSection = ({
   }, [isMobile]);
 
   const renderPlayerState = () => {
-    const baseClasses = "absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-70 z-10 text-white text-center p-4 md:rounded-xl";
-    
-    switch (playerStatus) {
-      case 'loading':
-        return null;
-      // Other cases would go here
-      default:
-        return null;
-    }
+    // playerStatus no está definido, así que esta función no hace nada actualmente.
+    // Se mantiene por si se reutiliza en el futuro.
+    return null;
   };
 
   const getThumbnailUrl = (media) => {
-    if (!media?.url) return '/placeholder.png'; // A default placeholder
-    const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([\w-]{11})/;
+    if (!media?.url) return '/placeholder.png';
+    const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
     const videoIdMatch = media.url.match(youtubeRegex);
     if (videoIdMatch) {
-      return `https://img.youtube.com/vi/${videoIdMatch[1]}/maxresdefault.jpg`;
+      const videoId = videoIdMatch[1];
+      return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
     }
     return media.url;
   };
@@ -135,59 +137,103 @@ const VideoSection = ({
   const playerCore = (
     <div 
       className="relative w-full h-full aspect-video bg-black overflow-hidden border-0 md:border md:rounded-xl shadow-pop card-blur-player"
-      onMouseEnter={handleMouseEnterControls}
-      onMouseLeave={customHandleMouseLeaveControls}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       onTouchStart={handleTouchShowControls}
     >
       <div className="absolute inset-0 w-full h-full md:rounded-xl overflow-hidden">
         {renderPlayerState()}
 
-        {isMuted && ( // Conditional rendering for blinking mute icon
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: [0, 1, 0] }} // Blinking effect
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute top-2 left-2 z-40 cursor-pointer p-2" // Positioned top-left, clickable
-            onClick={toggleMute} // Activate audio on click
-          >
-            <VolumeX size={isMobile ? 24 : 38} className="text-white drop-shadow-lg" />
-          </motion.div>
-        )}
-        
-        {currentMedia?.type !== 'image' && (
+        {currentVideo && (
           <VideoPlayer
-            key={`${currentMedia?.url}-${isMobileFullscreen}`}
-            playerRef={playerRef}
-            mainSrc={mainSrc}
-            transitionSrc={transitionSrc}
-            isTransitioning={isTransitioning}
+            key={currentVideo.id || currentVideo.url} // Usar una key más estable
+            ref={playerRef}
+            src={currentVideo.url}
             playing={isPlaying}
             volume={volume}
             muted={isMuted}
-            onReady={handlePlayerReady}
-            onPlay={() => handlePlay(currentMedia)}
-            onPause={handlePause}
-            onEnded={handleEnded}
-            onError={handleError}
-            onProgress={handleProgress}
-            onDuration={handleDuration}
-            isMobile={isMobile}
+            onEnded={handleOnEnded} // Conectar el evento onEnded
+            onProgress={handleOnProgress} // Conectar el evento onProgress
+            seekToFraction={seekToFraction}
+            setSeekToFraction={setSeekToFraction}
           />
         )}
 
-        {/* Custom Image overlay for LCP optimization */}
-        {!isPlaying && currentMedia?.type === 'video' && currentMedia?.url && (
-          <Image
-            src={getThumbnailUrl(currentMedia)}
-            alt={`Miniatura de ${currentMedia.title}`}
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="absolute inset-0 z-0 object-cover"
-            priority
-          />
-        )}
+                {/* Custom Image overlay for LCP optimization */}
+
+                {!isPlaying && currentVideo?.type === 'video' && currentVideo?.url && (
+
+                  <Image
+
+                    src={getThumbnailUrl(currentVideo)}
+
+                    alt={`Miniatura de ${currentVideo.title}`}
+
+                    fill
+
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+
+                    className="absolute inset-0 z-0 object-cover"
+
+                    priority
+
+                    onError={(e) => {
+
+                      const target = e.target as HTMLImageElement;
+
+                      if (target.src.includes('maxresdefault.jpg')) {
+
+                        target.src = getThumbnailUrl(currentVideo).replace('maxresdefault.jpg', 'hqdefault.jpg');
+
+                      } else if (target.src.includes('hqdefault.jpg')) {
+
+                        target.src = getThumbnailUrl(currentVideo).replace('hqdefault.jpg', 'mqdefault.jpg');
+
+                      } else {
+
+                        target.src = '/placeholder.png'; // Final fallback
+
+                      }
+
+                    }}
+
+                  />
+
+                )}
+
+                {/* Chromecast Button (Top Right) */}
+
+                <AnimatePresence>
+
+                  {showControls && isCastAvailable && (
+
+                    <motion.div
+
+                      className="absolute top-4 right-4 z-30"
+
+                      initial={{ opacity: 0, x: 20 }}
+
+                      animate={{ opacity: 1, x: 0 }}
+
+                      exit={{ opacity: 0, x: 20 }}
+
+                      transition={{ duration: 0.2 }}
+
+                    >
+
+                      <button onClick={handleCast} className="text-white hover:text-orange-500 transition-colors">
+
+                        <Cast size={24} />
+
+                      </button>
+
+                    </motion.div>
+
+                  )}
+
+                </AnimatePresence>
         <AnimatePresence>
-          {!isPlaying && currentMedia?.url && (currentMedia.type === 'video' || currentMedia.type === 'stream') && (
+          {!isPlaying && currentVideo?.type === 'video' && currentVideo?.url && (currentVideo.type === 'video' || currentVideo.type === 'stream') && (
               <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -202,32 +248,7 @@ const VideoSection = ({
           )}
         </AnimatePresence>
         <AnimatePresence>
-        {showControls && currentMedia?.type !== 'image' && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute bottom-0 left-0 right-0 z-30"
-          >
-          <VideoControls
-            isPlaying={isPlaying}
-            isMuted={isMuted}
-            progress={progress}
-            duration={duration}
-            volume={volume}
-            togglePlayPause={togglePlayPause}
-            toggleMute={toggleMute}
-            onSeek={handleSeek}
-            onVolumeChange={handleVolumeChange}
-            toggleFullScreen={toggleFullScreen}
-            isFullscreen={isMobileFullscreen || !!document.fullscreenElement}
-            isMobileFixed={isMobileFixed}
-            isCastAvailable={isCastAvailable}
-            handleCast={handleCast}
-            isLive={currentMedia?.type === 'stream'}
-          />
-          </motion.div>
-        )}
+          {(isMuted || showControls) && currentVideo?.type !== 'image' && <VideoControls showControls={showControls} />}
         </AnimatePresence>
       </div>
     </div>
@@ -251,14 +272,7 @@ const VideoSection = ({
        <div className="relative">
           {playerCore}
        </div>
-      <VideoTitleBar 
-        playingMedia={playingMedia} 
-        activeCategory={activeCategory} 
-        isMobile={isMobile}
-        isPlaying={isPlaying}
-        progress={progress}
-        duration={duration}
-      />
+       <VideoTitleBar className="mt-0" />
     </div>
   );
   

@@ -1,130 +1,55 @@
 'use client';
 
-import React, { useRef, useEffect, useState } from 'react';
+import React from 'react';
+import { useMediaPlayer } from '@/context/MediaPlayerContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getDisplayCategory } from '@/lib/categoryMappings'; // Nueva importación
+import { X } from 'lucide-react'; // Importar el icono X
 
-const VideoTitleBar = ({ playingMedia, activeCategory, isMobile, isPlaying, progress, duration }) => {
-  const textRef = useRef<HTMLParagraphElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [isOverflowing, setIsOverflowing] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
-  const visibilityTimer = useRef<NodeJS.Timeout | null>(null);
-  const periodicTimer = useRef<NodeJS.Timeout | null>(null);
+const VideoTitleBar = () => {
+  const { currentVideo, nextVideo, playNextVideoInQueue, removeNextVideoFromQueue } = useMediaPlayer();
+  console.log('VideoTitleBar: currentVideo', currentVideo);
+  console.log('VideoTitleBar: nextVideo', nextVideo);
 
-  let titleText = null;
-  if (playingMedia) {
-    const categoryToShow = activeCategory || playingMedia.category;
-    if (playingMedia.type === 'stream') {
-      titleText = `EN VIVO: ${playingMedia.title.toUpperCase()}`;
-    } else if (categoryToShow && categoryToShow !== 'SV') {
-      titleText = `${categoryToShow.toUpperCase()}, ${playingMedia.title.toUpperCase()}`;
-    } else {
-      titleText = ' '; // Empty space for SV category
-    }
-  }
+  const displayCurrentCategory = currentVideo?.categoria ? getDisplayCategory(currentVideo.categoria) : null;
+  const currentVideoTitle = currentVideo?.nombre || null;
 
-  useEffect(() => {
-    const checkOverflow = () => {
-      if (isMobile && textRef.current && containerRef.current) {
-        const isCurrentlyOverflowing = textRef.current.scrollWidth > containerRef.current.clientWidth;
-        if (isCurrentlyOverflowing !== isOverflowing) {
-          setIsOverflowing(isCurrentlyOverflowing);
-        }
-      } else if (!isMobile) {
-        setIsOverflowing(false);
-      }
-    };
-    
-    checkOverflow();
-    const timeoutId = setTimeout(checkOverflow, 2100);
-    window.addEventListener('resize', checkOverflow);
-    
-    return () => {
-      clearTimeout(timeoutId);
-      window.removeEventListener('resize', checkOverflow);
-    };
-  }, [titleText, isMobile, isOverflowing]);
+  const displayNextCategory = nextVideo?.categoria ? getDisplayCategory(nextVideo.categoria) : null;
+  const nextVideoTitle = nextVideo?.nombre || null;
 
-  useEffect(() => {
-    const cleanup = () => {
-      if (visibilityTimer.current) clearTimeout(visibilityTimer.current);
-      if (periodicTimer.current) clearInterval(periodicTimer.current);
-    };
-
-    if (!isPlaying || duration <= 0 || !titleText || titleText.trim() === '') {
-      setIsVisible(false);
-      cleanup();
-      return;
-    }
-
-    const showBar = () => {
-      setIsVisible(true);
-      visibilityTimer.current = setTimeout(() => {
-        setIsVisible(false);
-      }, 20000); // 20 seconds
-    };
-
-    // Initial show
-    showBar();
-
-    // Periodic show every 3 minutes
-    periodicTimer.current = setInterval(showBar, 3 * 60 * 1000);
-
-    return cleanup;
-  }, [isPlaying, duration, titleText]);
-
-  useEffect(() => {
-    if (!isPlaying || duration <= 0) return;
-
-    const currentTime = progress * duration;
-    const remainingTime = duration - currentTime;
-
-    if (remainingTime <= 20) {
-      if (!isVisible) {
-        setIsVisible(true);
-        // When it becomes visible due to the last 20 seconds, we don't want it to hide
-        if (visibilityTimer.current) clearTimeout(visibilityTimer.current);
-      }
-    }
-  }, [isPlaying, progress, duration, isVisible]);
-
-
-  const mobileScrollVariants = {
-    animate: {
-      x: [0, -(textRef.current?.scrollWidth || 0) + (containerRef.current?.clientWidth || 0) - 5],
-      transition: {
-        x: {
-          duration: 7,
-          ease: 'linear',
-          delay: 1,
-        },
-      }
-    }
-  };
-  
   return (
-    <div ref={containerRef} className="w-full pl-1 pt-1 overflow-hidden h-[20px]">
-      <AnimatePresence>
-        {isVisible && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1.5, ease: "easeInOut" }}
-            className="w-full"
-          >
-            <motion.p
-              ref={textRef}
-              className="font-century-gothic text-xs uppercase text-foreground whitespace-nowrap"
-              variants={isOverflowing ? mobileScrollVariants : {}}
-              animate={isOverflowing ? "animate" : ""}
-            >
-              {titleText}
-            </motion.p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+    <AnimatePresence>
+      {(currentVideoTitle || nextVideoTitle) && (
+        <motion.div
+          className="w-full p-2 card text-right shadow-lg flex flex-col gap-1"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          transition={{ duration: 0.3 }}
+        >
+          {currentVideoTitle && (
+            <div className="flex items-center justify-end gap-2">
+              <p className="font-semibold text-black dark:text-white truncate uppercase" style={{ fontSize: '10px', textShadow: '1px 1px 3px rgba(0,0,0,0.7)' }}>
+                ESTÁS VIENDO: {displayCurrentCategory && `${displayCurrentCategory.toUpperCase()}, `}{currentVideoTitle}
+              </p>
+              <button onClick={playNextVideoInQueue} className="text-red-500 hover:text-red-700 transition-colors">
+                <X size={16} />
+              </button>
+            </div>
+          )}
+          {nextVideoTitle && (
+            <div className="flex items-center justify-end gap-2">
+              <p className="font-semibold text-black dark:text-white truncate uppercase" style={{ fontSize: '10px', textShadow: '1px 1px 3px rgba(0,0,0,0.7)' }}>
+                PRÓXIMO VIDEO: {displayNextCategory && `${displayNextCategory.toUpperCase()}, `}{nextVideoTitle}
+              </p>
+              <button onClick={removeNextVideoFromQueue} className="text-red-500 hover:text-red-700 transition-colors">
+                <X size={16} />
+              </button>
+            </div>
+          )}
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 

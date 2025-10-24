@@ -14,10 +14,11 @@ export interface CategoryMapping {
 interface CategoryCyclerProps {
   allVideos: Video[];
   activeCategory: CategoryMapping;
-  onNext: () => void;
-  onPrev: () => void;
+  onNext?: () => void;
+  onPrev?: () => void;
   isMobile: boolean;
   instanceId: string; // Unique ID for the carousel
+  isSearchResult?: boolean;
 }
 
 const CategoryCycler: React.FC<CategoryCyclerProps> = ({ 
@@ -26,10 +27,12 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
   onNext, 
   onPrev, 
   isMobile, 
-  instanceId
+  instanceId,
+  isSearchResult = false
 }) => {
 
   const filteredVideos = useMemo(() => {
+    if (isSearchResult) return allVideos;
     if (!activeCategory) return [];
     
     const dbCategories = Array.isArray(activeCategory.dbCategory)
@@ -37,7 +40,7 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
       : [activeCategory.dbCategory];
 
     return allVideos.filter(video => dbCategories.includes(video.categoria));
-  }, [allVideos, activeCategory]);
+  }, [allVideos, activeCategory, isSearchResult]);
 
 
   if (!activeCategory) {
@@ -47,26 +50,30 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
   return (
     <div className="w-full flex flex-col gap-0 my-2">
       {/* Title with Category Cycle Controls */}
-      <div className="flex items-center justify-center w-full gap-x-3 z-10">
-        <motion.button 
-          onClick={onPrev}
-          className="carousel-nav-button-title p-0.5 rounded-md"
-          animate={{ color: ["#FFFFFF", "#6699ff", "#003399", "#000000"] }}
-          transition={{ duration: 2, repeat: Infinity, repeatType: 'reverse', ease: 'easeInOut' }}
-        >
-          <ChevronLeft size="24" />
-        </motion.button>
-        <h2 className="text-2xl font-bold tracking-tight text-foreground/90 truncate text-center w-80">
+      <div className="flex items-center justify-center w-full z-10">
+        {!isSearchResult && onPrev && (
+          <motion.button 
+            onClick={onPrev}
+            className="carousel-nav-button-title p-0.5 rounded-md border"
+            animate={{ color: ["#FFFFFF", "#6699ff", "#003399", "#000000"], borderColor: ["#FFFFFF", "#6699ff", "#003399", "#000000"] }}
+            transition={{ duration: 2, repeat: Infinity, repeatType: 'reverse', ease: 'easeInOut' }}
+          >
+            <ChevronLeft size="20" />
+          </motion.button>
+        )}
+        <h2 className="text-2xl font-bold tracking-tight text-foreground/90 truncate text-center mx-2">
           {activeCategory.display}
         </h2>
-        <motion.button 
-          onClick={onNext}
-          className="carousel-nav-button-title p-0.5 rounded-md"
-          animate={{ color: ["#FFFFFF", "#6699ff", "#003399", "#000000"] }}
-          transition={{ duration: 2, repeat: Infinity, repeatType: 'reverse', ease: 'easeInOut' }}
-        >
-          <ChevronRight size="24" />
-        </motion.button>
+        {!isSearchResult && onNext && (
+          <motion.button 
+            onClick={onNext}
+            className="carousel-nav-button-title p-0.5 rounded-md border"
+            animate={{ color: ["#FFFFFF", "#6699ff", "#003399", "#000000"], borderColor: ["#FFFFFF", "#6699ff", "#003399", "#000000"] }}
+            transition={{ duration: 2, repeat: Infinity, repeatType: 'reverse', ease: 'easeInOut' }}
+          >
+            <ChevronRight size="20" />
+          </motion.button>
+        )}
       </div>
 
       {/* Video Carousel */}

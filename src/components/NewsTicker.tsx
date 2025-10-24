@@ -16,12 +16,12 @@ const NewsTicker = ({ tickerTexts, isMobile = false }) => {
   useEffect(() => {
     const observer = new MutationObserver(() => {
       const isDark = document.documentElement.classList.contains('dark');
-      setTickerTextColor(isDark ? '#6699ff' : 'rgb(90,90,90)');
+      setTickerTextColor(isDark ? '#FFFFFF' : 'rgb(0,0,0)');
     });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     // Set initial color
     const isDark = document.documentElement.classList.contains('dark');
-    setTickerTextColor(isDark ? '#6699ff' : 'rgb(90,90,90)');
+    setTickerTextColor(isDark ? '#FFFFFF' : 'rgb(90,90,90)');
     return () => observer.disconnect();
   }, []);
 
@@ -94,7 +94,7 @@ const NewsTicker = ({ tickerTexts, isMobile = false }) => {
   return (
     <div
       ref={containerRef}
-      className="bg-background overflow-hidden relative h-8 flex items-center container mx-auto px-0 ticker-container z-30 -mb-px"
+      className="bg-background/50 overflow-hidden relative h-8 flex items-center container mx-auto px-0 ticker-container z-30 -mb-px"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
@@ -105,7 +105,7 @@ const NewsTicker = ({ tickerTexts, isMobile = false }) => {
         animate={controls}
         initial={{ x: containerWidth }}
       >
-        <p className="font-arial italic text-xs px-4" style={{ color: tickerTextColor }}>
+        <p className="font-arial italic text-[11px] px-4" style={{ color: tickerTextColor }}>
           {concatenatedTickerText}
         </p>
       </motion.div>

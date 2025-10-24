@@ -2,10 +2,36 @@
 
 // @ts-nocheck
 import React, { createContext, useContext, useState, useRef, useCallback } from 'react';
-import { useVideoPlayer } from '@/hooks/useVideoPlayer';
-import { useStreamStatus } from '@/hooks/useStreamStatus';
+import { getVideosForHome, getNewRandomVideo } from '@/lib/data';
+import { Video } from '@/lib/types'; // Import Video type
 
-const MediaPlayerContext = createContext(null);
+interface MediaPlayerContextType {
+  currentVideo: Video | null;
+  nextVideo: Video | null;
+  isPlaying: boolean;
+  isMuted: boolean;
+  volume: number;
+  seekToFraction: number | null;
+  isFirstMedia: boolean;
+  randomVideoQueued: boolean;
+  playMedia: (media: Video, isFirst?: boolean) => void;
+  playSpecificVideo: (media: Video) => void;
+  setIsPlaying: (isPlaying: boolean) => void;
+  togglePlayPause: () => void;
+  setIsMuted: (isMuted: boolean) => void;
+  toggleMute: () => void;
+  unmute: () => void;
+  setVolume: (volume: number) => void;
+  handleVolumeChange: (volume: number) => void;
+  setSeekToFraction: (fraction: number | null) => void;
+  loadInitialPlaylist: (videoUrlToPlay: string | null) => Promise<void>;
+  handleOnEnded: () => void;
+  handleOnProgress: (progress: any) => void;
+  playNextVideoInQueue: () => void;
+  removeNextVideoFromQueue: () => void;
+}
+
+const MediaPlayerContext = createContext<MediaPlayerContextType | undefined>(undefined);
 
 export const useMediaPlayer = () => {
   const context = useContext(MediaPlayerContext);
@@ -24,8 +50,6 @@ const useFader = (initialVolume = 1.0) => {
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
     }
-    // Use the current volume state directly, or get it from a ref if it's causing issues.
-    // For now, let's assume `volume` is the correct starting point.
     const startVolume = volume;
     const startTime = performance.now();
 
@@ -44,21 +68,143 @@ const useFader = (initialVolume = 1.0) => {
       }
     };
     animationFrameRef.current = requestAnimationFrame(animate);
-  }, [setVolume]); // <--- Removed 'volume' from dependencies, added 'setVolume'
+  }, [setVolume]);
 
   return { volume, setVolume, ramp };
 };
 
 export const MediaPlayerProvider = ({ children }) => {
-  const { volume, setVolume, ramp } = useFader(0.05); // Initial target volume is 5%
-  const [isMuted, setIsMuted] = useState(true); // Start muted to guarantee autoplay
-  const [isFirstPlay, setIsFirstPlay] = useState(true); // New state for first play
-  const userVolume = useRef(0.05); // Default user volume is 5%
+
+  // Estados del reproductor
+  const [currentVideo, setCurrentVideo] = useState<Video | null>(null);
+  const [nextVideo, setNextVideo] = useState<Video | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(true); // Empezar en mute para autoplay
+  const [seekToFraction, setSeekToFraction] = useState<number | null>(null);
+  
+  // Estados de la lógica de playlist
+  const [allVideos, setAllVideos] = useState([]);
+  const [lastVolume, setLastVolume] = useState(0.03); // Volumen por defecto
+  const [isFirstMedia, setIsFirstMedia] = useState(true);
+  const [isUserSelected, setIsUserSelected] = useState(false); // Nuevo estado
+  const [randomVideoQueued, setRandomVideoQueued] = useState(false); // Nuevo estado para la cola automática
+
+  // Hook para el fader de volumen
+  const { volume, setVolume, ramp } = useFader(0.03);
+  const userVolume = useRef(0.03);
+
+  // --- FUNCIONES DE CONTROL DEL REPRODUCTOR ---
+  const playMedia = useCallback((media, isFirst = false) => {
+    setCurrentVideo(media);
+    setIsPlaying(true);
+    setIsFirstMedia(isFirst);
+    setNextVideo(null); // Clear next video when a new video starts playing
+    setRandomVideoQueued(false); // Reset random video queued state
+    if (isFirst) {
+      setIsMuted(true); // El primer video siempre en mute
+    } else {
+      setIsMuted(false);
+      ramp(userVolume.current, 500); // Fade in al volumen del usuario
+    }
+  }, [ramp, userVolume]);
+
+  const playSpecificVideo = useCallback((media: Video) => {
+    if (currentVideo) {
+      // If a video is already playing, add the new video to the queue
+      setNextVideo(media);
+      setIsUserSelected(true); // Mark as user selected
+      setRandomVideoQueued(false); // Reset random video queued state
+    } else {
+      // If nothing is playing, play it immediately
+      setCurrentVideo(media);
+      setIsPlaying(true);
+      setIsUserSelected(true); // Mark as user selected
+      setIsMuted(false);
+      ramp(0.05, 500); // Iniciar a 5% de volumen
+    }
+  }, [currentVideo, ramp]);
+
+  // --- FUNCIONES DE CONTROL DE PLAYLIST ---
+  // Carga la playlist inicial y reproduce el primer video
+  const loadInitialPlaylist = useCallback(async (videoUrlToPlay: string | null) => {
+    console.log('loadInitialPlaylist called.');
+    const { allVideos: fetchedVideos } = await getVideosForHome(100);
+    if (fetchedVideos && fetchedVideos.length > 0) {
+      setAllVideos(fetchedVideos);
+      let videoToPlay = fetchedVideos[0]; // Por defecto, el primer video (que ya viene aleatorio)
+      if (videoUrlToPlay) {
+        const specificVideo = fetchedVideos.find(v => v.url === videoUrlToPlay);
+        if (specificVideo) {
+          videoToPlay = specificVideo;
+        }
+      }
+      console.log('loadInitialPlaylist: videoToPlay', videoToPlay);
+      playMedia(videoToPlay, true); // Reproducir el video correspondiente
+    }
+  }, [playMedia]);
+
+  // Reproduce el siguiente video aleatorio
+  const playNextRandomVideo = useCallback(async () => {
+    console.log('playNextRandomVideo called. currentVideo.id:', currentVideo?.id);
+    const nextVideo = await getNewRandomVideo(currentVideo?.id);
+    if (nextVideo) {
+      console.log('Next random video found:', nextVideo.nombre, 'Applying lastVolume:', lastVolume);
+      // Restaura el último volumen conocido antes de reproducir
+      setVolume(lastVolume);
+      setIsMuted(false); // Quitar el mute para el siguiente video
+      playMedia(nextVideo, false);
+    } else {
+      console.log('No next random video found. Attempting to reload initial playlist.');
+      // Si no se encuentra un video aleatorio, intentar recargar la playlist inicial
+      await loadInitialPlaylist(null); // Recargar la playlist y reproducir el primer video
+    }
+  }, [currentVideo, lastVolume, playMedia, setVolume, loadInitialPlaylist]);
+
+  // Callback que se ejecuta cuando un video termina
+  const handleOnEnded = useCallback(() => {
+    console.log('handleOnEnded called. isUserSelected:', isUserSelected, 'nextVideo:', nextVideo);
+    if (isUserSelected) {
+      setIsUserSelected(false); // Resetear el flag
+    }
+
+    if (nextVideo) {
+      // Play the next video in the queue
+      playMedia(nextVideo, false);
+      setNextVideo(null); // Clear the next video after playing
+    } else {
+      // If no next video, revert to random autoplay
+      playNextRandomVideo();
+    }
+  }, [isUserSelected, nextVideo, playMedia, playNextRandomVideo]);
+
+  // Callback que se ejecuta durante la reproducción para guardar el volumen
+  const handleOnProgress = useCallback(async (progress) => {
+    const duration = currentVideo?.duration || progress.loadedSeconds; // Aprox
+    if (duration && duration - progress.playedSeconds < 10) {
+      console.log('handleOnProgress: Less than 10 seconds remaining. Saving volume:', volume);
+      // Guardamos el volumen actual para restaurarlo después
+      setLastVolume(volume);
+    }
+
+    // Lógica para precargar el próximo video aleatorio
+    if (currentVideo && !nextVideo && !randomVideoQueued && duration && (duration - progress.playedSeconds < 40)) {
+      console.log('handleOnProgress: Less than 40 seconds remaining, queuing random video.');
+      const newRandomVideo = await getNewRandomVideo(currentVideo.id);
+      if (newRandomVideo) {
+        setNextVideo(newRandomVideo);
+        setRandomVideoQueued(true);
+      }
+    }
+  }, [volume, currentVideo, nextVideo, randomVideoQueued]);
+
+  const togglePlayPause = useCallback(() => {
+    setIsPlaying(prev => !prev);
+  }, []);
 
   const unmute = useCallback(() => {
     setIsMuted(false);
     ramp(userVolume.current, 500);
-  }, [ramp]);
+  }, [ramp, userVolume]);
 
   const toggleMute = useCallback(() => {
     setIsMuted(prevIsMuted => {
@@ -70,7 +216,7 @@ export const MediaPlayerProvider = ({ children }) => {
         }
         return newMutedState;
     });
-  }, [ramp]);
+  }, [ramp, userVolume]);
 
   const handleVolumeChange = useCallback((v: number) => {
     const newVolume = v / 100;
@@ -83,27 +229,48 @@ export const MediaPlayerProvider = ({ children }) => {
     }
   }, [setVolume, isMuted]);
 
-  const audioState = {
-    volume,
-    isMuted,
-    isFirstPlay,
-    setVolume,
-    setIsMuted,
-    setIsFirstPlay,
-    ramp,
-    userVolume,
-    unmute,
-    toggleMute,
-    handleVolumeChange,
-  };
+  const playNextVideoInQueue = useCallback(() => {
+    if (nextVideo) {
+      playMedia(nextVideo, false);
+      setNextVideo(null);
+    } else {
+      playNextRandomVideo();
+    }
+  }, [nextVideo, playMedia, playNextRandomVideo]);
 
-  const mediaPlayerLogic = useVideoPlayer(audioState);
-  const streamStatus = useStreamStatus(mediaPlayerLogic);
+  const removeNextVideoFromQueue = useCallback(() => {
+    setNextVideo(null);
+  }, []);
 
+  // Valor que se pasa al contexto
   const value = {
-    ...mediaPlayerLogic,
-    streamStatus,
-    ...audioState,
+    // Estados
+    currentVideo,
+    nextVideo,
+    isPlaying,
+    isMuted,
+    volume,
+    seekToFraction,
+    isFirstMedia,
+    
+    // Setters y Controladores
+    playMedia,
+    playSpecificVideo, // Exportar la nueva función
+    setIsPlaying,
+    togglePlayPause,
+    setIsMuted,
+    toggleMute,
+    unmute,
+    setVolume,
+    handleVolumeChange,
+    setSeekToFraction,
+    
+    // Lógica de Playlist
+    loadInitialPlaylist,
+    handleOnEnded,
+    handleOnProgress,
+    playNextVideoInQueue,
+    removeNextVideoFromQueue,
   };
 
   return (

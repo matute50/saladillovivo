@@ -1,7 +1,7 @@
 "use client";
 
-import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
-import { getArticles, getTickerTexts, getVideos, getInterviews, getActiveBanners, getActiveAds, getCalendarEvents } from '@/lib/data';
+import React, { createContext, useState, useEffect, useContext, ReactNode, useCallback } from 'react';
+import { getArticles, getTickerTexts, getVideos, getInterviews, getActiveBanners, getActiveAds, getCalendarEvents, fetchVideosBySearch } from '@/lib/data';
 import { Article, Video, Interview, Banner, Ad, CalendarEvent } from '@/lib/types';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -29,6 +29,13 @@ interface NewsContextType {
   eventsLoading: boolean;
   isLoadingConfig: boolean;
   isDarkTheme: boolean;
+  // Nuevos estados y funciones para la búsqueda
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  searchResults: Video[];
+  isSearching: boolean;
+  searchLoading: boolean;
+  handleSearch: (query: string) => Promise<void>;
 }
 
 export const NewsContext = createContext<NewsContextType | undefined>(undefined);
@@ -66,6 +73,12 @@ export const NewsProvider = ({ children }: { children: ReactNode }) => {
   const [isDarkTheme, setIsDarkTheme] = useState(false);
   const { toast } = useToast();
 
+  // --- NUEVO ESTADO PARA BÚSQUEDA ---
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Video[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+
   useEffect(() => {
     // Theme observer
     setIsDarkTheme(document.documentElement.classList.contains('dark'));
@@ -81,11 +94,9 @@ export const NewsProvider = ({ children }: { children: ReactNode }) => {
       try {
         setIsLoading(true);
         
-        // Fetch and sort articles using the refactored function
         const { allNews: sortedNews } = await getArticles();
         setAllNews(sortedNews);
 
-        // Categorize news based on featureStatus
         setFeaturedNews(sortedNews.filter(n => n.featureStatus === 'featured'));
         setSecondaryNews(sortedNews.filter(n => n.featureStatus === 'secondary'));
         setTertiaryNews(sortedNews.filter(n => n.featureStatus === 'tertiary'));
@@ -98,7 +109,6 @@ export const NewsProvider = ({ children }: { children: ReactNode }) => {
         setIsLoading(false);
       }
 
-      // Fetch other data in parallel
       Promise.allSettled([
         getTickerTexts().then(setAllTickerTexts),
         getVideos().then(setGalleryVideos).finally(() => setIsLoadingVideos(false)),
@@ -114,6 +124,31 @@ export const NewsProvider = ({ children }: { children: ReactNode }) => {
 
     fetchAllData();
   }, [toast]);
+
+  // --- NUEVA FUNCIÓN DE BÚSQUEDA ---
+  const handleSearch = useCallback(async (query: string) => {
+    setSearchQuery(query);
+
+    if (!query.trim()) {
+      setIsSearching(false);
+      setSearchResults([]);
+      return;
+    }
+
+    setIsSearching(true);
+    setSearchLoading(true);
+    try {
+      const results = await fetchVideosBySearch(query);
+      setSearchResults(results);
+    } catch (error: any) {
+      console.error("Error during search:", error);
+      toast({ title: "Error de Búsqueda", description: error.message });
+      setSearchResults([]);
+    } finally {
+      setSearchLoading(false);
+    }
+  }, [toast]);
+
 
   const getNewsBySlug = (slug: string) => allNews.find(item => item.slug === slug);
   const getNewsById = (id: string | number) => allNews.find(item => item.id.toString() === id.toString());
@@ -144,6 +179,13 @@ export const NewsProvider = ({ children }: { children: ReactNode }) => {
     eventsLoading,
     isLoadingConfig,
     isDarkTheme,
+    // Exportar nuevos estados y funciones
+    searchQuery,
+    setSearchQuery,
+    searchResults,
+    isSearching,
+    searchLoading,
+    handleSearch,
   };
 
   return <NewsContext.Provider value={value}>{children}</NewsContext.Provider>;

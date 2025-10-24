@@ -4,12 +4,17 @@ import { useState, useCallback, useEffect } from 'react';
 import BannerSection from './BannerSection';
 import AdsSection from './AdsSection';
 import NewsTicker from '../NewsTicker';
-import VideoSection from './VideoSection';
+import dynamic from 'next/dynamic';
+
+const VideoSection = dynamic(() => import('./VideoSection'), { ssr: false });
 import NewsCard from '../NewsCard';
 import { useToast } from '@/components/ui/use-toast';
 import type { PageData } from '@/lib/types';
 import CategoryCycler from './CategoryCycler';
 import { categoryMappings, type CategoryMapping } from '@/lib/categoryMappings';
+
+import { useNews } from '@/context/NewsContext';
+import NoResultsCard from './NoResultsCard';
 
 const DesktopLayout = ({ data }: { data: PageData }) => {
   const { toast } = useToast();
@@ -21,10 +26,11 @@ const DesktopLayout = ({ data }: { data: PageData }) => {
     tickerTexts,
   } = data;
 
+  // --- ESTADO DE BÚSQUEDA DEL CONTEXTO ---
+  const { isSearching, searchResults, searchLoading } = useNews();
+
   const { featuredNews, secondaryNews } = articles;
   const { allVideos } = videos;
-
-
 
   const availableCategoryMappings = categoryMappings.filter(category => {
     const dbCategories = Array.isArray(category.dbCategory) ? category.dbCategory : [category.dbCategory];
@@ -50,6 +56,11 @@ const DesktopLayout = ({ data }: { data: PageData }) => {
 
   const handleNext1 = useCallback(() => handleCycle('next', index1, setIndex1), [index1]);
   const handlePrev1 = useCallback(() => handleCycle('prev', index1, setIndex1), [index1]);
+
+  const searchCategoryMapping: CategoryMapping = {
+    display: "Tu Búsqueda",
+    dbCategory: "search", // Identificador único para la búsqueda
+  };
 
   return (
     <>
@@ -77,22 +88,38 @@ const DesktopLayout = ({ data }: { data: PageData }) => {
             </div>
 
             {/* Middle Column (Video) */}
-                        <div className="col-span-1 lg:col-span-5 mt-8 lg:mt-0">
-                          <div className="sticky top-[calc(var(--desktop-header-height)+var(--ticker-height)-18px)] flex flex-col gap-2 will-change-transform z-30">
-                            {/* Main Video Player Section */}
-                            <VideoSection isMobile={false} />
-            
-                            {/* Category Cycler Carousels */}
-                            <CategoryCycler 
-                              allVideos={allVideos} 
-                              activeCategory={availableCategoryMappings[index1]} 
-                              onNext={handleNext1}
-                              onPrev={handlePrev1}
-                              isMobile={false} 
-                              instanceId="1"
-                            />
-                          </div>
-                        </div>
+            <div className="col-span-1 lg:col-span-5 mt-8 lg:mt-0">
+              <div className="sticky top-[calc(var(--desktop-header-height)+var(--ticker-height)-18px)] flex flex-col gap-2 will-change-transform z-30">
+                {/* Main Video Player Section */}
+                <VideoSection isMobile={false} />
+
+                {/* --- LÓGICA CONDICIONAL PARA BÚSQUEDA O CATEGORÍAS -- */}
+                {isSearching ? (
+                  searchLoading ? (
+                    <div className="text-center p-4">Buscando...</div>
+                  ) : searchResults.length > 0 ? (
+                    <CategoryCycler 
+                      allVideos={searchResults} 
+                      activeCategory={searchCategoryMapping}
+                      isSearchResult={true} // Prop para indicar que es un resultado de búsqueda
+                      isMobile={false} 
+                      instanceId="search"
+                    />
+                  ) : (
+                    <NoResultsCard message="No se encontraron videos para tu búsqueda." />
+                  )
+                ) : (
+                  <CategoryCycler 
+                    allVideos={allVideos} 
+                    activeCategory={availableCategoryMappings[index1]} 
+                    onNext={handleNext1}
+                    onPrev={handlePrev1}
+                    isMobile={false} 
+                    instanceId="1"
+                  />
+                )}
+              </div>
+            </div>
 
             {/* Right Column (Ads) */}
             <div className="col-span-1 lg:col-span-2 flex flex-col gap-6 mt-8 lg:mt-0">

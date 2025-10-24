@@ -296,3 +296,48 @@ export async function getVideos() {
   }
   return data || [];
 }
+
+/**
+ * Filters a search query to remove common Spanish stop words and prepares it for text search.
+ * @param query The raw search query.
+ * @returns A string formatted for PostgreSQL's text search.
+ */
+function filterSearchTerms(query: string): string {
+  const stopWords = new Set([
+    'el', 'la', 'los', 'las', 'un', 'una', 'y', 'o', 'pero', 'a', 'en', 'de', 'del', 'al',
+    'por', 'para', 'con', 'buscar', 'encontrar', 'explorar', 'ver', 'video', 'videos'
+  ]);
+
+  const cleanedQuery = query
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(word => word.length > 1 && !stopWords.has(word))
+    .join(' & '); // Use '&' for AND logic in text search
+
+  return cleanedQuery;
+}
+
+/**
+ * Fetches videos from Supabase based on a search term.
+ * @param searchTerm The user's search query.
+ * @returns A promise that resolves to an array of Video objects.
+ */
+export async function fetchVideosBySearch(searchTerm: string): Promise<Video[]> {
+  const processedTerm = filterSearchTerms(searchTerm);
+
+  if (!processedTerm) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from('videos')
+    .select('id, nombre, url, createdAt, categoria, imagen, novedad')
+    .textSearch('nombre', processedTerm, { type: 'websearch' });
+
+  if (error) {
+    console.error('Error searching videos:', error);
+    throw error;
+  }
+
+  return data || [];
+}

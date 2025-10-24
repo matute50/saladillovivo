@@ -14,7 +14,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 
 const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = false, isLive = false, isEventCarousel = false, categoryName }) => {
-  const { playUserSelectedVideo, playLiveStream, streamStatus } = useMediaPlayer();
+  const { playSpecificVideo, playLiveStream, streamStatus, currentVideo } = useMediaPlayer();
   const { toast } = useToast();
   const swiperRef = useRef(null);
 
@@ -51,7 +51,8 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
         description: "Este es un evento futuro. ¡Vuelve pronto para verlo en vivo!",
       });
     } else {
-      playUserSelectedVideo(video, categoryName);
+      // New playlist logic
+      playSpecificVideo(video);
     }
   };
 
@@ -122,18 +123,18 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
         <>
           <motion.button 
             id={`prev-${carouselId}`}
-            className="carousel-nav-button absolute top-1/2 -translate-y-1/2 left-0 z-20 rounded-md p-2 cursor-pointer"
-            animate={{ color: ["#FFFFFF", "#6699ff", "#003399", "#000000"] }}
+            className="carousel-nav-button absolute top-1/2 -translate-y-1/2 left-0 z-20 rounded-md p-1 cursor-pointer border"
+            animate={{ color: ["#FFFFFF", "#6699ff", "#003399", "#000000"], borderColor: ["#FFFFFF", "#6699ff", "#003399", "#000000"] }}
             transition={{ duration: 2, repeat: Infinity, repeatType: 'reverse', ease: 'easeInOut' }}
           >
-            <ChevronLeft size={50} />
+            <ChevronLeft size={30} />
           </motion.button>          <motion.button 
             id={`next-${carouselId}`}
-            className="carousel-nav-button absolute top-1/2 -translate-y-1/2 right-0 z-20 rounded-md p-2 cursor-pointer"
-            animate={{ color: ["#FFFFFF", "#6699ff", "#003399", "#000000"] }}
+            className="carousel-nav-button absolute top-1/2 -translate-y-1/2 right-0 z-20 rounded-md p-1 cursor-pointer border"
+            animate={{ color: ["#FFFFFF", "#6699ff", "#003399", "#000000"], borderColor: ["#FFFFFF", "#6699ff", "#003399", "#000000"] }}
             transition={{ duration: 2, repeat: Infinity, repeatType: 'reverse', ease: 'easeInOut' }}
           >
-            <ChevronRight size={50} />
+            <ChevronRight size={30} />
           </motion.button>
         </>
       )}
