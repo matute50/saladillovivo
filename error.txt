@@ -1,265 +1,62 @@
-F:\GEMINI-CLI\SALADILLOVIVO_NEXT\saladillovivo>gemini extensions list
-✓ blueprint (0.1.0)
- Path: C:\Users\NOTEBOOK\.gemini\extensions\blueprint
- Source: https://github.com/gplasky/gemini-cli-blueprint-extension (Type: git)
- Enabled (User): true
- Enabled (Workspace): true
- Context files:
-  C:\Users\NOTEBOOK\.gemini\extensions\blueprint\blueprint.md
-
-✓ canva (1.0.0)
- Path: C:\Users\NOTEBOOK\.gemini\extensions\canva
- Source: https://github.com/canva-sdks/canva-gemini-extension (Type: git)
- Enabled (User): true
- Enabled (Workspace): true
- Context files:
-  C:\Users\NOTEBOOK\.gemini\extensions\canva\gemini-extension\GEMINI.md
- MCP servers:
-  Canva
-
-✓ code-review (0.1.0)
- Path: C:\Users\NOTEBOOK\.gemini\extensions\code-review
- Source: https://github.com/gemini-cli-extensions/code-review (Type: git)
- Enabled (User): true
- Enabled (Workspace): true
- Context files:
-  C:\Users\NOTEBOOK\.gemini\extensions\code-review\GEMINI.md
-
-✓ elasticsearch (0.1.1)
- Path: C:\Users\NOTEBOOK\.gemini\extensions\elasticsearch
- Source: https://github.com/elastic/gemini-cli-elasticsearch (Type: github-release)
- Release tag: v0.1.1
- Enabled (User): true
- Enabled (Workspace): true
- Context files:
-  C:\Users\NOTEBOOK\.gemini\extensions\elasticsearch\GEMINI.md
- MCP servers:
-  elastic-agent-builder
-
-✓ Figma (1.0.0)
- Path: C:\Users\NOTEBOOK\.gemini\extensions\Figma
- Source: https://github.com/figma/figma-gemini-cli-extension (Type: git)
- Enabled (User): true
- Enabled (Workspace): true
- MCP servers:
-  figma
-
-✓ firebase (1.0.0)
- Path: C:\Users\NOTEBOOK\.gemini\extensions\firebase
- Source: https://github.com/gemini-cli-extensions/firebase (Type: git)
- Enabled (User): true
- Enabled (Workspace): true
- Context files:
-  C:\Users\NOTEBOOK\.gemini\extensions\firebase\FIREBASE.md
- MCP servers:
-  firebase
-
-✓ flutter (0.3.0)
- Path: C:\Users\NOTEBOOK\.gemini\extensions\flutter
- Source: https://github.com/gemini-cli-extensions/flutter (Type: github-release)
- Release tag: v0.3.0
- Enabled (User): true
- Enabled (Workspace): true
- Context files:
-  C:\Users\NOTEBOOK\.gemini\extensions\flutter\flutter.md
- MCP servers:
-  dart
-
-✓ gcloud (0.1.0)
- Path: C:\Users\NOTEBOOK\.gemini\extensions\gcloud
- Source: https://github.com/gemini-cli-extensions/gcloud (Type: git)
- Enabled (User): true
- Enabled (Workspace): true
- Context files:
-  C:\Users\NOTEBOOK\.gemini\extensions\gcloud\GEMINI.md
- MCP servers:
-  gcloud
-
-✓ gemini-autopm (0.1.0)
- Path: C:\Users\NOTEBOOK\.gemini\extensions\gemini-autopm
- Source: https://github.com/rafeekpro/GeminiAutoPM (Type: git)
- Enabled (User): true
- Enabled (Workspace): true
- Context files:
-  C:\Users\NOTEBOOK\.gemini\extensions\gemini-autopm\GEMINI.md
- MCP servers:
-  autopm-agents
-  autopm-pm
- Excluded tools:
-
-✓ gemini-cli-git (0.1.0)
- Path: C:\Users\NOTEBOOK\.gemini\extensions\gemini-cli-git
- Source: https://github.com/ox01024/gemini-cli-git (Type: git)
- Enabled (User): true
- Enabled (Workspace): true
-
-✓ gemini-cli-prompt-library (1.0.0)
- Path: C:\Users\NOTEBOOK\.gemini\extensions\gemini-cli-prompt-library
- Source: https://github.com/harish-garg/gemini-cli-prompt-library (Type: git)
- Enabled (User): true
- Enabled (Workspace): true
- Context files:
-  C:\Users\NOTEBOOK\.gemini\extensions\gemini-cli-prompt-library\GEMINI.md
-
-✓ gemini-cli-security (0.3.0)
- Path: C:\Users\NOTEBOOK\.gemini\extensions\gemini-cli-security
- Source: https://github.com/gemini-cli-extensions/security (Type: github-release)
- Release tag: v0.3.0
- Enabled (User): true
- Enabled (Workspace): true
- Context files:
-  C:\Users\NOTEBOOK\.gemini\extensions\gemini-cli-security\GEMINI.md
- MCP servers:
-  securityServer
-
-✓ gemini-docs-ext (1.0.0)
- Path: C:\Users\NOTEBOOK\.gemini\extensions\gemini-docs-ext
- Source: https://github.com/markmcd/gemini-docs-ext (Type: git)
- Enabled (User): true
- Enabled (Workspace): true
- Context files:
-  C:\Users\NOTEBOOK\.gemini\extensions\gemini-docs-ext\GEMINI.md
- MCP servers:
-  gemini-docs-mcp
-
-✓ GeminiCloudAssist (0.1.0)
- Path: C:\Users\NOTEBOOK\.gemini\extensions\GeminiCloudAssist
- Source: https://github.com/GoogleCloudPlatform/gemini-cloud-assist-mcp (Type: github-release)
- Release tag: v0.1.1
- Enabled (User): true
- Enabled (Workspace): true
- MCP servers:
-  gemini-cloud-assist-mcp
-
-✓ genkit (1.2.0)
- Path: C:\Users\NOTEBOOK\.gemini\extensions\genkit
- Source: https://github.com/gemini-cli-extensions/genkit (Type: git)
- Enabled (User): true
- Enabled (Workspace): true
- Context files:
-  C:\Users\NOTEBOOK\.gemini\extensions\genkit\GENKIT.md
- MCP servers:
-  genkit
-
-✓ github-issue (1.0.0)
- Path: C:\Users\NOTEBOOK\.gemini\extensions\github-issue
- Source: https://github.com/enola-dev/github-issue-agent (Type: git)
- Enabled (User): true
- Enabled (Workspace): true
- Context files:
-  C:\Users\NOTEBOOK\.gemini\extensions\github-issue\agent.md
- MCP servers:
-  github
-
-✓ globalping (0.0.2)
- Path: C:\Users\NOTEBOOK\.gemini\extensions\globalping
- Source: https://github.com/jsdelivr/globalping-mcp-server (Type: git)
- Enabled (User): true
- Enabled (Workspace): true
- MCP servers:
-  globalping-mcp
-
-✓ google-fonts (1.0.0)
- Path: C:\Users\NOTEBOOK\.gemini\extensions\google-fonts
- Source: https://github.com/rodydavis/google-fonts-gemini-cli-extension (Type: git)
- Enabled (User): true
- Enabled (Workspace): true
- Context files:
-  C:\Users\NOTEBOOK\.gemini\extensions\google-fonts\GEMINI.md
- MCP servers:
-  google-fonts-local-mcp
-
-✓ google-maps-platform (0.1.0)
- Path: C:\Users\NOTEBOOK\.gemini\extensions\google-maps-platform
- Source: https://github.com/googlemaps/platform-ai (Type: git)
- Enabled (User): true
- Enabled (Workspace): true
- Context files:
-  C:\Users\NOTEBOOK\.gemini\extensions\google-maps-platform\GEMINI.md
- MCP servers:
-  google-maps-platform-code-assist
-
-✓ google-workspace-developer-tools (latest)
- Path: C:\Users\NOTEBOOK\.gemini\extensions\google-workspace-developer-tools
- Source: https://github.com/googleworkspace/developer-tools (Type: github-release)
- Release tag: google-workspace-developer-tools@0.5.2
- Enabled (User): true
- Enabled (Workspace): true
- MCP servers:
-  workspace-developer
-
-✓ mcp-toolbox (0.1.2)
- Path: C:\Users\NOTEBOOK\.gemini\extensions\mcp-toolbox
- Source: https://github.com/gemini-cli-extensions/mcp-toolbox (Type: github-release)
- Release tag: 0.1.2
- Enabled (User): true
- Enabled (Workspace): true
- Context files:
-  C:\Users\NOTEBOOK\.gemini\extensions\mcp-toolbox\MCP-TOOLBOX.md
- MCP servers:
-  mcp_toolbox
-
-✓ my-code-analyzer (1.0.0)
- Path: C:\Users\NOTEBOOK\.gemini\extensions\my-code-analyzer
- Source: https://github.com/jmpark333/my-code-analyzer (Type: git)
- Enabled (User): true
- Enabled (Workspace): true
- Context files:
-  C:\Users\NOTEBOOK\.gemini\extensions\my-code-analyzer\GEMINI.md
-
-✓ nanobanana (1.0.9)
- Path: C:\Users\NOTEBOOK\.gemini\extensions\nanobanana
- Source: https://github.com/gemini-cli-extensions/nanobanana (Type: github-release)
- Release tag: v1.0.9
- Enabled (User): true
- Enabled (Workspace): true
- Context files:
-  C:\Users\NOTEBOOK\.gemini\extensions\nanobanana\GEMINI.md
- MCP servers:
-  nanobanana
-
-✓ stripe (0.1.0)
- Path: C:\Users\NOTEBOOK\.gemini\extensions\stripe
- Source: https://github.com/stripe/agent-toolkit (Type: git)
- Enabled (User): true
- Enabled (Workspace): true
- MCP servers:
-  stripe
-
-✓ stripe-gemini-mcp-extension (0.1.0)
- Path: C:\Users\NOTEBOOK\.gemini\extensions\stripe-gemini-mcp-extension
- Source: https://github.com/stripe/agent-toolkit (Type: git)
- Enabled (User): true
- Enabled (Workspace): true
- MCP servers:
-  stripe
-
-✓ study-ai (1.2.3)
- Path: C:\Users\NOTEBOOK\.gemini\extensions\study-ai
- Source: https://github.com/planetis-m/study-ai (Type: git)
- Enabled (User): true
- Enabled (Workspace): true
- Context files:
-  C:\Users\NOTEBOOK\.gemini\extensions\study-ai\AGENTS.md
- MCP servers:
-  pdf-reader
- Excluded tools:
-  run_shell_command
-  web_fetch
-
-✓ test-agent (1.0.0)
- Path: C:\Users\NOTEBOOK\.gemini\extensions\test-agent
- Source: https://github.com/weitzer-org/comment-driven-tests-extension (Type: git)
- Enabled (User): true
- Enabled (Workspace): true
-
-✓ vision (1.0.0)
- Path: C:\Users\NOTEBOOK\.gemini\extensions\vision
- Source: https://github.com/automateyournetwork/GeminiCLI_Vision_Extension (Type: git)
- Enabled (User): true
- Enabled (Workspace): true
- Context files:
-  C:\Users\NOTEBOOK\.gemini\extensions\vision\GEMINI.md
- MCP servers:
-  vision
- Excluded tools:
+18:01:53.474 Running build in Washington, D.C., USA (East) – iad1
+18:01:53.481 Build machine configuration: 2 cores, 8 GB
+18:01:54.137 Cloning github.com/matute50/saladillovivo (Branch: main, Commit: 7c19bcc)
+18:01:55.975 Cloning completed: 1.838s
+18:01:56.124 Restored build cache from previous deployment (7ccLPd8fDyZs5ai9jPYQmeGcwqJr)
+18:01:56.675 Running "vercel build"
+18:01:57.137 Vercel CLI 48.6.0
+18:01:58.083 Installing dependencies...
+18:01:59.560 
+18:01:59.561 up to date in 1s
+18:01:59.561 
+18:01:59.561 159 packages are looking for funding
+18:01:59.562   run `npm fund` for details
+18:01:59.589 Detected Next.js version: 14.2.33
+18:01:59.592 Running "npm run build"
+18:01:59.699 
+18:01:59.699 > saladillovivo-nextjs@0.1.0 build
+18:01:59.699 > next build
+18:01:59.699 
+18:02:00.360   ▲ Next.js 14.2.33
+18:02:00.361 
+18:02:00.411    Creating an optimized production build ...
+18:02:13.035  ✓ Compiled successfully
+18:02:13.036    Skipping validation of types
+18:02:13.036    Skipping linting
+18:02:13.299    Collecting page data ...
+18:02:15.966    Generating static pages (0/18) ...
+18:02:16.570    Generating static pages (4/18) 
+18:02:18.480    Generating static pages (8/18) 
+18:02:19.630    Generating static pages (13/18) 
+18:02:22.018 ReferenceError: document is not defined
+18:02:22.018     at /vercel/path0/.next/server/app/page.js:1:139929
+18:02:22.019     at 5886 (/vercel/path0/.next/server/app/page.js:1:140177)
+18:02:22.019     at t (/vercel/path0/.next/server/webpack-runtime.js:1:128)
+18:02:22.019     at 6558 (/vercel/path0/.next/server/app/page.js:1:130010)
+18:02:22.019     at Object.t [as require] (/vercel/path0/.next/server/webpack-runtime.js:1:128)
+18:02:22.019     at require (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+18:02:22.019     at I (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94364)
+18:02:22.019     at C (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92915)
+18:02:22.019     at rR (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+18:02:22.019     at nN (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305) {
+18:02:22.019   digest: '2531391664'
+18:02:22.019 }
+18:02:22.205 
+18:02:22.206 Error occurred prerendering page "/". Read more: https://nextjs.org/docs/messages/prerender-error
+18:02:22.206 
+18:02:22.208 ReferenceError: document is not defined
+18:02:22.209     at /vercel/path0/.next/server/app/page.js:1:139929
+18:02:22.209     at 5886 (/vercel/path0/.next/server/app/page.js:1:140177)
+18:02:22.209     at t (/vercel/path0/.next/server/webpack-runtime.js:1:128)
+18:02:22.209     at 6558 (/vercel/path0/.next/server/app/page.js:1:130010)
+18:02:22.209     at Object.t [as require] (/vercel/path0/.next/server/webpack-runtime.js:1:128)
+18:02:22.209     at require (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+18:02:22.209     at I (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94364)
+18:02:22.209     at C (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92915)
+18:02:22.210     at rR (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+18:02:22.210     at nN (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+18:02:22.210  ✓ Generating static pages (18/18)
+18:02:22.212 
+18:02:22.212 > Export encountered errors on following paths:
+18:02:22.212 	/page: /
+18:02:22.247 Error: Command "npm run build" exited with 1

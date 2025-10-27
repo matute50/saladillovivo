@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "@/app/globals.css";
+import dynamic from 'next/dynamic'; // Importar dynamic
 
 export const metadata: Metadata = {
   title: "Saladillo Vivo",
@@ -11,8 +12,9 @@ import Footer from "@/components/Footer";
 import { Toaster } from "@/components/ui/toaster";
 import Script from "next/script";
 import { NewsProvider } from "@/context/NewsContext";
-import MediaPlayerWrapper from "@/components/MediaPlayerWrapper"; // Changed import
 
+// Importar MediaPlayerWrapper dinámicamente con ssr: false
+const DynamicMediaPlayerWrapper = dynamic(() => import("@/components/MediaPlayerWrapper"), { ssr: false });
 
 export default function RootLayout({
   children,
@@ -25,14 +27,14 @@ export default function RootLayout({
       </head>
       <body className="bg-main-gradient">
         <NewsProvider>
-          <MediaPlayerWrapper> {/* Changed component */}
+          <DynamicMediaPlayerWrapper> {/* Usar el componente dinámico */}
             <div className="flex flex-col min-h-screen">
               <Header />
               <main className="flex-grow">{children}</main>
               <Footer />
             </div>
             <Toaster />
-          </MediaPlayerWrapper>
+          </DynamicMediaPlayerWrapper>
         </NewsProvider>
         <Script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1" strategy="afterInteractive" />
       </body>
