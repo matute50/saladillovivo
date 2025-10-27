@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import React, { useRef, useEffect, forwardRef, useImperativeHandle, useState, useCallback } from 'react';
 import ReactPlayer from 'react-player/youtube';
 import Plyr from 'plyr';
@@ -62,7 +62,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     const introVideos = ['/azul.mp4', '/cuadros.mp4', '/cuadros2.mp4', '/lineal.mp4', '/RUIDO.mp4'];
 
     useEffect(() => {
-      if (src && (src.includes('youtube.com') || src.includes('youtu.be'))) {
+      if (typeof window !== 'undefined' && src && (src.includes('youtube.com') || src.includes('youtu.be'))) {
         const randomIntro = introVideos[Math.floor(Math.random() * introVideos.length)];
         setIntroVideo(randomIntro);
         setShowIntro(true);
@@ -78,7 +78,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     }, [src]);
 
     const handleReactPlayerReady = useCallback(() => {
-      if (wrapperRef.current && !plyrInstanceRef.current) {
+      if (typeof window !== 'undefined' && wrapperRef.current && !plyrInstanceRef.current) {
         const videoElement = wrapperRef.current.querySelector('video');
         if (videoElement) {
           const plyrPlayer = new Plyr(videoElement, {
@@ -123,46 +123,48 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     }, [onReady, onPlay, onPause, onEnded, onError, onProgress, onDuration]);
 
     useEffect(() => {
-      return () => {
-        plyrInstanceRef.current?.destroy();
-        plyrInstanceRef.current = null;
-        setIsPlyrReady(false);
-      };
+      if (typeof window !== 'undefined') { // Asegurar que el código solo se ejecute en el cliente
+        return () => {
+          plyrInstanceRef.current?.destroy();
+          plyrInstanceRef.current = null;
+          setIsPlyrReady(false);
+        };
+      }
     }, []);
 
     useEffect(() => {
-      if (isPlyrReady && plyrInstanceRef.current) {
+      if (typeof window !== 'undefined' && isPlyrReady && plyrInstanceRef.current) {
         playing ? plyrInstanceRef.current.play() : plyrInstanceRef.current.pause();
       }
     }, [playing, isPlyrReady]);
 
     useEffect(() => {
-      if (isPlyrReady && plyrInstanceRef.current) {
+      if (typeof window !== 'undefined' && isPlyrReady && plyrInstanceRef.current) {
         plyrInstanceRef.current.muted = muted;
       }
     }, [muted, isPlyrReady]);
 
     useEffect(() => {
-      if (isPlyrReady && plyrInstanceRef.current) {
+      if (typeof window !== 'undefined' && isPlyrReady && plyrInstanceRef.current) {
         plyrInstanceRef.current.volume = volume;
       }
     }, [volume, isPlyrReady]);
     
     useEffect(() => {
-        if (isPlyrReady && playerRef.current && seekToFraction !== null && typeof seekToFraction === 'number') {
+        if (typeof window !== 'undefined' && isPlyrReady && playerRef.current && seekToFraction !== null && typeof seekToFraction === 'number') {
             playerRef.current.seekTo(seekToFraction, 'fraction');
             if (setSeekToFraction) setSeekToFraction(null);
         }
     }, [seekToFraction, setSeekToFraction, isPlyrReady]);
 
     useImperativeHandle(ref, () => ({
-      play: () => { if (isPlyrReady && plyrInstanceRef.current) plyrInstanceRef.current.play(); },
-      pause: () => { if (isPlyrReady && plyrInstanceRef.current) plyrInstanceRef.current.pause(); },
-      mute: () => { if (isPlyrReady && plyrInstanceRef.current) plyrInstanceRef.current.muted = true; },
-      unmute: () => { if (isPlyrReady && plyrInstanceRef.current) plyrInstanceRef.current.muted = false; },
-      setVolume: (vol) => { if (isPlyrReady && plyrInstanceRef.current) plyrInstanceRef.current.volume = vol; },
+      play: () => { if (typeof window !== 'undefined' && isPlyrReady && plyrInstanceRef.current) plyrInstanceRef.current.play(); },
+      pause: () => { if (typeof window !== 'undefined' && isPlyrReady && plyrInstanceRef.current) plyrInstanceRef.current.pause(); },
+      mute: () => { if (typeof window !== 'undefined' && isPlyrReady && plyrInstanceRef.current) plyrInstanceRef.current.muted = true; },
+      unmute: () => { if (typeof window !== 'undefined' && isPlyrReady && plyrInstanceRef.current) plyrInstanceRef.current.muted = false; },
+      setVolume: (vol) => { if (typeof window !== 'undefined' && isPlyrReady && plyrInstanceRef.current) plyrInstanceRef.current.volume = vol; },
       seekTo: (fraction) => {
-        if (isPlyrReady && playerRef.current) {
+        if (typeof window !== 'undefined' && isPlyrReady && playerRef.current) {
           playerRef.current.seekTo(fraction, 'fraction');
         }
       },
@@ -214,7 +216,6 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             onReady={handleReactPlayerReady}
           />
         </div>
-        {/* Capa invisible para bloquear clics en el iframe de YouTube */}
         <div className="absolute inset-0 z-10"></div>
       </div>
     );

@@ -14,11 +14,13 @@ const Footer = () => {
   const decretoImageUrl = "https://otwvfihzaznyjvjtkvvd.supabase.co/storage/v1/object/public/imagenvideos//decreto.png";
 
   useEffect(() => {
-    const observer = new MutationObserver(() => {
-      setIsDarkTheme(document.documentElement.classList.contains('dark'));
-    });
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    return () => observer.disconnect();
+    if (typeof window !== 'undefined') { // Asegurar que el código solo se ejecute en el cliente
+      const observer = new MutationObserver(() => {
+        setIsDarkTheme(document.documentElement.classList.contains('dark'));
+      });
+      observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+      return () => observer.disconnect();
+    }
   }, []);
 
   const banerClaro = "https://storage.googleapis.com/hostinger-horizons-assets-prod/77d159f1-0d45-4b01-ba42-c8ca9cbd0d70/e9eb6580b7ad5742826daaa5df2b592d.png";

@@ -10,14 +10,18 @@ const useIsMobile = (): boolean => {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 1024); // Breakpoint for desktop layout
-    };
+    if (typeof window !== 'undefined') { // Asegurar que el código solo se ejecute en el cliente
+      const checkScreenSize = () => {
+        setIsMobile(window.innerWidth < 1024); // Accesses window
+      };
 
-    checkScreenSize();
-    window.addEventListener('resize', checkScreenSize);
+      checkScreenSize(); // Initial call
+      window.addEventListener('resize', checkScreenSize); // Event listener
 
-    return () => window.removeEventListener('resize', checkScreenSize);
+      return () => {
+        window.removeEventListener('resize', checkScreenSize);
+      };
+    }
   }, []);
 
   return isMobile;

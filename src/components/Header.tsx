@@ -7,23 +7,24 @@ import { motion } from 'framer-motion';
 import { Sun, Moon, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import SearchBar from '@/components/ui/SearchBar';
-import useIsMobile from '@/hooks/useIsMobile'; // Importar el hook useIsMobile
+import useIsMobile from '@/hooks/useIsMobile';
 
 const Header = () => {
   const [isDarkTheme, setIsDarkTheme] = useState(true);
-  const isMobile = useIsMobile(); // Usar el hook useIsMobile
+  const isMobile = useIsMobile();
 
   useEffect(() => {
-    // Set initial theme from localStorage or default to dark
-    const savedTheme = localStorage.getItem('theme');
-    const initialTheme = savedTheme ? JSON.parse(savedTheme) : true;
-    setIsDarkTheme(initialTheme);
-    if (initialTheme) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+    if (typeof window !== 'undefined') { // Asegurar que el código solo se ejecute en el cliente
+      const savedTheme = localStorage.getItem('theme');
+      const initialTheme = savedTheme ? JSON.parse(savedTheme) : true;
+      setIsDarkTheme(initialTheme);
+      if (initialTheme) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
     }
-  }, []); // Este efecto ahora solo maneja el tema
+  }, []);
 
   const toggleTheme = () => {
     const newThemeState = !isDarkTheme;
@@ -37,12 +38,14 @@ const Header = () => {
   };
 
   const handleShare = () => {
-    const whatsappUrl = 'https://wa.me/?text=Descubr%C3%AD%20Saladillo%20Vivo.com,%20mucho%20m%C3%A1s%20que%20noticias';
-    window.open(whatsappUrl, '_blank');
+    if (typeof window !== 'undefined') { // Asegurar que el código solo se ejecute en el cliente
+      const whatsappUrl = 'https://wa.me/?text=Descubr%C3%AD%20Saladillo%20Vivo.com,%20mucho%20m%C3%A1s%20que%20noticias';
+      window.open(whatsappUrl, '_blank');
+    }
   };
 
   const banerClaroOriginal = "https://storage.googleapis.com/hostinger-horizons-assets-prod/77d159f1-0d45-4b01-ba42-c8ca9cbd0d70/e9eb6580b7ad5742826daaa5df2b592d.png";
-  const banerOscuroOriginal = "https://storage.googleapis.com/hostinger-horizons-assets-prod/77d159f1-0d45-4b01-ba42-c8ca9cbd0d70/47acc550fd7b520146be23b59835d549.png";
+  const banerOscuroOriginal = "https://storage.com/hostinger-horizons-assets-prod/77d159f1-0d45-4b01-ba42-c8ca9cbd0d70/47acc550fd7b520146be23b59835d549.png";
 
   const banerParaModoClaro = banerOscuroOriginal;
   const banerParaModoOscuro = banerClaroOriginal;
@@ -61,8 +64,8 @@ const Header = () => {
               priority
               src={isDarkTheme ? banerParaModoOscuro : banerParaModoClaro}
               alt="Saladillo Vivo"
-              width={216} // Approximate width
-              height={58} // h-12
+              width={216}
+              height={58}
               className='object-contain'
             />
           </Link>
