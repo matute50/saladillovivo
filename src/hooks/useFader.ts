@@ -12,6 +12,8 @@ const useFader = (initialVolume = 1.0) => {
   const animationFrameRef = useRef<number>();
 
   const ramp = useCallback((targetVolume: number, duration: number, onComplete?: () => void) => {
+    if (typeof window === 'undefined') return; // No ejecutar en el servidor
+
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
     }
@@ -32,7 +34,7 @@ const useFader = (initialVolume = 1.0) => {
       }
     };
     animationFrameRef.current = requestAnimationFrame(animate);
-  }, [volume, setVolume]); // Dependencia 'volume' para asegurar que 'startVolume' sea el actual
+  }, [volume, setVolume]);
 
   return { volume, setVolume, ramp };
 };
