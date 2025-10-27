@@ -8,7 +8,6 @@ import { Calendar } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { Article } from '@/lib/types';
 
-
 interface NewsCardProps {
   newsItem: Article;
   variant: 'destacada-principal' | 'secundaria' | 'default';
@@ -17,18 +16,13 @@ interface NewsCardProps {
 }
 
 const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, className = '' }) => {
-
-
   if (!newsItem) return null;
 
-  const { titulo, fecha, slug, imageUrl, id } = newsItem;
+  const { titulo, fecha, slug, imageUrl } = newsItem;
 
-
-
-  // Definir estilos basados en la variante
   let cardClass = 'card overflow-hidden flex flex-col group cursor-pointer';
   let titleClass = '';
-  let imageContainerClass = 'aspect-video'; // Default aspect ratio
+  let imageContainerClass = 'aspect-video';
   let dateDisplay;
   let priority = false;
 
@@ -46,19 +40,9 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, class
       break;
 
     case 'secundaria':
+    case 'default':
       cardClass += ' shadow-pop';
-      titleClass = 'font-futura-bold text-lg text-card-foreground group-hover:text-primary transition-colors line-clamp-4';
-      dateDisplay = (
-        <div className="date-on-image">
-          <Calendar size={10} className="mr-1" />
-          <span>{formatDate(fecha, 'numeric')}</span>
-        </div>
-      );
-      break;
-
-    default: // 'default' para las noticias sin categoría
-      cardClass += ' shadow-pop';
-      titleClass = 'font-futura-bold text-base text-card-foreground group-hover:text-primary transition-colors line-clamp-3';
+      titleClass = `font-futura-bold text-card-foreground group-hover:text-primary transition-colors ${variant === 'secundaria' ? 'text-lg line-clamp-4' : 'text-base line-clamp-3'}`;
       dateDisplay = (
         <div className="date-on-image">
           <Calendar size={10} className="mr-1" />
@@ -78,28 +62,25 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, class
       className={`${cardClass} ${className}`}
       aria-label={`Noticia: ${titulo}`}
     >
-      <Link href={articleLink} passHref legacyBehavior>
-        <a className="flex flex-col">
-          <div className={`relative news-image-container overflow-hidden ${imageContainerClass}`}>
-              <Image 
-                loading={priority ? 'eager' : 'lazy'}
-                priority={priority}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                alt={`Imagen de: ${titulo}`}
-                src={imageUrl || "https://images.unsplash.com/photo-1456339445756-beb5120afc42"}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              />
-              {dateDisplay}
-          </div>
-          <div className="p-2 flex flex-col">
-            <h3 className={titleClass}>
-              {titulo}
-            </h3>
-          </div>
-        </a>
+      <Link href={articleLink} className="flex flex-col h-full">
+        <div className={`relative news-image-container overflow-hidden ${imageContainerClass}`}>
+            <Image 
+              loading={priority ? 'eager' : 'lazy'}
+              priority={priority}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              alt={`Imagen de: ${titulo}`}
+              src={imageUrl || "https://images.unsplash.com/photo-1456339445756-beb5120afc42"}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+            {dateDisplay}
+        </div>
+        <div className="p-2 flex flex-col flex-grow">
+          <h3 className={titleClass}>
+            {titulo}
+          </h3>
+        </div>
       </Link>
-
     </motion.article>
   );
 };

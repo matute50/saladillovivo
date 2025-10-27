@@ -8,7 +8,6 @@ import dynamic from 'next/dynamic';
 
 const VideoSection = dynamic(() => import('./VideoSection'), { ssr: false });
 import NewsCard from '../NewsCard';
-import { useToast } from '@/components/ui/use-toast';
 import type { PageData } from '@/lib/types';
 import CategoryCycler from './CategoryCycler';
 import { categoryMappings, type CategoryMapping } from '@/lib/categoryMappings';
@@ -17,7 +16,6 @@ import { useNews } from '@/context/NewsContext';
 import NoResultsCard from './NoResultsCard';
 
 const DesktopLayout = ({ data }: { data: PageData }) => {
-  const { toast } = useToast();
   const {
     articles,
     videos,
@@ -26,9 +24,7 @@ const DesktopLayout = ({ data }: { data: PageData }) => {
     tickerTexts,
   } = data;
 
-  // --- ESTADO DE BÚSQUEDA DEL CONTEXTO ---
   const { isSearching, searchResults, searchLoading } = useNews();
-
   const { featuredNews, secondaryNews } = articles;
   const { allVideos } = videos;
 
@@ -37,29 +33,28 @@ const DesktopLayout = ({ data }: { data: PageData }) => {
     return allVideos.some(video => dbCategories.includes(video.categoria));
   });
 
-  const [index1, setIndex1] = useState(0);
+  const [categoryIndex, setCategoryIndex] = useState(0);
 
   useEffect(() => {
     if (availableCategoryMappings.length > 0) {
       const randomIndex = Math.floor(Math.random() * availableCategoryMappings.length);
-      setIndex1(randomIndex);
+      setCategoryIndex(randomIndex);
     }
   }, [availableCategoryMappings.length]);
 
-  const handleCycle = (direction: 'next' | 'prev', currentIndex: number, setIndex: React.Dispatch<React.SetStateAction<number>>) => {
+  const handleNextCategory = useCallback(() => {
     const total = availableCategoryMappings.length;
-    const nextIndex = direction === 'next' 
-      ? (currentIndex + 1) % total
-      : (currentIndex - 1 + total) % total;
-    setIndex(nextIndex);
-  };
+    setCategoryIndex(prevIndex => (prevIndex + 1) % total);
+  }, [availableCategoryMappings.length]);
 
-  const handleNext1 = useCallback(() => handleCycle('next', index1, setIndex1), [index1]);
-  const handlePrev1 = useCallback(() => handleCycle('prev', index1, setIndex1), [index1]);
+  const handlePrevCategory = useCallback(() => {
+    const total = availableCategoryMappings.length;
+    setCategoryIndex(prevIndex => (prevIndex - 1 + total) % total);
+  }, [availableCategoryMappings.length]);
 
   const searchCategoryMapping: CategoryMapping = {
     display: "Tu Búsqueda",
-    dbCategory: "search", // Identificador único para la búsqueda
+    dbCategory: "search",
   };
 
   return (
@@ -74,12 +69,9 @@ const DesktopLayout = ({ data }: { data: PageData }) => {
             
             {/* Left Column (News) */}
             <div className="col-span-1 lg:col-span-5 flex flex-col gap-6">
-              {/* Featured News */}
               {featuredNews && (
                 <NewsCard newsItem={featuredNews} variant="destacada-principal" />
               )}
-              
-              {/* Secondary News */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {secondaryNews.map((noticia) => (
                   <NewsCard key={noticia.id} newsItem={noticia} variant="default" />
@@ -90,10 +82,8 @@ const DesktopLayout = ({ data }: { data: PageData }) => {
             {/* Middle Column (Video) */}
             <div className="col-span-1 lg:col-span-5 mt-8 lg:mt-0">
               <div className="sticky top-[calc(var(--desktop-header-height)+var(--ticker-height)-18px)] flex flex-col gap-2 will-change-transform z-30">
-                {/* Main Video Player Section */}
                 <VideoSection isMobile={false} />
 
-                {/* --- LÓGICA CONDICIONAL PARA BÚSQUEDA O CATEGORÍAS -- */}
                 {isSearching ? (
                   searchLoading ? (
                     <div className="text-center p-4">Buscando...</div>
@@ -101,19 +91,19 @@ const DesktopLayout = ({ data }: { data: PageData }) => {
                     <CategoryCycler 
                       allVideos={searchResults} 
                       activeCategory={searchCategoryMapping}
-                      isSearchResult={true} // Prop para indicar que es un resultado de búsqueda
+                      isSearchResult={true}
                       isMobile={false} 
                       instanceId="search"
                     />
                   ) : (
-                    <NoResultsCard message="No se encontraron videos para tu búsqueda." />
+                    <NoResultsCard message="No se encontraron videos para tu búsqueda." onClearSearch={() => handleSearch('')} />
                   )
                 ) : (
                   <CategoryCycler 
                     allVideos={allVideos} 
-                    activeCategory={availableCategoryMappings[index1]} 
-                    onNext={handleNext1}
-                    onPrev={handlePrev1}
+                    activeCategory={availableCategoryMappings[categoryIndex]} 
+                    onNext={handleNextCategory}
+                    onPrev={handlePrevCategory}
                     isMobile={false} 
                     instanceId="1"
                   />
@@ -123,7 +113,7 @@ const DesktopLayout = ({ data }: { data: PageData }) => {
 
             {/* Right Column (Ads) */}
             <div className="col-span-1 lg:col-span-2 flex flex-col gap-6 mt-8 lg:mt-0">
-              <AdsSection activeAds={ads} />
+              <AdsSection activeAds={ads} isLoading={false} />
             </div>
           </div>
 

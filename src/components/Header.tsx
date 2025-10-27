@@ -1,16 +1,17 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Sun, Moon, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import SearchBar from '@/components/ui/SearchBar'; // Importar SearchBar
+import SearchBar from '@/components/ui/SearchBar';
+import useIsMobile from '@/hooks/useIsMobile'; // Importar el hook useIsMobile
 
 const Header = () => {
   const [isDarkTheme, setIsDarkTheme] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobile(); // Usar el hook useIsMobile
 
   useEffect(() => {
     // Set initial theme from localStorage or default to dark
@@ -22,16 +23,7 @@ const Header = () => {
     } else {
       document.documentElement.classList.remove('dark');
     }
-
-    // Handle window resize
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    handleResize(); // Set initial state
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, []); // Este efecto ahora solo maneja el tema
 
   const toggleTheme = () => {
     const newThemeState = !isDarkTheme;

@@ -54,9 +54,7 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
         {!isSearchResult && onPrev && (
           <motion.button 
             onClick={onPrev}
-            className="carousel-nav-button-title p-0.5 rounded-md border"
-            animate={{ color: ["#FFFFFF", "#6699ff", "#003399", "#000000"], borderColor: ["#FFFFFF", "#6699ff", "#003399", "#000000"] }}
-            transition={{ duration: 2, repeat: Infinity, repeatType: 'reverse', ease: 'easeInOut' }}
+            className="carousel-nav-button-title p-0.5 rounded-md border bg-black/10 text-foreground/80 border-foreground/30 hover:bg-foreground/10 transition-colors"
           >
             <ChevronLeft size="20" />
           </motion.button>
@@ -67,9 +65,7 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
         {!isSearchResult && onNext && (
           <motion.button 
             onClick={onNext}
-            className="carousel-nav-button-title p-0.5 rounded-md border"
-            animate={{ color: ["#FFFFFF", "#6699ff", "#003399", "#000000"], borderColor: ["#FFFFFF", "#6699ff", "#003399", "#000000"] }}
-            transition={{ duration: 2, repeat: Infinity, repeatType: 'reverse', ease: 'easeInOut' }}
+            className="carousel-nav-button-title p-0.5 rounded-md border bg-black/10 text-foreground/80 border-foreground/30 hover:bg-foreground/10 transition-colors"
           >
             <ChevronRight size="20" />
           </motion.button>

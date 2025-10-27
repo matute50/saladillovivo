@@ -63,6 +63,9 @@
     --header-height: 56px;
     --desktop-header-height: 72px;
     --ticker-height: 32px;
+
+    --carousel-button-color: 0, 0, 0; /* Negro para modo claro */
+    --carousel-button-border-color: 0, 0, 0; /* Negro para modo claro */
   }
 
   .dark {
@@ -95,6 +98,9 @@
     --footer-bg-end: 0 0% 28%; /* lighter */
     --shadow-color: rgba(0, 0, 0, 0.5);
     --link-color-dark: #6699ff;
+
+    --carousel-button-color: 255, 255, 255; /* Blanco para modo oscuro */
+    --carousel-button-border-color: 255, 255, 255; /* Blanco para modo oscuro */
   }
 
   * {
@@ -282,6 +288,11 @@
     @apply bg-background hover:bg-accent focus-visible:bg-accent;
   }
 
+  .carousel-nav-button {
+    background-color: rgba(0, 0, 0, 0.15); /* Negro con 15% de opacidad */
+    backdrop-filter: blur(10px); /* Efecto blur */
+    -webkit-backdrop-filter: blur(10px); /* Para compatibilidad con navegadores Webkit */
+  }
 
 
   .date-on-image {
@@ -299,6 +310,14 @@
   }
   .dark .search-box-icon {
     @apply text-white;
+  }
+
+  .ticker-background {
+    background-color: rgba(235, 241, 249, 0.60);
+  }
+
+  .dark .ticker-background {
+    background-color: rgba(20, 20, 20, 0.60);
   }
 }
 

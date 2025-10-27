@@ -1,12 +1,11 @@
-"use client";
+'use client';
 import React, { useRef, useEffect, forwardRef, useImperativeHandle, useState, useCallback } from 'react';
 import ReactPlayer from 'react-player/youtube';
 import Plyr from 'plyr';
 import { motion, AnimatePresence } from 'framer-motion';
 import 'plyr/dist/plyr.css';
-import '../styles/plyr-theme.css'; // Importamos nuestro tema personalizado
+import '../styles/plyr-theme.css';
 
-// Definición de tipos para las props
 interface VideoPlayerProps {
   src: string;
   playing: boolean;
@@ -23,7 +22,6 @@ interface VideoPlayerProps {
   setSeekToFraction?: (fraction: number | null) => void;
 }
 
-// Definición de tipos para la ref
 export interface VideoPlayerRef {
   play: () => void;
   pause: () => void;
@@ -59,7 +57,6 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     const wrapperRef = useRef<HTMLDivElement | null>(null);
     const [isPlyrReady, setIsPlyrReady] = useState(false);
 
-    // --- Lógica para la intro ---
     const [introVideo, setIntroVideo] = useState('');
     const [showIntro, setShowIntro] = useState(false);
     const introVideos = ['/azul.mp4', '/cuadros.mp4', '/cuadros2.mp4', '/lineal.mp4', '/RUIDO.mp4'];
@@ -79,11 +76,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         setShowIntro(false);
       }
     }, [src]);
-    // --- Fin de la lógica para la intro ---
 
-    // Plyr initialization callback, triggered by ReactPlayer's onReady
     const handleReactPlayerReady = useCallback(() => {
-      console.log('VideoPlayer: ReactPlayer is ready. Attempting to initialize Plyr.');
       if (wrapperRef.current && !plyrInstanceRef.current) {
         const videoElement = wrapperRef.current.querySelector('video');
         if (videoElement) {
@@ -106,8 +100,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           plyrInstanceRef.current = plyrPlayer;
 
           if (onReady) plyrPlayer.on('ready', () => {
-            console.log('VideoPlayer: Plyr is ready. Setting isPlyrReady(true).');
-            onReady(); // Call original onReady
+            onReady();
             setIsPlyrReady(true);
           });
           if (onPlay) plyrPlayer.on('play', onPlay);
@@ -129,7 +122,6 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       }
     }, [onReady, onPlay, onPause, onEnded, onError, onProgress, onDuration]);
 
-    // Cleanup Plyr instance on unmount
     useEffect(() => {
       return () => {
         plyrInstanceRef.current?.destroy();
@@ -138,51 +130,38 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       };
     }, []);
 
-    // Sync playing state with Plyr
     useEffect(() => {
-      console.log('VideoPlayer: playing prop changed:', playing, 'isPlyrReady:', isPlyrReady, 'plyrInstanceRef.current:', plyrInstanceRef.current);
       if (isPlyrReady && plyrInstanceRef.current) {
-        console.log('VideoPlayer: Plyr ready, setting playing state:', playing);
         playing ? plyrInstanceRef.current.play() : plyrInstanceRef.current.pause();
       }
     }, [playing, isPlyrReady]);
 
-    // Sync muted state with Plyr
     useEffect(() => {
-      console.log('VideoPlayer: muted prop changed:', muted, 'isPlyrReady:', isPlyrReady, 'plyrInstanceRef.current:', plyrInstanceRef.current);
       if (isPlyrReady && plyrInstanceRef.current) {
-        console.log('VideoPlayer: Plyr ready, setting muted state:', muted);
         plyrInstanceRef.current.muted = muted;
       }
     }, [muted, isPlyrReady]);
 
-    // Sync volume state with Plyr
     useEffect(() => {
-      console.log('VideoPlayer: volume prop changed:', volume, 'isPlyrReady:', isPlyrReady, 'plyrInstanceRef.current:', plyrInstanceRef.current);
       if (isPlyrReady && plyrInstanceRef.current) {
-        console.log('VideoPlayer: Plyr ready, setting volume state:', volume);
         plyrInstanceRef.current.volume = volume;
       }
     }, [volume, isPlyrReady]);
     
-    // Sync seek state with Plyr
     useEffect(() => {
-        console.log('VideoPlayer: seekToFraction prop changed:', seekToFraction, 'isPlyrReady:', isPlyrReady);
         if (isPlyrReady && playerRef.current && seekToFraction !== null && typeof seekToFraction === 'number') {
-            console.log('VideoPlayer: Plyr ready, seeking to fraction:', seekToFraction);
             playerRef.current.seekTo(seekToFraction, 'fraction');
             if (setSeekToFraction) setSeekToFraction(null);
         }
     }, [seekToFraction, setSeekToFraction, isPlyrReady]);
 
     useImperativeHandle(ref, () => ({
-      play: () => { console.log('VideoPlayer: Imperative play() called. isPlyrReady:', isPlyrReady); if (isPlyrReady && plyrInstanceRef.current) plyrInstanceRef.current.play(); },
-      pause: () => { console.log('VideoPlayer: Imperative pause() called. isPlyrReady:', isPlyrReady); if (isPlyrReady && plyrInstanceRef.current) plyrInstanceRef.current.pause(); },
-      mute: () => { console.log('VideoPlayer: Imperative mute() called. isPlyrReady:', isPlyrReady); if (isPlyrReady && plyrInstanceRef.current) plyrInstanceRef.current.muted = true; },
-      unmute: () => { console.log('VideoPlayer: Imperative unmute() called. isPlyrReady:', isPlyrReady); if (isPlyrReady && plyrInstanceRef.current) plyrInstanceRef.current.muted = false; },
-      setVolume: (vol) => { console.log('VideoPlayer: Imperative setVolume() called. isPlyrReady:', isPlyrReady, 'vol:', vol); if (isPlyrReady && plyrInstanceRef.current) plyrInstanceRef.current.volume = vol; },
+      play: () => { if (isPlyrReady && plyrInstanceRef.current) plyrInstanceRef.current.play(); },
+      pause: () => { if (isPlyrReady && plyrInstanceRef.current) plyrInstanceRef.current.pause(); },
+      mute: () => { if (isPlyrReady && plyrInstanceRef.current) plyrInstanceRef.current.muted = true; },
+      unmute: () => { if (isPlyrReady && plyrInstanceRef.current) plyrInstanceRef.current.muted = false; },
+      setVolume: (vol) => { if (isPlyrReady && plyrInstanceRef.current) plyrInstanceRef.current.volume = vol; },
       seekTo: (fraction) => {
-        console.log('VideoPlayer: Imperative seekTo() called. isPlyrReady:', isPlyrReady, 'fraction:', fraction);
         if (isPlyrReady && playerRef.current) {
           playerRef.current.seekTo(fraction, 'fraction');
         }
@@ -204,7 +183,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
               playsInline
               initial={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.8, delay: 3.2 }} // Desvanecimiento suave
+              transition={{ duration: 0.8, delay: 3.2 }}
             />
           )}
         </AnimatePresence>
@@ -232,8 +211,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
                 },
               },
             }}
-            onReady={handleReactPlayerReady} // NEW PROP
-            onEnded={onEnded} // FIX: Pass onEnded directly to ReactPlayer
+            onReady={handleReactPlayerReady}
           />
         </div>
         {/* Capa invisible para bloquear clics en el iframe de YouTube */}

@@ -3,13 +3,11 @@
 import React from 'react';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getDisplayCategory } from '@/lib/categoryMappings'; // Nueva importación
-import { X } from 'lucide-react'; // Importar el icono X
+import { getDisplayCategory } from '@/lib/categoryMappings';
+import { X } from 'lucide-react';
 
 const VideoTitleBar = () => {
   const { currentVideo, nextVideo, playNextVideoInQueue, removeNextVideoFromQueue } = useMediaPlayer();
-  console.log('VideoTitleBar: currentVideo', currentVideo);
-  console.log('VideoTitleBar: nextVideo', nextVideo);
 
   const displayCurrentCategory = currentVideo?.categoria ? getDisplayCategory(currentVideo.categoria) : null;
   const currentVideoTitle = currentVideo?.nombre || null;
@@ -29,7 +27,7 @@ const VideoTitleBar = () => {
         >
           {currentVideoTitle && (
             <div className="flex items-center justify-end gap-2">
-              <p className="font-semibold text-black dark:text-white truncate uppercase" style={{ fontSize: '10px', textShadow: '1px 1px 3px rgba(0,0,0,0.7)' }}>
+              <p className="font-semibold text-black dark:text-white truncate uppercase text-[10px] drop-shadow-sm">
                 ESTÁS VIENDO: {displayCurrentCategory && `${displayCurrentCategory.toUpperCase()}, `}{currentVideoTitle}
               </p>
               <button onClick={playNextVideoInQueue} className="text-red-500 hover:text-red-700 transition-colors">
@@ -39,7 +37,7 @@ const VideoTitleBar = () => {
           )}
           {nextVideoTitle && (
             <div className="flex items-center justify-end gap-2">
-              <p className="font-semibold text-black dark:text-white truncate uppercase" style={{ fontSize: '10px', textShadow: '1px 1px 3px rgba(0,0,0,0.7)' }}>
+              <p className="font-semibold text-black dark:text-white truncate uppercase text-[10px] drop-shadow-sm">
                 PRÓXIMO VIDEO: {displayNextCategory && `${displayNextCategory.toUpperCase()}, `}{nextVideoTitle}
               </p>
               <button onClick={removeNextVideoFromQueue} className="text-red-500 hover:text-red-700 transition-colors">

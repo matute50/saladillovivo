@@ -4,21 +4,10 @@ import React, { useState, useEffect } from 'react';
 import DesktopLayout from './layout/DesktopLayout';
 import MobileLayout from './layout/MobileLayout';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
+import useIsMobile from '@/hooks/useIsMobile'; // Importar el hook extraído
+import type { PageData } from '@/lib/types'; // Importar el tipo para las props
 
-const useIsMobile = () => {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 1024); // Use 1024px as the breakpoint for desktop layout
-    };
-    checkScreenSize();
-    window.addEventListener('resize', checkScreenSize);
-    return () => window.removeEventListener('resize', checkScreenSize);
-  }, []);
-  return isMobile;
-};
-
-const HomePageClient = ({ data }) => {
+const HomePageClient = ({ data }: { data: PageData }) => {
   const isMobile = useIsMobile();
   const [hasMounted, setHasMounted] = useState(false);
   const { loadInitialPlaylist } = useMediaPlayer();
@@ -36,7 +25,6 @@ const HomePageClient = ({ data }) => {
       window.history.replaceState(null, '', window.location.pathname);
     }
   }, [loadInitialPlaylist]); // Se ejecuta solo una vez
-
 
   if (!hasMounted) {
     return null; // Evita mismatch de hidratación
