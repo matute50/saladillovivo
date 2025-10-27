@@ -4,8 +4,8 @@ import React, { useState, useEffect } from 'react';
 import DesktopLayout from './layout/DesktopLayout';
 import MobileLayout from './layout/MobileLayout';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
-import useIsMobile from '@/hooks/useIsMobile'; // Importar el hook extraído
-import type { PageData } from '@/lib/types'; // Importar el tipo para las props
+import useIsMobile from '@/hooks/useIsMobile';
+import type { PageData } from '@/lib/types';
 
 const HomePageClient = ({ data }: { data: PageData }) => {
   const isMobile = useIsMobile();
@@ -14,20 +14,19 @@ const HomePageClient = ({ data }: { data: PageData }) => {
 
   useEffect(() => {
     setHasMounted(true);
-    // Una vez que el componente se monta, iniciamos la lógica de la playlist.
-    const params = new URLSearchParams(window.location.search);
-    const videoUrl = params.get('videoUrl');
-    
-    loadInitialPlaylist(videoUrl); // El contexto se encargará si el videoUrl es nulo o no
-
-    // Limpiar la URL si venía con parámetro para no recargar el mismo video si el usuario refresca
-    if (videoUrl) {
-      window.history.replaceState(null, '', window.location.pathname);
+    if (typeof window !== 'undefined') { // Asegurar que el código solo se ejecute en el cliente
+      const params = new URLSearchParams(window.location.search);
+      const videoUrl = params.get('videoUrl');
+      
+      loadInitialPlaylist(videoUrl);
+      if (videoUrl) {
+        window.history.replaceState(null, '', window.location.pathname);
+      }
     }
-  }, [loadInitialPlaylist]); // Se ejecuta solo una vez
+  }, [loadInitialPlaylist]);
 
   if (!hasMounted) {
-    return null; // Evita mismatch de hidratación
+    return null;
   }
 
   if (isMobile) {
