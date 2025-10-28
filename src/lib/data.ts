@@ -199,13 +199,13 @@ export async function getNewRandomVideo(currentId?: string): Promise<Video | nul
     return null;
   }
 
-  let selectableVideos = data;
+  let selectableVideos: Video[] = data as Video[];
   if (currentId && data.length > 1) {
-    selectableVideos = data.filter(video => video.id !== currentId);
+    selectableVideos = data.filter(video => video.id !== currentId) as Video[];
   }
   
   if (selectableVideos.length === 0) {
-    selectableVideos = data; // Fallback to the full list if filtering left nothing
+    selectableVideos = data as Video[]; // Fallback to the full list if filtering left nothing
   }
 
   const randomIndex = Math.floor(Math.random() * selectableVideos.length);

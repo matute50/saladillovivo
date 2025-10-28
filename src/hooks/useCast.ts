@@ -1,7 +1,14 @@
-// @ts-nocheck
 import { useState, useEffect, useRef } from 'react';
+import type { Video } from '@/lib/types';
 
-export const useCast = (currentMedia) => {
+declare global {
+  interface Window {
+    cast: any;
+    __onGCastApiAvailable: (isAvailable: boolean) => void;
+  }
+}
+
+export const useCast = (currentMedia: Video | null) => {
   const [isCastAvailable, setIsCastAvailable] = useState(false);
   const castSession = useRef(null);
 
@@ -14,7 +21,7 @@ export const useCast = (currentMedia) => {
           autoJoinPolicy: window.chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED,
         });
 
-        const castStateChanged = (event) => {
+        const castStateChanged = (event: any) => {
           const castState = event.castState;
           setIsCastAvailable(
             castState === window.cast.framework.CastState.NOT_CONNECTED ||
@@ -47,7 +54,7 @@ export const useCast = (currentMedia) => {
     if (!currentMedia || !currentMedia.url) return;
 
     const castContext = window.cast.framework.CastContext.getInstance();
-    castContext.requestSession().then((session) => {
+    castContext.requestSession().then((session: any) => {
       castSession.current = session;
 
       let mediaInfo;
@@ -71,9 +78,9 @@ export const useCast = (currentMedia) => {
       const request = new window.chrome.cast.media.LoadRequest(mediaInfo);
       session.loadMedia(request).then(
         () => { console.log('Media loaded successfully on Chromecast'); },
-        (errorCode) => { console.error('Error loading media on Chromecast: ', errorCode); }
+        (errorCode: chrome.cast.ErrorCode) => { console.error('Error loading media on Chromecast: ', errorCode); }
       );
-    }).catch((error) => {
+    }).catch((error: Error) => {
       console.error('Cast Error: ' + JSON.stringify(error));
     });
   };

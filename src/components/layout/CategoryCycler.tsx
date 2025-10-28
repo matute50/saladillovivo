@@ -83,7 +83,6 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
         isLoading={false}
         carouselId={`category-cycler-${instanceId}`}
         isMobile={isMobile}
-        categoryName={activeCategory.display}
       />
     </div>
   );

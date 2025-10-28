@@ -9,9 +9,18 @@ import { useMediaPlayer } from '@/context/MediaPlayerContext';
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import type { Video } from '@/lib/types';
 
+interface ExclusiveVideoCarouselProps {
+  videos: Video[];
+  isLoading: boolean;
+  carouselId: string;
+  isMobile?: boolean;
+  isLive?: boolean;
+  isEventCarousel?: boolean;
+}
 
-const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = false, isLive = false, isEventCarousel = false }) => {
+const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos, isLoading, carouselId, isMobile = false, isLive = false, isEventCarousel = false }) => {
   const { playSpecificVideo, playLiveStream, streamStatus } = useMediaPlayer();
   const { toast } = useToast();
   const swiperRef = useRef(null);
@@ -35,7 +44,7 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
     return () => observer.disconnect();
   }, []);
 
-  const getYoutubeThumbnail = (video) => {
+  const getYoutubeThumbnail = (video: Video) => {
     if (!video) return 'https://via.placeholder.com/320x180.png?text=No+disponible';
 
     const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([\w-]{11})/;
@@ -63,9 +72,11 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
     return video.imagen || 'https://via.placeholder.com/320x180.png?text=Miniatura';
   };
 
-  const handleVideoClick = (video) => {
+  const handleVideoClick = (video: Video) => {
     if (isLive || video.isLiveThumbnail) {
-      playLiveStream(streamStatus);
+      if (streamStatus) {
+        playLiveStream(streamStatus);
+      }
     } else if (video.isEvent) {
       toast({
         title: "Próximo Evento",

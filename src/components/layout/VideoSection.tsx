@@ -2,7 +2,7 @@
 
 import React, { useCallback, useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import VideoPlayer from '@/components/VideoPlayer';
+import VideoPlayer, { type VideoPlayerRef } from '@/components/VideoPlayer';
 import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
@@ -10,8 +10,14 @@ import { Play, Cast } from 'lucide-react';
 import VideoControls from '@/components/VideoControls';
 import { useCast } from '@/hooks/useCast';
 import VideoTitleBar from '@/components/VideoTitleBar';
+import type { Video } from '@/lib/types';
 
-const VideoSection = ({ isMobileFixed = false, isMobile }) => {
+interface VideoSectionProps {
+  isMobileFixed?: boolean;
+  isMobile: boolean;
+}
+
+const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMobile }) => {
   const [isMobileFullscreen, setIsMobileFullscreen] = useState(false);
   
   const {
@@ -26,7 +32,7 @@ const VideoSection = ({ isMobileFixed = false, isMobile }) => {
   } = useMediaPlayer();
   
   const { isCastAvailable, handleCast } = useCast(currentVideo);
-  const playerRef = useRef(null);
+  const playerRef = useRef<VideoPlayerRef>(null);
   const [showControls, setShowControls] = useState(false);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -66,8 +72,9 @@ const VideoSection = ({ isMobileFixed = false, isMobile }) => {
       }
       if (isMobile) {
         try {
-          if (window.screen.orientation && typeof window.screen.orientation.lock === 'function') {
-            await window.screen.orientation.lock('landscape');
+          const orientation = window.screen.orientation as any;
+          if (orientation && typeof orientation.lock === 'function') {
+            await orientation.lock('landscape');
           }
         } catch(err) {
           console.error("No se pudo bloquear la orientación:", err)
@@ -78,8 +85,9 @@ const VideoSection = ({ isMobileFixed = false, isMobile }) => {
         await document.exitFullscreen().catch(err => console.error(err));
       }
       if (isMobile) {
-        if (window.screen.orientation && typeof window.screen.orientation.unlock === 'function') {
-          window.screen.orientation.unlock();
+        const orientation = window.screen.orientation as any;
+        if (orientation && typeof orientation.unlock === 'function') {
+          orientation.unlock();
         }
       }
     }
@@ -104,7 +112,7 @@ const VideoSection = ({ isMobileFixed = false, isMobile }) => {
     };
   }, [isMobile]);
 
-  const getThumbnailUrl = (media) => {
+  const getThumbnailUrl = (media: Video | null) => {
     if (!media?.url) return '/placeholder.png';
     const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
     const videoIdMatch = media.url.match(youtubeRegex);
@@ -141,7 +149,7 @@ const VideoSection = ({ isMobileFixed = false, isMobile }) => {
         {!isPlaying && currentVideo?.type === 'video' && currentVideo?.url && (
           <Image
             src={getThumbnailUrl(currentVideo)}
-            alt={`Miniatura de ${currentVideo.title}`}
+            alt={`Miniatura de ${currentVideo?.title}`}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             className="absolute inset-0 z-0 object-cover"

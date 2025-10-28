@@ -25,7 +25,12 @@ export interface Video {
   categoria: string;
   imagen: string;
   novedad: boolean;
+  isLiveThumbnail?: boolean;
+  isEvent?: boolean;
   forzar_video?: boolean;
+  type?: 'video' | 'stream' | 'image';
+  title?: string;
+  duration?: number;
 }
 
 export interface Interview {

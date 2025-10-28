@@ -1,8 +1,6 @@
 Corrige el siguiente error de tipado en el proyecto Next.js (TypeScript):
 
-Type error: No overload matches this call.
-Argument of type 'SourceInfo' is not assignable to parameter of type 'string'.
-
+Type error: Property 'src' does not exist on type 'SourceInfo'.
 
 Detalles del proyecto:
 
@@ -16,31 +14,11 @@ Línea del error: 109
 
 Código actual:
 
-if (onError) plyrPlayer.on('error', (e) => onError(new Error(e.detail.plyr.source)));
+if (onError) plyrPlayer.on('error', (e) => onError(new Error(e.detail?.plyr?.source?.src || 'Unknown source error')));
 
 
-Instrucciones para Gemini
+Verifica que el nuevo código compile sin errores (npm run build).
 
-Abre el archivo /src/components/VideoPlayer.tsx.
+Asegúrate de que la función onError siga recibiendo un objeto Error válido.
 
-Busca la línea donde se define el callback de error de Plyr:
-
-plyrPlayer.on('error', (e) => onError(new Error(e.detail.plyr.source)));
-
-
-Corrige la llamada a new Error() para que reciba un string válido.
-Reemplaza por una de estas opciones seguras:
-
-onError(new Error(JSON.stringify(e.detail.plyr.source)));
-
-
-o, si el campo src existe:
-
-onError(new Error(e.detail?.plyr?.source?.src || 'Unknown source error'));
-
-
-Asegúrate de mantener la compatibilidad de tipos con la interfaz SourceInfo.
-
-Ejecuta npm run build para verificar que el error desaparece.
-
-Elimina cualquier importación innecesaria y optimiza el código.
+Elimina cualquier importación innecesaria y formatea el archivo.

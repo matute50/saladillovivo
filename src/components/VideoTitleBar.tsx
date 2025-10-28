@@ -6,7 +6,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getDisplayCategory } from '@/lib/categoryMappings';
 import { X } from 'lucide-react';
 
-const VideoTitleBar = () => {
+import { cn } from '@/lib/utils';
+
+interface VideoTitleBarProps {
+  className?: string;
+}
+
+const VideoTitleBar: React.FC<VideoTitleBarProps> = ({ className }) => {
   const { currentVideo, nextVideo, playNextVideoInQueue, removeNextVideoFromQueue } = useMediaPlayer();
 
   const displayCurrentCategory = currentVideo?.categoria ? getDisplayCategory(currentVideo.categoria) : null;
@@ -19,7 +25,7 @@ const VideoTitleBar = () => {
     <AnimatePresence>
       {(currentVideoTitle || nextVideoTitle) && (
         <motion.div
-          className="w-full p-2 card text-right shadow-lg flex flex-col gap-1"
+          className={cn("w-full p-2 card text-right shadow-lg flex flex-col gap-1", className)}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}

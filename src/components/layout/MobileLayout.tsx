@@ -2,8 +2,8 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useNews } from '@/context/NewsContext';
-import type { PageData, CategoryMapping } from '@/lib/types';
-import { categoryMappings } from '@/lib/categoryMappings';
+import type { PageData } from '@/lib/types';
+import { categoryMappings, type CategoryMapping } from '@/lib/categoryMappings';
 
 import NewsTicker from '../NewsTicker';
 import VideoSection from './VideoSection';
@@ -15,7 +15,7 @@ import AdsSection from './AdsSection';
 
 const MobileLayout = ({ data, isMobile }: { data: PageData; isMobile: boolean }) => {
   const { articles, videos, banners, ads, tickerTexts } = data;
-  const { isSearching, searchResults, searchLoading } = useNews();
+  const { isSearching, searchResults, searchLoading, handleSearch } = useNews();
   const { featuredNews, secondaryNews } = articles;
   const { allVideos } = videos;
 

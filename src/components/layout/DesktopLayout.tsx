@@ -24,7 +24,7 @@ const DesktopLayout = ({ data, isMobile }: { data: PageData; isMobile: boolean }
     tickerTexts,
   } = data;
 
-  const { isSearching, searchResults, searchLoading } = useNews();
+  const { isSearching, searchResults, searchLoading, handleSearch } = useNews();
   const { featuredNews, secondaryNews } = articles;
   const { allVideos } = videos;
 

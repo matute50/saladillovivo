@@ -106,8 +106,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           if (onPlay) plyrPlayer.on('play', onPlay);
           if (onPause) plyrPlayer.on('pause', onPause);
           if (onEnded) plyrPlayer.on('ended', onEnded);
-          if (onError) plyrPlayer.on('error', (e) => onError(new Error(e.detail?.plyr?.source?.src || 'Unknown source error')));
-          if (onDuration) plyrPlayer.on('durationchange', () => onDuration(plyrPlayer.duration));
+          if (onError) plyrPlayer.on('error', (e) => onError(new Error(JSON.stringify(e.detail?.plyr?.source) || 'Unknown source error')));
+          if (onDuration) plyrPlayer.on('loadedmetadata', () => onDuration(plyrPlayer.duration));
           plyrPlayer.on('timeupdate', () => {
             if (onProgress && plyrPlayer.duration) {
               onProgress({
@@ -201,16 +201,14 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             controls={false}
             pip={true}
             config={{
-              youtube: {
-                playerVars: {
-                  showinfo: 0,
-                  rel: 0,
-                  iv_load_policy: 3,
-                  modestbranding: 1,
-                  controls: 0,
-                  disablekb: 1,
-                  playsinline: 1,
-                },
+              playerVars: {
+                showinfo: 0,
+                rel: 0,
+                iv_load_policy: 3,
+                modestbranding: 1,
+                controls: 0,
+                disablekb: 1,
+                playsinline: 1,
               },
             }}
             onReady={handleReactPlayerReady}

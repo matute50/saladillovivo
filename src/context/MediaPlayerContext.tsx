@@ -21,8 +21,10 @@ interface MediaPlayerContextType {
   seekToFraction: number | null;
   isFirstMedia: boolean;
   randomVideoQueued: boolean;
+  streamStatus: { liveStreamUrl: string; isLive: boolean; } | null; // Añadido
   playMedia: (media: Video, isFirst?: boolean) => void;
   playSpecificVideo: (media: Video) => void;
+  playLiveStream: (status: { liveStreamUrl: string; isLive: boolean; }) => void; // Añadido
   setIsPlaying: (isPlaying: boolean) => void;
   togglePlayPause: () => void;
   setIsMuted: (isMuted: boolean) => void;
@@ -61,6 +63,10 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
   const [isFirstMedia, setIsFirstMedia] = useState(true);
   const [isUserSelected, setIsUserSelected] = useState(false);
   const [randomVideoQueued, setRandomVideoQueued] = useState(false);
+  
+  // Simulación de estado para streamStatus
+  const [streamStatus, setStreamStatus] = useState<{ liveStreamUrl: string; isLive: boolean; } | null>({ liveStreamUrl: 'https://www.youtube.com/watch?v=vCDCKGfOLoY', isLive: true });
+
 
   const { volume, setVolume, ramp } = useFader(0.03);
   const userVolume = useRef<number>(0.03);
@@ -92,6 +98,21 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
       ramp(0.05, 500);
     }
   }, [currentVideo, ramp]);
+
+  const playLiveStream = useCallback((status: { liveStreamUrl: string; isLive: boolean; }) => {
+    if (status && status.isLive) {
+      const liveVideo: Video = {
+        id: 'live-stream',
+        nombre: 'TRANSMISIÓN EN VIVO',
+        url: status.liveStreamUrl,
+        createdAt: new Date().toISOString(),
+        categoria: 'En Vivo',
+        imagen: '/PARCHE.png',
+        novedad: true,
+      };
+      playMedia(liveVideo, false);
+    }
+  }, [playMedia]);
 
   const loadInitialPlaylist = useCallback(async (videoUrlToPlay: string | null) => {
     const { allVideos: fetchedVideos } = await getVideosForHome(100);
@@ -201,8 +222,10 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
     seekToFraction,
     isFirstMedia,
     randomVideoQueued,
+    streamStatus, // Añadido
     playMedia,
     playSpecificVideo,
+    playLiveStream, // Añadido
     setIsPlaying,
     togglePlayPause,
     setIsMuted,
