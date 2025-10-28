@@ -118,19 +118,20 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
     const { allVideos: fetchedVideos } = await getVideosForHome(100);
     if (fetchedVideos && fetchedVideos.length > 0) {
       setAllVideos(fetchedVideos);
-      let videoToPlay = fetchedVideos[0];
+      let videoToPlay: Video;
       if (videoUrlToPlay) {
         const specificVideo = fetchedVideos.find(v => v.url === videoUrlToPlay);
-        if (specificVideo) {
-          videoToPlay = specificVideo;
-        }
+        videoToPlay = specificVideo || fetchedVideos[0];
+      } else {
+        const randomIndex = Math.floor(Math.random() * fetchedVideos.length);
+        videoToPlay = fetchedVideos[randomIndex];
       }
       playMedia(videoToPlay, true);
     }
   }, [playMedia, setAllVideos]);
 
   const playNextRandomVideo = useCallback(async () => {
-    const nextVideo = await getNewRandomVideo(currentVideo?.id);
+    const nextVideo = await getNewRandomVideo(currentVideo?.id, currentVideo?.categoria);
     if (nextVideo) {
       setVolume(lastVolume);
       setIsMuted(false);
@@ -151,7 +152,7 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
     } else {
       playNextRandomVideo();
     }
-  }, [isUserSelected, nextVideo, playMedia, playNextRandomVideo]);
+  }, [isUserSelected, nextVideo, playMedia, playNextRandomVideo, currentVideo]);
 
   const handleOnProgress = useCallback(async (progress: ProgressState) => {
     const duration = currentVideo?.duration || progress.loadedSeconds;
@@ -160,7 +161,7 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
     }
 
     if (currentVideo && !nextVideo && !randomVideoQueued && duration && (duration - progress.playedSeconds < 40)) {
-      const newRandomVideo = await getNewRandomVideo(currentVideo.id);
+      const newRandomVideo = await getNewRandomVideo(currentVideo.id, currentVideo.categoria);
       if (newRandomVideo) {
         setNextVideo(newRandomVideo);
         setRandomVideoQueued(true);

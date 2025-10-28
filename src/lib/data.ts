@@ -185,10 +185,10 @@ export async function getRandomVideo(): Promise<Video | null> {
  * Fetches all videos and returns a random one, optionally excluding the current one.
  * @param currentId - The ID of the video to exclude from the random selection.
  */
-export async function getNewRandomVideo(currentId?: string): Promise<Video | null> {
+export async function getNewRandomVideo(currentId?: string, currentCategory?: string): Promise<Video | null> {
   const { data, error } = await supabase
     .from('videos')
-    .select('id, nombre, url, categoria, imagen, novedad');
+    .select('id, nombre, url, createdAt, categoria, imagen, novedad, forzar_video');
 
   if (error) {
     console.error('Error fetching videos for random selection:', error);
@@ -200,12 +200,31 @@ export async function getNewRandomVideo(currentId?: string): Promise<Video | nul
   }
 
   let selectableVideos: Video[] = data as Video[];
+
+  // Excluir el video actual si se proporciona currentId
   if (currentId && data.length > 1) {
-    selectableVideos = data.filter(video => video.id !== currentId) as Video[];
+    selectableVideos = selectableVideos.filter(video => video.id !== currentId);
   }
   
+  // Excluir videos de la misma categoría si se proporciona currentCategory
+  if (currentCategory) {
+    const filteredByCategory = selectableVideos.filter(video => video.categoria !== currentCategory);
+    if (filteredByCategory.length > 0) {
+      selectableVideos = filteredByCategory;
+    } else {
+      // Si no quedan videos después de filtrar por categoría,
+      // volvemos a la lista original (excluyendo solo el currentId)
+      // para asegurar que siempre haya un video para reproducir.
+
+      selectableVideos = data.filter(video => video.id !== currentId) as Video[];
+      if (selectableVideos.length === 0) { // Si incluso así no hay, usamos la lista completa
+        selectableVideos = data as Video[];
+      }
+    }
+  }
+
   if (selectableVideos.length === 0) {
-    selectableVideos = data as Video[]; // Fallback to the full list if filtering left nothing
+    return null; // No hay videos seleccionables
   }
 
   const randomIndex = Math.floor(Math.random() * selectableVideos.length);

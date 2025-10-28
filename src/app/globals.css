@@ -314,10 +314,14 @@
 
   .ticker-background {
     background-color: rgba(235, 241, 249, 0.60);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 
   .dark .ticker-background {
     background-color: rgba(20, 20, 20, 0.60);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 }
 

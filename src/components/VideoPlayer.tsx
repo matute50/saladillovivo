@@ -1,10 +1,7 @@
 "use client";
 import React, { useRef, useEffect, forwardRef, useImperativeHandle, useState, useCallback } from 'react';
 import ReactPlayer from 'react-player/youtube';
-import Plyr from 'plyr';
 import { motion, AnimatePresence } from 'framer-motion';
-import 'plyr/dist/plyr.css';
-import '../styles/plyr-theme.css';
 
 interface VideoPlayerProps {
   src: string;
@@ -53,9 +50,6 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     ref
   ) => {
     const playerRef = useRef<ReactPlayer | null>(null);
-    const plyrInstanceRef = useRef<Plyr | null>(null);
-    const wrapperRef = useRef<HTMLDivElement | null>(null);
-    const [isPlyrReady, setIsPlyrReady] = useState(false);
 
     const [introVideo, setIntroVideo] = useState('');
     const [showIntro, setShowIntro] = useState(false);
@@ -78,99 +72,32 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     }, [src]);
 
     const handleReactPlayerReady = useCallback(() => {
-      if (typeof window !== 'undefined' && wrapperRef.current && !plyrInstanceRef.current) {
-        const videoElement = wrapperRef.current.querySelector('video');
-        if (videoElement) {
-          const plyrPlayer = new Plyr(videoElement, {
-            clickToPlay: false,
-            controls: [
-              'play-large', 'play', 'progress', 'current-time', 'mute', 'volume',
-              'captions', 'settings', 'pip', 'airplay', 'fullscreen',
-            ],
-            youtube: {
-              noCookie: true, rel: 0, showinfo: 0, iv_load_policy: 3,
-              modestbranding: 1, controls: 0, disablekb: 1, playsinline: 1,
-            },
-            hideControls: true, invertTime: false, toggleInvert: false,
-            tooltips: { controls: true, seek: true },
-            fullscreen: { enabled: true, fallback: true, iosNative: true },
-            storage: { enabled: false },
-          });
+      if (onReady) onReady();
+    }, [onReady]);
 
-          plyrInstanceRef.current = plyrPlayer;
 
-          if (onReady) plyrPlayer.on('ready', () => {
-            onReady();
-            setIsPlyrReady(true);
-          });
-          if (onPlay) plyrPlayer.on('play', onPlay);
-          if (onPause) plyrPlayer.on('pause', onPause);
-          if (onEnded) plyrPlayer.on('ended', onEnded);
-          if (onError) plyrPlayer.on('error', (e) => onError(new Error(JSON.stringify(e.detail?.plyr?.source) || 'Unknown source error')));
-          if (onDuration) plyrPlayer.on('loadedmetadata', () => onDuration(plyrPlayer.duration));
-          plyrPlayer.on('timeupdate', () => {
-            if (onProgress && plyrPlayer.duration) {
-              onProgress({
-                played: plyrPlayer.currentTime / plyrPlayer.duration,
-                playedSeconds: plyrPlayer.currentTime,
-                loaded: 0,
-                loadedSeconds: 0,
-              });
-            }
-          });
-        }
-      }
-    }, [onReady, onPlay, onPause, onEnded, onError, onProgress, onDuration]);
-
-    useEffect(() => {
-      if (typeof window !== 'undefined') { // Asegurar que el código solo se ejecute en el cliente
-        return () => {
-          plyrInstanceRef.current?.destroy();
-          plyrInstanceRef.current = null;
-          setIsPlyrReady(false);
-        };
-      }
-    }, []);
-
-    useEffect(() => {
-      if (typeof window !== 'undefined' && isPlyrReady && plyrInstanceRef.current) {
-        playing ? plyrInstanceRef.current.play() : plyrInstanceRef.current.pause();
-      }
-    }, [playing, isPlyrReady]);
-
-    useEffect(() => {
-      if (typeof window !== 'undefined' && isPlyrReady && plyrInstanceRef.current) {
-        plyrInstanceRef.current.muted = muted;
-      }
-    }, [muted, isPlyrReady]);
-
-    useEffect(() => {
-      if (typeof window !== 'undefined' && isPlyrReady && plyrInstanceRef.current) {
-        plyrInstanceRef.current.volume = volume;
-      }
-    }, [volume, isPlyrReady]);
     
     useEffect(() => {
-        if (typeof window !== 'undefined' && isPlyrReady && playerRef.current && seekToFraction !== null && typeof seekToFraction === 'number') {
+        if (typeof window !== 'undefined' && playerRef.current && seekToFraction !== null && typeof seekToFraction === 'number') {
             playerRef.current.seekTo(seekToFraction, 'fraction');
             if (setSeekToFraction) setSeekToFraction(null);
         }
-    }, [seekToFraction, setSeekToFraction, isPlyrReady]);
+    }, [seekToFraction, setSeekToFraction]);
 
     useImperativeHandle(ref, () => ({
-      play: () => { if (typeof window !== 'undefined' && isPlyrReady && plyrInstanceRef.current) plyrInstanceRef.current.play(); },
-      pause: () => { if (typeof window !== 'undefined' && isPlyrReady && plyrInstanceRef.current) plyrInstanceRef.current.pause(); },
-      mute: () => { if (typeof window !== 'undefined' && isPlyrReady && plyrInstanceRef.current) plyrInstanceRef.current.muted = true; },
-      unmute: () => { if (typeof window !== 'undefined' && isPlyrReady && plyrInstanceRef.current) plyrInstanceRef.current.muted = false; },
-      setVolume: (vol) => { if (typeof window !== 'undefined' && isPlyrReady && plyrInstanceRef.current) plyrInstanceRef.current.volume = vol; },
+      play: () => { if (typeof window !== 'undefined' && playerRef.current) playerRef.current.play(); },
+      pause: () => { if (typeof window !== 'undefined' && playerRef.current) playerRef.current.pause(); },
+      mute: () => { if (typeof window !== 'undefined' && playerRef.current) playerRef.current.getInternalPlayer().mute(); },
+      unmute: () => { if (typeof window !== 'undefined' && playerRef.current) playerRef.current.getInternalPlayer().unmute(); },
+      setVolume: (vol) => { if (typeof window !== 'undefined' && playerRef.current) playerRef.current.setVolume(vol); },
       seekTo: (fraction) => {
-        if (typeof window !== 'undefined' && isPlyrReady && playerRef.current) {
+        if (typeof window !== 'undefined' && playerRef.current) {
           playerRef.current.seekTo(fraction, 'fraction');
         }
       },
-      getInternalPlayer: () => plyrInstanceRef.current,
+      getInternalPlayer: () => playerRef.current?.getInternalPlayer(),
       getReactPlayer: () => playerRef.current,
-    }), [isPlyrReady]);
+    }));
 
     return (
       <div className="relative w-full h-full">
@@ -189,7 +116,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             />
           )}
         </AnimatePresence>
-        <div ref={wrapperRef} className="plyr-container" style={{ width: '100%', height: '100%' }}>
+        <div className="plyr-container" style={{ width: '100%', height: '100%' }}>
           <ReactPlayer
             ref={playerRef}
             url={src}
@@ -201,17 +128,25 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             controls={false}
             pip={true}
             config={{
-              playerVars: {
-                showinfo: 0,
-                rel: 0,
-                iv_load_policy: 3,
-                modestbranding: 1,
-                controls: 0,
-                disablekb: 1,
-                playsinline: 1,
+              youtube: { // Asegurarse de que la configuración de YouTube esté dentro de 'youtube'
+                playerVars: {
+                  showinfo: 0,
+                  rel: 0,
+                  iv_load_policy: 3,
+                  modestbranding: 1,
+                  controls: 0,
+                  disablekb: 1,
+                  playsinline: 1,
+                },
               },
             }}
             onReady={handleReactPlayerReady}
+            onPlay={onPlay}
+            onPause={onPause}
+            onEnded={onEnded}
+            onError={onError}
+            onProgress={onProgress}
+            onDuration={onDuration}
           />
         </div>
         <div className="absolute inset-0 z-10"></div>
