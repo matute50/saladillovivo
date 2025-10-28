@@ -21,6 +21,24 @@ export async function GET() {
 
     allNews.forEach(article => {
       const imageUrl = article.imageUrl || 'https://saladillovivo.vercel.app/default-og-image.png';
+      // Función auxiliar para determinar el tipo MIME de la imagen
+      const getImageMimeType = (url: string): string => {
+        const extension = url.split('.').pop()?.toLowerCase();
+        switch (extension) {
+          case 'jpg':
+          case 'jpeg':
+            return 'image/jpeg';
+          case 'png':
+            return 'image/png';
+          case 'gif':
+            return 'image/gif';
+          case 'webp':
+            return 'image/webp';
+          default:
+            return 'image/jpeg'; // Tipo por defecto si la extensión es desconocida o no existe
+        }
+      };
+
       feed.item({
         title: article.titulo,
         description: article.description,
@@ -28,7 +46,7 @@ export async function GET() {
         guid: article.slug,
         date: article.createdAt,
         author: article.autor,
-        enclosure: { url: imageUrl, type: 'image/jpeg' },
+        enclosure: { url: imageUrl, type: getImageMimeType(imageUrl) },
       });
     });
 
