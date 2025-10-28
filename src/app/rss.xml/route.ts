@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import RSS from 'rss';
 import { getArticles } from '@/lib/data';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://saladillovivo.vercel.app';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.saladillovivo.com.ar';
 
 export async function GET() {
   const feed = new RSS({
@@ -24,7 +24,7 @@ export async function GET() {
       feed.item({
         title: article.titulo,
         description: article.description,
-        url: `${SITE_URL}/noticia/${article.slug}`,
+        url: `https://www.saladillovivo.com.ar/noticia/${article.slug}`,
         guid: article.slug,
         date: article.createdAt,
         author: article.autor,
