@@ -1,7 +1,8 @@
 Corrige el siguiente error de tipado en el proyecto Next.js (TypeScript):
 
-Type error: Type '{ data: PageData; isMobile: false; }' is not assignable to type 'IntrinsicAttributes & { data: PageData; }'.
-Property 'isMobile' does not exist on type 'IntrinsicAttributes & { data: PageData; }'.
+Type error: No overload matches this call.
+Argument of type 'SourceInfo' is not assignable to parameter of type 'string'.
+
 
 Detalles del proyecto:
 
@@ -9,28 +10,37 @@ Framework: Next.js 14.2.33
 
 Lenguaje: TypeScript
 
-Archivo con error: /src/components/HomePageClient.tsx
+Archivo con error: /src/components/VideoPlayer.tsx
 
-Línea del error: 36
+Línea del error: 109
+
+Código actual:
+
+if (onError) plyrPlayer.on('error', (e) => onError(new Error(e.detail.plyr.source)));
+
 
 Instrucciones para Gemini
 
-Abre el archivo /src/components/HomePageClient.tsx.
+Abre el archivo /src/components/VideoPlayer.tsx.
 
-Busca el componente DesktopLayout que se renderiza con isMobile:
+Busca la línea donde se define el callback de error de Plyr:
 
-return <DesktopLayout data={data} isMobile={isMobile} />;
+plyrPlayer.on('error', (e) => onError(new Error(e.detail.plyr.source)));
 
-Revisa la definición de DesktopLayout (probablemente en /src/components/DesktopLayout.tsx).
 
-Si el componente realmente utiliza el estado móvil:
+Corrige la llamada a new Error() para que reciba un string válido.
+Reemplaza por una de estas opciones seguras:
 
-Agrega la prop isMobile?: boolean; al tipo de props de DesktopLayout.
+onError(new Error(JSON.stringify(e.detail.plyr.source)));
 
-Define un valor por defecto false si no está presente.
 
-Si isMobile no se usa dentro de DesktopLayout, elimina esa prop de la llamada en HomePageClient.tsx.
+o, si el campo src existe:
 
-Verifica que el proyecto compile correctamente (npm run build).
+onError(new Error(e.detail?.plyr?.source?.src || 'Unknown source error'));
 
-Limpia importaciones innecesarias y optimiza el código.
+
+Asegúrate de mantener la compatibilidad de tipos con la interfaz SourceInfo.
+
+Ejecuta npm run build para verificar que el error desaparece.
+
+Elimina cualquier importación innecesaria y optimiza el código.

@@ -106,7 +106,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           if (onPlay) plyrPlayer.on('play', onPlay);
           if (onPause) plyrPlayer.on('pause', onPause);
           if (onEnded) plyrPlayer.on('ended', onEnded);
-          if (onError) plyrPlayer.on('error', (e) => onError(new Error(e.detail.plyr.source)));
+          if (onError) plyrPlayer.on('error', (e) => onError(new Error(e.detail?.plyr?.source?.src || 'Unknown source error')));
           if (onDuration) plyrPlayer.on('durationchange', () => onDuration(plyrPlayer.duration));
           plyrPlayer.on('timeupdate', () => {
             if (onProgress && plyrPlayer.duration) {
