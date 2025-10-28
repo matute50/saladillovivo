@@ -25,6 +25,7 @@ export interface Video {
   categoria: string;
   imagen: string;
   novedad: boolean;
+  forzar_video?: boolean;
 }
 
 export interface Interview {

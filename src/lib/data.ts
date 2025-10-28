@@ -93,7 +93,7 @@ export async function getArticlesForHome(limitSecondary: number = 5) {
 export async function getVideosForHome(limitRecent: number = 4) {
   const { data, error } = await supabase
     .from('videos')
-    .select('id, nombre, url, createdAt, categoria, imagen, novedad')
+    .select('id, nombre, url, createdAt, categoria, imagen, novedad, forzar_video') // Añadido forzar_video
     .order('createdAt', { ascending: false });
 
   if (error) {
@@ -101,30 +101,58 @@ export async function getVideosForHome(limitRecent: number = 4) {
     return { featuredVideo: null, recentVideos: [], videoCategories: [] };
   }
 
-  let videos: Video[] = data || [];
+  let allVideos: Video[] = data || [];
 
-  // Fisher-Yates shuffle to randomize the video order on each load
-  for (let i = videos.length - 1; i > 0; i--) {
+  const fourDaysAgo = new Date(Date.now() - 4 * 24 * 60 * 60 * 1000);
+
+  // Aplicar la regla de los 4 días a la propiedad 'novedad' en memoria
+  allVideos = allVideos.map(video => {
+    if (video.novedad && new Date(video.createdAt) <= fourDaysAgo) {
+      return { ...video, novedad: false }; // Crear una nueva instancia para no mutar el original directamente si no es necesario
+    }
+    return video;
+  });
+
+  const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
+
+  const forcedVideos = allVideos.filter(video =>
+    video.forzar_video && new Date(video.createdAt) > twelveHoursAgo
+  );
+
+  const nonForcedVideos = allVideos.filter(video =>
+    !(video.forzar_video && new Date(video.createdAt) > twelveHoursAgo)
+  );
+
+  // Mezclar aleatoriamente los videos no forzados
+  for (let i = nonForcedVideos.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [videos[i], videos[j]] = [videos[j], videos[i]];
+    [nonForcedVideos[i], nonForcedVideos[j]] = [nonForcedVideos[j], nonForcedVideos[i]];
   }
+
+  // Combinar videos forzados (al principio) con videos no forzados
+  let videos: Video[] = [...forcedVideos, ...nonForcedVideos];
   
-  // Derive categories from the full list of videos
+  // Derive categories from the full list of videos (antes de cualquier splice)
   const videoCategories = [...new Set(videos.map(v => v.categoria).filter(Boolean))].sort();
 
   let featuredVideo: Video | null = null;
   const recentVideos: Video[] = [];
 
-  // Use a copy for mutation to preserve the original videos array for category derivation
+  // Usar una copia para la mutación para preservar el array original de videos para la derivación de categorías
   const mutableVideos = [...videos];
 
-  const featuredIndex = mutableVideos.findIndex(video => video.novedad === true);
-
-  if (featuredIndex !== -1) {
-    featuredVideo = mutableVideos.splice(featuredIndex, 1)[0];
-  } else if (mutableVideos.length > 0) {
-    // Fallback to the most recent video if none is marked as 'novedad'
-    featuredVideo = mutableVideos.shift()!;
+  // Lógica para featuredVideo: primero buscar entre los forzados, luego entre los novedad, luego el más reciente
+  if (forcedVideos.length > 0) {
+    featuredVideo = forcedVideos[0]; // El primer video forzado es el destacado
+    mutableVideos.splice(mutableVideos.indexOf(featuredVideo), 1); // Eliminarlo de la lista mutable
+  } else {
+    const featuredIndex = mutableVideos.findIndex(video => video.novedad === true);
+    if (featuredIndex !== -1) {
+      featuredVideo = mutableVideos.splice(featuredIndex, 1)[0];
+    } else if (mutableVideos.length > 0) {
+      // Fallback al video más reciente si ninguno está marcado como 'novedad'
+      featuredVideo = mutableVideos.shift()!;
+    }
   }
   
   recentVideos.push(...mutableVideos);
@@ -132,8 +160,8 @@ export async function getVideosForHome(limitRecent: number = 4) {
   return {
     featuredVideo,
     recentVideos: recentVideos.slice(0, limitRecent),
-    allVideos: videos, // Return the full, original list of videos
-    videoCategories, // Return all unique categories
+    allVideos: videos, // Devolver la lista completa y ordenada de videos
+    videoCategories, // Devolver todas las categorías únicas
   };
 }
 

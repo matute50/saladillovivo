@@ -29,6 +29,11 @@ const DesktopLayout = ({ data }: { data: PageData }) => {
   const { allVideos } = videos;
 
   const availableCategoryMappings = categoryMappings.filter(category => {
+    // Lógica especial para la categoría "Novedades"
+    if (category.dbCategory === '__NOVEDADES__') {
+      return allVideos.some(video => video.novedad === true);
+    }
+
     const dbCategories = Array.isArray(category.dbCategory) ? category.dbCategory : [category.dbCategory];
     return allVideos.some(video => dbCategories.includes(video.categoria));
   });

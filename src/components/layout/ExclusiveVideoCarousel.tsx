@@ -37,17 +37,18 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
 
   const getYoutubeThumbnail = (video) => {
     if (!video) return 'https://via.placeholder.com/320x180.png?text=No+disponible';
-    if (video.isLiveThumbnail || isEventCarousel) return video.imagen;
 
     const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([\w-]{11})/;
 
+    // Priorizar la URL del video para extraer la miniatura de YouTube
     if (video.url && (video.url.includes('youtube.com') || video.url.includes('youtu.be'))) {
       const videoIdMatch = video.url.match(youtubeRegex);
       if (videoIdMatch) {
-        return `https://img.youtube.com/vi/${videoIdMatch[1]}/mqdefault.jpg`;
+        return `https://img.youtube.com/vi/${videoIdMatch[1]}/hqdefault.jpg`;
       }
     }
 
+    // Si la URL del video no es de YouTube o no se pudo extraer el ID, intentar con la URL de la imagen
     if (video.imagen && (video.imagen.includes('youtube.com') || video.imagen.includes('youtu.be'))) {
       const videoIdMatch = video.imagen.match(youtubeRegex);
       if (videoIdMatch) {
@@ -55,6 +56,10 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
       }
     }
 
+    // Si ninguna de las anteriores es una URL de YouTube o no se pudo extraer el ID,
+    // o si es un video en vivo/evento, usar video.imagen directamente.
+    // Esto cubre los casos donde video.imagen ya es una URL de miniatura válida
+    // o una imagen personalizada.
     return video.imagen || 'https://via.placeholder.com/320x180.png?text=Miniatura';
   };
 
@@ -151,7 +156,7 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
         <>
           <motion.button 
             id={`prev-${carouselId}`}
-            className="carousel-nav-button absolute top-1/2 -translate-y-1/2 left-0 z-20 rounded-md p-1 cursor-pointer border"
+            className="carousel-nav-button absolute top-1/2 -translate-y-1/2 left-0 z-20 rounded-md p-1 cursor-pointer border shadow-lg shadow-black/50"
             animate={{ color: buttonColor, borderColor: buttonBorderColor }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
           >
@@ -159,7 +164,7 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
           </motion.button>
           <motion.button 
             id={`next-${carouselId}`}
-            className="carousel-nav-button absolute top-1/2 -translate-y-1/2 right-0 z-20 rounded-md p-1 cursor-pointer border"
+            className="carousel-nav-button absolute top-1/2 -translate-y-1/2 right-0 z-20 rounded-md p-1 cursor-pointer border shadow-lg shadow-black/50"
             animate={{ color: buttonColor, borderColor: buttonBorderColor }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
           >
