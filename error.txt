@@ -1,59 +1,51 @@
-Tu tarea es revisar y modificar mi aplicación Next.js desplegada en Vercel, la cual muestra una lista de videos de YouTube con sus miniaturas. 
-En entorno local (localhost) las miniaturas se ven correctamente, pero en producción en Vercel no se cargan y el log del navegador muestra errores tipo:
-  
-  Failed to load resource: the server responded with a status of 402 ()
-  _next/image?url=https%3A%2F%2Fimg.youtube.com%2Fvi%2FXXXXXX%2Fhqdefault.jpg&w=1080&q=75
+Corrige el siguiente error en el proyecto Next.js:
 
-El problema es que el optimizador de imágenes de Vercel bloquea las peticiones a dominios externos como `img.youtube.com`. 
-Necesito que modifiques el código de la app para que las miniaturas de YouTube se muestren correctamente tanto en local como en producción.
-
-Realiza exactamente los siguientes pasos:
-
-1. Abre el archivo `next.config.js` en la raíz del proyecto y reemplaza su contenido por este:
-   ```js
-   /** @type {import('next').NextConfig} */
-   const nextConfig = {
-     images: {
-       remotePatterns: [
-         {
-           protocol: 'https',
-           hostname: 'img.youtube.com',
-         },
-         {
-           protocol: 'https',
-           hostname: 'i.ytimg.com',
-         },
-       ],
-       unoptimized: true, // Desactiva la optimización de imágenes en Vercel
-     },
-   };
-
-   module.exports = nextConfig;
+Type error: Property 'variant' is missing in type '{ key: string; newsItem: Article; index: number; }' but required in type 'NewsCardProps'.
 
 
-En todos los componentes donde se rendericen miniaturas (por ejemplo VideoCard.jsx, VideoList.jsx, VideoItem.tsx, etc.):
+Detalles del proyecto:
 
-Elimina cualquier importación de next/image.
+Framework: Next.js 14.2.33
 
-Reemplaza el componente de imagen actual por una etiqueta HTML estándar <img> así:
+Lenguaje: TypeScript
 
-<img
-  src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
-  alt={title}
-  loading="lazy"
-  className="rounded-md w-full h-auto object-cover"
-  onError={(e) => (e.target.src = '/placeholder.jpg')}
+Archivo con error: /src/app/categoria/[categoria]/page.tsx
+
+Línea con error:
+
+<NewsCard 
+  key={noticia.id} 
+  newsItem={noticia} 
+  index={index}
 />
 
-Asegúrate de mantener los mismos estilos y estructura del diseño original.
-Si el proyecto usa Tailwind, respeta las clases existentes del contenedor.
+Instrucciones para Gemini
 
-Ejecuta npm run build localmente y verifica que las miniaturas se muestren sin errores.
-Luego, haz vercel --prod para desplegar los cambios y confirmar que las miniaturas también funcionan en Vercel.
+Abre el archivo /src/app/categoria/[categoria]/page.tsx.
 
-No modifiques ninguna otra funcionalidad del proyecto (reproductor, botones, hooks, etc.).
-Solo aplica los cambios necesarios para las miniaturas.
+Detecta el lugar donde se renderiza el componente NewsCard.
 
-Al finalizar, depura el código, elimina lo que esté de más, optimiza el SEO y el tiempo de cargado del sitio.
+Analiza el tipo NewsCardProps en el componente NewsCard (debería estar en /src/components/NewsCard.tsx o similar).
+
+Si la prop variant es obligatoria, agrega un valor por defecto seguro.
+Ejemplo:
+
+<NewsCard
+  key={noticia.id}
+  newsItem={noticia}
+  index={index}
+  variant="default"
+/>
+
+Usa "default" o "standard" según los tipos definidos en NewsCardProps.
+
+Si variant debería ser opcional, modifica la definición del tipo NewsCardProps agregando ?:
+
+variant?: string;
 
 
+Asegúrate de que el proyecto compile correctamente (npm run build) y que el cambio no afecte el comportamiento visual del componente.
+
+Limpia cualquier importación o código innecesario detectado.
+
+Optimiza el código resultante.

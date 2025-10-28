@@ -78,6 +78,7 @@ const CategoryPage = async ({ params }: { params: { categoria: string } }) => {
               key={noticia.id} 
               newsItem={noticia} 
               index={index}
+              variant="default"
             />
           ))}
         </div>
