@@ -9,7 +9,7 @@ import { useMediaPlayer } from '@/context/MediaPlayerContext';
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import Image from 'next/image';
+
 
 const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = false, isLive = false, isEventCarousel = false }) => {
   const { playSpecificVideo, playLiveStream, streamStatus } = useMediaPlayer();
@@ -134,14 +134,14 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
                 className="relative cursor-pointer group rounded-xl overflow-hidden hover:shadow-orange-500/50"
               >
                 <div className="w-56 aspect-video flex items-center justify-center bg-black">
-                  <Image
-                    loading={index === 0 ? 'eager' : 'lazy'}
-                    priority={index === 0}
+                  <img
                     src={getYoutubeThumbnail(video)}
                     alt={video.nombre || "Miniatura de video"}
+                    loading={index === 0 ? 'eager' : 'lazy'}
                     width={320}
                     height={180}
                     className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 ${isLiveOrEvent ? 'object-contain' : 'object-cover'}`}
+                    onError={(e) => { e.currentTarget.src = '/placeholder.jpg'; }} // Añadido onError
                   />
                 </div>
                 <div className={titleOverlayClasses}>

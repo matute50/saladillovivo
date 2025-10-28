@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
+
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Calendar } from 'lucide-react';
@@ -64,14 +64,12 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, class
     >
       <Link href={articleLink} className="flex flex-col h-full">
         <div className={`relative news-image-container overflow-hidden ${imageContainerClass}`}>
-            <Image 
-              loading={priority ? 'eager' : 'lazy'}
-              priority={priority}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            <img
+              src={imageUrl || "/placeholder.jpg"}
               alt={`Imagen de: ${titulo}`}
-              src={imageUrl || "https://images.unsplash.com/photo-1456339445756-beb5120afc42"}
-              fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              loading={priority ? 'eager' : 'lazy'}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              onError={(e) => { e.currentTarget.src = '/placeholder.jpg'; }}
             />
             {dateDisplay}
         </div>
