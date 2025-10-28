@@ -85,8 +85,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     }, [seekToFraction, setSeekToFraction]);
 
     useImperativeHandle(ref, () => ({
-      play: () => { if (typeof window !== 'undefined' && playerRef.current) playerRef.current.play(); },
-      pause: () => { if (typeof window !== 'undefined' && playerRef.current) playerRef.current.pause(); },
+      play: () => { if (typeof window !== 'undefined' && playerRef.current) playerRef.current.getInternalPlayer().playVideo(); }, // Método de YouTube API
+      pause: () => { if (typeof window !== 'undefined' && playerRef.current) playerRef.current.getInternalPlayer().pauseVideo(); }, // Método de YouTube API
       mute: () => { if (typeof window !== 'undefined' && playerRef.current) playerRef.current.getInternalPlayer().mute(); },
       unmute: () => { if (typeof window !== 'undefined' && playerRef.current) playerRef.current.getInternalPlayer().unmute(); },
       setVolume: (vol) => { if (typeof window !== 'undefined' && playerRef.current) playerRef.current.setVolume(vol); },
