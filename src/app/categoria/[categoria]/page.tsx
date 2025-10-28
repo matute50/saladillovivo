@@ -67,7 +67,7 @@ const CategoryPage = async ({ params }: { params: { categoria: string } }) => {
           {categoryNews.map((noticia, index) => (
             <NewsCard 
               key={noticia.id} 
-              noticia={noticia} 
+              newsItem={noticia} 
               index={index}
             />
           ))}
