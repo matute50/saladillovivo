@@ -89,7 +89,14 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       pause: () => { if (typeof window !== 'undefined' && playerRef.current) playerRef.current.getInternalPlayer().pauseVideo(); }, // Método de YouTube API
       mute: () => { if (typeof window !== 'undefined' && playerRef.current) playerRef.current.getInternalPlayer().mute(); },
       unmute: () => { if (typeof window !== 'undefined' && playerRef.current) playerRef.current.getInternalPlayer().unmute(); },
-      setVolume: (vol) => { if (typeof window !== 'undefined' && playerRef.current) playerRef.current.setVolume(vol); },
+      setVolume: (vol: number) => { 
+        if (typeof window !== 'undefined' && playerRef.current) {
+          const internalPlayer = playerRef.current.getInternalPlayer();
+          if (internalPlayer && typeof internalPlayer.setVolume === 'function') {
+            internalPlayer.setVolume(vol);
+          }
+        }
+      },
       seekTo: (fraction) => {
         if (typeof window !== 'undefined' && playerRef.current) {
           playerRef.current.seekTo(fraction, 'fraction');
@@ -128,16 +135,14 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             controls={false}
             pip={true}
             config={{
-              youtube: { // Asegurarse de que la configuración de YouTube esté dentro de 'youtube'
-                playerVars: {
-                  showinfo: 0,
-                  rel: 0,
-                  iv_load_policy: 3,
-                  modestbranding: 1,
-                  controls: 0,
-                  disablekb: 1,
-                  playsinline: 1,
-                },
+              playerVars: {
+                showinfo: 0,
+                rel: 0,
+                iv_load_policy: 3,
+                modestbranding: 1,
+                controls: 0,
+                disablekb: 1,
+                playsinline: 1,
               },
             }}
             onReady={handleReactPlayerReady}

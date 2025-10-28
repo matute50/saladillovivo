@@ -68,7 +68,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
 
     if (!document.fullscreenElement) {
       if (playerElement.requestFullscreen) {
-        await playerElement.requestFullscreen({ navigationUI: "hide" }).catch(err => console.error(err));
+        await playerElement.requestFullscreen({ navigationUI: "hide" }).catch((err: Error) => console.error(err));
       }
       if (isMobile) {
         try {
