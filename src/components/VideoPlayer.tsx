@@ -26,7 +26,7 @@ export interface VideoPlayerRef {
   unmute: () => void;
   setVolume: (volume: number) => void;
   seekTo: (fraction: number) => void;
-  getInternalPlayer: () => Plyr | null;
+  getInternalPlayer: () => any; // O un tipo más específico si se conoce el tipo del reproductor interno de ReactPlayer
   getReactPlayer: () => ReactPlayer | null;
 }
 
