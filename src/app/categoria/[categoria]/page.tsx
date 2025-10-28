@@ -5,18 +5,9 @@ import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import NewsCard from '@/components/NewsCard';
 import { notFound } from 'next/navigation';
+import { Article } from '@/lib/types'; // Añadida esta línea
 
-// Define the shape of the article data
-interface Article {
-  id: number;
-  title: string;
-  text: string;
-  imageUrl: string;
-  featureStatus: string;
-  createdAt: string;
-  slug: string;
-  description: string;
-}
+
 
 
 
@@ -24,7 +15,7 @@ interface Article {
 async function getNewsForCategory(category: string): Promise<Article[]> {
   const { data, error } = await supabase
     .from('articles')
-    .select('*')
+    .select('id, title, text, imageUrl, featureStatus, createdAt, updatedAt, slug, description, meta_title, meta_description, meta_keywords')
     .eq('featureStatus', category)
     .order('createdAt', { ascending: false });
 
@@ -33,7 +24,25 @@ async function getNewsForCategory(category: string): Promise<Article[]> {
     return [];
   }
 
-  return data || [];
+  // Mapear los datos de la base de datos a la interfaz Article
+  return (data || []).map((item: any): Article => ({
+    id: item.id,
+    titulo: item.title,
+    slug: item.slug || item.id.toString(),
+    description: item.description || (item.text ? item.text.substring(0, 160) : 'Descripción no disponible.'),
+    resumen: item.text ? item.text.substring(0, 150) + (item.text.length > 150 ? '...' : '') : 'Resumen no disponible.',
+    contenido: item.text || 'Contenido no disponible.',
+    fecha: item.createdAt, // Usar createdAt como fecha principal
+    createdAt: item.createdAt,
+    updatedAt: item.updatedAt,
+    autor: 'Equipo Editorial', // Asumir un autor por defecto
+    categoria: item.featureStatus,
+    imageUrl: item.imageUrl || 'https://saladillovivo.vercel.app/default-og-image.png',
+    featureStatus: item.featureStatus,
+    meta_title: item.meta_title,
+    meta_description: item.meta_description,
+    meta_keywords: item.meta_keywords,
+  }));
 }
 
 const CategoryPage = async ({ params }: { params: { categoria: string } }) => {
