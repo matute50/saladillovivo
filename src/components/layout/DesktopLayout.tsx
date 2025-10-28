@@ -15,7 +15,7 @@ import { categoryMappings, type CategoryMapping } from '@/lib/categoryMappings';
 import { useNews } from '@/context/NewsContext';
 import NoResultsCard from './NoResultsCard';
 
-const DesktopLayout = ({ data }: { data: PageData }) => {
+const DesktopLayout = ({ data, isMobile }: { data: PageData; isMobile: boolean }) => {
   const {
     articles,
     videos,

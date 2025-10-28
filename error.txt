@@ -1,7 +1,7 @@
 Corrige el siguiente error de tipado en el proyecto Next.js (TypeScript):
 
-Type error: Type '{ featuredVideo: null; recentVideos: never[]; videoCategories: never[]; allVideos?: undefined; }'
-is not assignable to type '{ featuredVideo: Video | null; recentVideos: Video[]; allVideos: Video[]; videoCategories: string[]; }'
+Type error: Type '{ data: PageData; isMobile: false; }' is not assignable to type 'IntrinsicAttributes & { data: PageData; }'.
+Property 'isMobile' does not exist on type 'IntrinsicAttributes & { data: PageData; }'.
 
 Detalles del proyecto:
 
@@ -9,32 +9,28 @@ Framework: Next.js 14.2.33
 
 Lenguaje: TypeScript
 
-Archivo con error: /src/app/page.tsx
+Archivo con error: /src/components/HomePageClient.tsx
 
-Línea aproximada: 57
+Línea del error: 36
 
 Instrucciones para Gemini
 
-Abre /src/app/page.tsx y localiza la definición del objeto videos dentro del objeto PageData o de la función getPageData o similar.
+Abre el archivo /src/components/HomePageClient.tsx.
 
-Detecta si en algún caso allVideos no está definido (undefined).
+Busca el componente DesktopLayout que se renderiza con isMobile:
 
-Modifica el código para garantizar que allVideos siempre tenga un arreglo, aunque esté vacío.
-Por ejemplo, cambia:
+return <DesktopLayout data={data} isMobile={isMobile} />;
 
-allVideos: allVideos,
+Revisa la definición de DesktopLayout (probablemente en /src/components/DesktopLayout.tsx).
 
-por:
+Si el componente realmente utiliza el estado móvil:
 
-allVideos: allVideos ?? [],
+Agrega la prop isMobile?: boolean; al tipo de props de DesktopLayout.
 
+Define un valor por defecto false si no está presente.
 
-o agrega allVideos: [] en los retornos donde falte.
+Si isMobile no se usa dentro de DesktopLayout, elimina esa prop de la llamada en HomePageClient.tsx.
 
-Asegúrate de que el tipo PageData y sus subtipos (Video, etc.) sigan siendo consistentes.
+Verifica que el proyecto compile correctamente (npm run build).
 
-Ejecuta npm run build localmente para verificar que el error desaparece.
-
-Limpia cualquier declaración duplicada o importación innecesaria.
-
-Optimiza el código final para mantener compatibilidad con el tipado estricto de TypeScript.
+Limpia importaciones innecesarias y optimiza el código.
