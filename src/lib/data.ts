@@ -98,7 +98,7 @@ export async function getVideosForHome(limitRecent: number = 4) {
 
   if (error) {
     console.error('Error fetching videos:', error);
-    return { featuredVideo: null, recentVideos: [], videoCategories: [] };
+    return { featuredVideo: null, recentVideos: [], allVideos: [], videoCategories: [] };
   }
 
   let allVideos: Video[] = data || [];

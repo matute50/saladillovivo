@@ -1,7 +1,7 @@
-Corrige el siguiente error en el proyecto Next.js:
+Corrige el siguiente error de tipado en el proyecto Next.js (TypeScript):
 
-Type error: Property 'variant' is missing in type '{ key: string; newsItem: Article; index: number; }' but required in type 'NewsCardProps'.
-
+Type error: Type '{ featuredVideo: null; recentVideos: never[]; videoCategories: never[]; allVideos?: undefined; }'
+is not assignable to type '{ featuredVideo: Video | null; recentVideos: Video[]; allVideos: Video[]; videoCategories: string[]; }'
 
 Detalles del proyecto:
 
@@ -9,43 +9,32 @@ Framework: Next.js 14.2.33
 
 Lenguaje: TypeScript
 
-Archivo con error: /src/app/categoria/[categoria]/page.tsx
+Archivo con error: /src/app/page.tsx
 
-Línea con error:
-
-<NewsCard 
-  key={noticia.id} 
-  newsItem={noticia} 
-  index={index}
-/>
+Línea aproximada: 57
 
 Instrucciones para Gemini
 
-Abre el archivo /src/app/categoria/[categoria]/page.tsx.
+Abre /src/app/page.tsx y localiza la definición del objeto videos dentro del objeto PageData o de la función getPageData o similar.
 
-Detecta el lugar donde se renderiza el componente NewsCard.
+Detecta si en algún caso allVideos no está definido (undefined).
 
-Analiza el tipo NewsCardProps en el componente NewsCard (debería estar en /src/components/NewsCard.tsx o similar).
+Modifica el código para garantizar que allVideos siempre tenga un arreglo, aunque esté vacío.
+Por ejemplo, cambia:
 
-Si la prop variant es obligatoria, agrega un valor por defecto seguro.
-Ejemplo:
+allVideos: allVideos,
 
-<NewsCard
-  key={noticia.id}
-  newsItem={noticia}
-  index={index}
-  variant="default"
-/>
+por:
 
-Usa "default" o "standard" según los tipos definidos en NewsCardProps.
-
-Si variant debería ser opcional, modifica la definición del tipo NewsCardProps agregando ?:
-
-variant?: string;
+allVideos: allVideos ?? [],
 
 
-Asegúrate de que el proyecto compile correctamente (npm run build) y que el cambio no afecte el comportamiento visual del componente.
+o agrega allVideos: [] en los retornos donde falte.
 
-Limpia cualquier importación o código innecesario detectado.
+Asegúrate de que el tipo PageData y sus subtipos (Video, etc.) sigan siendo consistentes.
 
-Optimiza el código resultante.
+Ejecuta npm run build localmente para verificar que el error desaparece.
+
+Limpia cualquier declaración duplicada o importación innecesaria.
+
+Optimiza el código final para mantener compatibilidad con el tipado estricto de TypeScript.
