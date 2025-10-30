@@ -331,6 +331,56 @@ export async function getArticles() {
   };
 }
 
+/**
+ * Fetches the latest articles specifically for the RSS feed.
+ * This query is simple and ensures chronological order.
+ */
+export async function getArticlesForRss(limit: number = 50): Promise<Article[]> {
+  const { supabaseUrl, supabaseAnonKey } = checkSupabaseCredentials();
+  const now = new Date().toISOString();
+  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,imageUrl,featureStatus,updatedAt,createdAt,slug,description,meta_title,meta_description,meta_keywords,published_at&or=(published_at.is.null,published_at.lte.${now})&order=createdAt.desc&limit=${limit}`;
+
+  try {
+    const response = await fetch(apiUrl, {
+      headers: {
+        'apikey': supabaseAnonKey,
+        'Authorization': `Bearer ${supabaseAnonKey}`
+      },
+      next: { revalidate: 60 }
+    });
+
+    if (!response.ok) {
+      console.error('Supabase fetch failed for RSS articles. Status:', response.status, 'Text:', await response.text());
+      throw new Error(`Supabase fetch failed: ${response.statusText}`);
+    }
+
+    const articles: any[] = await response.json();
+
+    return articles.map((item): Article => ({
+      id: item.id,
+      titulo: item.title,
+      slug: item.slug || item.id.toString(),
+      description: item.description || (item.text ? item.text.substring(0, 160) : 'Descripción no disponible.'),
+      resumen: item.text ? item.text.substring(0, 150) + (item.text.length > 150 ? '...' : '') : 'Resumen no disponible.',
+      contenido: item.text || 'Contenido no disponible.',
+      fecha: item.updatedAt || item.createdAt,
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
+      autor: 'Equipo Editorial',
+      categoria: item.featureStatus,
+      imageUrl: item.imageUrl || 'https://saladillovivo.vercel.app/default-og-image.png',
+      featureStatus: item.featureStatus,
+      meta_title: item.meta_title,
+      meta_description: item.meta_description,
+      meta_keywords: item.meta_keywords,
+    }));
+
+  } catch (error) {
+    console.error('Error in getArticlesForRss:', error);
+    return [];
+  }
+}
+
 export async function getVideos() {
   const { data, error } = await supabase
     .from('videos')

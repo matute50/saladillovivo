@@ -1,7 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import RSS from 'rss';
-import { getArticles } from '@/lib/data';
+import { getArticlesForRss } from '@/lib/data';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.saladillovivo.com.ar';
 
@@ -17,7 +17,7 @@ export async function GET() {
   });
 
   try {
-    const { allNews } = await getArticles();
+    const allNews = await getArticlesForRss();
 
     allNews.forEach(article => {
       const defaultImageUrl = 'https://saladillovivo.vercel.app/default-og-image.png';
@@ -55,6 +55,8 @@ export async function GET() {
           break;
       }
 
+      const socialImageUrl = `https://www.saladillovivo.com.ar/api/proxy?image=${encodeURIComponent(article.imageUrl || defaultImageUrl)}`;
+
       feed.item({
         title: article.titulo,
         description: article.description,
@@ -62,9 +64,8 @@ export async function GET() {
         guid: article.slug,
         date: article.createdAt,
         author: article.autor,
-        enclosure: { url: finalImageUrl, type: imageMimeType },
-      });
-    });
+                      enclosure: { url: socialImageUrl, type: 'image/png' }, // Use socialImageUrl for enclosure
+                    });    });
 
     const xml = feed.xml({ indent: true });
 

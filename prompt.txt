@@ -1,0 +1,47 @@
+Tienes que modificar el código de un proyecto Next.js desplegado en Vercel para agregar una nueva API route que genere imágenes dinámicas para redes sociales.  
+
+Objetivo: crear una imagen con proporción 4:5 (1080x1350 px) que combine:
+- una imagen principal (recibida como parámetro URL ?image=),
+- el título de la noticia (?title=),
+- y el logo institucional de Saladillo Vivo (https://www.saladillovivo.com.ar/logo.png).
+
+Detalles del diseño:
+1. **Proporción**: 1080x1350 píxeles (4:5).
+2. **Colores institucionales**: 
+   - Azul claro `#6699ff`
+   - Azul oscuro `#003399`
+   - Blanco `#ffffff`
+   - Negro `#000000`
+3. **Tipografía**: Sans-serif moderna (usa `"Inter", "Arial", sans-serif"` o similar).
+4. **Composición**:
+   - Fondo: la imagen recibida en el parámetro `image`, ajustada a cubrir (object-fit: cover).
+   - Superponer un gradiente de abajo hacia arriba en negro semitransparente para resaltar el título.
+   - Título centrado horizontalmente, con color blanco, sombra suave, y tamaño adaptable según el largo (máx. 4 líneas).
+   - Logo de Saladillo Vivo en la esquina superior izquierda, con un pequeño fondo circular o marco en color `#6699ff` o `#003399` (con transparencia ligera para integrarse visualmente).
+   - Una línea o borde inferior de 10 px con un degradado horizontal entre `#003399` y `#6699ff`.
+
+5. **Innovación visual**:
+   - Agrega una ligera sombra externa en toda la composición (simulando profundidad).
+   - Si el título es muy corto, céntralo verticalmente dentro de la franja inferior oscura.
+   - Si el título contiene signos de exclamación o interrogación, resáltalos con color `#6699ff`.
+
+Implementación técnica:
+- Crea una nueva ruta en `/pages/api/social.ts` (o `.js` si el proyecto no usa TypeScript).
+- Utiliza `@vercel/og` y `ImageResponse` para generar la imagen dinámicamente (usa `runtime: "edge"`).
+- Acepta los parámetros `title` y `image` desde la URL.
+- El resultado debe ser una imagen lista para ser utilizada en redes sociales (tipo `image/png`).
+
+Ejemplo de uso esperado:
+
+https://www.saladillovivo.com.ar/api/social?title=Nuevo%20proyecto%20del%20ITECAugusto%20Cicaré&image=https://www.saladillovivo.com.ar/uploads/foto.jpg
+
+
+La API debe devolver directamente una imagen (no HTML) de 1080x1350 px combinando esos elementos con el estilo indicado.
+
+Asegúrate de:
+- Usar solo dependencias nativas o las provistas por Vercel (no agregar librerías externas).
+- Optimizar rendimiento (sin cargar fuentes externas).
+- Incluir comentarios claros en el código para posibles ajustes futuros.
+- Validar que si no se pasa imagen o título, se muestre un diseño por defecto con fondo `#003399`, logo centrado y texto "Saladillo Vivo".
+
+Al finalizar, genera el código completo de `/pages/api/social.ts` (o `.js`) y explica cómo integrarlo en el RSS feed para que Make pueda usar la imagen resultante en Facebook e Instagram.

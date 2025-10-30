@@ -7,13 +7,15 @@ import NewsTicker from '../NewsTicker';
 import dynamic from 'next/dynamic';
 
 const VideoSection = dynamic(() => import('./VideoSection'), { ssr: false });
-import NewsCard from '../NewsCard';
+import MoreNewsGrid from './MoreNewsGrid';
+import NewsColumn from './NewsColumn';
 import type { PageData } from '@/lib/types';
 import CategoryCycler from './CategoryCycler';
 import { categoryMappings, type CategoryMapping } from '@/lib/categoryMappings';
 
 import { useNews } from '@/context/NewsContext';
 import NoResultsCard from './NoResultsCard';
+import NewsCard from '../NewsCard';
 
 const DesktopLayout = ({ data, isMobile }: { data: PageData; isMobile: boolean }) => {
   const {
@@ -25,8 +27,12 @@ const DesktopLayout = ({ data, isMobile }: { data: PageData; isMobile: boolean }
   } = data;
 
   const { isSearching, searchResults, searchLoading, handleSearch } = useNews();
-  const { featuredNews, secondaryNews } = articles;
+  const { allNews } = articles;
   const { allVideos } = videos;
+
+  // Dividir las noticias y anuncios para las diferentes secciones
+  const topNews = allNews.slice(0, 7);
+  const moreNews = allNews.slice(7);
 
   const availableCategoryMappings = categoryMappings.filter(category => {
     // Lógica especial para la categoría "Novedades"
@@ -74,14 +80,7 @@ const DesktopLayout = ({ data, isMobile }: { data: PageData; isMobile: boolean }
             
             {/* Left Column (News) */}
             <div className="col-span-1 lg:col-span-5 flex flex-col gap-6">
-              {featuredNews && (
-                <NewsCard newsItem={featuredNews} variant="destacada-principal" />
-              )}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {secondaryNews.map((noticia) => (
-                  <NewsCard key={noticia.id} newsItem={noticia} variant="default" />
-                ))}
-              </div>
+              <NewsColumn news={topNews} />
             </div>
 
             {/* Middle Column (Video) */}
@@ -125,6 +124,30 @@ const DesktopLayout = ({ data, isMobile }: { data: PageData; isMobile: boolean }
           {/* Banners Section */}
           <section className="my-6 -mx-2 md:mx-0" aria-label="Banners publicitarios">
              <BannerSection activeBanners={banners} isLoadingBanners={false} className="w-full" />
+          </section>
+
+          {/* More News & Ads Section */}
+          <section className="mt-8" aria-label="Más noticias y publicidad">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+              {/* News Grid (4 columns) */}
+              <div className="lg:col-span-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                  {moreNews.map((noticia, index) => (
+                    <NewsCard
+                      key={noticia.id}
+                      newsItem={noticia}
+                      variant="default"
+                      index={index}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Ads Column (1 column) */}
+              <div className="lg:col-span-1">
+                <AdsSection activeAds={[]} isLoading={false} />
+              </div>
+            </div>
           </section>
 
         </div>
