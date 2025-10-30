@@ -128,6 +128,9 @@ export async function GET(req: NextRequest) {
       {
         width: 1080,
         height: 1350,
+        headers: {
+          'Content-Disposition': 'inline; filename="branded_image.png"',
+        },
       }
     );
   } catch (e: any) {
