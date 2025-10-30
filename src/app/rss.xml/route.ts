@@ -55,7 +55,7 @@ export async function GET() {
           break;
       }
 
-      const socialImageUrl = `https://www.saladillovivo.com.ar/api/branded-image?image=${encodeURIComponent(finalImageUrl)}`;
+      const socialImageUrl = `https://www.saladillovivo.com.ar/api/branded-image`;
 
       feed.item({
         title: article.titulo,
