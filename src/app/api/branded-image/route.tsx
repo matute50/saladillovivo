@@ -4,9 +4,25 @@ import { NextRequest } from 'next/server';
 export const runtime = 'edge';
 
 export async function GET(req: NextRequest) {
+  const logoUrl = 'https://www.saladillovivo.com.ar/logo.png'; // Logo URL
+
   try {
     const { searchParams } = req.nextUrl;
     const title = searchParams.get('title') || 'Noticia de Saladillo Vivo';
+
+    let logoSrc: string = logoUrl; // Fallback a URL si la conversión a base64 falla
+    try {
+      const logoResponse = await fetch(logoUrl);
+      if (logoResponse.ok) {
+        const contentType = logoResponse.headers.get('content-type') || 'image/png';
+        if (contentType.startsWith('image/')) {
+          const buffer = await logoResponse.arrayBuffer();
+          logoSrc = `data:${contentType};base64,${Buffer.from(buffer).toString('base64')}`;
+        }
+      }
+    } catch (fetchError) {
+      console.error(`Failed to fetch or process logo URL: ${logoUrl}`, fetchError);
+    }
 
     return new ImageResponse(
       (
@@ -26,6 +42,7 @@ export async function GET(req: NextRequest) {
         >
           <div style={{ marginBottom: 20 }}>Test Image</div>
           <div>{title}</div>
+          <img width="85" height="85" src={logoSrc} style={{ marginTop: 20 }} />
         </div>
       ),
       {
