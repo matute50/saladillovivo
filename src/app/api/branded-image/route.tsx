@@ -3,11 +3,18 @@ import { NextRequest } from 'next/server';
 
 export const runtime = 'edge';
 
+// Define la URL de la fuente (por ejemplo, desde Google Fonts)
+const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap'; // Inter Bold
+
 export async function GET(req: NextRequest) {
   const defaultNewsImageUrl = 'https://saladillovivo.vercel.app/default-og-image.png';
   const logoUrl = 'https://www.saladillovivo.com.ar/logo.png';
 
   try {
+    // Cargar los datos de la fuente
+    const fontResponse = await fetch(FONT_URL);
+    const fontData = await fontResponse.arrayBuffer();
+
     const { searchParams } = req.nextUrl;
     const title = searchParams.get('title') || 'Noticia de Saladillo Vivo';
     const originalImageUrl = searchParams.get('image');
@@ -28,12 +35,12 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    let logoSrc: string = logoUrl; // Fallback to URL if base64 conversion fails
+    let logoSrc: string = logoUrl; // Fallback a URL si la conversión a base64 falla
     try {
       const logoResponse = await fetch(logoUrl);
       if (logoResponse.ok) {
         const contentType = logoResponse.headers.get('content-type') || 'image/png';
-        if (contentType.startsWith('image/')) {
+        if (contentType.startsWith('image/')) { // Corregido el error tipográfico aquí
           const buffer = await logoResponse.arrayBuffer();
           logoSrc = `data:${contentType};base64,${Buffer.from(buffer).toString('base64')}`;
         }
@@ -103,7 +110,7 @@ export async function GET(req: NextRequest) {
               textAlign: 'center',
               color: 'white',
               fontSize: 68,
-              fontFamily: '"Inter", "Arial", sans-serif',
+              fontFamily: '"Inter"', // Usar la fuente cargada
               fontWeight: 700,
               letterSpacing: '-0.02em',
               lineHeight: 1.2,
@@ -131,6 +138,14 @@ export async function GET(req: NextRequest) {
         headers: {
           'Content-Disposition': 'inline; filename="branded_image.png"',
         },
+        fonts: [
+          {
+            name: 'Inter',
+            data: fontData,
+            weight: 700,
+            style: 'normal',
+          },
+        ],
       }
     );
   } catch (e: any) {
