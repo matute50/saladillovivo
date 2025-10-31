@@ -1,105 +1,80 @@
+import { ImageResponse } from "next/og";
 
-import { ImageResponse } from '@vercel/og';
-import { NextRequest } from 'next/server';
-
-// Configura el runtime para que se ejecute en el borde (edge) para máxima velocidad.
-export const runtime = 'edge';
-
-// Handler para la petición GET.
-export async function GET(req: NextRequest) {
+export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(req.url);
+    const { searchParams } = new URL(request.url);
+    const title = searchParams.get("title") || "Saladillo Vivo";
+    const image = searchParams.get("image") || "https://www.saladillovivo.com.ar/logo.png";
+    const logoUrl = "https://storage.googleapis.com/hostinger-horizons-assets-prod/77d159f1-0d45-4b01-ba42-c8ca9cbd0d70/e9eb6580b7ad5742826daaa5df2b592d.png";
 
-    // 1. Extraer parámetros de la URL.
-    const title = searchParams.get('title');
-    const imageUrl = searchParams.get('image');
-    const logoUrl = 'https://www.saladillovivo.com.ar/logo.png'; // URL del logo
-
-    // Validar que los parámetros necesarios existan.
-    if (!title || !imageUrl) {
-      return new Response(`Faltan los parámetros "title" o "image"`, {
-        status: 400,
-      });
-    }
-
-    // 2. Generar la imagen usando ImageResponse.
     return new ImageResponse(
-      // Contenedor principal con flexbox y el degradado de fondo.
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100%',
-          width: '100%',
-          fontFamily: '"sans-serif"',
-          background: 'linear-gradient(to bottom, #003399, #6699ff)',
-          position: 'relative', // Para posicionar el logo de forma absoluta.
-        }}
-      >
-        {/* Contenedor para la imagen de la noticia (70% superior) */}
-        <div style={{ display: 'flex', width: '100%', height: '70%' }}>
-          <img
-            src={imageUrl}
-            alt=""
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover', // Cubre el área sin deformar la imagen.
-            }}
-          />
-        </div>
-
-        {/* Contenedor para el título (30% inferior) */}
+      (
         <div
           style={{
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center', // Centra el título verticalmente.
-            alignItems: 'flex-start',
-            width: '100%',
-            height: '30%',
-            backgroundColor: 'rgba(0,0,0,0.6)', // Fondo semitransparente.
-            padding: '40px 60px',
-            boxSizing: 'border-box',
+            width: "800px",
+            height: "1000px",
+            backgroundColor: "#ffffff",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "flex-start",
+            fontFamily: "sans-serif",
+            overflow: "hidden",
           }}
         >
-          <p
+          {/* Fondo de la noticia */}
+          <div
             style={{
-              color: 'white',
-              fontSize: '48px',
-              fontWeight: 'bold',
-              lineHeight: 1.2,
-              maxHeight: '100%',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              textShadow: '2px 2px 8px rgba(0,0,0,0.7)', // Sombra para profundidad.
+              width: "800px",
+              height: "600px",
+              backgroundImage: `url(${image})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          />
+
+          {/* Franja del título */}
+          <div
+            style={{
+              backgroundColor: "#003399",
+              color: "white",
+              width: "100%",
+              padding: "40px 50px",
+              fontSize: 48,
+              fontWeight: "bold",
+              textAlign: "center",
             }}
           >
             {title}
-          </p>
-        </div>
+          </div>
 
-        {/* Logo posicionado en la esquina inferior derecha */}
-        <img
-          src={logoUrl}
-          alt="Logo Saladillo Vivo"
-          style={{
-            position: 'absolute',
-            bottom: '30px',
-            right: '40px',
-            width: '180px',
-            opacity: 0.9,
-          }}
-        />
-      </div>,
-      // Opciones de la imagen de salida.
+          {/* Logo inferior */}
+          <div
+            style={{
+              width: "100%",
+              height: "120px",
+              backgroundColor: "#6699ff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <img
+              src={logoUrl}
+              width="160"
+              height="80"
+              style={{ objectFit: "contain" }}
+            />
+          </div>
+        </div>
+      ),
       {
-        width: 1080,
-        height: 1350,
+        width: 800,
+        height: 1000,
       }
     );
-  } catch (e: any) {
-    console.error(e.message);
-    return new Response('Error al generar la imagen.', { status: 500 });
+  } catch (error) {
+    console.error("Error generando imagen:", error);
+    return new Response("Error generando imagen", { status: 500 });
   }
 }
