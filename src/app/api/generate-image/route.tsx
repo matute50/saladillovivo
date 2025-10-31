@@ -1,80 +1,73 @@
-import { ImageResponse } from "next/og";
+import { NextRequest } from "next/server";
+import sharp from "sharp";
 
-export async function GET(request: Request) {
+export const runtime = "nodejs"; // Node.js runtime para permitir fetch y sharp
+
+export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const title = searchParams.get("title") || "Saladillo Vivo";
-    const image = searchParams.get("image") || "https://www.saladillovivo.com.ar/logo.png";
-    const logoUrl = "https://storage.googleapis.com/hostinger-horizons-assets-prod/77d159f1-0d45-4b01-ba42-c8ca9cbd0d70/e9eb6580b7ad5742826daaa5df2b592d.png";
+    const url = new URL(req.url);
+    const title = url.searchParams.get("title") || "Saladillo Vivo";
+    const imageUrl = url.searchParams.get("image") || "";
+    const logoUrl = "https://storage.googleapis.com/hostinger-horizons-assets-prod/77d159f1-0d45-4b01-ba42-c8ca9cbd0d70/47acc550fd7b520146be23b59835d549.png"; // NUEVO LOGO
 
-    return new ImageResponse(
-      (
-        <div
-          style={{
-            width: "800px",
-            height: "1000px",
-            backgroundColor: "#ffffff",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "flex-start",
-            fontFamily: "sans-serif",
-            overflow: "hidden",
-          }}
-        >
-          {/* Fondo de la noticia */}
-          <div
-            style={{
-              width: "800px",
-              height: "600px",
-              backgroundImage: `url(${image})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
-          />
+    // 1️⃣ Descargar imagen de noticia
+    let newsImageBuffer: Buffer;
+    if (imageUrl) {
+      const res = await fetch(imageUrl);
+      if (!res.ok) throw new Error("No se pudo descargar la imagen de la noticia");
+      newsImageBuffer = Buffer.from(await res.arrayBuffer());
+    } else {
+      // Imagen placeholder gris
+      newsImageBuffer = await sharp({
+        create: {
+          width: 800,
+          height: 600,
+          channels: 3,
+          background: "#444444",
+        },
+      }).png().toBuffer();
+    }
 
-          {/* Franja del título */}
-          <div
-            style={{
-              backgroundColor: "#003399",
-              color: "white",
-              width: "100%",
-              padding: "40px 50px",
-              fontSize: 48,
-              fontWeight: "bold",
-              textAlign: "center",
-            }}
-          >
-            {title}
-          </div>
+    // 2️⃣ Descargar logo
+    const logoRes = await fetch(logoUrl);
+    const logoBuffer = Buffer.from(await logoRes.arrayBuffer());
 
-          {/* Logo inferior */}
-          <div
-            style={{
-              width: "100%",
-              height: "120px",
-              backgroundColor: "#6699ff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <img
-              src={logoUrl}
-              width="160"
-              height="80"
-              style={{ objectFit: "contain" }}
-            />
-          </div>
-        </div>
-      ),
-      {
-        width: 800,
-        height: 1000,
-      }
-    );
-  } catch (error) {
-    console.error("Error generando imagen:", error);
-    return new Response("Error generando imagen", { status: 500 });
+    // 3️⃣ Crear franja para título
+    const titleHeight = 180;
+    const titleSvg = `
+      <svg width="800" height="${titleHeight}">
+        <rect width="800" height="${titleHeight}" fill="#003399"/>
+        <text x="50%" y="50%" font-size="48" fill="white" font-family="sans-serif" dominant-baseline="middle" text-anchor="middle">${title}</text>
+      </svg>
+    `;
+
+    // 4️⃣ Franja inferior para logo
+    const logoHeight = 120;
+    const logoSvg = `
+      <svg width="800" height="${logoHeight}">
+        <rect width="800" height="${logoHeight}" fill="#6699ff"/>
+      </svg>
+    `;
+
+    // 5️⃣ Componer imagen final
+    const compositeImage = await sharp({
+      create: { width: 800, height: 1000, channels: 3, background: "#ffffff" },
+    })
+      .composite([
+        { input: newsImageBuffer, top: 0, left: 0 },
+        { input: Buffer.from(titleSvg), top: 600, left: 0 },
+        { input: Buffer.from(logoSvg), top: 880, left: 0 },
+        { input: logoBuffer, top: 890, left: 320 }, // centrar logo en franja
+      ])
+      .png()
+      .toBuffer();
+
+    return new Response(compositeImage, {
+      status: 200,
+      headers: { "Content-Type": "image/png" },
+    });
+  } catch (error: any) {
+    console.error(error);
+    return new Response("Error generando imagen: " + error.message, { status: 500 });
   }
 }
