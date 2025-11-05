@@ -1,5 +1,5 @@
 import HomePageClient from "@/components/HomePageClient";
-import type { Metadata } from 'next';
+import type { Metadata } from "next";
 import {
   getArticlesForHome,
   getVideosForHome,
@@ -9,6 +9,7 @@ import {
   getInterviews,
   getTickerTexts
 } from "@/lib/data";
+import { NewsProvider } from "@/context/NewsContext";
 
 export const revalidate = 60; // Revalidate this page every 60 seconds
 
@@ -54,5 +55,7 @@ export default async function Page() {
   };
 
   // Pass the server-fetched data to the client component.
-  return <HomePageClient data={pageData} />;
+  return (
+    <HomePageClient initialData={pageData} />
+  );
 }

@@ -1,1 +1,3 @@
 Se ha implementado la lógica de introducción de video en `src/components/VideoPlayer.tsx`. Cada vez que se carga un nuevo video principal, se selecciona un video de introducción aleatorio de la lista proporcionada, se muestra durante 4 segundos superpuesto al video principal y luego se desvanece.
+
+Se han realizado modificaciones en `src/lib/data.ts` para asegurar que todas las fechas (`createdAt`, `updatedAt`, `fecha`) se serialicen explícitamente como strings ISO antes de ser pasadas entre Server Components y Client Components. Esto debería resolver el error "Unsupported Server Component type: {...}" en Next.js.

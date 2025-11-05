@@ -10,8 +10,12 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'i.ytimg.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'otwvfihzaznyjvjtkvvd.supabase.co',
+      },
     ],
-    unoptimized: true, // Desactiva la optimización de imágenes en Vercel
+
   },
 };
 

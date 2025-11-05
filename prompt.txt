@@ -1,47 +1,433 @@
-Tienes que modificar el código de un proyecto Next.js desplegado en Vercel para agregar una nueva API route que genere imágenes dinámicas para redes sociales.  
+:3001/:1  GET http://localhost:3001/ 500 (Internal Server Error)
+main-app.js:1847 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+MediaPlayerContext.tsx:48 Uncaught Error: useMediaPlayer must be used within a MediaPlayerProvider
+    at useMediaPlayer (MediaPlayerContext.tsx:48:11)
+    at HomePageClient (HomePageClient.tsx:13:49)
+    at renderWithHooks (react-dom.development.js:11121:18)
+    at updateFunctionComponent (react-dom.development.js:16290:20)
+    at mountLazyComponent (react-dom.development.js:16765:17)
+    at beginWork$1 (react-dom.development.js:18464:16)
+    at HTMLUnknownElement.callCallback (react-dom.development.js:20565:14)
+    at Object.invokeGuardedCallbackImpl (react-dom.development.js:20614:16)
+    at invokeGuardedCallback (react-dom.development.js:20689:29)
+    at beginWork (react-dom.development.js:26949:7)
+    at performUnitOfWork (react-dom.development.js:25748:12)
+    at workLoopSync (react-dom.development.js:25464:5)
+    at renderRootSync (react-dom.development.js:25419:7)
+    at performConcurrentWorkOnRoot (react-dom.development.js:24504:74)
+    at workLoop (scheduler.development.js:256:34)
+    at flushWork (scheduler.development.js:225:14)
+    at MessagePort.performWorkUntilDeadline (scheduler.development.js:534:21)
+useMediaPlayer @ MediaPlayerContext.tsx:48
+HomePageClient @ HomePageClient.tsx:13
+renderWithHooks @ react-dom.development.js:11121
+updateFunctionComponent @ react-dom.development.js:16290
+mountLazyComponent @ react-dom.development.js:16765
+beginWork$1 @ react-dom.development.js:18464
+callCallback @ react-dom.development.js:20565
+invokeGuardedCallbackImpl @ react-dom.development.js:20614
+invokeGuardedCallback @ react-dom.development.js:20689
+beginWork @ react-dom.development.js:26949
+performUnitOfWork @ react-dom.development.js:25748
+workLoopSync @ react-dom.development.js:25464
+renderRootSync @ react-dom.development.js:25419
+performConcurrentWorkOnRoot @ react-dom.development.js:24504
+workLoop @ scheduler.development.js:256
+flushWork @ scheduler.development.js:225
+performWorkUntilDeadline @ scheduler.development.js:534
+redirect-boundary.js:57 Uncaught Error: useMediaPlayer must be used within a MediaPlayerProvider
+    at useMediaPlayer (MediaPlayerContext.tsx:48:11)
+    at HomePageClient (HomePageClient.tsx:13:49)
+    at renderWithHooks (react-dom.development.js:11121:18)
+    at updateFunctionComponent (react-dom.development.js:16290:20)
+    at mountLazyComponent (react-dom.development.js:16765:17)
+    at beginWork$1 (react-dom.development.js:18464:16)
+    at beginWork (react-dom.development.js:26927:14)
+    at performUnitOfWork (react-dom.development.js:25748:12)
+    at workLoopSync (react-dom.development.js:25464:5)
+    at renderRootSync (react-dom.development.js:25419:7)
+    at performConcurrentWorkOnRoot (react-dom.development.js:24504:74)
+    at workLoop (scheduler.development.js:256:34)
+    at flushWork (scheduler.development.js:225:14)
+    at MessagePort.performWorkUntilDeadline (scheduler.development.js:534:21)
+useMediaPlayer @ MediaPlayerContext.tsx:48
+HomePageClient @ HomePageClient.tsx:13
+renderWithHooks @ react-dom.development.js:11121
+updateFunctionComponent @ react-dom.development.js:16290
+mountLazyComponent @ react-dom.development.js:16765
+beginWork$1 @ react-dom.development.js:18464
+beginWork @ react-dom.development.js:26927
+performUnitOfWork @ react-dom.development.js:25748
+workLoopSync @ react-dom.development.js:25464
+renderRootSync @ react-dom.development.js:25419
+performConcurrentWorkOnRoot @ react-dom.development.js:24504
+workLoop @ scheduler.development.js:256
+flushWork @ scheduler.development.js:225
+performWorkUntilDeadline @ scheduler.development.js:534
+not-found-boundary.js:37 Uncaught Error: useMediaPlayer must be used within a MediaPlayerProvider
+    at useMediaPlayer (MediaPlayerContext.tsx:48:11)
+    at HomePageClient (HomePageClient.tsx:13:49)
+    at renderWithHooks (react-dom.development.js:11121:18)
+    at updateFunctionComponent (react-dom.development.js:16290:20)
+    at mountLazyComponent (react-dom.development.js:16765:17)
+    at beginWork$1 (react-dom.development.js:18464:16)
+    at beginWork (react-dom.development.js:26927:14)
+    at performUnitOfWork (react-dom.development.js:25748:12)
+    at workLoopSync (react-dom.development.js:25464:5)
+    at renderRootSync (react-dom.development.js:25419:7)
+    at performConcurrentWorkOnRoot (react-dom.development.js:24504:74)
+    at workLoop (scheduler.development.js:256:34)
+    at flushWork (scheduler.development.js:225:14)
+    at MessagePort.performWorkUntilDeadline (scheduler.development.js:534:21)
+useMediaPlayer @ MediaPlayerContext.tsx:48
+HomePageClient @ HomePageClient.tsx:13
+renderWithHooks @ react-dom.development.js:11121
+updateFunctionComponent @ react-dom.development.js:16290
+mountLazyComponent @ react-dom.development.js:16765
+beginWork$1 @ react-dom.development.js:18464
+beginWork @ react-dom.development.js:26927
+performUnitOfWork @ react-dom.development.js:25748
+workLoopSync @ react-dom.development.js:25464
+renderRootSync @ react-dom.development.js:25419
+performConcurrentWorkOnRoot @ react-dom.development.js:24504
+workLoop @ scheduler.development.js:256
+flushWork @ scheduler.development.js:225
+performWorkUntilDeadline @ scheduler.development.js:534
+redirect-boundary.js:57 Uncaught Error: useMediaPlayer must be used within a MediaPlayerProvider
+    at useMediaPlayer (MediaPlayerContext.tsx:48:11)
+    at HomePageClient (HomePageClient.tsx:13:49)
+    at renderWithHooks (react-dom.development.js:11121:18)
+    at updateFunctionComponent (react-dom.development.js:16290:20)
+    at mountLazyComponent (react-dom.development.js:16765:17)
+    at beginWork$1 (react-dom.development.js:18464:16)
+    at beginWork (react-dom.development.js:26927:14)
+    at performUnitOfWork (react-dom.development.js:25748:12)
+    at workLoopSync (react-dom.development.js:25464:5)
+    at renderRootSync (react-dom.development.js:25419:7)
+    at performConcurrentWorkOnRoot (react-dom.development.js:24504:74)
+    at workLoop (scheduler.development.js:256:34)
+    at flushWork (scheduler.development.js:225:14)
+    at MessagePort.performWorkUntilDeadline (scheduler.development.js:534:21)
+useMediaPlayer @ MediaPlayerContext.tsx:48
+HomePageClient @ HomePageClient.tsx:13
+renderWithHooks @ react-dom.development.js:11121
+updateFunctionComponent @ react-dom.development.js:16290
+mountLazyComponent @ react-dom.development.js:16765
+beginWork$1 @ react-dom.development.js:18464
+beginWork @ react-dom.development.js:26927
+performUnitOfWork @ react-dom.development.js:25748
+workLoopSync @ react-dom.development.js:25464
+renderRootSync @ react-dom.development.js:25419
+performConcurrentWorkOnRoot @ react-dom.development.js:24504
+workLoop @ scheduler.development.js:256
+flushWork @ scheduler.development.js:225
+performWorkUntilDeadline @ scheduler.development.js:534
+not-found-boundary.js:37 Uncaught Error: useMediaPlayer must be used within a MediaPlayerProvider
+    at useMediaPlayer (MediaPlayerContext.tsx:48:11)
+    at HomePageClient (HomePageClient.tsx:13:49)
+    at renderWithHooks (react-dom.development.js:11121:18)
+    at updateFunctionComponent (react-dom.development.js:16290:20)
+    at mountLazyComponent (react-dom.development.js:16765:17)
+    at beginWork$1 (react-dom.development.js:18464:16)
+    at beginWork (react-dom.development.js:26927:14)
+    at performUnitOfWork (react-dom.development.js:25748:12)
+    at workLoopSync (react-dom.development.js:25464:5)
+    at renderRootSync (react-dom.development.js:25419:7)
+    at performConcurrentWorkOnRoot (react-dom.development.js:24504:74)
+    at workLoop (scheduler.development.js:256:34)
+    at flushWork (scheduler.development.js:225:14)
+    at MessagePort.performWorkUntilDeadline (scheduler.development.js:534:21)
+useMediaPlayer @ MediaPlayerContext.tsx:48
+HomePageClient @ HomePageClient.tsx:13
+renderWithHooks @ react-dom.development.js:11121
+updateFunctionComponent @ react-dom.development.js:16290
+mountLazyComponent @ react-dom.development.js:16765
+beginWork$1 @ react-dom.development.js:18464
+beginWork @ react-dom.development.js:26927
+performUnitOfWork @ react-dom.development.js:25748
+workLoopSync @ react-dom.development.js:25464
+renderRootSync @ react-dom.development.js:25419
+performConcurrentWorkOnRoot @ react-dom.development.js:24504
+workLoop @ scheduler.development.js:256
+flushWork @ scheduler.development.js:225
+performWorkUntilDeadline @ scheduler.development.js:534
+MediaPlayerContext.tsx:48 Uncaught Error: useMediaPlayer must be used within a MediaPlayerProvider
+    at useMediaPlayer (MediaPlayerContext.tsx:48:11)
+    at HomePageClient (HomePageClient.tsx:13:49)
+    at renderWithHooks (react-dom.development.js:11121:18)
+    at updateFunctionComponent (react-dom.development.js:16290:20)
+    at mountLazyComponent (react-dom.development.js:16765:17)
+    at beginWork$1 (react-dom.development.js:18464:16)
+    at HTMLUnknownElement.callCallback (react-dom.development.js:20565:14)
+    at Object.invokeGuardedCallbackImpl (react-dom.development.js:20614:16)
+    at invokeGuardedCallback (react-dom.development.js:20689:29)
+    at beginWork (react-dom.development.js:26949:7)
+    at performUnitOfWork (react-dom.development.js:25748:12)
+    at workLoopSync (react-dom.development.js:25464:5)
+    at renderRootSync (react-dom.development.js:25419:7)
+    at recoverFromConcurrentError (react-dom.development.js:24597:20)
+    at performConcurrentWorkOnRoot (react-dom.development.js:24542:26)
+    at workLoop (scheduler.development.js:256:34)
+    at flushWork (scheduler.development.js:225:14)
+    at MessagePort.performWorkUntilDeadline (scheduler.development.js:534:21)
+useMediaPlayer @ MediaPlayerContext.tsx:48
+HomePageClient @ HomePageClient.tsx:13
+renderWithHooks @ react-dom.development.js:11121
+updateFunctionComponent @ react-dom.development.js:16290
+mountLazyComponent @ react-dom.development.js:16765
+beginWork$1 @ react-dom.development.js:18464
+callCallback @ react-dom.development.js:20565
+invokeGuardedCallbackImpl @ react-dom.development.js:20614
+invokeGuardedCallback @ react-dom.development.js:20689
+beginWork @ react-dom.development.js:26949
+performUnitOfWork @ react-dom.development.js:25748
+workLoopSync @ react-dom.development.js:25464
+renderRootSync @ react-dom.development.js:25419
+recoverFromConcurrentError @ react-dom.development.js:24597
+performConcurrentWorkOnRoot @ react-dom.development.js:24542
+workLoop @ scheduler.development.js:256
+flushWork @ scheduler.development.js:225
+performWorkUntilDeadline @ scheduler.development.js:534
+redirect-boundary.js:57 Uncaught Error: useMediaPlayer must be used within a MediaPlayerProvider
+    at useMediaPlayer (MediaPlayerContext.tsx:48:11)
+    at HomePageClient (HomePageClient.tsx:13:49)
+    at renderWithHooks (react-dom.development.js:11121:18)
+    at updateFunctionComponent (react-dom.development.js:16290:20)
+    at mountLazyComponent (react-dom.development.js:16765:17)
+    at beginWork$1 (react-dom.development.js:18464:16)
+    at beginWork (react-dom.development.js:26927:14)
+    at performUnitOfWork (react-dom.development.js:25748:12)
+    at workLoopSync (react-dom.development.js:25464:5)
+    at renderRootSync (react-dom.development.js:25419:7)
+    at recoverFromConcurrentError (react-dom.development.js:24597:20)
+    at performConcurrentWorkOnRoot (react-dom.development.js:24542:26)
+    at workLoop (scheduler.development.js:256:34)
+    at flushWork (scheduler.development.js:225:14)
+    at MessagePort.performWorkUntilDeadline (scheduler.development.js:534:21)
+useMediaPlayer @ MediaPlayerContext.tsx:48
+HomePageClient @ HomePageClient.tsx:13
+renderWithHooks @ react-dom.development.js:11121
+updateFunctionComponent @ react-dom.development.js:16290
+mountLazyComponent @ react-dom.development.js:16765
+beginWork$1 @ react-dom.development.js:18464
+beginWork @ react-dom.development.js:26927
+performUnitOfWork @ react-dom.development.js:25748
+workLoopSync @ react-dom.development.js:25464
+renderRootSync @ react-dom.development.js:25419
+recoverFromConcurrentError @ react-dom.development.js:24597
+performConcurrentWorkOnRoot @ react-dom.development.js:24542
+workLoop @ scheduler.development.js:256
+flushWork @ scheduler.development.js:225
+performWorkUntilDeadline @ scheduler.development.js:534
+not-found-boundary.js:37 Uncaught Error: useMediaPlayer must be used within a MediaPlayerProvider
+    at useMediaPlayer (MediaPlayerContext.tsx:48:11)
+    at HomePageClient (HomePageClient.tsx:13:49)
+    at renderWithHooks (react-dom.development.js:11121:18)
+    at updateFunctionComponent (react-dom.development.js:16290:20)
+    at mountLazyComponent (react-dom.development.js:16765:17)
+    at beginWork$1 (react-dom.development.js:18464:16)
+    at beginWork (react-dom.development.js:26927:14)
+    at performUnitOfWork (react-dom.development.js:25748:12)
+    at workLoopSync (react-dom.development.js:25464:5)
+    at renderRootSync (react-dom.development.js:25419:7)
+    at recoverFromConcurrentError (react-dom.development.js:24597:20)
+    at performConcurrentWorkOnRoot (react-dom.development.js:24542:26)
+    at workLoop (scheduler.development.js:256:34)
+    at flushWork (scheduler.development.js:225:14)
+    at MessagePort.performWorkUntilDeadline (scheduler.development.js:534:21)
+useMediaPlayer @ MediaPlayerContext.tsx:48
+HomePageClient @ HomePageClient.tsx:13
+renderWithHooks @ react-dom.development.js:11121
+updateFunctionComponent @ react-dom.development.js:16290
+mountLazyComponent @ react-dom.development.js:16765
+beginWork$1 @ react-dom.development.js:18464
+beginWork @ react-dom.development.js:26927
+performUnitOfWork @ react-dom.development.js:25748
+workLoopSync @ react-dom.development.js:25464
+renderRootSync @ react-dom.development.js:25419
+recoverFromConcurrentError @ react-dom.development.js:24597
+performConcurrentWorkOnRoot @ react-dom.development.js:24542
+workLoop @ scheduler.development.js:256
+flushWork @ scheduler.development.js:225
+performWorkUntilDeadline @ scheduler.development.js:534
+redirect-boundary.js:57 Uncaught Error: useMediaPlayer must be used within a MediaPlayerProvider
+    at useMediaPlayer (MediaPlayerContext.tsx:48:11)
+    at HomePageClient (HomePageClient.tsx:13:49)
+    at renderWithHooks (react-dom.development.js:11121:18)
+    at updateFunctionComponent (react-dom.development.js:16290:20)
+    at mountLazyComponent (react-dom.development.js:16765:17)
+    at beginWork$1 (react-dom.development.js:18464:16)
+    at beginWork (react-dom.development.js:26927:14)
+    at performUnitOfWork (react-dom.development.js:25748:12)
+    at workLoopSync (react-dom.development.js:25464:5)
+    at renderRootSync (react-dom.development.js:25419:7)
+    at recoverFromConcurrentError (react-dom.development.js:24597:20)
+    at performConcurrentWorkOnRoot (react-dom.development.js:24542:26)
+    at workLoop (scheduler.development.js:256:34)
+    at flushWork (scheduler.development.js:225:14)
+    at MessagePort.performWorkUntilDeadline (scheduler.development.js:534:21)
+useMediaPlayer @ MediaPlayerContext.tsx:48
+HomePageClient @ HomePageClient.tsx:13
+renderWithHooks @ react-dom.development.js:11121
+updateFunctionComponent @ react-dom.development.js:16290
+mountLazyComponent @ react-dom.development.js:16765
+beginWork$1 @ react-dom.development.js:18464
+beginWork @ react-dom.development.js:26927
+performUnitOfWork @ react-dom.development.js:25748
+workLoopSync @ react-dom.development.js:25464
+renderRootSync @ react-dom.development.js:25419
+recoverFromConcurrentError @ react-dom.development.js:24597
+performConcurrentWorkOnRoot @ react-dom.development.js:24542
+workLoop @ scheduler.development.js:256
+flushWork @ scheduler.development.js:225
+performWorkUntilDeadline @ scheduler.development.js:534
+not-found-boundary.js:37 Uncaught Error: useMediaPlayer must be used within a MediaPlayerProvider
+    at useMediaPlayer (MediaPlayerContext.tsx:48:11)
+    at HomePageClient (HomePageClient.tsx:13:49)
+    at renderWithHooks (react-dom.development.js:11121:18)
+    at updateFunctionComponent (react-dom.development.js:16290:20)
+    at mountLazyComponent (react-dom.development.js:16765:17)
+    at beginWork$1 (react-dom.development.js:18464:16)
+    at beginWork (react-dom.development.js:26927:14)
+    at performUnitOfWork (react-dom.development.js:25748:12)
+    at workLoopSync (react-dom.development.js:25464:5)
+    at renderRootSync (react-dom.development.js:25419:7)
+    at recoverFromConcurrentError (react-dom.development.js:24597:20)
+    at performConcurrentWorkOnRoot (react-dom.development.js:24542:26)
+    at workLoop (scheduler.development.js:256:34)
+    at flushWork (scheduler.development.js:225:14)
+    at MessagePort.performWorkUntilDeadline (scheduler.development.js:534:21)
+useMediaPlayer @ MediaPlayerContext.tsx:48
+HomePageClient @ HomePageClient.tsx:13
+renderWithHooks @ react-dom.development.js:11121
+updateFunctionComponent @ react-dom.development.js:16290
+mountLazyComponent @ react-dom.development.js:16765
+beginWork$1 @ react-dom.development.js:18464
+beginWork @ react-dom.development.js:26927
+performUnitOfWork @ react-dom.development.js:25748
+workLoopSync @ react-dom.development.js:25464
+renderRootSync @ react-dom.development.js:25419
+recoverFromConcurrentError @ react-dom.development.js:24597
+performConcurrentWorkOnRoot @ react-dom.development.js:24542
+workLoop @ scheduler.development.js:256
+flushWork @ scheduler.development.js:225
+performWorkUntilDeadline @ scheduler.development.js:534
+app-index.js:33 The above error occurred in the <NotFoundErrorBoundary> component:
 
-Objetivo: crear una imagen con proporción 4:5 (1080x1350 px) que combine:
-- una imagen principal (recibida como parámetro URL ?image=),
-- el título de la noticia (?title=),
-- y el logo institucional de Saladillo Vivo (https://www.saladillovivo.com.ar/logo.png).
+    at HomePageClient (webpack-internal:///(app-pages-browser)/./src/components/HomePageClient.tsx:20:84)
+    at Page (Server)
+    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)
+    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)
+    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)
+    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)
+    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)
+    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)
+    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)
+    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)
+    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)
+    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)
+    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)
+    at NewsProvider (webpack-internal:///(app-pages-browser)/./src/context/NewsContext.tsx:27:11)
+    at body
+    at html
+    at RootLayout (Server)
+    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)
+    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)
+    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)
+    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)
+    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)
+    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)
+    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)
+    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)
+    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)
+    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)
+    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)
+    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)
+    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)
+    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)
 
-Detalles del diseño:
-1. **Proporción**: 1080x1350 píxeles (4:5).
-2. **Colores institucionales**: 
-   - Azul claro `#6699ff`
-   - Azul oscuro `#003399`
-   - Blanco `#ffffff`
-   - Negro `#000000`
-3. **Tipografía**: Sans-serif moderna (usa `"Inter", "Arial", sans-serif"` o similar).
-4. **Composición**:
-   - Fondo: la imagen recibida en el parámetro `image`, ajustada a cubrir (object-fit: cover).
-   - Superponer un gradiente de abajo hacia arriba en negro semitransparente para resaltar el título.
-   - Título centrado horizontalmente, con color blanco, sombra suave, y tamaño adaptable según el largo (máx. 4 líneas).
-   - Logo de Saladillo Vivo en la esquina superior izquierda, con un pequeño fondo circular o marco en color `#6699ff` o `#003399` (con transparencia ligera para integrarse visualmente).
-   - Una línea o borde inferior de 10 px con un degradado horizontal entre `#003399` y `#6699ff`.
-
-5. **Innovación visual**:
-   - Agrega una ligera sombra externa en toda la composición (simulando profundidad).
-   - Si el título es muy corto, céntralo verticalmente dentro de la franja inferior oscura.
-   - Si el título contiene signos de exclamación o interrogación, resáltalos con color `#6699ff`.
-
-Implementación técnica:
-- Crea una nueva ruta en `/pages/api/social.ts` (o `.js` si el proyecto no usa TypeScript).
-- Utiliza `@vercel/og` y `ImageResponse` para generar la imagen dinámicamente (usa `runtime: "edge"`).
-- Acepta los parámetros `title` y `image` desde la URL.
-- El resultado debe ser una imagen lista para ser utilizada en redes sociales (tipo `image/png`).
-
-Ejemplo de uso esperado:
-
-https://www.saladillovivo.com.ar/api/social?title=Nuevo%20proyecto%20del%20ITECAugusto%20Cicaré&image=https://www.saladillovivo.com.ar/uploads/foto.jpg
-
-
-La API debe devolver directamente una imagen (no HTML) de 1080x1350 px combinando esos elementos con el estilo indicado.
-
-Asegúrate de:
-- Usar solo dependencias nativas o las provistas por Vercel (no agregar librerías externas).
-- Optimizar rendimiento (sin cargar fuentes externas).
-- Incluir comentarios claros en el código para posibles ajustes futuros.
-- Validar que si no se pasa imagen o título, se muestre un diseño por defecto con fondo `#003399`, logo centrado y texto "Saladillo Vivo".
-
-Al finalizar, genera el código completo de `/pages/api/social.ts` (o `.js`) y explica cómo integrarlo en el RSS feed para que Make pueda usar la imagen resultante en Facebook e Instagram.
+React will try to recreate this component tree from scratch using the error boundary you provided, ReactDevOverlay.
+window.console.error @ app-index.js:33
+logCapturedError @ react-dom.development.js:15295
+callback @ react-dom.development.js:15357
+callCallback @ react-dom.development.js:8696
+commitCallbacks @ react-dom.development.js:8743
+commitClassCallbacks @ react-dom.development.js:21323
+commitLayoutEffectOnFiber @ react-dom.development.js:21425
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21418
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21418
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21437
+commitLayoutEffects @ react-dom.development.js:22912
+commitRootImpl @ react-dom.development.js:26226
+commitRoot @ react-dom.development.js:26077
+commitRootWhenReady @ react-dom.development.js:24749
+finishConcurrentRender @ react-dom.development.js:24714
+performConcurrentWorkOnRoot @ react-dom.development.js:24559
+workLoop @ scheduler.development.js:256
+flushWork @ scheduler.development.js:225
+performWorkUntilDeadline @ scheduler.development.js:534
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+(índice):1 The resource http://localhost:3001/_next/static/css/app/page.css?v=1761937405510 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+(índice):1 The resource http://localhost:3001/_next/static/css/app/layout.css?v=1761937405510 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.

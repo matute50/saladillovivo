@@ -19,12 +19,12 @@ import NewsCard from '../NewsCard';
 
 const DesktopLayout = ({ data, isMobile }: { data: PageData; isMobile: boolean }) => {
   const {
-    articles,
-    videos,
+    articles = { allNews: [] },
+    videos = { allVideos: [] },
     banners,
     ads,
     tickerTexts,
-  } = data;
+  } = data || {};
 
   const { isSearching, searchResults, searchLoading, handleSearch } = useNews();
   const { allNews } = articles;

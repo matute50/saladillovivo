@@ -1,12 +1,10 @@
 'use client';
 
-import { MediaPlayerProvider } from '@/context/MediaPlayerContext';
 import React from 'react';
+import { MediaPlayerProvider } from '@/context/MediaPlayerContext';
 
-export default function MediaPlayerWrapper({ children }: { children: React.ReactNode }) {
-  return (
-    <MediaPlayerProvider>
-      {children}
-    </MediaPlayerProvider>
-  );
-}
+const MediaPlayerWrapper = ({ children }: { children: React.ReactNode }) => {
+  return <MediaPlayerProvider>{children}</MediaPlayerProvider>;
+};
+
+export default MediaPlayerWrapper;

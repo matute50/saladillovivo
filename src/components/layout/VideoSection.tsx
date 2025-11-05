@@ -8,7 +8,7 @@ import Image from 'next/image';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
 import { Play, Cast } from 'lucide-react';
 import VideoControls from '@/components/VideoControls';
-import { useCast } from '@/hooks/useCast';
+import useCast from '@/hooks/useCast';
 import VideoTitleBar from '@/components/VideoTitleBar';
 import type { Video } from '@/lib/types';
 

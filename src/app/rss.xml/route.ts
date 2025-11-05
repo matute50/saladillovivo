@@ -14,58 +14,42 @@ export async function GET() {
     language: 'es',
     pubDate: new Date(),
     ttl: 60,
+    custom_namespaces: {
+      'media': 'http://search.yahoo.com/mrss/'
+    }
   });
 
   try {
     const allNews = await getArticlesForRss();
 
     allNews.forEach(article => {
-      const defaultImageUrl = 'https://saladillovivo.vercel.app/default-og-image.png';
-      let finalImageUrl = article.imageUrl || defaultImageUrl;
-      let imageMimeType = 'image/jpeg'; // Por defecto
-
-      const extension = finalImageUrl.split('.').pop()?.toLowerCase();
-
-      switch (extension) {
-        case 'jpg':
-        case 'jpeg':
-          imageMimeType = 'image/jpeg';
-          break;
-        case 'png':
-          imageMimeType = 'image/png';
-          break;
-        case 'gif': // Aunque no se pide explícitamente, es un tipo válido
-          imageMimeType = 'image/gif';
-          break;
-        case 'webp':
-        case 'svg':
-        default: // Si es desconocida o no tiene extensión
-          // Reemplazar la extensión por .jpg
-          if (extension && (extension === 'webp' || extension === 'svg')) {
-            finalImageUrl = finalImageUrl.replace(`.${extension}`, '.jpg');
-          } else if (!extension && finalImageUrl.includes('.')) {
-            // Si no hay extensión pero hay un punto, asumimos que es un archivo sin extensión y le añadimos .jpg
-            finalImageUrl = `${finalImageUrl}.jpg`;
-          } else if (!extension) {
-            // Si no hay extensión ni punto, simplemente añadimos .jpg
-            finalImageUrl = `${finalImageUrl}.jpg`;
-          }
-          imageMimeType = 'image/jpeg';
-          console.warn(`RSS Feed: Image format for ${article.titulo} (${article.slug}) was not supported. Changed URL to ${finalImageUrl} and type to ${imageMimeType}.`);
-          break;
-      }
-
-      const socialImageUrl = `https://www.saladillovivo.com.ar/api/proxy?image=${encodeURIComponent(finalImageUrl)}`;
-
-      feed.item({
+      const item: RSS.ItemOptions = {
         title: article.titulo,
         description: article.description,
-        url: `https://www.saladillovivo.com.ar/noticia/${article.slug}`,
+        url: `${SITE_URL}/noticia/${article.slug}`,
         guid: article.slug,
         date: article.createdAt,
         author: article.autor,
-                      enclosure: { url: socialImageUrl, type: 'image/png' }, // Use socialImageUrl for enclosure
-                    });    });
+        custom_elements: []
+      };
+
+      // Usa la miniatura_url si existe, de lo contrario usa la imageUrl, y si no, el default.
+      const imageUrl = article.miniatura_url || article.imageUrl || 'https://saladillovivo.vercel.app/default-og-image.png';
+
+      if (imageUrl) {
+        item.custom_elements.push({
+          'media:content': {
+            _attr: {
+              url: imageUrl,
+              medium: 'image',
+              type: 'image/jpeg' // Asumimos jpeg como pide MAKE
+            }
+          }
+        });
+      }
+
+      feed.item(item);
+    });
 
     const xml = feed.xml({ indent: true });
 

@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React, { createContext, useState, useEffect, useContext, ReactNode, useCallback } from 'react';
-import { getArticles, getTickerTexts, getVideos, getInterviews, getActiveBanners, getActiveAds, getCalendarEvents, fetchVideosBySearch } from '@/lib/data';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
+import { getArticlesForHome, getVideosForHome, getTickerTexts, getInterviews, getActiveBanners, getActiveAds, getCalendarEvents, fetchVideosBySearch } from '@/lib/data';
 import { Article, Video, Interview, Banner, Ad, CalendarEvent } from '@/lib/types';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -38,7 +38,7 @@ interface NewsContextType {
   handleSearch: (query: string) => Promise<void>;
 }
 
-export const NewsContext = createContext<NewsContextType | undefined>(undefined);
+const NewsContext = createContext<NewsContextType | undefined>(undefined);
 
 export const useNews = () => {
   const context = useContext(NewsContext);
@@ -68,7 +68,7 @@ export const NewsProvider = ({ children }: { children: ReactNode }) => {
   const [isLoadingBanners, setIsLoadingBanners] = useState(true);
   const [adsLoading, setAdsLoading] = useState(true);
   const [eventsLoading, setEventsLoading] = useState(true);
-  const [isLoadingConfig, setIsLoadingConfig] = useState(false);
+  const [isLoadingConfig, setIsLoadingConfig] = useState(true);
   
   const [isDarkTheme, setIsDarkTheme] = useState(false);
   const { toast } = useToast();
@@ -80,6 +80,50 @@ export const NewsProvider = ({ children }: { children: ReactNode }) => {
   const [searchLoading, setSearchLoading] = useState(false);
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [articlesResult, videosResult, tickerTexts, interviews, banners, ads, events] = await Promise.all([
+          getArticlesForHome(),
+          getVideosForHome(),
+          getTickerTexts(),
+          getInterviews(),
+          getActiveBanners(),
+          getActiveAds(),
+          getCalendarEvents(),
+        ]);
+
+        const safeArticles = articlesResult || { allNews: [] };
+        const safeVideos = videosResult || { allVideos: [] };
+
+        setAllNews(safeArticles.allNews);
+        setFeaturedNews(safeArticles.allNews.filter(n => n.featureStatus === 'featured'));
+        setSecondaryNews(safeArticles.allNews.filter(n => n.featureStatus === 'secondary'));
+        setTertiaryNews(safeArticles.allNews.filter(n => n.featureStatus === 'tertiary'));
+        setOtherNews(safeArticles.allNews.filter(n => !['featured', 'secondary', 'tertiary'].includes(n.featureStatus || '')));
+
+        setAllTickerTexts(tickerTexts);
+        setGalleryVideos(safeVideos.allVideos);
+        setInterviews(interviews);
+        setActiveBanners(banners);
+        setActiveAds(ads);
+        setCalendarEvents(events);
+
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        toast({ title: "Error de Carga", description: "No se pudieron cargar los datos." });
+      } finally {
+        setIsLoading(false);
+        setIsLoadingVideos(false);
+        setIsLoadingInterviews(false);
+        setIsLoadingBanners(false);
+        setAdsLoading(false);
+        setEventsLoading(false);
+        setIsLoadingConfig(false);
+      }
+    };
+
+    fetchData();
+
     // Theme observer
     setIsDarkTheme(document.documentElement.classList.contains('dark'));
     const observer = new MutationObserver(() => {
@@ -87,45 +131,8 @@ export const NewsProvider = ({ children }: { children: ReactNode }) => {
     });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const fetchAllData = async () => {
-      try {
-        setIsLoading(true);
-        
-        const { allNews: sortedNews } = await getArticles();
-        setAllNews(sortedNews);
-
-        setFeaturedNews(sortedNews.filter(n => n.featureStatus === 'featured'));
-        setSecondaryNews(sortedNews.filter(n => n.featureStatus === 'secondary'));
-        setTertiaryNews(sortedNews.filter(n => n.featureStatus === 'tertiary'));
-        setOtherNews(sortedNews.filter(n => !['featured', 'secondary', 'tertiary'].includes(n.featureStatus || '')));
-
-      } catch (error: any) {
-        console.error("Error loading articles:", error);
-        toast({ title: "Error de Carga de Noticias", description: error.message });
-      } finally {
-        setIsLoading(false);
-      }
-
-      Promise.allSettled([
-        getTickerTexts().then(setAllTickerTexts),
-        getVideos().then(setGalleryVideos).finally(() => setIsLoadingVideos(false)),
-        getInterviews().then(setInterviews).finally(() => setIsLoadingInterviews(false)),
-        getActiveBanners().then(setActiveBanners).finally(() => setIsLoadingBanners(false)),
-        getActiveAds().then(setActiveAds).finally(() => setAdsLoading(false)),
-        getCalendarEvents().then(setCalendarEvents).finally(() => setEventsLoading(false)),
-      ]).catch(error => {
-        console.error("Error fetching auxiliary data:", error);
-        toast({ title: "Error de Carga", description: "No se pudieron cargar algunos datos auxiliares." });
-      });
-    };
-
-    fetchAllData();
   }, [toast]);
 
-  // --- NUEVA FUNCIÓN DE BÚSQUEDA ---
   const handleSearch = useCallback(async (query: string) => {
     setSearchQuery(query);
 
@@ -149,7 +156,6 @@ export const NewsProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [toast]);
 
-
   const getNewsBySlug = (slug: string) => allNews.find(item => item.slug === slug);
   const getNewsById = (id: string | number) => allNews.find(item => item.id.toString() === id.toString());
   const getRelatedNews = (currentSlug: string, category: string) => allNews.filter(item => item.slug !== currentSlug && item.categoria === category).slice(0, 3);
@@ -158,7 +164,7 @@ export const NewsProvider = ({ children }: { children: ReactNode }) => {
   const value = {
     allNews,
     featuredNews,
-    secondaryNews,
+        secondaryNews,
     tertiaryNews,
     otherNews,
     allTickerTexts,

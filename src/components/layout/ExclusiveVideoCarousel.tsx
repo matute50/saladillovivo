@@ -113,6 +113,7 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
         modules={[Navigation]}
       >
         {videos.map((video, index) => {
+          console.log(video);
           const isLiveOrEvent = isLive || video.isLiveThumbnail || video.isEvent;
           
           let slideClasses = "transition-all duration-300 ease-in-out";

@@ -46,9 +46,9 @@ export async function getArticlesForHome(limitSecondary: number = 5) {
       description: item.description || (item.text ? item.text.substring(0, 160) : 'Descripción no disponible.'),
       resumen: item.text ? item.text.substring(0, 150) + (item.text.length > 150 ? '...' : '') : 'Resumen no disponible.',
       contenido: item.text || 'Contenido no disponible.',
-      fecha: item.updatedAt || item.createdAt,
-      createdAt: item.createdAt,
-      updatedAt: item.updatedAt,
+      fecha: item.updatedAt ? new Date(item.updatedAt).toISOString() : (item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString()),
+      createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
+      updatedAt: item.updatedAt ? new Date(item.updatedAt).toISOString() : (item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString()),
       autor: 'Equipo Editorial',
       categoria: item.featureStatus,
       imageUrl: item.imageUrl || 'https://saladillovivo.vercel.app/default-og-image.png',
@@ -107,10 +107,11 @@ export async function getVideosForHome(limitRecent: number = 4) {
 
   // Aplicar la regla de los 4 días a la propiedad 'novedad' en memoria
   allVideos = allVideos.map(video => {
-    if (video.novedad && new Date(video.createdAt) <= fourDaysAgo) {
-      return { ...video, novedad: false }; // Crear una nueva instancia para no mutar el original directamente si no es necesario
+    const videoCreatedAt = new Date(video.createdAt).toISOString();
+    if (video.novedad && new Date(videoCreatedAt) <= fourDaysAgo) {
+      return { ...video, novedad: false, createdAt: videoCreatedAt };
     }
-    return video;
+    return { ...video, createdAt: videoCreatedAt };
   });
 
   const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
@@ -263,8 +264,8 @@ export async function getInterviews(): Promise<Interview[]> {
   }
   return (data || []).map(item => ({
     ...item,
-    createdAt: item.created_at,
-    updatedAt: item.updated_at,
+    createdAt: item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString(),
+    updatedAt: item.updated_at ? new Date(item.updated_at).toISOString() : (item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString()),
   }));
 }
 
@@ -338,7 +339,7 @@ export async function getArticles() {
 export async function getArticlesForRss(limit: number = 50): Promise<Article[]> {
   const { supabaseUrl, supabaseAnonKey } = checkSupabaseCredentials();
   const now = new Date().toISOString();
-  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,imageUrl,featureStatus,updatedAt,createdAt,slug,description,meta_title,meta_description,meta_keywords,published_at&or=(published_at.is.null,published_at.lte.${now})&order=createdAt.desc&limit=${limit}`;
+  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,imageUrl,featureStatus,updatedAt,createdAt,slug,description,meta_title,meta_description,meta_keywords,published_at,miniatura_url&or=(published_at.is.null,published_at.lte.${now})&order=createdAt.desc&limit=${limit}`;
 
   try {
     const response = await fetch(apiUrl, {
@@ -363,12 +364,13 @@ export async function getArticlesForRss(limit: number = 50): Promise<Article[]> 
       description: item.description || (item.text ? item.text.substring(0, 160) : 'Descripción no disponible.'),
       resumen: item.text ? item.text.substring(0, 150) + (item.text.length > 150 ? '...' : '') : 'Resumen no disponible.',
       contenido: item.text || 'Contenido no disponible.',
-      fecha: item.updatedAt || item.createdAt,
-      createdAt: item.createdAt,
-      updatedAt: item.updatedAt,
+      fecha: item.updatedAt ? new Date(item.updatedAt).toISOString() : (item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString()),
+      createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
+      updatedAt: item.updatedAt ? new Date(item.updatedAt).toISOString() : (item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString()),
       autor: 'Equipo Editorial',
       categoria: item.featureStatus,
       imageUrl: item.imageUrl || 'https://saladillovivo.vercel.app/default-og-image.png',
+      miniatura_url: item.miniatura_url,
       featureStatus: item.featureStatus,
       meta_title: item.meta_title,
       meta_description: item.meta_description,
@@ -391,7 +393,10 @@ export async function getVideos() {
     console.error('Error fetching videos:', error);
     return [];
   }
-  return data || [];
+  return (data || []).map(item => ({
+    ...item,
+    createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
+  }));
 }
 
 /**
