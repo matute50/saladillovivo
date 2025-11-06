@@ -57,7 +57,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     ref
   ) => {
     const playerRef = useRef<ReactPlayer | null>(null);
-    const { volume, isMuted } = useVolume();
+    const { isMuted } = useVolume();
 
     const [introVideo, setIntroVideo] = useState('');
     const [showIntro, setShowIntro] = useState(false);
@@ -91,14 +91,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       }
     }, [onReady]);
 
-    useEffect(() => {
-      if (playerRef.current) {
-        const internalPlayer = playerRef.current.getInternalPlayer() as YouTubePlayer;
-        if (internalPlayer && typeof internalPlayer.setVolume === 'function') {
-          internalPlayer.setVolume(volume * 100);
-        }
-      }
-    }, [volume]);
+
 
     useEffect(() => {
       if (playerRef.current) {

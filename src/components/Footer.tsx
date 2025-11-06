@@ -33,7 +33,7 @@ const Footer = () => {
           <div className="mb-4 md:mb-0 flex flex-col items-center w-full">
             <Image
               loading="lazy"
-              src={isDarkTheme ? banerClaro : banerOscuro}
+              src={isDarkTheme ? banerOscuro : banerClaro}
               alt="Logo de Saladillo Vivo en el pie de página"
               width={100}
               height={24}

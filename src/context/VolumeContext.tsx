@@ -8,7 +8,6 @@ interface VolumeContextType {
   isMuted: boolean;
   setVolume: (volume: number) => void;
   toggleMute: () => void;
-  handleVolumeChange: (volume: number) => void;
   unmute: () => void;
   ramp: (targetVolume: number, duration: number) => void;
 }
@@ -45,23 +44,13 @@ export const VolumeProvider = ({ children }: { children: React.ReactNode }) => {
     });
   }, [ramp, userVolume]);
 
-  const handleVolumeChange = useCallback((v: number) => {
-    const newVolume = v / 100;
-    userVolume.current = newVolume;
-    setVolume(newVolume);
-    if (newVolume > 0 && isMuted) {
-        setIsMuted(false);
-    } else if (newVolume === 0 && !isMuted) {
-        setIsMuted(true);
-    }
-  }, [setVolume, isMuted]);
+
 
   const value = {
     volume,
     isMuted,
     setVolume,
     toggleMute,
-    handleVolumeChange,
     unmute,
     ramp,
   };
