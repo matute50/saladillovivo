@@ -29,6 +29,8 @@ export async function getArticlesForHome(limitSecondary: number = 5) {
         'apikey': supabaseAnonKey,
         'Authorization': `Bearer ${supabaseAnonKey}`,
       },
+      next: { revalidate: 60 } // Revalidate every 60 seconds
+    });
     const articles: SupabaseArticle[] = (await response.json()) as SupabaseArticle[];
 
     const processedNews = articles.map((item: SupabaseArticle): Article => ({
