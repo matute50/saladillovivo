@@ -24,32 +24,15 @@ export async function GET() {
     allNews = allNews.filter(article => article.miniatura_url);
 
     allNews.forEach(article => {
-      const item: RSS.ItemOptions = {
-        title: article.titulo,
-        description: article.description,
-        url: `${SITE_URL}/noticia/${article.slug}`,
-        guid: article.slug,
-        date: article.createdAt,
-        author: article.autor,
-        custom_elements: []
-      };
-
       if (article.miniatura_url) {
-        if (!item.custom_elements) {
-          item.custom_elements = [];
-        }
-        item.custom_elements.push({
-          'media:content': {
-            _attr: {
-              url: article.miniatura_url,
-              medium: 'image',
-              type: 'image/jpeg' // Asumimos jpeg como pide MAKE
-            }
-          }
+        feed.item({
+          title: article.titulo, // El título es obligatorio
+          description: article.miniatura_url, // Usamos la descripción para pasar la URL
+          url: article.miniatura_url, // Opcional, pero buena práctica
+          guid: article.id, // Guid único
+          date: article.createdAt, // Fecha de creación
         });
       }
-
-      feed.item(item);
     });
 
     const xml = feed.xml({ indent: true });
