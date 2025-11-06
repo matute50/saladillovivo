@@ -8,13 +8,6 @@ interface UseCastResult {
   handleCast: () => void;
 }
 
-declare global {
-  interface Window {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    chrome: any;
-  }
-}
-
 const useCast = (currentVideo: Video | null): UseCastResult => {
   const [isCastAvailable, setIsCastAvailable] = useState(false);
 
@@ -23,7 +16,7 @@ const useCast = (currentVideo: Video | null): UseCastResult => {
     // Esto es un placeholder, la implementación real dependería de la API de Cast
     const checkCastAvailability = () => {
       // Simulación: Cast disponible si hay un video y el navegador lo soporta
-      setIsCastAvailable(!!currentVideo && typeof window.chrome?.cast !== 'undefined');
+      setIsCastAvailable(!!currentVideo && typeof (window as any).chrome?.cast !== 'undefined');
     };
 
     checkCastAvailability();
