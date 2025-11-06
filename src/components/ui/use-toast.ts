@@ -18,6 +18,8 @@ type ToastProps = {
   duration?: number;
   onDismiss?: (toast: ToasterToast) => void;
   onAutoClose?: (toast: ToasterToast) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
 interface State {
@@ -39,7 +41,13 @@ const addToRemoveQueue = (toastId: string) => {
   toastTimeouts.set(toastId, timeout);
 };
 
-export const reducer = (state: State, action: any): State => {
+type Action =
+  | { type: "ADD_TOAST"; toast: ToasterToast }
+  | { type: "UPDATE_TOAST"; toast: Partial<ToasterToast> & { id: string } }
+  | { type: "DISMISS_TOAST"; toastId?: string }
+  | { type: "REMOVE_TOAST"; toastId?: string };
+
+export const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case "ADD_TOAST":
       return {
@@ -87,6 +95,9 @@ export const reducer = (state: State, action: any): State => {
         ...state,
         toasts: state.toasts.filter((t) => t.id !== action.toastId),
       };
+    default:
+      const exhaustiveCheck: never = action;
+      throw new Error(`Unhandled action type: ${exhaustiveCheck}`);
   }
   return state;
 };
@@ -95,7 +106,7 @@ const listeners: Array<(state: State) => void> = [];
 
 let memoryState: State = { toasts: [] };
 
-function dispatch(action: any) {
+function dispatch(action: Action) {
   memoryState = reducer(memoryState, action);
   listeners.forEach((listener) => {
     listener(memoryState);
@@ -145,7 +156,7 @@ function useToast() {
   return {
     ...state,
     toast,
-    dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
+    dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId: toastId }),
   };
 }
 

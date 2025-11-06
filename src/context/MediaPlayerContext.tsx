@@ -58,14 +58,13 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
   const [isMuted, setIsMuted] = useState(true);
   const [seekToFraction, setSeekToFraction] = useState<number | null>(null);
   
-  const [allVideos, setAllVideos] = useState<Video[]>([]);
   const [lastVolume, setLastVolume] = useState<number>(0.03);
   const [isFirstMedia, setIsFirstMedia] = useState(true);
   const [isUserSelected, setIsUserSelected] = useState(false);
   const [randomVideoQueued, setRandomVideoQueued] = useState(false);
   
   // Simulación de estado para streamStatus
-  const [streamStatus, setStreamStatus] = useState<{ liveStreamUrl: string; isLive: boolean; } | null>({ liveStreamUrl: 'https://www.youtube.com/watch?v=vCDCKGfOLoY', isLive: true });
+  const [streamStatus] = useState<{ liveStreamUrl: string; isLive: boolean; } | null>({ liveStreamUrl: 'https://www.youtube.com/watch?v=vCDCKGfOLoY', isLive: true });
 
 
   const { volume, setVolume, ramp } = useFader(0.03);
@@ -117,7 +116,6 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
   const loadInitialPlaylist = useCallback(async (videoUrlToPlay: string | null) => {
     const { allVideos: fetchedVideos } = await getVideosForHome(100);
     if (fetchedVideos && fetchedVideos.length > 0) {
-      setAllVideos(fetchedVideos);
       let videoToPlay: Video;
       if (videoUrlToPlay) {
         const specificVideo = fetchedVideos.find(v => v.url === videoUrlToPlay);
@@ -128,7 +126,7 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
       }
       playMedia(videoToPlay, true);
     }
-  }, [playMedia, setAllVideos]);
+  }, [playMedia]);
 
   const playNextRandomVideo = useCallback(async () => {
     const nextVideo = await getNewRandomVideo(currentVideo?.id, currentVideo?.categoria);
@@ -152,7 +150,7 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
     } else {
       playNextRandomVideo();
     }
-  }, [isUserSelected, nextVideo, playMedia, playNextRandomVideo, currentVideo]);
+  }, [isUserSelected, nextVideo, playMedia, playNextRandomVideo]);
 
   const handleOnProgress = useCallback(async (progress: ProgressState) => {
     const duration = currentVideo?.duration || progress.loadedSeconds;
@@ -167,7 +165,7 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
         setRandomVideoQueued(true);
       }
     }
-  }, [volume, currentVideo, nextVideo, randomVideoQueued, setLastVolume, setNextVideo, setRandomVideoQueued, getNewRandomVideo]);
+  }, [volume, currentVideo, nextVideo, randomVideoQueued, setLastVolume, setNextVideo, setRandomVideoQueued]);
 
   const togglePlayPause = useCallback(() => {
     setIsPlaying(prev => !prev);

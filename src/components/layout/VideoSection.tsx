@@ -62,37 +62,6 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
     }
   };
 
-  const toggleFullScreen = useCallback(async () => {
-    const playerElement = playerRef.current?.getInternalPlayer()?.elements.container;
-    if (!playerElement) return;
-
-    if (!document.fullscreenElement) {
-      if (playerElement.requestFullscreen) {
-        await playerElement.requestFullscreen({ navigationUI: "hide" }).catch((err: Error) => console.error(err));
-      }
-      if (isMobile) {
-        try {
-          const orientation = window.screen.orientation as any;
-          if (orientation && typeof orientation.lock === 'function') {
-            await orientation.lock('landscape');
-          }
-        } catch(err) {
-          console.error("No se pudo bloquear la orientación:", err)
-        }
-      }
-    } else {
-      if (document.exitFullscreen) {
-        await document.exitFullscreen().catch(err => console.error(err));
-      }
-      if (isMobile) {
-        const orientation = window.screen.orientation as any;
-        if (orientation && typeof orientation.unlock === 'function') {
-          orientation.unlock();
-        }
-      }
-    }
-  }, [playerRef, isMobile]);
-
   useEffect(() => {
     const handleFullscreenChange = () => {
       if (isMobile) {

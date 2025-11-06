@@ -8,6 +8,16 @@ interface UseCastResult {
   handleCast: () => void;
 }
 
+declare global {
+  interface Window {
+    chrome?: {
+      cast?: {
+        [key: string]: any; // Usamos 'any' aquí para la compatibilidad con la API de Cast, que es externa.
+      };
+    };
+  }
+}
+
 const useCast = (currentVideo: Video | null): UseCastResult => {
   const [isCastAvailable, setIsCastAvailable] = useState(false);
 
@@ -16,7 +26,7 @@ const useCast = (currentVideo: Video | null): UseCastResult => {
     // Esto es un placeholder, la implementación real dependería de la API de Cast
     const checkCastAvailability = () => {
       // Simulación: Cast disponible si hay un video y el navegador lo soporta
-      setIsCastAvailable(!!currentVideo && typeof (window as any).chrome?.cast !== 'undefined');
+      setIsCastAvailable(!!currentVideo && typeof window.chrome?.cast !== 'undefined');
     };
 
     checkCastAvailability();

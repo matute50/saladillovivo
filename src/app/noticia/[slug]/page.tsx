@@ -1,7 +1,6 @@
 import React from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { Calendar, User, Tag } from 'lucide-react';
-import NoResultsCard from '@/components/layout/NoResultsCard';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';

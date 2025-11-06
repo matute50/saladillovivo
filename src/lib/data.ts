@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient';
-import type { Article, Video, Interview, Banner, Ad, CalendarEvent, TickerText } from './types';
+import type { Article, Video, Interview, Banner, Ad, CalendarEvent, SupabaseArticle } from './types';
 
 // Helper to ensure Supabase credentials are set
 function checkSupabaseCredentials() {
@@ -29,17 +29,9 @@ export async function getArticlesForHome(limitSecondary: number = 5) {
         'apikey': supabaseAnonKey,
         'Authorization': `Bearer ${supabaseAnonKey}`,
       },
-      next: { revalidate: 60 } // Revalidate every 60 seconds
-    });
+    const articles: SupabaseArticle[] = (await response.json()) as SupabaseArticle[];
 
-    if (!response.ok) {
-      console.error('Supabase fetch failed for articles. Status:', response.status, 'Text:', await response.text());
-      throw new Error(`Supabase fetch failed: ${response.statusText}`);
-    }
-
-    const articles: any[] = await response.json();
-
-    const processedNews = articles.map((item): Article => ({
+    const processedNews = articles.map((item: SupabaseArticle): Article => ({
       id: item.id,
       titulo: item.title,
       slug: item.slug || item.id.toString(),
@@ -131,7 +123,7 @@ export async function getVideosForHome(limitRecent: number = 4) {
   }
 
   // Combinar videos forzados (al principio) con videos no forzados
-  let videos: Video[] = [...forcedVideos, ...nonForcedVideos];
+  const videos: Video[] = [...forcedVideos, ...nonForcedVideos];
   
   // Derive categories from the full list of videos (antes de cualquier splice)
   const videoCategories = [...new Set(videos.map(v => v.categoria).filter(Boolean))].sort();
@@ -262,10 +254,24 @@ export async function getInterviews(): Promise<Interview[]> {
     console.error('Error fetching interviews:', error);
     return [];
   }
-  return (data || []).map(item => ({
-    ...item,
+  interface SupabaseInterviewData {
+    id: string;
+    nombre: string;
+    url: string;
+    created_at: string;
+    updated_at: string;
+    categoria: string;
+    imagen: string;
+  }
+
+  return (data as SupabaseInterviewData[] || []).map((item: SupabaseInterviewData): Interview => ({
+    id: item.id,
+    nombre: item.nombre,
+    url: item.url,
     createdAt: item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString(),
     updatedAt: item.updated_at ? new Date(item.updated_at).toISOString() : (item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString()),
+    categoria: item.categoria,
+    imagen: item.imagen,
   }));
 }
 
@@ -355,9 +361,9 @@ export async function getArticlesForRss(limit: number = 50): Promise<Article[]> 
       throw new Error(`Supabase fetch failed: ${response.statusText}`);
     }
 
-    const articles: any[] = await response.json();
+    const articles: SupabaseArticle[] = await response.json();
 
-    return articles.map((item): Article => ({
+    return articles.map((item: SupabaseArticle): Article => ({
       id: item.id,
       titulo: item.title,
       slug: item.slug || item.id.toString(),

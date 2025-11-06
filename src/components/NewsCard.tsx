@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Calendar } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { Article } from '@/lib/types';
+import Image from 'next/image';
 
 interface NewsCardProps {
   newsItem: Article;
@@ -22,7 +22,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, class
 
   let cardClass = 'card overflow-hidden flex flex-col group cursor-pointer';
   let titleClass = '';
-  let imageContainerClass = 'aspect-video';
+  const imageContainerClass = 'aspect-video';
   let dateDisplay;
   let priority = false;
 
@@ -64,12 +64,14 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, class
     >
       <Link href={articleLink} className="flex flex-col h-full">
         <div className={`relative news-image-container overflow-hidden ${imageContainerClass}`}>
-            <img
+            <Image
               src={imageUrl || "/placeholder.jpg"}
               alt={`Imagen de: ${titulo}`}
-              loading={priority ? 'eager' : 'lazy'}
+              width={400}
+              height={300}
+              priority={priority}
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              onError={(e) => { e.currentTarget.src = '/placeholder.jpg'; }}
+              onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
             />
             {dateDisplay}
         </div>

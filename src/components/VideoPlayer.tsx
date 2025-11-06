@@ -19,6 +19,14 @@ interface VideoPlayerProps {
   setSeekToFraction?: (fraction: number | null) => void;
 }
 
+export interface InternalPlayer {
+  playVideo: () => void;
+  pauseVideo: () => void;
+  mute: () => void;
+  unmute: () => void;
+  setVolume: (volume: number) => void;
+}
+
 export interface VideoPlayerRef {
   play: () => void;
   pause: () => void;
@@ -26,7 +34,7 @@ export interface VideoPlayerRef {
   unmute: () => void;
   setVolume: (volume: number) => void;
   seekTo: (fraction: number) => void;
-  getInternalPlayer: () => any; // O un tipo más específico si se conoce el tipo del reproductor interno de ReactPlayer
+  getInternalPlayer: () => InternalPlayer | null;
   getReactPlayer: () => ReactPlayer | null;
 }
 
@@ -53,7 +61,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
     const [introVideo, setIntroVideo] = useState('');
     const [showIntro, setShowIntro] = useState(false);
-    const introVideos = ['/azul.mp4', '/cuadros.mp4', '/cuadros2.mp4', '/lineal.mp4', '/RUIDO.mp4'];
+    const introVideos = React.useMemo(() => ['/azul.mp4', '/cuadros.mp4', '/cuadros2.mp4', '/lineal.mp4', '/RUIDO.mp4'], []);
 
     useEffect(() => {
       if (typeof window !== 'undefined' && src && (src.includes('youtube.com') || src.includes('youtu.be'))) {
@@ -69,7 +77,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       } else {
         setShowIntro(false);
       }
-    }, [src]);
+    }, [src, introVideos]);
 
     const handleReactPlayerReady = useCallback(() => {
       if (onReady) onReady();
@@ -85,8 +93,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     }, [seekToFraction, setSeekToFraction]);
 
     useImperativeHandle(ref, () => ({
-      play: () => { if (typeof window !== 'undefined' && playerRef.current) playerRef.current.getInternalPlayer().playVideo(); }, // Método de YouTube API
-      pause: () => { if (typeof window !== 'undefined' && playerRef.current) playerRef.current.getInternalPlayer().pauseVideo(); }, // Método de YouTube API
+      play: () => { if (typeof window !== 'undefined' && playerRef.current) (playerRef.current.getInternalPlayer() as InternalPlayer).playVideo(); }, // Método de YouTube API
+      pause: () => { if (typeof window !== 'undefined' && playerRef.current) (playerRef.current.getInternalPlayer() as InternalPlayer).pauseVideo(); }, // Método de YouTube API
       mute: () => { if (typeof window !== 'undefined' && playerRef.current) playerRef.current.getInternalPlayer().mute(); },
       unmute: () => { if (typeof window !== 'undefined' && playerRef.current) playerRef.current.getInternalPlayer().unmute(); },
       setVolume: (vol: number) => { 
@@ -102,7 +110,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           playerRef.current.seekTo(fraction, 'fraction');
         }
       },
-      getInternalPlayer: () => playerRef.current?.getInternalPlayer(),
+      getInternalPlayer: () => playerRef.current ? (playerRef.current.getInternalPlayer() as InternalPlayer) : null,
       getReactPlayer: () => playerRef.current,
     }));
 

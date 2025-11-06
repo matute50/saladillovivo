@@ -4,18 +4,29 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import NewsCard from '@/components/NewsCard';
-import { notFound } from 'next/navigation';
-import { Article } from '@/lib/types'; // Añadida esta línea
+import { Article } from '@/lib/types';
 
-
-
-
+interface SupabaseArticleData {
+  id: string;
+  title: string;
+  text: string;
+  imageUrl: string;
+  miniatura_url?: string;
+  featureStatus: 'featured' | 'secondary' | 'tertiary' | null;
+  createdAt: string;
+  updatedAt: string;
+  slug: string;
+  description: string;
+  meta_title?: string;
+  meta_description?: string;
+  meta_keywords?: string;
+}
 
 // This function fetches news for a specific category
 async function getNewsForCategory(category: string): Promise<Article[]> {
   const { data, error } = await supabase
     .from('articles')
-    .select('id, title, text, imageUrl, featureStatus, createdAt, updatedAt, slug, description, meta_title, meta_description, meta_keywords')
+    .select('id, title, text, imageUrl, miniatura_url, featureStatus, createdAt, updatedAt, slug, description, meta_title, meta_description, meta_keywords')
     .eq('featureStatus', category)
     .order('createdAt', { ascending: false });
 
@@ -25,7 +36,7 @@ async function getNewsForCategory(category: string): Promise<Article[]> {
   }
 
   // Mapear los datos de la base de datos a la interfaz Article
-  return (data || []).map((item: any): Article => ({
+  return (data as SupabaseArticleData[] || []).map((item): Article => ({
     id: item.id,
     titulo: item.title,
     slug: item.slug || item.id.toString(),
@@ -48,10 +59,7 @@ async function getNewsForCategory(category: string): Promise<Article[]> {
 const CategoryPage = async ({ params }: { params: { categoria: string } }) => {
   const { categoria } = params;
   const categoryNews = await getNewsForCategory(categoria);
-  // Optional: If no news, you could show a 404 or a specific message.
-  // if (categoryNews.length === 0) {
-  //   notFound();
-  // }
+
 
   return (
     <div className="container mx-auto px-4 py-8">

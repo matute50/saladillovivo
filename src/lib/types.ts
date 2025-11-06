@@ -9,9 +9,26 @@ export interface Article {
   createdAt: string;
   updatedAt: string;
   autor: string;
-  categoria: string;
+  categoria: string | null;
   imageUrl: string;
   featureStatus: 'featured' | 'secondary' | 'tertiary' | null;
+  meta_title?: string;
+  meta_description?: string;
+  meta_keywords?: string;
+  miniatura_url?: string;
+}
+
+export interface SupabaseArticle {
+  id: string;
+  title: string;
+  text: string;
+  imageUrl: string;
+  miniatura_url?: string;
+  featureStatus: 'featured' | 'secondary' | 'tertiary' | null;
+  createdAt: string;
+  updatedAt: string;
+  slug: string;
+  description: string;
   meta_title?: string;
   meta_description?: string;
   meta_keywords?: string;

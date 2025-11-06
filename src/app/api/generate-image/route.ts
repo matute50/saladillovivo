@@ -13,7 +13,11 @@ export async function GET(req: Request) {
     const generatedImageUrl = image; // temporal, reemplazar con lógica real
 
     return NextResponse.json({ success: true, url: generatedImageUrl });
-  } catch (err: any) {
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    let errorMessage = "An unknown error occurred";
+    if (err instanceof Error) {
+      errorMessage = err.message;
+    }
+    return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
   }
 }

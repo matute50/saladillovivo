@@ -147,9 +147,13 @@ export const NewsProvider = ({ children }: { children: ReactNode }) => {
     try {
       const results = await fetchVideosBySearch(query);
       setSearchResults(results);
-    } catch (error: any) {
-      console.error("Error during search:", error);
-      toast({ title: "Error de Búsqueda", description: error.message });
+    } catch (err: unknown) {
+      console.error("Error during search:", err);
+      let errorMessage = "Un error desconocido ocurrió.";
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      toast({ title: "Error de Búsqueda", description: errorMessage });
       setSearchResults([]);
     } finally {
       setSearchLoading(false);

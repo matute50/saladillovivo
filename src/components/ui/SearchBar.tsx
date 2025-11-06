@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNews } from '@/context/NewsContext';
 import { Search, X } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce'; // Suponiendo que tienes un hook de debounce
 
 const SearchBar = () => {
-  const { handleSearch, searchQuery, setSearchQuery } = useNews();
+  const { handleSearch, searchQuery } = useNews();
   const [localQuery, setLocalQuery] = useState(searchQuery);
 
   const debouncedQuery = useDebounce(localQuery, 400);
@@ -16,7 +16,7 @@ const SearchBar = () => {
     if (searchQuery !== localQuery) {
       setLocalQuery(searchQuery);
     }
-  }, [searchQuery]);
+  }, [searchQuery, localQuery]);
 
   useEffect(() => {
     // Ejecutar la búsqueda cuando el valor debounced cambia

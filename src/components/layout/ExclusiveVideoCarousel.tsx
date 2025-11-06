@@ -10,6 +10,7 @@ import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Video } from '@/lib/types';
+import Image from 'next/image';
 
 interface ExclusiveVideoCarouselProps {
   videos: Video[];
@@ -17,10 +18,10 @@ interface ExclusiveVideoCarouselProps {
   carouselId: string;
   isMobile?: boolean;
   isLive?: boolean;
-  isEventCarousel?: boolean;
+
 }
 
-const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos, isLoading, carouselId, isMobile = false, isLive = false, isEventCarousel = false }) => {
+const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos, isLoading, carouselId, isMobile = false, isLive = false }) => {
   const { playSpecificVideo, playLiveStream, streamStatus } = useMediaPlayer();
   const { toast } = useToast();
   const swiperRef = useRef(null);
@@ -134,8 +135,8 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
           }
 
           return (
-            <SwiperSlide 
-              key={video.id || video.url} 
+            <SwiperSlide
+              key={video.id || video.url}
               style={{ width: 'auto' }}
               className={slideClasses}
               onMouseEnter={() => videos.length === 2 && setHoveredIndex(index)}
@@ -146,14 +147,14 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
                 className="relative cursor-pointer group rounded-xl overflow-hidden hover:shadow-orange-500/50"
               >
                 <div className="w-56 aspect-video flex items-center justify-center bg-black">
-                  <img
+                  <Image
                     src={getYoutubeThumbnail(video)}
                     alt={video.nombre || "Miniatura de video"}
-                    loading={index === 0 ? 'eager' : 'lazy'}
                     width={320}
                     height={180}
+                    priority={index === 0}
                     className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 ${isLiveOrEvent ? 'object-contain' : 'object-cover'}`}
-                    onError={(e) => { e.currentTarget.src = '/placeholder.jpg'; }} // Añadido onError
+                    onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
                   />
                 </div>
                 <div className={titleOverlayClasses}>
@@ -166,7 +167,7 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
       </Swiper>
       {showNavButtons && (
         <>
-          <motion.button 
+          <motion.button
             id={`prev-${carouselId}`}
             className="carousel-nav-button absolute top-1/2 -translate-y-1/2 left-0 z-20 rounded-md p-1 cursor-pointer border shadow-lg shadow-black/50"
             animate={{ color: buttonColor, borderColor: buttonBorderColor }}
@@ -174,7 +175,7 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
           >
             <ChevronLeft size={30} />
           </motion.button>
-          <motion.button 
+          <motion.button
             id={`next-${carouselId}`}
             className="carousel-nav-button absolute top-1/2 -translate-y-1/2 right-0 z-20 rounded-md p-1 cursor-pointer border shadow-lg shadow-black/50"
             animate={{ color: buttonColor, borderColor: buttonBorderColor }}

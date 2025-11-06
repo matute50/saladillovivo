@@ -7,7 +7,6 @@ import NewsTicker from '../NewsTicker';
 import dynamic from 'next/dynamic';
 
 const VideoSection = dynamic(() => import('./VideoSection'), { ssr: false });
-import MoreNewsGrid from './MoreNewsGrid';
 import NewsColumn from './NewsColumn';
 import type { PageData } from '@/lib/types';
 import CategoryCycler from './CategoryCycler';
@@ -17,7 +16,7 @@ import { useNews } from '@/context/NewsContext';
 import NoResultsCard from './NoResultsCard';
 import NewsCard from '../NewsCard';
 
-const DesktopLayout = ({ data, isMobile }: { data: PageData; isMobile: boolean }) => {
+const DesktopLayout = ({ data }: { data: PageData }) => {
   const {
     articles = { allNews: [] },
     videos = { allVideos: [] },
@@ -71,7 +70,7 @@ const DesktopLayout = ({ data, isMobile }: { data: PageData; isMobile: boolean }
   return (
     <>
       <div className="bg-background/80 backdrop-blur-sm mb-0 md:mb-3 fixed top-[calc(var(--desktop-header-height)-18px)] w-full z-40">
-        <NewsTicker tickerTexts={tickerTexts} isMobile={false} />
+        <NewsTicker tickerTexts={tickerTexts} />
       </div>
       <main className="w-full px-2 py-0 md:pb-4 pt-[calc(var(--desktop-header-height)+var(--ticker-height)-70px)]">
         <div className="container mx-auto px-2">

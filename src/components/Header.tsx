@@ -47,9 +47,6 @@ const Header = () => {
   const banerClaroOriginal = "https://storage.googleapis.com/hostinger-horizons-assets-prod/77d159f1-0d45-4b01-ba42-c8ca9cbd0d70/e9eb6580b7ad5742826daaa5df2b592d.png";
   const banerOscuroOriginal = "https://storage.googleapis.com/hostinger-horizons-assets-prod/77d159f1-0d45-4b01-ba42-c8ca9cbd0d70/47acc550fd7b520146be23b59835d549.png";
 
-  const banerParaModoClaro = banerClaroOriginal;
-  const banerParaModoOscuro = banerOscuroOriginal;
-
   return (
     <motion.header
       initial={{ y: -100 }}

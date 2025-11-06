@@ -37,7 +37,7 @@ const MobileLayout = ({ data, isMobile }: { data: PageData; isMobile: boolean })
     if (availableCategoryMappings.length > 1) {
       const total = availableCategoryMappings.length;
       const randomIndex1 = Math.floor(Math.random() * total);
-      let randomIndex2 = (randomIndex1 + 1 + Math.floor(Math.random() * (total - 1))) % total; // Asegura que no sea el mismo
+      const randomIndex2 = (randomIndex1 + 1 + Math.floor(Math.random() * (total - 1))) % total; // Asegura que no sea el mismo
       setCyclerIndex1(randomIndex1);
       setCyclerIndex2(randomIndex2);
     }
