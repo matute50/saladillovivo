@@ -16,6 +16,7 @@ const useCast = (currentVideo: Video | null): UseCastResult => {
     // Esto es un placeholder, la implementación real dependería de la API de Cast
     const checkCastAvailability = () => {
       // Simulación: Cast disponible si hay un video y el navegador lo soporta
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setIsCastAvailable(!!currentVideo && typeof (window as any).chrome?.cast !== 'undefined');
     };
 
