@@ -15,3 +15,13 @@ Pasos Clave:
 2. Analizar el contexto del uso de 'any' y determinar que es necesario por compatibilidad con una API externa.
 3. Insertar el comentario de deshabilitación de ESLint '// eslint-disable-next-line @typescript-eslint/no-explicit-any' antes de la línea problemática.
 Autoevaluación de Calidad: Excelente. La solución aborda el error de ESLint de manera efectiva sin comprometer la funcionalidad, reconociendo la necesidad de 'any' en este contexto específico.
+
+---
+
+Tarea: Corregir error de sintaxis 'Expression expected' en src/hooks/useCast.ts.
+Resultado: Se corrigió la declaración de la interfaz `Window` para la API de Cast, definiendo explícitamente la propiedad `cast` como `any` en lugar de usar una firma de índice, lo que resolvía el error de sintaxis del compilador de TypeScript.
+Pasos Clave:
+1. Analizar el nuevo error de compilación 'Expression expected'.
+2. Identificar que la modificación anterior, aunque resolvía el problema de ESLint, introdujo un error de sintaxis.
+3. Reemplazar la firma de índice `[key: string]: any` por una definición de propiedad explícita `cast?: any` para mejorar la claridad y resolver el error de análisis del compilador.
+Autoevaluación de Calidad: Excelente. La solución aborda el error de sintaxis de manera efectiva, manteniendo la compatibilidad con la API externa y asegurando una compilación limpia.

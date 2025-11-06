@@ -12,8 +12,7 @@ declare global {
   interface Window {
     chrome?: {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      [key: string]: any; // Usamos 'any' aquí para la compatibilidad con la API de Cast, que es externa.
-      };
+      cast?: any; // Usamos 'any' aquí para la compatibilidad con la API de Cast, que es externa.
     };
   }
 }
