@@ -26,7 +26,7 @@ interface YouTubePlayer {
   setVolume: (volume: number) => void;
 }
 
-export interface InternalPlayer extends YouTubePlayer {}
+
 
 export interface VideoPlayerRef {
   play: () => void;
@@ -35,7 +35,7 @@ export interface VideoPlayerRef {
   unmute: () => void;
   setVolume: (volume: number) => void;
   seekTo: (fraction: number) => void;
-  getInternalPlayer: () => InternalPlayer | null;
+  getInternalPlayer: () => YouTubePlayer | null;
   getReactPlayer: () => ReactPlayer | null;
 }
 
@@ -121,8 +121,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     }, [seekToFraction, setSeekToFraction]);
 
     useImperativeHandle(ref, () => ({
-      play: () => { if (typeof window !== 'undefined' && playerRef.current) (playerRef.current.getInternalPlayer() as InternalPlayer).playVideo(); }, // Método de YouTube API
-      pause: () => { if (typeof window !== 'undefined' && playerRef.current) (playerRef.current.getInternalPlayer() as InternalPlayer).pauseVideo(); }, // Método de YouTube API
+      play: () => { if (typeof window !== 'undefined' && playerRef.current) (playerRef.current.getInternalPlayer() as YouTubePlayer).playVideo(); }, // Método de YouTube API
+      pause: () => { if (typeof window !== 'undefined' && playerRef.current) (playerRef.current.getInternalPlayer() as YouTubePlayer).pauseVideo(); }, // Método de YouTube API
       mute: () => { if (typeof window !== 'undefined' && playerRef.current) { const internalPlayer = playerRef.current.getInternalPlayer() as YouTubePlayer; internalPlayer?.mute?.(); } },
       unmute: () => { if (typeof window !== 'undefined' && playerRef.current) { const internalPlayer = playerRef.current.getInternalPlayer() as YouTubePlayer; internalPlayer?.unMute?.(); } },
       setVolume: (vol: number) => { 
@@ -138,7 +138,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           playerRef.current.seekTo(fraction, 'fraction');
         }
       },
-      getInternalPlayer: () => playerRef.current ? (playerRef.current.getInternalPlayer() as InternalPlayer) : null,
+      getInternalPlayer: () => playerRef.current ? (playerRef.current.getInternalPlayer() as YouTubePlayer) : null,
       getReactPlayer: () => playerRef.current,
     }));
 
