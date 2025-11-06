@@ -2,12 +2,11 @@
 import React, { useRef, useEffect, forwardRef, useImperativeHandle, useState, useCallback } from 'react';
 import ReactPlayer from 'react-player/youtube';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useVolume } from '@/context/VolumeContext';
 
 interface VideoPlayerProps {
   src: string;
   playing: boolean;
-  volume: number;
-  muted: boolean;
   onReady?: () => void;
   onPlay?: () => void;
   onPause?: () => void;
@@ -23,7 +22,7 @@ export interface InternalPlayer {
   playVideo: () => void;
   pauseVideo: () => void;
   mute: () => void;
-  unmute: () => void;
+  unMute: () => void;
   setVolume: (volume: number) => void;
 }
 
@@ -43,8 +42,6 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     {
       src,
       playing,
-      volume,
-      muted,
       onReady,
       onPlay,
       onPause,
@@ -58,6 +55,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     ref
   ) => {
     const playerRef = useRef<ReactPlayer | null>(null);
+    const { volume, isMuted } = useVolume();
 
     const [introVideo, setIntroVideo] = useState('');
     const [showIntro, setShowIntro] = useState(false);
@@ -81,10 +79,38 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
     const handleReactPlayerReady = useCallback(() => {
       if (onReady) onReady();
+      if (playerRef.current) {
+        const internalPlayer = playerRef.current.getInternalPlayer() as any;
+        if (internalPlayer) {
+          // Asegurarse de que el reproductor esté listo y los métodos existan
+          internalPlayer?.mute?.();
+          internalPlayer?.playVideo?.(); // Usar playVideo para la API de YouTube
+        }
+      }
     }, [onReady]);
 
+    useEffect(() => {
+      if (playerRef.current) {
+        const internalPlayer = playerRef.current.getInternalPlayer() as any;
+        if (internalPlayer && typeof internalPlayer.setVolume === 'function') {
+          internalPlayer.setVolume(volume * 100);
+        }
+      }
+    }, [volume]);
 
-    
+    useEffect(() => {
+      if (playerRef.current) {
+        const internalPlayer = playerRef.current.getInternalPlayer() as any;
+        if (internalPlayer) {
+          if (isMuted) {
+            internalPlayer?.mute?.();
+          } else {
+            internalPlayer?.unMute?.();
+          }
+        }
+      }
+    }, [isMuted]);
+
     useEffect(() => {
         if (typeof window !== 'undefined' && playerRef.current && seekToFraction !== null && typeof seekToFraction === 'number') {
             playerRef.current.seekTo(seekToFraction, 'fraction');
@@ -95,8 +121,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     useImperativeHandle(ref, () => ({
       play: () => { if (typeof window !== 'undefined' && playerRef.current) (playerRef.current.getInternalPlayer() as InternalPlayer).playVideo(); }, // Método de YouTube API
       pause: () => { if (typeof window !== 'undefined' && playerRef.current) (playerRef.current.getInternalPlayer() as InternalPlayer).pauseVideo(); }, // Método de YouTube API
-      mute: () => { if (typeof window !== 'undefined' && playerRef.current) playerRef.current.getInternalPlayer().mute(); },
-      unmute: () => { if (typeof window !== 'undefined' && playerRef.current) playerRef.current.getInternalPlayer().unmute(); },
+      mute: () => { if (typeof window !== 'undefined' && playerRef.current) { const internalPlayer = playerRef.current.getInternalPlayer() as any; internalPlayer?.mute?.(); } },
+      unmute: () => { if (typeof window !== 'undefined' && playerRef.current) { const internalPlayer = playerRef.current.getInternalPlayer() as any; internalPlayer?.unMute?.(); } },
       setVolume: (vol: number) => { 
         if (typeof window !== 'undefined' && playerRef.current) {
           const internalPlayer = playerRef.current.getInternalPlayer();
@@ -138,8 +164,6 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             width="100%"
             height="100%"
             playing={playing}
-            volume={volume}
-            muted={muted}
             controls={false}
             pip={true}
             config={{
@@ -151,6 +175,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
                 controls: 0,
                 disablekb: 1,
                 playsinline: 1,
+                origin: typeof window !== 'undefined' ? window.location.origin : '',
               },
             }}
             onReady={handleReactPlayerReady}

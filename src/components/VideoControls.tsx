@@ -2,23 +2,20 @@
 
 import React from 'react';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
-import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
+import { useVolume } from '@/context/VolumeContext';
+import { Play, Pause, Volume2, VolumeX, Maximize, Minimize } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface VideoControlsProps {
   showControls: boolean;
+  onToggleFullScreen: () => void;
+  isFullScreen: boolean;
 }
 
-const VideoControls: React.FC<VideoControlsProps> = ({ showControls }) => {
-  const {
-    isPlaying,
-    isMuted,
-    volume,
-    togglePlayPause,
-    toggleMute,
-    handleVolumeChange,
-  } = useMediaPlayer();
+const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onToggleFullScreen, isFullScreen }) => {
+  const { isPlaying, togglePlayPause } = useMediaPlayer();
+  const { isMuted, volume, toggleMute, handleVolumeChange } = useVolume();
 
   // Renderiza solo el icono de mute en la esquina inferior derecha cuando está muteado
   if (isMuted) {
@@ -69,7 +66,9 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls }) => {
 
           {/* --- Controles Derechos --- */}
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 w-32">
+            <div
+              className="flex items-center gap-2 w-32"
+            >
               <button
                 onClick={toggleMute}
                 className="text-white hover:text-orange-500 transition-colors"
@@ -83,8 +82,12 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls }) => {
                 value={[isMuted ? 0 : volume * 100]}
                 onValueChange={(value) => handleVolumeChange(value[0])}
                 className="w-full"
+                onPointerDown={(e) => e.stopPropagation()}
               />
             </div>
+            <button onClick={onToggleFullScreen} className="text-white hover:text-orange-500 transition-colors">
+              {isFullScreen ? <Minimize size={24} /> : <Maximize size={24} />}
+            </button>
           </div>
         </motion.div>
       )}

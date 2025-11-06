@@ -6,6 +6,7 @@ import VideoPlayer, { type VideoPlayerRef } from '@/components/VideoPlayer';
 import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
+import { useVolume } from '@/context/VolumeContext';
 import { Play, Cast } from 'lucide-react';
 import VideoControls from '@/components/VideoControls';
 import useCast from '@/hooks/useCast';
@@ -19,18 +20,19 @@ interface VideoSectionProps {
 
 const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMobile }) => {
   const [isMobileFullscreen, setIsMobileFullscreen] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const playerContainerRef = useRef<HTMLDivElement>(null);
   
   const {
     currentVideo,
     isPlaying,
-    volume,
-    isMuted,
     seekToFraction,
     setSeekToFraction,
     handleOnEnded,
     handleOnProgress,
   } = useMediaPlayer();
   
+  const { isMuted } = useVolume();
   const { isCastAvailable, handleCast } = useCast(currentVideo);
   const playerRef = useRef<VideoPlayerRef>(null);
   const [showControls, setShowControls] = useState(false);
@@ -62,8 +64,21 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
     }
   };
 
+  const toggleFullScreen = () => {
+    if (!playerContainerRef.current) return;
+
+    if (!document.fullscreenElement) {
+      playerContainerRef.current.requestFullscreen();
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  };
+
   useEffect(() => {
     const handleFullscreenChange = () => {
+      setIsFullScreen(!!document.fullscreenElement);
       if (isMobile) {
         setIsMobileFullscreen(!!document.fullscreenElement);
       }
@@ -83,7 +98,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
 
   const getThumbnailUrl = (media: Video | null) => {
     if (!media?.url) return '/placeholder.png';
-    const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+    const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})?/;
     const videoIdMatch = media.url.match(youtubeRegex);
     if (videoIdMatch) {
       const videoId = videoIdMatch[1];
@@ -94,6 +109,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
 
   const playerCore = (
     <div 
+      ref={playerContainerRef}
       className="relative w-full h-full aspect-video bg-black overflow-hidden border-0 md:border md:rounded-xl shadow-pop card-blur-player"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -106,8 +122,6 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
             ref={playerRef}
             src={currentVideo.url}
             playing={isPlaying}
-            volume={volume}
-            muted={isMuted}
             onEnded={handleOnEnded}
             onProgress={handleOnProgress}
             seekToFraction={seekToFraction}
@@ -169,7 +183,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
         </AnimatePresence>
 
         <AnimatePresence>
-          {(isMuted || showControls) && currentVideo?.type !== 'image' && <VideoControls showControls={showControls} />}
+          {(isMuted || showControls) && currentVideo?.type !== 'image' && <VideoControls showControls={showControls} onToggleFullScreen={toggleFullScreen} isFullScreen={isFullScreen} />}
         </AnimatePresence>
       </div>
     </div>

@@ -14,6 +14,14 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'otwvfihzaznyjvjtkvvd.supabase.co',
       },
+      {
+        protocol: 'https',
+        hostname: 'storage.googleapis.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'ahorasaladillo-diariodigital.com.ar',
+      },
     ],
 
   },

@@ -1,15 +1,19 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import DesktopLayout from './layout/DesktopLayout';
 import MobileLayout from './layout/MobileLayout';
 import { PageData } from '@/lib/types';
-
+import { useMediaPlayer } from '@/context/MediaPlayerContext';
 import useIsMobile from '@/hooks/useIsMobile';
 
 const HomePageClient = ({ initialData }: { initialData: PageData }) => {
   const isMobile = useIsMobile();
-  // const { articles, videos, tickerTexts, interviews, banners, ads, events } = useNews(); // Ya no se desestructura de useNews
+  const { loadInitialPlaylist } = useMediaPlayer();
+
+  useEffect(() => {
+    loadInitialPlaylist(null);
+  }, [loadInitialPlaylist]);
 
   const data = {
     articles: initialData.articles || { allNews: [] },

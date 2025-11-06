@@ -30,19 +30,21 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
   const [buttonBorderColor, setButtonBorderColor] = useState("#FFFFFF");
 
   useEffect(() => {
-    const updateButtonColors = () => {
-      const rootStyles = getComputedStyle(document.documentElement);
-      const color = rootStyles.getPropertyValue('--carousel-button-color').trim();
-      const borderColor = rootStyles.getPropertyValue('--carousel-button-border-color').trim();
-      setButtonColor(`rgb(${color})`);
-      setButtonBorderColor(`rgb(${borderColor})`);
-    };
+    if (typeof window !== 'undefined') {
+      const updateButtonColors = () => {
+        const rootStyles = getComputedStyle(document.documentElement);
+        const color = rootStyles.getPropertyValue('--carousel-button-color').trim();
+        const borderColor = rootStyles.getPropertyValue('--carousel-button-border-color').trim();
+        setButtonColor(`rgb(${color})`);
+        setButtonBorderColor(`rgb(${borderColor})`);
+      };
 
-    updateButtonColors();
-    const observer = new MutationObserver(updateButtonColors);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+      updateButtonColors();
+      const observer = new MutationObserver(updateButtonColors);
+      observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
-    return () => observer.disconnect();
+      return () => observer.disconnect();
+    }
   }, []);
 
   const getYoutubeThumbnail = (video: Video) => {
@@ -114,7 +116,6 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
         modules={[Navigation]}
       >
         {videos.map((video, index) => {
-          console.log(video);
           const isLiveOrEvent = isLive || video.isLiveThumbnail || video.isEvent;
           
           let slideClasses = "transition-all duration-300 ease-in-out";
@@ -150,10 +151,10 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
                   <Image
                     src={getYoutubeThumbnail(video)}
                     alt={video.nombre || "Miniatura de video"}
-                    width={320}
-                    height={180}
+                    layout="fill"
+                    objectFit={isLiveOrEvent ? 'contain' : 'cover'}
                     priority={index === 0}
-                    className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 ${isLiveOrEvent ? 'object-contain' : 'object-cover'}`}
+                    className={`transition-transform duration-300 group-hover:scale-105`}
                     onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
                   />
                 </div>
