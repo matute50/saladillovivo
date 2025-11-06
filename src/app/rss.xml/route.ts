@@ -20,7 +20,8 @@ export async function GET() {
   });
 
   try {
-    const allNews = await getArticlesForRss();
+    let allNews = await getArticlesForRss();
+    allNews = allNews.filter(article => article.miniatura_url);
 
     allNews.forEach(article => {
       const item: RSS.ItemOptions = {
@@ -33,14 +34,14 @@ export async function GET() {
         custom_elements: []
       };
 
-      // Usa la miniatura_url si existe, de lo contrario usa la imageUrl, y si no, el default.
-      const imageUrl = article.miniatura_url || article.imageUrl || 'https://saladillovivo.vercel.app/default-og-image.png';
-
-      if (imageUrl) {
+      if (article.miniatura_url) {
+        if (!item.custom_elements) {
+          item.custom_elements = [];
+        }
         item.custom_elements.push({
           'media:content': {
             _attr: {
-              url: imageUrl,
+              url: article.miniatura_url,
               medium: 'image',
               type: 'image/jpeg' // Asumimos jpeg como pide MAKE
             }
