@@ -10,7 +10,7 @@ interface UseCastResult {
 
 declare global {
   interface Window {
-    chrome?: {
+    chrome: {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       cast?: any; // Usamos 'any' aquí para la compatibilidad con la API de Cast, que es externa.
     };
