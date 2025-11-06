@@ -18,13 +18,15 @@ interface VideoPlayerProps {
   setSeekToFraction?: (fraction: number | null) => void;
 }
 
-export interface InternalPlayer {
+interface YouTubePlayer {
   playVideo: () => void;
   pauseVideo: () => void;
   mute: () => void;
   unMute: () => void;
   setVolume: (volume: number) => void;
 }
+
+export interface InternalPlayer extends YouTubePlayer {}
 
 export interface VideoPlayerRef {
   play: () => void;
@@ -80,7 +82,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     const handleReactPlayerReady = useCallback(() => {
       if (onReady) onReady();
       if (playerRef.current) {
-        const internalPlayer = playerRef.current.getInternalPlayer() as any;
+        const internalPlayer = playerRef.current.getInternalPlayer() as YouTubePlayer;
         if (internalPlayer) {
           // Asegurarse de que el reproductor esté listo y los métodos existan
           internalPlayer?.mute?.();
@@ -91,7 +93,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
     useEffect(() => {
       if (playerRef.current) {
-        const internalPlayer = playerRef.current.getInternalPlayer() as any;
+        const internalPlayer = playerRef.current.getInternalPlayer() as YouTubePlayer;
         if (internalPlayer && typeof internalPlayer.setVolume === 'function') {
           internalPlayer.setVolume(volume * 100);
         }
@@ -100,7 +102,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
     useEffect(() => {
       if (playerRef.current) {
-        const internalPlayer = playerRef.current.getInternalPlayer() as any;
+        const internalPlayer = playerRef.current.getInternalPlayer() as YouTubePlayer;
         if (internalPlayer) {
           if (isMuted) {
             internalPlayer?.mute?.();
@@ -121,8 +123,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     useImperativeHandle(ref, () => ({
       play: () => { if (typeof window !== 'undefined' && playerRef.current) (playerRef.current.getInternalPlayer() as InternalPlayer).playVideo(); }, // Método de YouTube API
       pause: () => { if (typeof window !== 'undefined' && playerRef.current) (playerRef.current.getInternalPlayer() as InternalPlayer).pauseVideo(); }, // Método de YouTube API
-      mute: () => { if (typeof window !== 'undefined' && playerRef.current) { const internalPlayer = playerRef.current.getInternalPlayer() as any; internalPlayer?.mute?.(); } },
-      unmute: () => { if (typeof window !== 'undefined' && playerRef.current) { const internalPlayer = playerRef.current.getInternalPlayer() as any; internalPlayer?.unMute?.(); } },
+      mute: () => { if (typeof window !== 'undefined' && playerRef.current) { const internalPlayer = playerRef.current.getInternalPlayer() as YouTubePlayer; internalPlayer?.mute?.(); } },
+      unmute: () => { if (typeof window !== 'undefined' && playerRef.current) { const internalPlayer = playerRef.current.getInternalPlayer() as YouTubePlayer; internalPlayer?.unMute?.(); } },
       setVolume: (vol: number) => { 
         if (typeof window !== 'undefined' && playerRef.current) {
           const internalPlayer = playerRef.current.getInternalPlayer();
