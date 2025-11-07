@@ -1,7 +1,6 @@
 // Ruta: src/app/feed/miniaturas/route.ts
 
 import { NextResponse } from 'next/server';
-// --- ARREGLO: Esta es la ruta correcta a tu cliente de Supabase ---
 import { supabase } from '@/lib/supabaseClient'; 
 
 // Función para "escapar" caracteres XML ilegales (muy importante)
@@ -23,10 +22,12 @@ export async function GET() {
   // 1. Conectar a Supabase y obtener los artículos
   const { data: articles, error } = await supabase
     .from('articles')
-    .select('id, title, slug, description, created_at, miniatura_url') // <-- Ajusta 'slug' y 'description' a tus columnas
-    .not('miniatura_url', 'is', null) // <-- Solo artículos que SÍ tienen miniatura
-    .order('created_at', { ascending: false })
-    .limit(50); // Limita a los 50 más recientes
+    // --- ARREGLO 1: Cambiado 'created_at' por 'createdAt' ---
+    .select('id, title, slug, description, createdAt, miniatura_url') 
+    .not('miniatura_url', 'is', null) 
+    // --- ARREGLO 2: Cambiado 'created_at' por 'createdAt' ---
+    .order('createdAt', { ascending: false }) 
+    .limit(50); 
 
   if (error) {
     console.error('Error fetching articles for RSS:', error);
@@ -36,7 +37,6 @@ export async function GET() {
   // 2. Construir el XML del Feed RSS
   const siteUrl = 'https://www.saladillovivo.com.ar';
   
-  // Encabezado del RSS
   const rssHeader = `
     <rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
       <channel>
@@ -48,7 +48,6 @@ export async function GET() {
 
   // 3. Crear cada <item> del feed
   const items = articles.map(article => {
-    // Asumo que la URL de tu noticia se construye así. ¡Ajusta si es necesario!
     const articleUrl = `${siteUrl}/noticia/${article.slug}`; 
     
     return `
@@ -56,14 +55,10 @@ export async function GET() {
         <title>${escapeXML(article.title)}</title>
         <link>${articleUrl}</link>
         <guid>${articleUrl}</guid>
-        <pubDate>${new Date(article.created_at).toUTCString()}</pubDate>
+        {/* --- ARREGLO 3: Cambiado 'article.created_at' por 'article.createdAt' --- */}
+        <pubDate>${new Date(article.createdAt).toUTCString()}</pubDate>
         <description>${escapeXML(article.description || '')}</description>
         
-        {/*
-          LA ETIQUETA MÁGICA PARA MAKE.COM
-          Esto le dice a Make que hay contenido multimedia (una imagen) 
-          y le da la URL exacta de tu columna 'miniatura_url'.
-        */}
         <media:content 
           url="${article.miniatura_url}" 
           medium="image" 
