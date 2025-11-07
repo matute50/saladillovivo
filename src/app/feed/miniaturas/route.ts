@@ -3,10 +3,9 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabaseClient'; 
 
-// --- ARREGLO: Esta línea fuerza al servidor a generar el feed
+// Esta línea fuerza al servidor a generar el feed
 // cada vez que se solicita, en lugar de cachearlo.
 export const dynamic = 'force-dynamic';
-// --- FIN DEL ARREGLO ---
 
 // Función para "escapar" caracteres XML ilegales
 function escapeXML(str: string) {
