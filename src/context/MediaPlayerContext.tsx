@@ -5,7 +5,7 @@ import { getVideosForHome, getNewRandomVideo } from '@/lib/data';
 import { Video } from '@/lib/types';
 import { useVolume } from './VolumeContext';
 
-// --- ARREGLO 1: Exportar 'ProgressState' para que VideoSection pueda usarlo ---
+// Exportamos 'ProgressState' para que VideoSection pueda usarlo
 export interface ProgressState {
   played: number;
   playedSeconds: number;
@@ -13,12 +13,10 @@ export interface ProgressState {
   loadedSeconds: number;
 }
 
-// --- ARREGLO 2: Quitar 'progress' del ContextType ---
 interface MediaPlayerContextType {
   currentVideo: Video | null;
   nextVideo: Video | null;
   isPlaying: boolean;
-  // progress: ProgressState; // <-- ELIMINADO
   seekToFraction: number | null;
   isFirstMedia: boolean;
   randomVideoQueued: boolean;
@@ -31,7 +29,6 @@ interface MediaPlayerContextType {
   setSeekToFraction: (fraction: number | null) => void;
   loadInitialPlaylist: (videoUrlToPlay: string | null) => Promise<void>;
   handleOnEnded: () => void;
-  // Modificamos 'handleOnProgress' para que acepte los datos que necesita
   handleOnProgress: (progress: ProgressState, currentVideoId: string | undefined, currentVideoCategory: string | undefined) => void;
   playNextVideoInQueue: () => void;
   removeNextVideoFromQueue: () => void;
@@ -54,17 +51,14 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
   const [isPlaying, setIsPlaying] = useState(false);
   const [seekToFraction, setSeekToFraction] = useState<number | null>(null);
   
-  // --- ARREGLO 3: 'progress' useState ELIMINADO ---
-  // const [progress, setProgress] = useState<ProgressState>(defaultProgressState); // <-- ELIMINADO
-
   const [isFirstMedia, setIsFirstMedia] = useState(true);
   const [isUserSelected, setIsUserSelected] = useState(false);
   const [randomVideoQueued, setRandomVideoQueued] = useState(false);
   
-  const [streamStatus] = useState<{ liveStreamUrl: string; isLive: boolean; } | null>({ liveStreamUrl: 'https://www.youtube.com/watch?v=vCDCKGfOLoY', isLive: true });
+  const [streamStatus] = useState<{ liveStreamUrl: string; isLive: boolean; } | null>({ liveStreamUrl: 'https.://www.youtube.com/watch?v=vCDCKGfOLoY', isLive: true });
 
-  const { ramp, setVolume } = useVolume();
-  const userVolume = useRef<number>(0.03); // <- Este ref estaba causando el reseteo de volumen
+  // Obtenemos 'setVolume' de VolumeContext (ya no 'ramp' ni 'userVolume')
+  const { setVolume } = useVolume(); 
 
   const playMedia = useCallback((media: Video, isFirst = false) => {
     setCurrentVideo(media);
@@ -72,17 +66,13 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
     setIsFirstMedia(isFirst);
     setNextVideo(null);
     setRandomVideoQueued(false);
-    // setProgress(defaultProgressState); // <-- ELIMINADO
     
-    // --- ARREGLO 4: Solucionar reseteo de volumen ---
-    // NO tocamos el volumen si no es el primer video.
     if (isFirst) {
-       // El 'VolumeContext' ya maneja esto, pero lo forzamos por si acaso.
-       setVolume(0);
+       setVolume(0); // Forzamos el mute en el primer video
     }
-    // Si 'isFirst' es falso, no hacemos nada, conservando el volumen actual.
-
-  }, [ramp, userVolume, setVolume]); // Añadido 'setVolume'
+    // Si no es el primero, no tocamos el volumen (conserva el actual)
+    
+  }, [setVolume]); // <-- Dependencia limpia
 
   const playSpecificVideo = useCallback((media: Video) => {
     if (currentVideo) {
@@ -93,17 +83,17 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
       setCurrentVideo(media);
       setIsPlaying(true);
       setIsUserSelected(true);
-      // No tocamos el volumen, dejamos que 'VolumeContext' lo maneje
+      // No tocamos el volumen
     }
-  }, [currentVideo, ramp]);
+  }, [currentVideo]); // <-- Dependencia limpia
 
-  // (playLiveStream y loadInitialPlaylist - sin cambios)
   const playLiveStream = useCallback((status: { liveStreamUrl: string; isLive: boolean; }) => {
     if (status && status.isLive) {
       const liveVideo: Video = { id: 'live-stream', nombre: 'TRANSMISIÓN EN VIVO', url: status.liveStreamUrl, createdAt: new Date().toISOString(), categoria: 'En Vivo', imagen: '/PARCHE.png', novedad: true, };
       playMedia(liveVideo, false);
     }
   }, [playMedia]);
+
   const loadInitialPlaylist = useCallback(async (videoUrlToPlay: string | null) => {
     const { allVideos: fetchedVideos } = await getVideosForHome(100);
     if (fetchedVideos && fetchedVideos.length > 0) {
@@ -119,18 +109,14 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
     }
   }, [playMedia]);
 
-
-  // --- ARREGLO 5: Simplificar 'playNextRandomVideo' ---
   const playNextRandomVideo = useCallback(async (currentVideoId?: string, currentVideoCategory?: string) => {
     const nextVideo = await getNewRandomVideo(currentVideoId, currentVideoCategory);
     if (nextVideo) {
-      // NO llamamos a setVolume.
       playMedia(nextVideo, false);
     } else {
       await loadInitialPlaylist(null);
     }
   }, [playMedia, loadInitialPlaylist]);
-
 
   const handleOnEnded = useCallback(() => {
     if (isUserSelected) {
@@ -144,12 +130,10 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
     }
   }, [isUserSelected, nextVideo, playMedia, playNextRandomVideo, currentVideo]);
 
-  // --- ARREGLO 6: 'handleOnProgress' solo maneja la lógica de "siguiente video" ---
+  // Esta función solo maneja la lógica de "siguiente video"
   const handleOnProgress = useCallback(async (progress: ProgressState, currentVideoId: string | undefined, currentVideoCategory: string | undefined) => {
     
-    // Ya NO llama a setProgress.
-    
-    const duration = progress.loadedSeconds; // Simplificado
+    const duration = progress.loadedSeconds;
 
     if (currentVideoId && !nextVideo && !randomVideoQueued && duration && (duration - progress.playedSeconds < 40)) {
       setRandomVideoQueued(true); 
@@ -160,12 +144,12 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
         setRandomVideoQueued(false);
       }
     }
-  }, [nextVideo, randomVideoQueued]); // 'currentVideo' se pasa como argumento
+  }, [nextVideo, randomVideoQueued]); // <-- Dependencias limpias
 
-  // (togglePlayPause, playNextVideoInQueue, removeNextVideoFromQueue - sin cambios)
   const togglePlayPause = useCallback(() => {
     setIsPlaying(prev => !prev);
   }, []);
+
   const playNextVideoInQueue = useCallback(() => {
     if (nextVideo) {
       playMedia(nextVideo, false);
@@ -174,16 +158,15 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
       playNextRandomVideo(currentVideo?.id, currentVideo?.categoria);
     }
   }, [nextVideo, playMedia, playNextRandomVideo, currentVideo]);
+
   const removeNextVideoFromQueue = useCallback(() => {
     setNextVideo(null);
   }, []);
 
-  // --- ARREGLO 7: Quitar 'progress' del 'value' ---
   const value = useMemo(() => ({
     currentVideo,
     nextVideo,
     isPlaying,
-    // progress, // <-- ELIMINADO
     seekToFraction,
     isFirstMedia,
     randomVideoQueued,
@@ -203,7 +186,6 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
     currentVideo,
     nextVideo,
     isPlaying,
-    // progress, // <-- ELIMINADO
     seekToFraction,
     isFirstMedia,
     randomVideoQueued,

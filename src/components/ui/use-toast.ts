@@ -1,4 +1,3 @@
-
 // Inspired by react-hot-toast library
 import * as React from "react";
 
@@ -63,8 +62,9 @@ export const reducer = (state: State, action: Action): State => {
         ),
       };
 
-    case "DISMISS_TOAST":
-      const { toastId } = action;
+    // --- ARREGLO 1: Añadido bloque de llaves {} ---
+    case "DISMISS_TOAST": {
+      const { toastId } = action; // <-- Esta era la línea 67
       if (toastId) {
         addToRemoveQueue(toastId);
       } else {
@@ -84,6 +84,8 @@ export const reducer = (state: State, action: Action): State => {
             : t
         ),
       };
+    } // --- FIN ARREGLO 1 ---
+
     case "REMOVE_TOAST":
       if (action.toastId === undefined) {
         return {
@@ -95,9 +97,12 @@ export const reducer = (state: State, action: Action): State => {
         ...state,
         toasts: state.toasts.filter((t) => t.id !== action.toastId),
       };
-    default:
-      const exhaustiveCheck: never = action;
+    
+    // --- ARREGLO 2: Añadido bloque de llaves {} ---
+    default: {
+      const exhaustiveCheck: never = action; // <-- Esta era la línea 99
       throw new Error(`Unhandled action type: ${exhaustiveCheck}`);
+    } // --- FIN ARREGLO 2 ---
   }
   return state;
 };
