@@ -1,8 +1,8 @@
 // Ruta: src/app/feed/miniaturas/route.ts
 
 import { NextResponse } from 'next/server';
-// Asumo que tienes tu cliente de Supabase en @/lib/supabase/client
-import { supabase } from '@/lib/supabase/client'; 
+// --- ARREGLO: Esta es la ruta correcta a tu cliente de Supabase ---
+import { supabase } from '@/lib/supabaseClient'; 
 
 // Función para "escapar" caracteres XML ilegales (muy importante)
 function escapeXML(str: string) {
@@ -21,7 +21,6 @@ function escapeXML(str: string) {
 
 export async function GET() {
   // 1. Conectar a Supabase y obtener los artículos
-  // ¡LA CLAVE ESTÁ AQUÍ! -> .not('miniatura_url', 'is', null)
   const { data: articles, error } = await supabase
     .from('articles')
     .select('id, title, slug, description, created_at, miniatura_url') // <-- Ajusta 'slug' y 'description' a tus columnas
@@ -37,8 +36,7 @@ export async function GET() {
   // 2. Construir el XML del Feed RSS
   const siteUrl = 'https://www.saladillovivo.com.ar';
   
-  // Encabezado del RSS.
-  // Nota: 'xmlns:media' es el "espacio de nombres" que nos permite usar <media:content>
+  // Encabezado del RSS
   const rssHeader = `
     <rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
       <channel>
@@ -61,6 +59,11 @@ export async function GET() {
         <pubDate>${new Date(article.created_at).toUTCString()}</pubDate>
         <description>${escapeXML(article.description || '')}</description>
         
+        {/*
+          LA ETIQUETA MÁGICA PARA MAKE.COM
+          Esto le dice a Make que hay contenido multimedia (una imagen) 
+          y le da la URL exacta de tu columna 'miniatura_url'.
+        */}
         <media:content 
           url="${article.miniatura_url}" 
           medium="image" 
