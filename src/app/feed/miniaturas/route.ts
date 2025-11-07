@@ -3,7 +3,12 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabaseClient'; 
 
-// Función para "escapar" caracteres XML ilegales (muy importante)
+// --- ARREGLO: Esta línea fuerza al servidor a generar el feed
+// cada vez que se solicita, en lugar de cachearlo.
+export const dynamic = 'force-dynamic';
+// --- FIN DEL ARREGLO ---
+
+// Función para "escapar" caracteres XML ilegales
 function escapeXML(str: string) {
   if (!str) return '';
   return str.replace(/[<>&"']/g, (match) => {
@@ -22,10 +27,8 @@ export async function GET() {
   // 1. Conectar a Supabase y obtener los artículos
   const { data: articles, error } = await supabase
     .from('articles')
-    // --- ARREGLO 1: Cambiado 'created_at' por 'createdAt' ---
     .select('id, title, slug, description, createdAt, miniatura_url') 
     .not('miniatura_url', 'is', null) 
-    // --- ARREGLO 2: Cambiado 'created_at' por 'createdAt' ---
     .order('createdAt', { ascending: false }) 
     .limit(50); 
 
@@ -55,7 +58,6 @@ export async function GET() {
         <title>${escapeXML(article.title)}</title>
         <link>${articleUrl}</link>
         <guid>${articleUrl}</guid>
-        {/* --- ARREGLO 3: Cambiado 'article.created_at' por 'article.createdAt' --- */}
         <pubDate>${new Date(article.createdAt).toUTCString()}</pubDate>
         <description>${escapeXML(article.description || '')}</description>
         
