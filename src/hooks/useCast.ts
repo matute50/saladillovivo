@@ -3,14 +3,17 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Video } from '@/lib/types'; // Asegúrate de que la ruta sea correcta
 
-// --- ARREGLO: Mover 'cast' y 'chrome' a la interfaz de 'Window' ---
-// Esto le dice a TypeScript: "Confía en mí, 'window.cast' y 'window.chrome'
-// existirán, y tendrán este tipo".
+// --- ARREGLO: Corregir la declaración de tipos de Google Cast ---
 declare global {
   interface Window {
     __onGCastApiAvailable?: (isAvailable: boolean) => void;
     cast?: any; // El SDK de Cast adjuntará 'cast' a window
-    chrome?: any; // El SDK de Cast necesita 'chrome' para funcionar
+  }
+  
+  // Esto "fusiona" la propiedad 'cast' con la definición
+  // existente de 'chrome' que tiene TypeScript, sin re-declararla.
+  interface Chrome {
+    cast?: any;
   }
 }
 // --- FIN DEL ARREGLO ---
@@ -22,7 +25,8 @@ export const useCast = (currentVideo: Video | null) => {
     // El SDK que cargamos en layout.tsx llamará a esta función
     // cuando esté listo.
     window['__onGCastApiAvailable'] = (isAvailable) => {
-      if (isAvailable && window.cast && window.chrome) { // Comprueba que existan
+      // Ahora comprobamos 'window.chrome.cast' de forma segura
+      if (isAvailable && window.cast && window.chrome?.cast) { 
         try {
           const castContext = window.cast.framework.CastContext.getInstance();
           castContext.setOptions({
@@ -40,7 +44,7 @@ export const useCast = (currentVideo: Video | null) => {
 
   const handleCast = useCallback(() => {
     // Comprueba que todo exista antes de intentar transmitir
-    if (!isCastAvailable || !currentVideo || !currentVideo.url || !window.cast || !window.chrome) {
+    if (!isCastAvailable || !currentVideo || !currentVideo.url || !window.cast || !window.chrome?.cast) {
       console.error("Cast no disponible, no hay video, o los scripts de cast/chrome no están cargados.");
       return;
     }
