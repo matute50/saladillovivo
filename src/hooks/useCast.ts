@@ -1,17 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Video } from '@/lib/types'; // Asegúrate de que la ruta sea correcta
 
-// Declara los tipos de Google Cast para que TypeScript no falle
-// Si ya tienes @types/chrome, puedes borrar esto.
+// --- ARREGLO: Mover 'cast' y 'chrome' a la interfaz de 'Window' ---
+// Esto le dice a TypeScript: "Confía en mí, 'window.cast' y 'window.chrome'
+// existirán, y tendrán este tipo".
 declare global {
   interface Window {
     __onGCastApiAvailable?: (isAvailable: boolean) => void;
+    cast?: any; // El SDK de Cast adjuntará 'cast' a window
+    chrome?: any; // El SDK de Cast necesita 'chrome' para funcionar
   }
-  const cast: any;
-  const chrome: any;
 }
+// --- FIN DEL ARREGLO ---
 
 export const useCast = (currentVideo: Video | null) => {
   const [isCastAvailable, setIsCastAvailable] = useState(false);
@@ -20,14 +22,12 @@ export const useCast = (currentVideo: Video | null) => {
     // El SDK que cargamos en layout.tsx llamará a esta función
     // cuando esté listo.
     window['__onGCastApiAvailable'] = (isAvailable) => {
-      if (isAvailable) {
+      if (isAvailable && window.cast && window.chrome) { // Comprueba que existan
         try {
-          const castContext = cast.framework.CastContext.getInstance();
+          const castContext = window.cast.framework.CastContext.getInstance();
           castContext.setOptions({
-            // Debes obtener tu propio App ID en la consola de Google Cast
-            // Pero puedes usar el ID por defecto para probar
-            receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
-            autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED,
+            receiverApplicationId: window.chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+            autoJoinPolicy: window.chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED,
           });
           setIsCastAvailable(true);
         } catch (error) {
@@ -38,28 +38,26 @@ export const useCast = (currentVideo: Video | null) => {
     };
   }, []);
 
-  const handleCast = () => {
-    if (!isCastAvailable || !currentVideo || !currentVideo.url) {
-      console.error("Cast no disponible o no hay video para transmitir.");
+  const handleCast = useCallback(() => {
+    // Comprueba que todo exista antes de intentar transmitir
+    if (!isCastAvailable || !currentVideo || !currentVideo.url || !window.cast || !window.chrome) {
+      console.error("Cast no disponible, no hay video, o los scripts de cast/chrome no están cargados.");
       return;
     }
 
-    const castSession = cast.framework.CastContext.getInstance().getCurrentSession();
+    const castContext = window.cast.framework.CastContext.getInstance();
+    const castSession = castContext.getCurrentSession();
     
     // Asume que la URL es un video MP4/WebM.
-    // NOTA: 'ReactPlayer' usa el reproductor de YouTube, que es más complejo.
-    // Esta lógica simple funciona para URLs de video directas.
-    const mediaInfo = new chrome.cast.media.MediaInfo(currentVideo.url, 'video/mp4');
+    const mediaInfo = new window.chrome.cast.media.MediaInfo(currentVideo.url, 'video/mp4');
     
-    // Añade metadatos básicos
-    mediaInfo.metadata = new chrome.cast.media.GenericMediaMetadata();
+    mediaInfo.metadata = new window.chrome.cast.media.GenericMediaMetadata();
     mediaInfo.metadata.title = currentVideo.nombre;
     // (Aquí podrías añadir la lógica de 'getThumbnailUrl' si la tienes disponible)
     // mediaInfo.metadata.images = [{ 'url': 'URL_DE_LA_MINIATURA' }];
 
-    const request = new chrome.cast.media.LoadRequest(mediaInfo);
+    const request = new window.chrome.cast.media.LoadRequest(mediaInfo);
 
-    const castContext = cast.framework.CastContext.getInstance();
     if (castSession) {
       // Si ya hay una sesión, solo carga el video
       castSession.loadMedia(request).catch(
@@ -81,7 +79,7 @@ export const useCast = (currentVideo: Video | null) => {
         }
       );
     }
-  };
+  }, [isCastAvailable, currentVideo]); // Dependencias del useCallback
 
   return { isCastAvailable, handleCast };
 };
