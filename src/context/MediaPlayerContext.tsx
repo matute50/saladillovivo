@@ -1,6 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useState, useRef, useCallback, useMemo } from 'react'; 
+// --- ARREGLO: Eliminado 'useRef' de esta línea ---
+import React, { createContext, useContext, useState, useCallback, useMemo } from 'react'; 
 import { getVideosForHome, getNewRandomVideo } from '@/lib/data';
 import { Video } from '@/lib/types';
 import { useVolume } from './VolumeContext';
@@ -57,8 +58,8 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
   
   const [streamStatus] = useState<{ liveStreamUrl: string; isLive: boolean; } | null>({ liveStreamUrl: 'https.://www.youtube.com/watch?v=vCDCKGfOLoY', isLive: true });
 
-  // Obtenemos 'setVolume' de VolumeContext (ya no 'ramp' ni 'userVolume')
   const { setVolume } = useVolume(); 
+  // 'useRef' para 'userVolume' ha sido eliminado
 
   const playMedia = useCallback((media: Video, isFirst = false) => {
     setCurrentVideo(media);
@@ -68,11 +69,10 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
     setRandomVideoQueued(false);
     
     if (isFirst) {
-       setVolume(0); // Forzamos el mute en el primer video
+       setVolume(0);
     }
-    // Si no es el primero, no tocamos el volumen (conserva el actual)
     
-  }, [setVolume]); // <-- Dependencia limpia
+  }, [setVolume]);
 
   const playSpecificVideo = useCallback((media: Video) => {
     if (currentVideo) {
@@ -83,9 +83,8 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
       setCurrentVideo(media);
       setIsPlaying(true);
       setIsUserSelected(true);
-      // No tocamos el volumen
     }
-  }, [currentVideo]); // <-- Dependencia limpia
+  }, [currentVideo]);
 
   const playLiveStream = useCallback((status: { liveStreamUrl: string; isLive: boolean; }) => {
     if (status && status.isLive) {
@@ -130,7 +129,6 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
     }
   }, [isUserSelected, nextVideo, playMedia, playNextRandomVideo, currentVideo]);
 
-  // Esta función solo maneja la lógica de "siguiente video"
   const handleOnProgress = useCallback(async (progress: ProgressState, currentVideoId: string | undefined, currentVideoCategory: string | undefined) => {
     
     const duration = progress.loadedSeconds;
@@ -144,7 +142,7 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
         setRandomVideoQueued(false);
       }
     }
-  }, [nextVideo, randomVideoQueued]); // <-- Dependencias limpias
+  }, [nextVideo, randomVideoQueued]);
 
   const togglePlayPause = useCallback(() => {
     setIsPlaying(prev => !prev);
