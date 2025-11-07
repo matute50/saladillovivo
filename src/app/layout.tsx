@@ -7,6 +7,7 @@ import "@/app/globals.css";
 import dynamic from 'next/dynamic';
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import Script from 'next/script'; // <-- ARREGLO 1: Importar Script
 
 export const metadata: Metadata = {
   title: "Saladillo Vivo",
@@ -35,6 +36,14 @@ export default function RootLayout({ children }: RootLayoutProps) {
             </MediaPlayerProvider>
           </VolumeProvider>
         </NewsProvider>
+
+        {/* --- ARREGLO 2: Añadir el SDK de Google Cast --- */}
+        <Script
+          src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"
+          strategy="lazyOnload" // Carga el script después de que la página sea interactiva
+        />
+        {/* --- FIN DEL ARREGLO --- */}
+
       </body>
     </html>
   );

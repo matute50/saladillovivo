@@ -1,43 +1,87 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { Video } from '@/lib/types';
+import { useState, useEffect } from 'react';
+import type { Video } from '@/lib/types'; // Asegúrate de que la ruta sea correcta
 
-interface UseCastResult {
-  isCastAvailable: boolean;
-  handleCast: () => void;
+// Declara los tipos de Google Cast para que TypeScript no falle
+// Si ya tienes @types/chrome, puedes borrar esto.
+declare global {
+  interface Window {
+    __onGCastApiAvailable?: (isAvailable: boolean) => void;
+  }
+  const cast: any;
+  const chrome: any;
 }
 
-const useCast = (currentVideo: Video | null): UseCastResult => {
+export const useCast = (currentVideo: Video | null) => {
   const [isCastAvailable, setIsCastAvailable] = useState(false);
 
   useEffect(() => {
-    // Lógica para detectar la disponibilidad de Cast
-    // Esto es un placeholder, la implementación real dependería de la API de Cast
-    const checkCastAvailability = () => {
-      // Simulación: Cast disponible si hay un video y el navegador lo soporta
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      setIsCastAvailable(!!currentVideo && typeof (window as any).chrome?.cast !== 'undefined');
+    // El SDK que cargamos en layout.tsx llamará a esta función
+    // cuando esté listo.
+    window['__onGCastApiAvailable'] = (isAvailable) => {
+      if (isAvailable) {
+        try {
+          const castContext = cast.framework.CastContext.getInstance();
+          castContext.setOptions({
+            // Debes obtener tu propio App ID en la consola de Google Cast
+            // Pero puedes usar el ID por defecto para probar
+            receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+            autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED,
+          });
+          setIsCastAvailable(true);
+        } catch (error) {
+          console.error("Error al inicializar Google Cast:", error);
+          setIsCastAvailable(false);
+        }
+      }
     };
+  }, []);
 
-    checkCastAvailability();
-    // Podrías añadir listeners para cambios en la disponibilidad de Cast aquí
-
-    return () => {
-      // Limpiar listeners si es necesario
-    };
-  }, [currentVideo]);
-
-  const handleCast = useCallback(() => {
-    if (currentVideo) {
-      console.log("Intentando transmitir: ", currentVideo.url);
-      // Lógica real para iniciar la transmisión a un dispositivo Cast
-      // Esto es un placeholder
-      alert(`Intentando transmitir ${currentVideo.nombre} a un dispositivo Cast.`);
-    } else {
-      console.log("No hay video para transmitir.");
+  const handleCast = () => {
+    if (!isCastAvailable || !currentVideo || !currentVideo.url) {
+      console.error("Cast no disponible o no hay video para transmitir.");
+      return;
     }
-  }, [currentVideo]);
+
+    const castSession = cast.framework.CastContext.getInstance().getCurrentSession();
+    
+    // Asume que la URL es un video MP4/WebM.
+    // NOTA: 'ReactPlayer' usa el reproductor de YouTube, que es más complejo.
+    // Esta lógica simple funciona para URLs de video directas.
+    const mediaInfo = new chrome.cast.media.MediaInfo(currentVideo.url, 'video/mp4');
+    
+    // Añade metadatos básicos
+    mediaInfo.metadata = new chrome.cast.media.GenericMediaMetadata();
+    mediaInfo.metadata.title = currentVideo.nombre;
+    // (Aquí podrías añadir la lógica de 'getThumbnailUrl' si la tienes disponible)
+    // mediaInfo.metadata.images = [{ 'url': 'URL_DE_LA_MINIATURA' }];
+
+    const request = new chrome.cast.media.LoadRequest(mediaInfo);
+
+    const castContext = cast.framework.CastContext.getInstance();
+    if (castSession) {
+      // Si ya hay una sesión, solo carga el video
+      castSession.loadMedia(request).catch(
+        (error: any) => console.error('Error al cargar media en sesión existente:', error)
+      );
+    } else {
+      // Si no hay sesión, pide al usuario que elija un dispositivo
+      castContext.requestSession().then(
+        () => {
+          const newSession = castContext.getCurrentSession();
+          if (newSession) {
+            newSession.loadMedia(request).catch(
+              (error: any) => console.error('Error al cargar media en nueva sesión:', error)
+            );
+          }
+        },
+        (error: any) => {
+          console.error('Error al solicitar sesión de Cast:', error);
+        }
+      );
+    }
+  };
 
   return { isCastAvailable, handleCast };
 };

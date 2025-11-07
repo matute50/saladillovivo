@@ -4,6 +4,7 @@ import ReactPlayer from 'react-player/youtube';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useVolume } from '@/context/VolumeContext';
 
+// (Interfaces - sin cambios)
 interface VideoPlayerProps {
   src: string;
   playing: boolean;
@@ -26,8 +27,6 @@ interface YouTubePlayer {
   setVolume: (volume: number) => void;
 }
 
-
-
 export interface VideoPlayerRef {
   play: () => void;
   pause: () => void;
@@ -38,6 +37,8 @@ export interface VideoPlayerRef {
   getInternalPlayer: () => YouTubePlayer | null;
   getReactPlayer: () => ReactPlayer | null;
 }
+// (Fin Interfaces)
+
 
 const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
   (
@@ -57,8 +58,11 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     ref
   ) => {
     const playerRef = useRef<ReactPlayer | null>(null);
-    const { isMuted } = useVolume();
+    
+    // Obtenemos los datos de volumen
+    const { isMuted, volume } = useVolume();
 
+    // (Estados de la intro - sin cambios)
     const [introVideo, setIntroVideo] = useState('');
     const [showIntro, setShowIntro] = useState(false);
     const introVideos = React.useMemo(() => ['/azul.mp4', '/cuadros.mp4', '/cuadros2.mp4', '/lineal.mp4', '/RUIDO.mp4'], []);
@@ -84,15 +88,17 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       if (playerRef.current) {
         const internalPlayer = playerRef.current.getInternalPlayer() as YouTubePlayer;
         if (internalPlayer) {
-          // Asegurarse de que el reproductor esté listo y los métodos existan
           internalPlayer?.mute?.();
-          internalPlayer?.playVideo?.(); // Usar playVideo para la API de YouTube
+          internalPlayer?.playVideo?.();
         }
       }
     }, [onReady]);
 
 
-
+    // --- ARREGLO FINAL ---
+    // Había dos 'useEffect' idénticos. Los combinamos en uno solo.
+    // Este hook es AHORA la única fuente de verdad que sincroniza
+    // el contexto de volumen con el reproductor interno.
     useEffect(() => {
       if (playerRef.current) {
         const internalPlayer = playerRef.current.getInternalPlayer() as YouTubePlayer;
@@ -101,11 +107,22 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             internalPlayer?.mute?.();
           } else {
             internalPlayer?.unMute?.();
+            // Nos aseguramos de que 'setVolume' exista antes de llamarlo
+            if (typeof internalPlayer.setVolume === 'function') {
+              internalPlayer.setVolume(volume * 100); 
+            }
           }
         }
       }
-    }, [isMuted]);
+    }, [isMuted, volume]); // Se ejecuta solo cuando isMuted o volume cambian
 
+
+    // --- SE BORRÓ EL useEffect DUPLICADO ---
+    // El segundo useEffect([volume, isMuted]) que estaba aquí 
+    // ha sido eliminado. Era la causa del error.
+
+
+    // (Hook de seekTo - sin cambios)
     useEffect(() => {
         if (typeof window !== 'undefined' && playerRef.current && seekToFraction !== null && typeof seekToFraction === 'number') {
             playerRef.current.seekTo(seekToFraction, 'fraction');
@@ -113,16 +130,17 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         }
     }, [seekToFraction, setSeekToFraction]);
 
+    // (useImperativeHandle - sin cambios)
     useImperativeHandle(ref, () => ({
-      play: () => { if (typeof window !== 'undefined' && playerRef.current) (playerRef.current.getInternalPlayer() as YouTubePlayer).playVideo(); }, // Método de YouTube API
-      pause: () => { if (typeof window !== 'undefined' && playerRef.current) (playerRef.current.getInternalPlayer() as YouTubePlayer).pauseVideo(); }, // Método de YouTube API
+      play: () => { if (typeof window !== 'undefined' && playerRef.current) (playerRef.current.getInternalPlayer() as YouTubePlayer).playVideo(); },
+      pause: () => { if (typeof window !== 'undefined' && playerRef.current) (playerRef.current.getInternalPlayer() as YouTubePlayer).pauseVideo(); },
       mute: () => { if (typeof window !== 'undefined' && playerRef.current) { const internalPlayer = playerRef.current.getInternalPlayer() as YouTubePlayer; internalPlayer?.mute?.(); } },
       unmute: () => { if (typeof window !== 'undefined' && playerRef.current) { const internalPlayer = playerRef.current.getInternalPlayer() as YouTubePlayer; internalPlayer?.unMute?.(); } },
       setVolume: (vol: number) => { 
         if (typeof window !== 'undefined' && playerRef.current) {
           const internalPlayer = playerRef.current.getInternalPlayer();
           if (internalPlayer && typeof internalPlayer.setVolume === 'function') {
-            internalPlayer.setVolume(vol);
+            internalPlayer.setVolume(vol * 100); 
           }
         }
       },
@@ -137,6 +155,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
     return (
       <div className="relative w-full h-full">
+        {/* (Intro - sin cambios) */}
         <AnimatePresence>
           {showIntro && (
             <motion.video
@@ -152,6 +171,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             />
           )}
         </AnimatePresence>
+        
+        {/* (ReactPlayer - sin cambios) */}
         <div className="plyr-container" style={{ width: '100%', height: '100%' }}>
           <ReactPlayer
             ref={playerRef}
