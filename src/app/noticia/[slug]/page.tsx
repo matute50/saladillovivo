@@ -88,25 +88,24 @@ export default async function NoticiaPage({ params }: Props) {
           {article.title}
         </h1>
         
-        {/* Mostramos la imagen de Open Graph (1.91:1) como cabecera */}
-        {article.og_image_url && (
+        {/* ARREGLO: Usar 'imageUrl' para la imagen principal de la noticia */}
+        {article.imageUrl && (
           <img
-            src={article.og_image_url}
+            src={article.imageUrl}
             alt={article.title}
             className="w-full rounded-lg shadow-lg mb-6"
-            style={{ aspectRatio: '1.91 / 1', objectFit: 'cover' }}
+            style={{ aspectRatio: '16 / 9', objectFit: 'cover' }}
           />
         )}
 
-        {/* Asumo que guardas el contenido como HTML en una columna 'content_html'.
-          ¡Ajusta esto a tu estructura!
-        */}
-        {article.content_html ? (
+        {/* ARREGLO 2: Usar 'text' para el cuerpo de la noticia y asegurar que se renderice como HTML */}
+        {article.text ? (
           <div
-            className="prose prose-lg dark:prose-invert"
-            dangerouslySetInnerHTML={{ __html: article.content_html }}
+            className="prose prose-lg dark:prose-invert max-w-none"
+            dangerouslySetInnerHTML={{ __html: article.text }}
           />
         ) : (
+          // Fallback por si no hay contenido
           <p className="text-lg dark:text-gray-300">{article.description}</p>
         )}
       </article>
