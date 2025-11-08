@@ -1,176 +1,115 @@
-import React from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { Calendar, User, Tag } from 'lucide-react';
-import Image from 'next/image';
+import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import type { Metadata } from 'next';
+import React from 'react';
 
-// Define the shape of the article data
-interface Article {
-  id: number;
-  title: string;
-  text: string;
-  imageUrl: string;
-  featureStatus: string;
-  createdAt: string;
-  slug: string;
-  description: string;
-}
+// --- ARREGLO 1: DEFINIR PROPS ---
+// Definimos los props que Next.js le pasa a la página
+type Props = {
+  params: { slug: string };
+};
 
-interface ContentPageProps {
-  params: {
-    slug: string;
-  };
-}
+// --- ARREGLO 2: GENERAR METADATA (LA PARTE CLAVE) ---
+// Esta función se ejecuta en el servidor para crear las meta tags
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = params;
 
-export async function generateMetadata(
-  { params }: ContentPageProps
-): Promise<Metadata> {
-  const newsItem = await getNews(params.slug);
-
-  if (!newsItem) {
-    return {
-      title: 'Noticia no encontrada',
-      description: 'La noticia que estás buscando no existe o fue eliminada.',
-    };
-  }
-
-  const siteUrl = 'https://saladillovivo.vercel.app';
-  const fullUrl = `${siteUrl}/noticia/${newsItem.slug}`;
-  const imageUrl = newsItem.imageUrl || `${siteUrl}/default-og-image.png`;
-
-  return {
-    title: newsItem.title,
-    description: newsItem.description,
-    alternates: {
-      canonical: fullUrl,
-    },
-    openGraph: {
-      title: newsItem.title,
-      description: newsItem.description,
-      url: fullUrl,
-      siteName: 'Saladillo Vivo',
-      images: [
-        {
-          url: imageUrl,
-          width: 1200,
-          height: 630,
-          alt: newsItem.title,
-        },
-      ],
-      locale: 'es_AR',
-      type: 'article',
-      publishedTime: newsItem.createdAt,
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: newsItem.title,
-      description: newsItem.description,
-      images: [imageUrl],
-    },
-  };
-}
-
-// This function fetches the data for a single news item
-async function getNews(slug: string): Promise<Article | null> {
-  const { data, error } = await supabase
+  // 1. Buscamos la noticia en Supabase
+  const { data: article } = await supabase
     .from('articles')
-    .select('*')
+    // Pedimos solo los campos necesarios para las meta tags
+    .select('title, description, og_image_url') // <-- Usamos la nueva columna
     .eq('slug', slug)
     .single();
 
-  if (error) {
-    console.error('Error fetching news:', error);
-    return null;
+  // Si no se encuentra el artículo, devolvemos metadata básica
+  if (!article) {
+    return {
+      title: 'Noticia no encontrada',
+    };
   }
 
-  return data;
-}
-
-// The page component is now an async function
-const ContentPage = async ({ params }: ContentPageProps) => {
-  const newsItem = await getNews(params.slug);
-
-  if (!newsItem) {
-    notFound(); // Use Next.js 404 page
-  }
-
-  const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return 'Fecha no disponible';
-    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-    try {
-      return new Date(dateString).toLocaleDateString('es-ES', options);
-    } catch (error) {
-      console.error("Error al formatear fecha:", dateString, error);
-      return 'Fecha inválida';
-    }
+  // 2. Devolvemos la metadata correcta para Facebook (Opción B)
+  return {
+    title: article.title,
+    description: article.description,
+    openGraph: {
+      title: article.title,
+      description: article.description,
+      type: 'article',
+      images: [
+        {
+          url: article.og_image_url, // <-- ¡AQUÍ ESTÁ LA MAGIA!
+          width: 1200,             // Le decimos a Facebook el tamaño exacto
+          height: 628,               // (Relación 1.91:1)
+          alt: article.title,
+        },
+      ],
+    },
+    // (Opcional) Añadir metadata para Twitter
+    twitter: {
+      card: 'summary_large_image',
+      title: article.title,
+      description: article.description,
+      images: [article.og_image_url], 
+    },
   };
+}
+// --- FIN DEL ARREGLO 2 ---
 
-  return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-6 md:p-8">
-        <article>
-            <header className="mb-6">
-              <h1 className="font-futura-bold text-3xl md:text-4xl lg:text-5xl mb-4 text-foreground leading-tight">
-                {newsItem.title}
-              </h1>
-              <div className="flex flex-wrap items-center text-sm text-muted-foreground gap-x-4 gap-y-2">
-                <div className="flex items-center">
-                  <Calendar size={14} className="mr-1.5" />
-                  <span>{formatDate(newsItem.createdAt)}</span>
-                </div>
-                <div className="flex items-center">
-                    <User size={14} className="mr-1.5" />
-                    <span>Equipo Editorial</span>
-                </div>
-                {newsItem.featureStatus && (
-                  <div className="flex items-center text-primary font-medium">
-                    <Tag size={14} className="mr-1.5" />
-                    <span>{newsItem.featureStatus}</span>
-                  </div>
-                )}
-              </div>
-            </header>
 
-            {newsItem.imageUrl && (
-                <div className="mb-6 rounded-lg overflow-hidden aspect-video bg-muted shadow-lg">
-                <Image 
-                    className="w-full h-full object-cover"
-                    alt={`Imagen de: ${newsItem.title}`}
-                    src={newsItem.imageUrl}
-                    width={1280}
-                    height={720}
-                    priority // Prioritize loading the main image
-                />
-                </div>
-            )}
-            
-            <div className="prose prose-base sm:prose-lg dark:prose-invert max-w-none text-foreground/90">
-              {newsItem.text.split('\n\n').map((parrafo, index) => (
-                <p key={index} className="mb-4 leading-relaxed">
-                  {parrafo}
-                </p>
-              ))}
-            </div>
-        </article>
-    </div>
-  );
-};
+// --- COMPONENTE DE PÁGINA (Ejemplo) ---
+// Esta es la página que ven tus usuarios.
+// (Reemplaza esto con tu componente de página si ya tienes uno)
 
-export default ContentPage;
+// Forzamos la revalidación para que las noticias no queden cacheadas
+export const revalidate = 60; // 60 segundos
 
-// Generate static paths for all news items at build time
-export async function generateStaticParams() {
-  const { data: articles, error } = await supabase.from('articles').select('slug');
+export default async function NoticiaPage({ params }: Props) {
+  const { slug } = params;
 
-  if (error || !articles) {
-    console.error("Failed to fetch slugs for static generation", error);
-    return [];
+  // 1. Buscamos los datos completos de la noticia para mostrar
+  const { data: article } = await supabase
+    .from('articles')
+    .select('*') // Pedimos todo para mostrar en la página
+    .eq('slug', slug)
+    .single();
+
+  // 2. Si no existe, mostramos la página 404
+  if (!article) {
+    notFound();
   }
 
-  // Filter for valid, non-empty string slugs and map them
-  return articles
-    .filter(article => article && typeof article.slug === 'string' && article.slug.trim() !== '')
-    .map(article => ({
-      slug: article.slug,
-    }));
+  // 3. Renderizamos la página
+  return (
+    <main className="container mx-auto max-w-4xl px-4 py-8">
+      <article>
+        <h1 className="text-3xl font-bold leading-tight text-gray-900 dark:text-white md:text-4xl mb-4">
+          {article.title}
+        </h1>
+        
+        {/* Mostramos la imagen de Open Graph (1.91:1) como cabecera */}
+        {article.og_image_url && (
+          <img
+            src={article.og_image_url}
+            alt={article.title}
+            className="w-full rounded-lg shadow-lg mb-6"
+            style={{ aspectRatio: '1.91 / 1', objectFit: 'cover' }}
+          />
+        )}
+
+        {/* Asumo que guardas el contenido como HTML en una columna 'content_html'.
+          ¡Ajusta esto a tu estructura!
+        */}
+        {article.content_html ? (
+          <div
+            className="prose prose-lg dark:prose-invert"
+            dangerouslySetInnerHTML={{ __html: article.content_html }}
+          />
+        ) : (
+          <p className="text-lg dark:text-gray-300">{article.description}</p>
+        )}
+      </article>
+    </main>
+  );
 }

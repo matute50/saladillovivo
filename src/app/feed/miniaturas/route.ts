@@ -26,8 +26,12 @@ export async function GET() {
   // 1. Conectar a Supabase y obtener los artículos
   const { data: articles, error } = await supabase
     .from('articles')
+    // Pedimos todos los campos que usaremos en el XML
     .select('id, title, slug, description, createdAt, miniatura_url') 
-    .not('miniatura_url', 'is', null) 
+    // ARREGLO: Asegurarnos de que solo vengan artículos con todos los datos
+    .not('miniatura_url', 'is', null) // Debe tener miniatura
+    .not('slug', 'is', null)           // Debe tener un slug (para el <link>)
+    .not('description', 'is', null) // Debe tener descripción (para el <description>)
     .order('createdAt', { ascending: false }) 
     .limit(50); 
 
@@ -42,7 +46,7 @@ export async function GET() {
   const rssHeader = `
     <rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
       <channel>
-        <title>Saladillo Vivo - Artículos con Miniatura</title>
+        <title>Saladillo Vivo - Artículos con Miniatura (para Make.com)</title>
         <link>${siteUrl}</link>
         <description>Feed de noticias que tienen una miniatura generada para redes sociales.</description>
         <language>es-ar</language>
@@ -50,6 +54,7 @@ export async function GET() {
 
   // 3. Crear cada <item> del feed
   const items = articles.map(article => {
+    // Construimos la URL del artículo
     const articleUrl = `${siteUrl}/noticia/${article.slug}`; 
     
     return `
@@ -83,4 +88,4 @@ export async function GET() {
       'Content-Type': 'application/xml; charset=utf-8',
     },
   });
-}// FORZAR ACTUALIZACION
+}
