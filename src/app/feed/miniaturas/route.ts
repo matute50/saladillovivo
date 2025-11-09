@@ -30,7 +30,7 @@ export async function GET() {
     .not('miniatura_url', 'is', null) 
     .not('slug', 'is', null)           
     .not('description', 'is', null) 
-    .order('createdAt', { ascending: false }) // <-- 'createdAt' (camelCase)
+    .order('createdAt', { ascending: false })
     .limit(50); 
 
   if (error) {
@@ -54,7 +54,7 @@ export async function GET() {
   const items = articles.map(article => {
     const articleUrl = `${siteUrl}/noticia/${article.slug}`; 
     
-    // Limpiamos la URL de la miniatura para Instagram
+    // Limpiamos la URL de la miniatura para Instagram/Facebook
     const cleanMiniaturaUrl = article.miniatura_url.split('?')[0];
     
     return `
@@ -66,7 +66,7 @@ export async function GET() {
         <description>${escapeXML(article.description || '')}</description>
         
         <media:content 
-          url="${cleanMiniaturaUrl}"  // <-- Usamos la URL limpia
+          url="${cleanMiniaturaUrl}"
           medium="image" 
           type="image/jpeg" 
         />
