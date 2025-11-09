@@ -1,4 +1,4 @@
-// Ruta: src/app/feed/miniaturas/route.ts
+// Ruta: src/app/feed/make/route.ts
 
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabaseClient'; 
@@ -23,19 +23,23 @@ function escapeXML(str: string) {
 }
 
 export async function GET() {
-  // 1. Conectar a Supabase
+  // 1. Conectar a Supabase y obtener los artículos programados
   const { data: articles, error } = await supabase
     .from('articles')
-    .select('id, title, slug, description, createdAt, miniatura_url') 
-    .not('miniatura_url', 'is', null) 
-    .not('slug', 'is', null)           
-    .not('description', 'is', null) 
-    .order('createdAt', { ascending: false })
-    .limit(50); 
+    .select('id, title, slug, description, createdAt, miniatura_url, og_image_url') // Pedimos ambas miniaturas
+    .not('miniatura_url', 'is', null) // Debe tener miniatura 4:5
+    .not('og_image_url', 'is', null)  // Debe tener miniatura 1.91:1
+    .lte('publish_at', new Date().toISOString()) // La hora de publicación es ahora o ya pasó
+    .eq('is_published', false) // Y no ha sido publicado
+    .order('createdAt', { ascending: true }) // Publica el más antiguo primero
+    .limit(5); // Limita a 5 por si hay muchos en cola
 
   if (error) {
-    console.error('Error fetching articles for RSS:', error);
-    return new NextResponse('Error fetching articles', { status: 500 });
+    console.error('Error fetching articles for Make.com RSS:', error);
+    // Si hay un error, devuelve un feed vacío para que Make no falle
+    return new NextResponse('<rss version="2.0"><channel></channel></rss>', {
+      headers: { 'Content-Type': 'application/xml; charset=utf-8' },
+    });
   }
 
   // 2. Construir el XML del Feed RSS
@@ -44,9 +48,9 @@ export async function GET() {
   const rssHeader = `
     <rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
       <channel>
-        <title>Saladillo Vivo - Artículos con Miniatura (para Make.com)</title>
+        <title>Saladillo Vivo - Feed de Publicación (para Make.com)</title>
         <link>${siteUrl}</link>
-        <description>Feed de noticias que tienen una miniatura generada para redes sociales.</description>
+        <description>Feed de noticias programadas para publicar.</description>
         <language>es-ar</language>
   `.trim();
 
@@ -54,22 +58,31 @@ export async function GET() {
   const items = articles.map(article => {
     const articleUrl = `${siteUrl}/noticia/${article.slug}`; 
     
-    // Usamos la 'miniatura_url' original, con el token '?t=...'
-    // ya que es una URL firmada y válida.
-    const cleanMiniaturaUrl = article.miniatura_url; 
+    // Limpiamos las URLs (por si acaso)
+    const miniaturaInstagram = article.miniatura_url.split('?')[0];
+    const miniaturaFacebook = article.og_image_url.split('?')[0];
     
     return `
       <item>
         <title>${escapeXML(article.title)}</title>
         <link>${articleUrl}</link>
-        <guid>${articleUrl}</guid>
-        <pubDate>${new Date(article.createdAt).toUTCString()}</pubDate> 
+        <guid>${article.id}</guid> <pubDate>${new Date(article.createdAt).toUTCString()}</pubDate> 
         <description>${escapeXML(article.description || '')}</description>
         
         <media:content 
-          url="${cleanMiniaturaUrl}"
+          url="${miniaturaInstagram}"
           medium="image" 
-          type="image/jpeg" 
+          type="image/jpeg"
+          width="1080"
+          height="1350"
+        />
+        
+        <media:content 
+          url="${miniaturaFacebook}"
+          medium="image" 
+          type="image/jpeg"
+          width="1200"
+          height="628"
         />
         
       </item>
