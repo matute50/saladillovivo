@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
       .png() // Output as PNG
       .toBuffer();
 
-    return new Response(resizedImageBuffer, {
+    return new Response(resizedImageBuffer.buffer, {
       status: 200,
       headers: {
         'Content-Type': 'image/png',
