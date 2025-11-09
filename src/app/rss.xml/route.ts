@@ -24,13 +24,45 @@ export async function GET() {
     allNews = allNews.filter(article => article.miniatura_url);
 
     allNews.forEach(article => {
-      if (article.miniatura_url) {
+      if (article.miniatura_url && article.slug) {
+        const cleanMiniaturaUrl = article.miniatura_url.split('?')[0];
+        const articleUrl = `${SITE_URL}/noticia/${article.slug}`;
+
+        const facebookImageUrl = `${SITE_URL}/api/og?imageUrl=${encodeURIComponent(cleanMiniaturaUrl)}&w=1200&h=630`;
+        const instagramImageUrl = `${SITE_URL}/api/og?imageUrl=${encodeURIComponent(cleanMiniaturaUrl)}&w=1080&h=1350`;
+
         feed.item({
-          title: article.titulo, // El título es obligatorio
-          description: article.miniatura_url, // Usamos la descripción para pasar la URL
-          url: article.miniatura_url, // Opcional, pero buena práctica
-          guid: article.id, // Guid único
-          date: article.createdAt, // Fecha de creación
+          title: article.titulo,
+          description: article.description || '',
+          url: articleUrl,
+          guid: article.id,
+          date: article.createdAt,
+          custom_elements: [
+            {
+              'media:content': {
+                _attr: {
+                  url: facebookImageUrl,
+                  medium: 'image',
+                  type: 'image/png',
+                  width: '1200',
+                  height: '630',
+                  'media:role': 'facebook'
+                }
+              }
+            },
+            {
+              'media:content': {
+                _attr: {
+                  url: instagramImageUrl,
+                  medium: 'image',
+                  type: 'image/png',
+                  width: '1080',
+                  height: '1350',
+                  'media:role': 'instagram'
+                }
+              }
+            }
+          ]
         });
       }
     });

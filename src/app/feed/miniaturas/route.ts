@@ -3,11 +3,9 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabaseClient'; 
 
-// Esta línea fuerza al servidor a generar el feed
-// cada vez que se solicita, en lugar de cachearlo.
 export const dynamic = 'force-dynamic';
 
-// Función para "escapar" caracteres XML ilegales
+// Función para "escapar" caracteres XML
 function escapeXML(str: string) {
   if (!str) return '';
   return str.replace(/[<>&"']/g, (match) => {
@@ -23,15 +21,13 @@ function escapeXML(str: string) {
 }
 
 export async function GET() {
-  // 1. Conectar a Supabase y obtener los artículos
+  // 1. Conectar a Supabase
   const { data: articles, error } = await supabase
     .from('articles')
-    // Pedimos todos los campos que usaremos en el XML
     .select('id, title, slug, description, createdAt, miniatura_url') 
-    // ARREGLO: Asegurarnos de que solo vengan artículos con todos los datos
-    .not('miniatura_url', 'is', null) // Debe tener miniatura
-    .not('slug', 'is', null)           // Debe tener un slug (para el <link>)
-    .not('description', 'is', null) // Debe tener descripción (para el <description>)
+    .not('miniatura_url', 'is', null) 
+    .not('slug', 'is', null)           
+    .not('description', 'is', null) 
     .order('createdAt', { ascending: false }) 
     .limit(50); 
 
@@ -54,8 +50,14 @@ export async function GET() {
 
   // 3. Crear cada <item> del feed
   const items = articles.map(article => {
-    // Construimos la URL del artículo
     const articleUrl = `${siteUrl}/noticia/${article.slug}`; 
+    
+    // --- ARREGLO: Limpiar la URL de la miniatura ---
+    // Instagram rechaza URLs con parámetros de consulta (como ?t=...)
+    // 'article.miniatura_url' es: https://.../miniatura-127.jpg?t=1762552314026
+    // 'cleanMiniaturaUrl' será: https://.../miniatura-127.jpg
+    const cleanMiniaturaUrl = article.miniatura_url.split('?')[0];
+    // --- FIN DEL ARREGLO ---
     
     return `
       <item>
@@ -66,7 +68,7 @@ export async function GET() {
         <description>${escapeXML(article.description || '')}</description>
         
         <media:content 
-          url="${article.miniatura_url}" 
+          url="${cleanMiniaturaUrl}"  // <-- Usamos la URL limpia
           medium="image" 
           type="image/jpeg" 
         />
