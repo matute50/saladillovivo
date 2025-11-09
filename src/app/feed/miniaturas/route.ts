@@ -3,8 +3,6 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabaseClient'; 
 
-// Esta línea fuerza al servidor a generar el feed
-// cada vez que se solicita, en lugar de cachearlo.
 export const dynamic = 'force-dynamic';
 
 // Función para "escapar" caracteres XML
@@ -54,8 +52,10 @@ export async function GET() {
   const items = articles.map(article => {
     const articleUrl = `${siteUrl}/noticia/${article.slug}`; 
     
-    // Limpiamos la URL de la miniatura para Instagram/Facebook
-    const cleanMiniaturaUrl = article.miniatura_url.split('?')[0];
+    // --- ARREGLO: Eliminamos la limpieza de la URL. ---
+    // Usamos la 'miniatura_url' original, con el token '?t=...'
+    // ya que es una URL firmada y válida.
+    const cleanMiniaturaUrl = article.miniatura_url; 
     
     return `
       <item>
