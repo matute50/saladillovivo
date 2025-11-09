@@ -3,6 +3,8 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabaseClient'; 
 
+// Esta línea fuerza al servidor a generar el feed
+// cada vez que se solicita, en lugar de cachearlo.
 export const dynamic = 'force-dynamic';
 
 // Función para "escapar" caracteres XML
@@ -28,7 +30,7 @@ export async function GET() {
     .not('miniatura_url', 'is', null) 
     .not('slug', 'is', null)           
     .not('description', 'is', null) 
-    .order('createdAt', { ascending: false }) 
+    .order('createdAt', { ascending: false }) // <-- 'createdAt' (camelCase)
     .limit(50); 
 
   if (error) {
@@ -52,19 +54,15 @@ export async function GET() {
   const items = articles.map(article => {
     const articleUrl = `${siteUrl}/noticia/${article.slug}`; 
     
-    // --- ARREGLO: Limpiar la URL de la miniatura ---
-    // Instagram rechaza URLs con parámetros de consulta (como ?t=...)
-    // 'article.miniatura_url' es: https://.../miniatura-127.jpg?t=1762552314026
-    // 'cleanMiniaturaUrl' será: https://.../miniatura-127.jpg
+    // Limpiamos la URL de la miniatura para Instagram
     const cleanMiniaturaUrl = article.miniatura_url.split('?')[0];
-    // --- FIN DEL ARREGLO ---
     
     return `
       <item>
         <title>${escapeXML(article.title)}</title>
         <link>${articleUrl}</link>
         <guid>${articleUrl}</guid>
-        <pubDate>${new Date(article.createdAt).toUTCString()}</pubDate>
+        <pubDate>${new Date(article.createdAt).toUTCString()}</pubDate> 
         <description>${escapeXML(article.description || '')}</description>
         
         <media:content 
