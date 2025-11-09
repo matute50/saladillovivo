@@ -41,7 +41,10 @@ export async function GET(req: NextRequest) {
       .png() // Output as PNG
       .toBuffer();
 
-    return new Response(resizedImageBuffer.buffer, {
+    // Create a Uint8Array from the Buffer to ensure web standards compatibility.
+    const imageUint8Array = new Uint8Array(resizedImageBuffer);
+
+    return new Response(imageUint8Array, {
       status: 200,
       headers: {
         'Content-Type': 'image/png',
