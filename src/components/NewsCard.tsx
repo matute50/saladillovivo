@@ -3,10 +3,11 @@
 import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Calendar } from 'lucide-react';
+import { Calendar, Play, Pause, Loader2 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { Article } from '@/lib/types';
 import Image from 'next/image';
+import { useAudioPlayer } from '@/hooks/useAudioPlayer';
 
 interface NewsCardProps {
   newsItem: Article;
@@ -18,7 +19,21 @@ interface NewsCardProps {
 const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, className = '' }) => {
   if (!newsItem) return null;
 
-  const { titulo, fecha, slug, imageUrl } = newsItem;
+  const { titulo, fecha, slug, imageUrl, audio_url } = newsItem;
+
+  const { state, play, pause } = useAudioPlayer(audio_url || null);
+
+  const handleTogglePlay = (e: React.MouseEvent) => {
+    e.stopPropagation(); 
+    e.preventDefault();
+
+    if (state === 'playing') {
+      pause();
+    } else {
+      play(); 
+    }
+  };
+
 
   let cardClass = 'card overflow-hidden flex flex-col group cursor-pointer';
   let titleClass = '';
@@ -74,6 +89,28 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, class
               onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
             />
             {dateDisplay}
+
+            {audio_url && (
+              <button
+                onClick={handleTogglePlay}
+                className="absolute bottom-2 right-2 z-10 
+                           bg-black bg-opacity-50 text-white rounded-full 
+                           w-10 h-10 flex items-center justify-center
+                           hover:bg-opacity-70 transition-all focus:outline-none
+                           ring-offset-background focus-visible:outline-none focus-visible:ring-2 
+                           focus-visible:ring-ring focus-visible:ring-offset-2
+                           border border-white drop-shadow-[0_0_15px_black]"
+                aria-label={state === 'playing' ? "Pausar audio" : "Reproducir audio"}
+              >
+                {/* --- INICIO DEL CAMBIO --- */}
+                {/* Se quitó fill="white" de ambos íconos */}
+                {state === 'playing' && <Pause size={20} />}
+                {(state === 'paused' || state === 'stopped' || state === 'error') && <Play size={20} />}
+                {state === 'loading' && <Loader2 size={20} className="animate-spin" />}
+                {/* --- FIN DEL CAMBIO --- */}
+              </button>
+            )}
+            
         </div>
         <div className="p-2 flex flex-col flex-grow">
           <h3 className={titleClass}>
