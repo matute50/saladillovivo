@@ -1,4 +1,5 @@
 import React from "react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { NewsProvider } from "@/context/NewsContext";
 import { MediaPlayerProvider } from "@/context/MediaPlayerContext";
 import { VolumeProvider } from "@/context/VolumeContext";
@@ -43,7 +44,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           strategy="lazyOnload" // Carga el script después de que la página sea interactiva
         />
         {/* --- FIN DEL ARREGLO --- */}
-
+        <SpeedInsights />
       </body>
     </html>
   );
