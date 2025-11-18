@@ -17,11 +17,15 @@ interface NewsCardProps {
 }
 
 const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, className = '' }) => {
+  // CORRECCIÓN: Llamar al hook en el nivel superior del componente.
+  // Pasamos newsItem?.audio_url para manejar de forma segura el caso en que newsItem es nulo.
+  const { state, play, pause } = useAudioPlayer(newsItem?.audio_url || null);
+
+  // Ahora, después de llamar a todos los hooks, podemos hacer un retorno temprano.
   if (!newsItem) return null;
 
+  // El resto de las desestructuraciones y la lógica permanecen después del retorno temprano.
   const { titulo, fecha, slug, imageUrl, audio_url } = newsItem;
-
-  const { state, play, pause } = useAudioPlayer(audio_url || null);
 
   const handleTogglePlay = (e: React.MouseEvent) => {
     e.stopPropagation(); 
@@ -102,12 +106,9 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, class
                            border border-white drop-shadow-[0_0_15px_black]"
                 aria-label={state === 'playing' ? "Pausar audio" : "Reproducir audio"}
               >
-                {/* --- INICIO DEL CAMBIO --- */}
-                {/* Se quitó fill="white" de ambos íconos */}
                 {state === 'playing' && <Pause size={20} />}
                 {(state === 'paused' || state === 'stopped' || state === 'error') && <Play size={20} />}
                 {state === 'loading' && <Loader2 size={20} className="animate-spin" />}
-                {/* --- FIN DEL CAMBIO --- */}
               </button>
             )}
             
