@@ -1,10 +1,26 @@
-El error 'Uncaught TypeError: internalPlayer.mute is not a function' persiste en VideoPlayer.tsx (línea 98) dentro de un componente de React/Next.js. El problema ocurre porque 'internalPlayer' es nulo o aún no está completamente inicializado al intentar llamar a '.mute()'.
+hot-reloader-client.js:99 Se borraron los datos de la consola
+hydration-error-info.js:63 ./src/components/layout/ExclusiveVideoCarousel.tsx
+Error: 
+  × Expected '}', got '<eof>'
+    ╭─[F:\GEMINI-CLI\SALADILLOVIVO_NEXT\saladillovivo\src\components\layout\ExclusiveVideoCarousel.tsx:36:1]
+ 36 │   const { toast } = useToast();
+ 37 │   const swiperRef = useRef(null);
+ 38 │   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+ 39 │   const { buttonColor, buttonBorderColor } = useThemeButtonColors();
+    ·                                                                    ─
+    ╰────
 
-Proporciona el código TypeScript/TSX completo para el hook 'useEffect' en 'VideoPlayer.tsx' que garantice que la función '.mute()' se llama de forma segura.
+Caused by:
+    Syntax Error
 
-La solución debe:
-1.  **Asegurar que internalPlayer no es nulo/indefinido.**
-2.  **Asegurar que el método 'mute' es una función disponible** en 'internalPlayer'.
-3.  **Gestionar las dependencias del useEffect** para que se ejecute solo cuando sea necesario.
-
-Busco la implementación correcta del useEffect para silenciar el reproductor.
+Import trace for requested module:
+./src/components/layout/ExclusiveVideoCarousel.tsx
+./src/components/layout/CategoryCycler.tsx
+./src/components/layout/DesktopLayout.tsx
+./src/components/HomePageClient.tsx
+console.error @ hydration-error-info.js:63
+window.console.error @ setup-hydration-warning.js:18
+handleErrors @ hot-reloader-client.js:162
+processMessage @ hot-reloader-client.js:239
+eval @ hot-reloader-client.js:67
+handleMessage @ websocket.js:45

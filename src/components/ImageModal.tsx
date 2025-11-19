@@ -23,10 +23,10 @@ const ImageModal: React.FC<ImageModalProps> = ({ isOpen, onClose, imageUrl, imag
         <Image
           src={imageUrl}
           alt={imageAlt}
-          layout="intrinsic"
           width={800} // Adjust as needed
           height={600} // Adjust as needed
-          objectFit="contain"
+          className="object-contain" // Reemplaza objectFit
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
         />
       </div>
     </div>

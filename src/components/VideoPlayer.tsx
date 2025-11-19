@@ -84,38 +84,9 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     }, [src, introVideos]);
 
     // Nuevo useEffect para asegurar el autoplay después de la intro o al inicio de la página
-    useEffect(() => {
-      if (playing && playerRef.current && !showIntro) { // Solo si queremos que esté reproduciéndose y la intro no está visible
-        const internalPlayer = playerRef.current.getInternalPlayer() as YouTubePlayer;
-        if (internalPlayer && typeof internalPlayer.playVideo === 'function') {
-          // Usamos un setTimeout para dar un pequeño margen al navegador/reproductor
-          // para asentarse y sortear posibles bloqueos de autoplay.
-          const timer = setTimeout(() => {
-            internalPlayer.playVideo();
-            console.log('Forcing play with delay after intro or on initial load.'); // Para depuración
-          }, 100); // Pequeño retraso de 100ms
-
-          return () => clearTimeout(timer); // Limpiar el timer si el componente se desmonta o las deps cambian
-        }
-      }
-    }, [playing, showIntro]); // Dependencias: 'playing' y 'showIntro'
-
-    const handleReactPlayerReady = useCallback(() => {
-      if (onReady) onReady();
-      // La reproducción se gestionará a través del useEffect que observa 'playing' y 'showIntro'
-      // con un pequeño retraso, y la lógica de forzado en onPause.
-    }, [onReady]); // Ya no necesita 'playing' ni 'showIntro' en las dependencias aquí
-
     const handlePlayerPause = useCallback(() => {
-      if (onPause) onPause(); // Llamar al handler original si existe
-      if (playing && playerRef.current) { // Si el contexto dice que debería estar reproduciéndose
-        const internalPlayer = playerRef.current.getInternalPlayer() as YouTubePlayer;
-        if (internalPlayer && typeof internalPlayer.playVideo === 'function') {
-          console.log('Detected unexpected pause, forcing play...'); // Para depuración
-          internalPlayer.playVideo(); // Forzar la reproducción
-        }
-      }
-    }, [onPause, playing]); // Dependencias: onPause y playing
+      if (onPause) onPause();
+    }, [onPause]);
 
 
     // --- ARREGLO FINAL ---
@@ -202,9 +173,10 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             url={src}
             width="100%"
             height="100%"
-            playing={playing}
+            playing={playing && !showIntro}
             controls={false}
             pip={true}
+            muted={isMuted}
             config={{
               playerVars: {
                 autoplay: 1, // <--- ¡Añadido!
@@ -218,7 +190,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
                 origin: typeof window !== 'undefined' ? window.location.origin : '',
               },
             }}
-            onReady={handleReactPlayerReady}
+            onReady={onReady}
             onPlay={onPlay}
             onPause={handlePlayerPause}
             onEnded={onEnded}
