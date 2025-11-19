@@ -83,29 +83,28 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       }
     }, [src, introVideos]);
 
-    // Nuevo useEffect para asegurar el autoplay después de la intro
+    // Nuevo useEffect para asegurar el autoplay después de la intro o al inicio de la página
     useEffect(() => {
-      if (!showIntro && playing && playerRef.current) {
+      if (playing && playerRef.current && !showIntro) { // Solo si queremos que esté reproduciéndose y la intro no está visible
         const internalPlayer = playerRef.current.getInternalPlayer() as YouTubePlayer;
         if (internalPlayer && typeof internalPlayer.playVideo === 'function') {
-          internalPlayer.playVideo();
+          // Usamos un setTimeout para dar un pequeño margen al navegador/reproductor
+          // para asentarse y sortear posibles bloqueos de autoplay.
+          const timer = setTimeout(() => {
+            internalPlayer.playVideo();
+            console.log('Forcing play with delay after intro or on initial load.'); // Para depuración
+          }, 100); // Pequeño retraso de 100ms
+
+          return () => clearTimeout(timer); // Limpiar el timer si el componente se desmonta o las deps cambian
         }
       }
-    }, [showIntro, playing]);
+    }, [playing, showIntro]); // Dependencias: 'playing' y 'showIntro'
 
     const handleReactPlayerReady = useCallback(() => {
       if (onReady) onReady();
-      if (playerRef.current) {
-        const internalPlayer = playerRef.current.getInternalPlayer() as YouTubePlayer;
-        if (internalPlayer) {
-          // Forzar la reproducción si 'playing' es true y la intro no está visible.
-          // Esto se hace en el 'onReady' del ReactPlayer, donde sabemos que el reproductor está listo.
-          if (playing && !showIntro) {
-            internalPlayer.playVideo();
-          }
-        }
-      }
-    }, [onReady, playing, showIntro]);
+      // La reproducción se gestionará a través del useEffect que observa 'playing' y 'showIntro'
+      // con un pequeño retraso, y la lógica de forzado en onPause.
+    }, [onReady]); // Ya no necesita 'playing' ni 'showIntro' en las dependencias aquí
 
     const handlePlayerPause = useCallback(() => {
       if (onPause) onPause(); // Llamar al handler original si existe
