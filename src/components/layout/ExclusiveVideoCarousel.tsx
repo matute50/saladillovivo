@@ -10,25 +10,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
 import { useThemeButtonColors } from '@/hooks/useThemeButtonColors';
 import { useToast } from '@/components/ui/use-toast';
-
-// Define the Video type assuming it's available globally or imported elsewhere
-type Video = {
-  id: string;
-  url: string;
-  imagen: string;
-  nombre: string;
-  isLiveThumbnail?: boolean;
-  isEvent?: boolean;
-};
-
-// Define ExclusiveVideoCarouselProps
-interface ExclusiveVideoCarouselProps {
-  videos: Video[];
-  isLoading: boolean;
-  carouselId: string;
-  isMobile?: boolean;
-  isLive?: boolean;
-}
+import { Video, ExclusiveVideoCarouselProps } from '@/lib/types';
 
 const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos, isLoading, carouselId, isMobile = false, isLive = false }) => {
   const { playSpecificVideo, playLiveStream, streamStatus } = useMediaPlayer();
