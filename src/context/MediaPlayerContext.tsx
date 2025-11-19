@@ -105,8 +105,9 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
         videoToPlay = fetchedVideos[randomIndex];
       }
       playMedia(videoToPlay, true);
+      setIsPlaying(true); // Aseguramos que el autoplay esté activado para el primer video.
     }
-  }, [playMedia]);
+  }, [playMedia, setIsPlaying]);
 
   const playNextRandomVideo = useCallback(async (currentVideoId?: string, currentVideoCategory?: string) => {
     const nextVideo = await getNewRandomVideo(currentVideoId, currentVideoCategory);
