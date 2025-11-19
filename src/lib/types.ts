@@ -88,6 +88,14 @@ export interface TickerText {
   isActive: boolean;
 }
 
+export interface ExclusiveVideoCarouselProps {
+  videos: Video[];
+  isLoading: boolean;
+  carouselId: string;
+  isMobile?: boolean;
+  isLive?: boolean;
+}
+
 // Main data structure for the home page
 export interface PageData {
   articles: {

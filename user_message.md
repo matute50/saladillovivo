@@ -1,4 +1,4 @@
-He corregido el archivo `src/components/layout/ExclusiveVideoCarousel.tsx` para importar los tipos `Video` y `ExclusiveVideoCarouselProps` desde `src/lib/types.ts`, lo que debería resolver el error de tipo.
+He añadido la interfaz `ExclusiveVideoCarouselProps` y la he exportado desde `src/lib/types.ts`. Esto debería resolver el error de tipo en el despliegue de Vercel.
 
 Por favor, ejecuta los siguientes comandos en tu terminal para confirmar y guardar los cambios en GitHub:
 
@@ -9,7 +9,7 @@ Por favor, ejecuta los siguientes comandos en tu terminal para confirmar y guard
 
 2.  **Crear un commit:**
     ```bash
-    git commit -m "Fix: Importación correcta de tipos en ExclusiveVideoCarousel"
+    git commit -m "Fix: Export ExclusiveVideoCarouselProps desde src/lib/types.ts"
     ```
 
 3.  **Subir los cambios a GitHub:**
