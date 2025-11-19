@@ -208,6 +208,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             pip={true}
             config={{
               playerVars: {
+                autoplay: 1, // <--- ¡Añadido!
                 showinfo: 0,
                 rel: 0,
                 iv_load_policy: 3,
