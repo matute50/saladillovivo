@@ -1,51 +1,18 @@
 'use client';
 
-import React, { useRef, useState, useEffect } from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
-import { Navigation } from 'swiper/modules';
-import 'swiper/css/navigation';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
-import { motion } from 'framer-motion';
-import { useToast } from '@/components/ui/use-toast';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import type { Video } from '@/lib/types';
-import Image from 'next/image';
+import { useThemeButtonColors } from '@/hooks/useThemeButtonColors';
+import { useToast } from '../../ui/use-toast';
 
-interface ExclusiveVideoCarouselProps {
-  videos: Video[];
-  isLoading: boolean;
-  carouselId: string;
-  isMobile?: boolean;
-  isLive?: boolean;
-
-}
+// ...
 
 const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos, isLoading, carouselId, isMobile = false, isLive = false }) => {
   const { playSpecificVideo, playLiveStream, streamStatus } = useMediaPlayer();
   const { toast } = useToast();
   const swiperRef = useRef(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const [buttonColor, setButtonColor] = useState("#FFFFFF");
-  const [buttonBorderColor, setButtonBorderColor] = useState("#FFFFFF");
+  const { buttonColor, buttonBorderColor } = useThemeButtonColors();
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const updateButtonColors = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const color = rootStyles.getPropertyValue('--carousel-button-color').trim();
-        const borderColor = rootStyles.getPropertyValue('--carousel-button-border-color').trim();
-        setButtonColor(`rgb(${color})`);
-        setButtonBorderColor(`rgb(${borderColor})`);
-      };
-
-      updateButtonColors();
-      const observer = new MutationObserver(updateButtonColors);
-      observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-
-      return () => observer.disconnect();
-    }
-  }, []);
 
   const getYoutubeThumbnail = (video: Video) => {
     if (!video) return 'https://via.placeholder.com/320x180.png?text=No+disponible';
@@ -147,14 +114,14 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
                 onClick={() => handleVideoClick(video)}
                 className="relative cursor-pointer group rounded-xl overflow-hidden hover:shadow-orange-500/50"
               >
-                <div className="w-56 aspect-video flex items-center justify-center bg-black">
+                <div className="relative w-56 aspect-video flex items-center justify-center bg-black">
                   <Image
                     src={getYoutubeThumbnail(video)}
                     alt={video.nombre || "Miniatura de video"}
-                    layout="fill"
-                    objectFit={isLiveOrEvent ? 'contain' : 'cover'}
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" // Añadido para mejor rendimiento
                     priority={index === 0}
-                    className={`transition-transform duration-300 group-hover:scale-105`}
+                    className={`${isLiveOrEvent ? 'object-contain' : 'object-cover'} transition-transform duration-300 group-hover:scale-105`}
                     onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
                   />
                 </div>
