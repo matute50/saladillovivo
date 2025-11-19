@@ -2,7 +2,7 @@
 
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
 import { useThemeButtonColors } from '@/hooks/useThemeButtonColors';
-import { useToast } from '../../ui/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 
 // ...
 
