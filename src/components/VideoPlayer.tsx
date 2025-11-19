@@ -95,10 +95,28 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
     const handleReactPlayerReady = useCallback(() => {
       if (onReady) onReady();
-      // La lógica de muteo/unmuteo y volumen, así como la reproducción/pausa,
-      // será ahora gestionada por los 'useEffect's que escuchan el VolumeContext
-      // y la prop 'playing' del MediaPlayerContext.
-    }, [onReady]);
+      if (playerRef.current) {
+        const internalPlayer = playerRef.current.getInternalPlayer() as YouTubePlayer;
+        if (internalPlayer) {
+          // Forzar la reproducción si 'playing' es true y la intro no está visible.
+          // Esto se hace en el 'onReady' del ReactPlayer, donde sabemos que el reproductor está listo.
+          if (playing && !showIntro) {
+            internalPlayer.playVideo();
+          }
+        }
+      }
+    }, [onReady, playing, showIntro]);
+
+    const handlePlayerPause = useCallback(() => {
+      if (onPause) onPause(); // Llamar al handler original si existe
+      if (playing && playerRef.current) { // Si el contexto dice que debería estar reproduciéndose
+        const internalPlayer = playerRef.current.getInternalPlayer() as YouTubePlayer;
+        if (internalPlayer && typeof internalPlayer.playVideo === 'function') {
+          console.log('Detected unexpected pause, forcing play...'); // Para depuración
+          internalPlayer.playVideo(); // Forzar la reproducción
+        }
+      }
+    }, [onPause, playing]); // Dependencias: onPause y playing
 
 
     // --- ARREGLO FINAL ---
@@ -202,7 +220,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             }}
             onReady={handleReactPlayerReady}
             onPlay={onPlay}
-            onPause={onPause}
+            onPause={handlePlayerPause}
             onEnded={onEnded}
             onError={onError}
             onProgress={onProgress}
