@@ -85,13 +85,9 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
     const handleReactPlayerReady = useCallback(() => {
       if (onReady) onReady();
-      if (playerRef.current) {
-        const internalPlayer = playerRef.current.getInternalPlayer() as YouTubePlayer;
-        if (internalPlayer) {
-          internalPlayer?.mute?.();
-          internalPlayer?.playVideo?.();
-        }
-      }
+      // La lógica de muteo/unmuteo y volumen, así como la reproducción/pausa,
+      // será ahora gestionada por los 'useEffect's que escuchan el VolumeContext
+      // y la prop 'playing' del MediaPlayerContext.
     }, [onReady]);
 
 
