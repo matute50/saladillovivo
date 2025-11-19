@@ -83,6 +83,16 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       }
     }, [src, introVideos]);
 
+    // Nuevo useEffect para asegurar el autoplay después de la intro
+    useEffect(() => {
+      if (!showIntro && playing && playerRef.current) {
+        const internalPlayer = playerRef.current.getInternalPlayer() as YouTubePlayer;
+        if (internalPlayer && typeof internalPlayer.playVideo === 'function') {
+          internalPlayer.playVideo();
+        }
+      }
+    }, [showIntro, playing]);
+
     const handleReactPlayerReady = useCallback(() => {
       if (onReady) onReady();
       // La lógica de muteo/unmuteo y volumen, así como la reproducción/pausa,
