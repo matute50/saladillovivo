@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/revisar-noticias",
-      "schedule": "0 * * * *"
+      "schedule": "0 0 * * *"
     }
   ]
 }
