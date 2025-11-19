@@ -8,6 +8,7 @@ import { formatDate } from '@/lib/utils';
 import { Article } from '@/lib/types';
 import Image from 'next/image';
 import { useAudioPlayer } from '@/hooks/useAudioPlayer';
+import { useThemeButtonColors } from '@/hooks/useThemeButtonColors'; // NUEVO
 
 interface NewsCardProps {
   newsItem: Article;
@@ -17,11 +18,9 @@ interface NewsCardProps {
 }
 
 const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, className = '' }) => {
-  // CORRECCIÓN: Llamar al hook en el nivel superior del componente.
-  // Pasamos newsItem?.audio_url para manejar de forma segura el caso en que newsItem es nulo.
   const { state, play, pause } = useAudioPlayer(newsItem?.audio_url || null);
+  const { buttonColor, buttonBorderColor } = useThemeButtonColors(); // NUEVO
 
-  // Ahora, después de llamar a todos los hooks, podemos hacer un retorno temprano.
   if (!newsItem) return null;
 
   // El resto de las desestructuraciones y la lógica permanecen después del retorno temprano.
@@ -95,21 +94,23 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, class
             {dateDisplay}
 
             {audio_url && (
-              <button
+              <motion.button // Cambiado a motion.button
                 onClick={handleTogglePlay}
-                className="absolute bottom-2 right-2 z-10 
-                           bg-black bg-opacity-50 text-white rounded-full 
-                           w-10 h-10 flex items-center justify-center
+                className="carousel-nav-button shadow-lg shadow-black/50 absolute bottom-2 right-2 z-10 
+                           rounded-md p-1 border // Añadida la clase 'border'
+                           flex items-center justify-center
                            hover:bg-opacity-70 transition-all focus:outline-none
                            ring-offset-background focus-visible:outline-none focus-visible:ring-2 
                            focus-visible:ring-ring focus-visible:ring-offset-2
-                           border border-white drop-shadow-[0_0_15px_black]"
+                           w-10 h-10" // Mantener el tamaño
+                animate={{ color: buttonColor, borderColor: buttonBorderColor }} // Se elimina backgroundColor
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
                 aria-label={state === 'playing' ? "Pausar audio" : "Reproducir audio"}
               >
                 {state === 'playing' && <Pause size={20} />}
                 {(state === 'paused' || state === 'stopped' || state === 'error') && <Play size={20} />}
                 {state === 'loading' && <Loader2 size={20} className="animate-spin" />}
-              </button>
+              </motion.button>
             )}
             
         </div>
