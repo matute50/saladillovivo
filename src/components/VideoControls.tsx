@@ -1,104 +1,50 @@
 'use client';
 
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, Volume1, Cast } from 'lucide-react';
-import { Slider } from '@/components/ui/slider';
+import React from 'react';
+import { useMediaPlayer } from '@/context/MediaPlayerContext';
+import { Play, Pause, Maximize, Minimize } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const VideoControls = ({
-  isPlaying,
-  isMuted,
-  progress,
-  duration,
-  volume,
-  isMobileFixed,
-  togglePlayPause,
-  toggleMute,
-  onSeek,
-  onVolumeChange,
-  toggleFullScreen,
-  isFullscreen,
-  isCastAvailable,
-  handleCast,
-  isLive
-}) => {
-  const [showVolume, setShowVolume] = useState(false);
+interface VideoControlsProps {
+  showControls: boolean;
+  onToggleFullScreen: () => void;
+  isFullScreen: boolean;
+}
 
-  const handleInteraction = (e, action) => {
-    e.stopPropagation();
-    action();
-  };
+const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onToggleFullScreen, isFullScreen }) => {
+  const { isPlaying, togglePlayPause } = useMediaPlayer();
 
-  const handleSeekChange = (value: number[]) => {
-    if (!isLive) {
-      onSeek(value[0]);
-    }
-  };
-
-  const handleVolumeChangeWrapper = (value: number[]) => {
-    onVolumeChange(value);
-  };
-
-  const VolumeIcon = isMuted || volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
+  // Si no está muteado y no se deben mostrar los controles, no renderizar nada
+  if (!showControls) {
+    return null;
+  }
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.1 }}
-      className="absolute bottom-0 left-0 right-0 pt-1 bg-gradient-to-t from-black/70 to-transparent flex flex-col z-20"
-    >
-      {!isLive && (
-        <div className="px-2 w-full">
-          <Slider
-            value={[progress * duration]}
-            max={duration}
-            step={1}
-            onValueChange={handleSeekChange}
-            className="w-full h-1 cursor-pointer"
-          />
-        </div>
-      )}
-      <div className="flex items-center justify-between space-x-2 p-2">
-        <div className="flex items-center space-x-2">
-          <button onClick={(e) => handleInteraction(e, togglePlayPause)} className="text-white p-1 focus:outline-none">
-            {isPlaying ? <Pause size={isMobileFixed ? 18 : 22} /> : <Play size={isMobileFixed ? 18 : 22} />}
-          </button>
-          <div 
-            className="flex items-center"
-            onMouseEnter={() => setShowVolume(true)}
-            onMouseLeave={() => setShowVolume(false)}
-          >
-            <button onClick={(e) => handleInteraction(e, toggleMute)} className="text-white p-1 focus:outline-none transition-colors">
-              <VolumeIcon size={isMobileFixed ? 18 : 22} />
+    <AnimatePresence>
+      {showControls && (
+        <motion.div
+          className="absolute bottom-0 left-0 right-0 z-30 flex items-center justify-between p-4 bg-gradient-to-t from-black/70 to-transparent"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          transition={{ duration: 0.2 }}
+        >
+          {/* --- Controles Izquierdos --- */}
+          <div className="flex items-center gap-4">
+            <button onClick={togglePlayPause} className="text-white hover:text-orange-500 transition-colors">
+              {isPlaying ? <Pause size={28} fill="white" /> : <Play size={28} fill="white" />}
             </button>
-            {showVolume && !isMobileFixed && (
-              <div className="w-20 ml-2">
-                <Slider
-                  defaultValue={[isMuted ? 0 : volume * 100]}
-                  max={100}
-                  step={1}
-                  onValueChange={handleVolumeChangeWrapper}
-                  className="w-full h-1 cursor-pointer"
-                />
-              </div>
-            )}
           </div>
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          {isCastAvailable && (
-            <button onClick={(e) => handleInteraction(e, handleCast)} className="text-white p-1 focus:outline-none">
-              <Cast size={isMobileFixed ? 18 : 22} />
+
+          {/* --- Controles Derechos --- */}
+          <div className="flex items-center gap-4">
+            <button onClick={onToggleFullScreen} className="text-white hover:text-orange-500 transition-colors">
+              {isFullScreen ? <Minimize size={24} /> : <Maximize size={24} />}
             </button>
-          )}
-          <button onClick={(e) => handleInteraction(e, toggleFullScreen)} className="text-white p-1 focus:outline-none">
-            {isFullscreen ? <Minimize size={isMobileFixed ? 18 : 22} /> : <Maximize size={isMobileFixed ? 18 : 22} />}
-          </button>
-        </div>
-      </div>
-    </motion.div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 

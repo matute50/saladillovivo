@@ -1,0 +1,10 @@
+El error 'Uncaught TypeError: internalPlayer.mute is not a function' persiste en VideoPlayer.tsx (línea 98) dentro de un componente de React/Next.js. El problema ocurre porque 'internalPlayer' es nulo o aún no está completamente inicializado al intentar llamar a '.mute()'.
+
+Proporciona el código TypeScript/TSX completo para el hook 'useEffect' en 'VideoPlayer.tsx' que garantice que la función '.mute()' se llama de forma segura.
+
+La solución debe:
+1.  **Asegurar que internalPlayer no es nulo/indefinido.**
+2.  **Asegurar que el método 'mute' es una función disponible** en 'internalPlayer'.
+3.  **Gestionar las dependencias del useEffect** para que se ejecute solo cuando sea necesario.
+
+Busco la implementación correcta del useEffect para silenciar el reproductor.

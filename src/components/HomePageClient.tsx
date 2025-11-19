@@ -1,58 +1,35 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import DesktopLayout from './layout/DesktopLayout';
 import MobileLayout from './layout/MobileLayout';
+import { PageData } from '@/lib/types';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
+import useIsMobile from '@/hooks/useIsMobile';
 
-const useIsMobile = () => {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 1024); // Use 1024px as the breakpoint for desktop layout
-    };
-    checkScreenSize();
-    window.addEventListener('resize', checkScreenSize);
-    return () => window.removeEventListener('resize', checkScreenSize);
-  }, []);
-  return isMobile;
-};
-
-const HomePageClient = ({ data }) => {
+const HomePageClient = ({ initialData }: { initialData: PageData }) => {
   const isMobile = useIsMobile();
-  const [hasMounted, setHasMounted] = useState(false);
-  const { playUserSelectedVideo } = useMediaPlayer();
-  const { videos, interviews } = data;
+  const { loadInitialPlaylist } = useMediaPlayer();
 
   useEffect(() => {
-    setHasMounted(true);
-  }, []);
+    loadInitialPlaylist(null);
+  }, [loadInitialPlaylist]);
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const videoUrl = params.get('videoUrl');
-
-    if (videoUrl && videos && interviews) {
-        const combinedVideos = [...interviews, ...videos];
-        const videoToPlay = combinedVideos.find(v => v.url === videoUrl);
-
-        if (videoToPlay) {
-            playUserSelectedVideo(videoToPlay);
-            window.history.replaceState(null, '', window.location.pathname);
-        }
-    }
-  }, [videos, interviews, playUserSelectedVideo]);
-
-
-  if (!hasMounted) {
-    return null; // Return null on first render to avoid hydration mismatch
-  }
+  const data = {
+    articles: initialData.articles || { allNews: [] },
+    videos: initialData.videos || { allVideos: [] },
+    tickerTexts: initialData.tickerTexts,
+    interviews: initialData.interviews,
+    banners: initialData.banners,
+    ads: initialData.ads,
+    events: initialData.events,
+  };
 
   if (isMobile) {
     return <MobileLayout data={data} isMobile={isMobile} />;
   }
 
-  return <DesktopLayout data={data} isMobile={isMobile} />;
+  return <DesktopLayout data={data} />;
 };
 
 export default HomePageClient;
