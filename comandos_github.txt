@@ -1,0 +1,3 @@
+git add .
+git commit -m "fix: Resolver error de compilación 'Header' y 'Footer' no usados en layout.tsx"
+git push

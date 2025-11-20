@@ -14,11 +14,10 @@ const NoResultsCard: React.FC<NoResultsCardProps> = ({ message, onClearSearch })
         {message}
       </p>
       {onClearSearch && (
-        <button
-          onClick={onClearSearch}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-        >
-          Volver a Últimas Noticias
+                                            <button
+                                              onClick={onClearSearch}
+                                              className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                                            >          Volver a Últimas Noticias
         </button>
       )}
     </div>

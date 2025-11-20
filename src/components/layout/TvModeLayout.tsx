@@ -1,12 +1,17 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { Newspaper } from 'lucide-react';
 import TvBackgroundPlayer from '../tv/TvBackgroundPlayer';
-// import TvContentRail from '../tv/TvContentRail'; // Future component for carousel
+import VideoControls from '../VideoControls';
+import TvContentRail from '../tv/TvContentRail'; // Import the actual TvContentRail component
 
 const TvModeLayout = () => {
   const [isOverlayVisible, setIsOverlayVisible] = useState(false);
   const hideOverlayTimer = useRef<NodeJS.Timeout | null>(null);
+  const [isFullScreen, setIsFullScreen] = useState(false); // State for fullscreen
+  const router = useRouter(); // Inicializar useRouter
 
   const handleMouseEnter = () => {
     if (hideOverlayTimer.current) {
@@ -18,10 +23,22 @@ const TvModeLayout = () => {
   const handleMouseLeave = () => {
     hideOverlayTimer.current = setTimeout(() => {
       setIsOverlayVisible(false);
-    }, 2000);
+    }, 2000); // 2-second delay
   };
 
-  // Clear the timer when the component unmounts
+  const toggleFullScreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().then(() => setIsFullScreen(true));
+    } else {
+      document.exitFullscreen().then(() => setIsFullScreen(false));
+    }
+  }, []);
+
+  const handleSwitchToDailyMode = useCallback(() => {
+    router.push('/'); // Navegar a la página principal
+  }, [router]);
+
+  // Clear the timer when the component unmounts to prevent memory leaks
   useEffect(() => {
     return () => {
       if (hideOverlayTimer.current) {
@@ -32,25 +49,49 @@ const TvModeLayout = () => {
 
   return (
     <div
-      className="relative h-screen w-screen overflow-hidden"
+      className="relative h-screen w-screen overflow-hidden bg-black"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       {/* Background Player */}
       <TvBackgroundPlayer />
 
-      {/* Security Shading Overlay */}
-      {isOverlayVisible && (
-        <div
-          className="absolute inset-0 z-20 bg-gradient-to-b from-black/80 via-transparent to-black/80 transition-opacity duration-300 ease-in-out"
-          style={{ opacity: isOverlayVisible ? 1 : 0 }}
-        ></div>
-      )}
+      {/* UI Overlay (Header, Footer, Controls, Content Rail) */}
+      <div
+        className={`absolute inset-0 z-10 flex flex-col justify-between h-full transition-opacity duration-500 ease-in-out ${
+          isOverlayVisible ? 'opacity-100' : 'opacity-0'
+        }`}
+      >
+        {/* Header */}
+        <div className="bg-gradient-to-b from-black/80 to-transparent p-8 pointer-events-auto">
+          <h1 className="text-3xl font-black text-white">SALADILLO VIVO</h1>
+        </div>
 
-      {/* Floating Content Layer (for future carousel) */}
-      <div className="absolute inset-0 z-10 bg-transparent flex flex-col justify-end p-8 overflow-y-auto">
-        {/* Placeholder for TvContentRail or similar carousel component */}
-        {/* <TvContentRail /> */}
+        {/* Footer (Content Rail) */}
+        <div className="bg-gradient-to-t from-black/80 to-transparent p-8 pointer-events-auto">
+          <div className="flex justify-between items-end">
+            {/* VideoControls removed from here */}
+            {/* <VideoControls /> */}
+            <TvContentRail />
+          </div>
+        </div>
+
+        {/* Contenedor de controles y botón "Modo Diario" */}
+        <div className="absolute top-4 right-4 z-40 flex items-center gap-2 pointer-events-auto">
+          <div className="rounded-md p-2 bg-black/10 backdrop-blur-lg shadow-lg shadow-black/50">
+            <VideoControls
+                showControls={isOverlayVisible}
+                onToggleFullScreen={toggleFullScreen}
+                isFullScreen={isFullScreen}
+            />
+          </div>
+          <button
+            onClick={handleSwitchToDailyMode}
+            className="rounded-md p-2 bg-black/10 text-white text-sm font-semibold backdrop-blur-lg shadow-lg shadow-black/50"
+          >
+            <Newspaper size={20} /> {/* Usar el icono de periódico */}
+          </button>
+        </div>
       </div>
     </div>
   );

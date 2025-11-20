@@ -3,10 +3,9 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { NewsProvider } from "@/context/NewsContext";
 import { MediaPlayerProvider } from "@/context/MediaPlayerContext";
 import { VolumeProvider } from "@/context/VolumeContext";
-import type { Metadata } from "next";
+import type { Metadata } "next";
 import "@/app/globals.css";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+
 import Script from 'next/script';
 import LayoutClientContent from "@/components/layout/LayoutClientContent";
 

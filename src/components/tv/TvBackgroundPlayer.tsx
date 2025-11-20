@@ -5,7 +5,13 @@ import { useMediaPlayer } from '@/context/MediaPlayerContext';
 import VideoPlayer from '@/components/VideoPlayer';
 
 const TvBackgroundPlayer = () => {
-  const { currentVideo, isPlaying } = useMediaPlayer();
+  const { 
+    currentVideo, 
+    isPlaying, 
+    setIsPlaying, 
+    handleOnEnded, 
+    handleOnProgress 
+  } = useMediaPlayer();
 
   // No renderizar nada si no hay un video que mostrar
   if (!currentVideo?.url) {
@@ -19,12 +25,16 @@ const TvBackgroundPlayer = () => {
       <VideoPlayer
         src={currentVideo.url}
         playing={isPlaying}
-        // Estas props son necesarias para el reproductor pero no necesitamos manejarlas aquí
-        onReady={() => {}}
-        onPlay={() => {}}
-        onPause={() => {}}
-        onEnded={() => {}}
-        onError={(e) => console.error('Background Player Error:', e)}
+        onReady={() => setIsPlaying(true)} // Asegura el play al estar listo
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onEnded={handleOnEnded}
+        onProgress={(progress) => handleOnProgress(progress, currentVideo?.id, currentVideo?.categoria)}
+        onError={(e) => {
+          console.error('Background Player Error:', e);
+          // En caso de error, intenta pasar al siguiente video.
+          handleOnEnded(); 
+        }}
       />
     </div>
   );

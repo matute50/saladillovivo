@@ -115,27 +115,75 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
 
   
 
-    const playSpecificVideo = useCallback((media: Video) => {
+        const playSpecificVideo = useCallback((media: Video) => {
 
-      if (currentVideo) {
+  
 
-        setNextVideo(media);
+          // Si estamos en modo TV, siempre reproducir el video inmediatamente
 
-        setIsUserSelected(true);
+  
 
-        setRandomVideoQueued(false);
+          if (viewMode === 'tv') {
 
-      } else {
+  
 
-        setCurrentVideo(media);
+            playMedia(media, false); // Reproducir directamente, no como "primer video"
 
-        setIsPlaying(true);
+  
 
-        setIsUserSelected(true);
+            setIsUserSelected(true);
 
-      }
+  
 
-    }, [currentVideo]);
+          } else {
+
+  
+
+            // Lógica existente para el modo diario (playlist)
+
+  
+
+            if (currentVideo) {
+
+  
+
+              setNextVideo(media);
+
+  
+
+              setIsUserSelected(true);
+
+  
+
+              setRandomVideoQueued(false);
+
+  
+
+            } else {
+
+  
+
+              setCurrentVideo(media);
+
+  
+
+              setIsPlaying(true);
+
+  
+
+              setIsUserSelected(true);
+
+  
+
+            }
+
+  
+
+          }
+
+  
+
+        }, [currentVideo, viewMode, playMedia]);
 
   
 
@@ -203,57 +251,131 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
 
   
 
-    const handleOnEnded = useCallback(() => {
-
-      if (isUserSelected) {
-
-        setIsUserSelected(false);
-
-      }
-
-      if (nextVideo) {
-
-        playMedia(nextVideo, false);
-
-        setNextVideo(null);
-
-      } else {
-
-        playNextRandomVideo(currentVideo?.id, currentVideo?.categoria);
-
-      }
-
-    }, [isUserSelected, nextVideo, playMedia, playNextRandomVideo, currentVideo]);
+        const handleOnEnded = useCallback(() => {
 
   
 
-    const handleOnProgress = useCallback(async (progress: ProgressState, currentVideoId: string | undefined, currentVideoCategory: string | undefined) => {
+          if (viewMode === 'tv') { // Lógica específica del modo TV
+
+  
+
+            playNextRandomVideo(currentVideo?.id, currentVideo?.categoria);
+
+  
+
+          } else { // Lógica del modo diario
+
+  
+
+            if (isUserSelected) {
+
+  
+
+              setIsUserSelected(false);
+
+  
+
+            }
+
+  
+
+            if (nextVideo) {
+
+  
+
+              playMedia(nextVideo, false);
+
+  
+
+              setNextVideo(null);
+
+  
+
+            } else {
+
+  
+
+              playNextRandomVideo(currentVideo?.id, currentVideo?.categoria);
+
+  
+
+            }
+
+  
+
+          }
+
+  
+
+        }, [viewMode, isUserSelected, nextVideo, playMedia, playNextRandomVideo, currentVideo]);
+
+  
+
+        const handleOnProgress = useCallback(async (progress: ProgressState, currentVideoId: string | undefined, currentVideoCategory: string | undefined) => {
+
+  
+
+          if (viewMode === 'tv') { // Desactivar la precarga en modo TV
+
+  
+
+            return;
+
+  
+
+          }
+
+  
+
+          
+
+  
+
+          const duration = progress.loadedSeconds;
+
+  
 
       
 
-      const duration = progress.loadedSeconds;
+  
+
+          if (currentVideoId && !nextVideo && !randomVideoQueued && duration && (duration - progress.playedSeconds < 40)) {
 
   
 
-      if (currentVideoId && !nextVideo && !randomVideoQueued && duration && (duration - progress.playedSeconds < 40)) {
+            setRandomVideoQueued(true); 
 
-        setRandomVideoQueued(true); 
+  
 
-        const newRandomVideo = await getNewRandomVideo(currentVideoId, currentVideoCategory);
+            const newRandomVideo = await getNewRandomVideo(currentVideoId, currentVideoCategory);
 
-        if (newRandomVideo) {
+  
 
-          setNextVideo(newRandomVideo);
+            if (newRandomVideo) {
 
-        } else {
+  
 
-          setRandomVideoQueued(false);
+              setNextVideo(newRandomVideo);
 
-        }
+  
 
-      }
+            } else {
 
-    }, [nextVideo, randomVideoQueued]);
+  
+
+              setRandomVideoQueued(false);
+
+  
+
+            }
+
+  
+
+          }
+
+  
+
+        }, [viewMode, nextVideo, randomVideoQueued]);
 
   
 
