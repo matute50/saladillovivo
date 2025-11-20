@@ -22,6 +22,8 @@ interface MediaPlayerContextType {
   isFirstMedia: boolean;
   randomVideoQueued: boolean;
   streamStatus: { liveStreamUrl: string; isLive: boolean; } | null; 
+  viewMode: 'diario' | 'tv';
+  setViewMode: (mode: 'diario' | 'tv') => void;
   playMedia: (media: Video, isFirst?: boolean) => void;
   playSpecificVideo: (media: Video) => void;
   playLiveStream: (status: { liveStreamUrl: string; isLive: boolean; }) => void; 
@@ -47,160 +49,333 @@ export const useMediaPlayer = () => {
 
 export const MediaPlayerProvider = ({ children }: { children: React.ReactNode }) => {
 
-  const [currentVideo, setCurrentVideo] = useState<Video | null>(null);
-  const [nextVideo, setNextVideo] = useState<Video | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [seekToFraction, setSeekToFraction] = useState<number | null>(null);
+  const [viewMode, _setViewMode] = useState<'diario' | 'tv'>('diario');
+
+    const setViewMode = useCallback((mode: 'diario' | 'tv') => {
+
+      console.log(`[MediaPlayerContext] Cambiando viewMode a: ${mode}`);
+
+      _setViewMode(mode);
+
+    }, []);
+
   
-  const [isFirstMedia, setIsFirstMedia] = useState(true);
-  const [isUserSelected, setIsUserSelected] = useState(false);
-  const [randomVideoQueued, setRandomVideoQueued] = useState(false);
+
+    const [currentVideo, setCurrentVideo] = useState<Video | null>(null);
+
+    const [nextVideo, setNextVideo] = useState<Video | null>(null);
+
+    const [isPlaying, setIsPlaying] = useState(false);
+
+    const [seekToFraction, setSeekToFraction] = useState<number | null>(null);
+
+    
+
+    const [isFirstMedia, setIsFirstMedia] = useState(true);
+
+    const [isUserSelected, setIsUserSelected] = useState(false);
+
+    const [randomVideoQueued, setRandomVideoQueued] = useState(false);
+
+    
+
+    const [streamStatus] = useState<{ liveStreamUrl: string; isLive: boolean; } | null>({ liveStreamUrl: 'https://www.youtube.com/watch?v=pand8Im1jag', isLive: true });
+
   
-  const [streamStatus] = useState<{ liveStreamUrl: string; isLive: boolean; } | null>({ liveStreamUrl: 'https.://www.youtube.com/watch?v=vCDCKGfOLoY', isLive: true });
 
-  const { setVolume } = useVolume(); 
-  // 'useRef' para 'userVolume' ha sido eliminado
+    const { setVolume } = useVolume(); 
 
-  const playMedia = useCallback((media: Video, isFirst = false) => {
-    setCurrentVideo(media);
-    setIsPlaying(true);
-    setIsFirstMedia(isFirst);
-    setNextVideo(null);
-    setRandomVideoQueued(false);
-    
-    if (isFirst) {
-       setVolume(0);
-    }
-    
-  }, [setVolume]);
+    // 'useRef' para 'userVolume' ha sido eliminado
 
-  const playSpecificVideo = useCallback((media: Video) => {
-    if (currentVideo) {
-      setNextVideo(media);
-      setIsUserSelected(true);
-      setRandomVideoQueued(false);
-    } else {
+  
+
+    const playMedia = useCallback((media: Video, isFirst = false) => {
+
       setCurrentVideo(media);
+
       setIsPlaying(true);
-      setIsUserSelected(true);
-    }
-  }, [currentVideo]);
 
-  const playLiveStream = useCallback((status: { liveStreamUrl: string; isLive: boolean; }) => {
-    if (status && status.isLive) {
-      const liveVideo: Video = { id: 'live-stream', nombre: 'TRANSMISIÓN EN VIVO', url: status.liveStreamUrl, createdAt: new Date().toISOString(), categoria: 'En Vivo', imagen: '/PARCHE.png', novedad: true, };
-      playMedia(liveVideo, false);
-    }
-  }, [playMedia]);
+      setIsFirstMedia(isFirst);
 
-  const loadInitialPlaylist = useCallback(async (videoUrlToPlay: string | null) => {
-    const { allVideos: fetchedVideos } = await getVideosForHome(100);
-    if (fetchedVideos && fetchedVideos.length > 0) {
-      let videoToPlay: Video;
-      if (videoUrlToPlay) {
-        const specificVideo = fetchedVideos.find(v => v.url === videoUrlToPlay);
-        videoToPlay = specificVideo || fetchedVideos[0];
-      } else {
-        const randomIndex = Math.floor(Math.random() * fetchedVideos.length);
-        videoToPlay = fetchedVideos[randomIndex];
-      }
-      playMedia(videoToPlay, true);
-      setIsPlaying(true); // Aseguramos que el autoplay esté activado para el primer video.
-    }
-  }, [playMedia, setIsPlaying]);
-
-  const playNextRandomVideo = useCallback(async (currentVideoId?: string, currentVideoCategory?: string) => {
-    const nextVideo = await getNewRandomVideo(currentVideoId, currentVideoCategory);
-    if (nextVideo) {
-      playMedia(nextVideo, false);
-    } else {
-      await loadInitialPlaylist(null);
-    }
-  }, [playMedia, loadInitialPlaylist]);
-
-  const handleOnEnded = useCallback(() => {
-    if (isUserSelected) {
-      setIsUserSelected(false);
-    }
-    if (nextVideo) {
-      playMedia(nextVideo, false);
       setNextVideo(null);
-    } else {
-      playNextRandomVideo(currentVideo?.id, currentVideo?.categoria);
-    }
-  }, [isUserSelected, nextVideo, playMedia, playNextRandomVideo, currentVideo]);
 
-  const handleOnProgress = useCallback(async (progress: ProgressState, currentVideoId: string | undefined, currentVideoCategory: string | undefined) => {
-    
-    const duration = progress.loadedSeconds;
+      setRandomVideoQueued(false);
 
-    if (currentVideoId && !nextVideo && !randomVideoQueued && duration && (duration - progress.playedSeconds < 40)) {
-      setRandomVideoQueued(true); 
-      const newRandomVideo = await getNewRandomVideo(currentVideoId, currentVideoCategory);
-      if (newRandomVideo) {
-        setNextVideo(newRandomVideo);
-      } else {
+      
+
+      if (isFirst) {
+
+         setVolume(0);
+
+      }
+
+      
+
+    }, [setVolume]);
+
+  
+
+    const playSpecificVideo = useCallback((media: Video) => {
+
+      if (currentVideo) {
+
+        setNextVideo(media);
+
+        setIsUserSelected(true);
+
         setRandomVideoQueued(false);
+
+      } else {
+
+        setCurrentVideo(media);
+
+        setIsPlaying(true);
+
+        setIsUserSelected(true);
+
       }
-    }
-  }, [nextVideo, randomVideoQueued]);
 
-  const togglePlayPause = useCallback(() => {
-    setIsPlaying(prev => !prev);
-  }, []);
+    }, [currentVideo]);
 
-  const playNextVideoInQueue = useCallback(() => {
-    if (nextVideo) {
-      playMedia(nextVideo, false);
+  
+
+    const playLiveStream = useCallback((status: { liveStreamUrl: string; isLive: boolean; }) => {
+
+      if (status && status.isLive) {
+
+        const liveVideo: Video = { id: 'live-stream', nombre: 'TRANSMISIÓN EN VIVO', url: status.liveStreamUrl, createdAt: new Date().toISOString(), categoria: 'En Vivo', imagen: '/PARCHE.png', novedad: true, };
+
+        playMedia(liveVideo, false);
+
+      }
+
+    }, [playMedia]);
+
+  
+
+    const loadInitialPlaylist = useCallback(async (videoUrlToPlay: string | null) => {
+
+      const { allVideos: fetchedVideos } = await getVideosForHome(100);
+
+      if (fetchedVideos && fetchedVideos.length > 0) {
+
+        let videoToPlay: Video;
+
+        if (videoUrlToPlay) {
+
+          const specificVideo = fetchedVideos.find(v => v.url === videoUrlToPlay);
+
+          videoToPlay = specificVideo || fetchedVideos[0];
+
+        } else {
+
+          const randomIndex = Math.floor(Math.random() * fetchedVideos.length);
+
+          videoToPlay = fetchedVideos[randomIndex];
+
+        }
+
+        playMedia(videoToPlay, true);
+
+        setIsPlaying(true); // Aseguramos que el autoplay esté activado para el primer video.
+
+      }
+
+    }, [playMedia, setIsPlaying]);
+
+  
+
+    const playNextRandomVideo = useCallback(async (currentVideoId?: string, currentVideoCategory?: string) => {
+
+      const nextVideo = await getNewRandomVideo(currentVideoId, currentVideoCategory);
+
+      if (nextVideo) {
+
+        playMedia(nextVideo, false);
+
+      } else {
+
+        await loadInitialPlaylist(null);
+
+      }
+
+    }, [playMedia, loadInitialPlaylist]);
+
+  
+
+    const handleOnEnded = useCallback(() => {
+
+      if (isUserSelected) {
+
+        setIsUserSelected(false);
+
+      }
+
+      if (nextVideo) {
+
+        playMedia(nextVideo, false);
+
+        setNextVideo(null);
+
+      } else {
+
+        playNextRandomVideo(currentVideo?.id, currentVideo?.categoria);
+
+      }
+
+    }, [isUserSelected, nextVideo, playMedia, playNextRandomVideo, currentVideo]);
+
+  
+
+    const handleOnProgress = useCallback(async (progress: ProgressState, currentVideoId: string | undefined, currentVideoCategory: string | undefined) => {
+
+      
+
+      const duration = progress.loadedSeconds;
+
+  
+
+      if (currentVideoId && !nextVideo && !randomVideoQueued && duration && (duration - progress.playedSeconds < 40)) {
+
+        setRandomVideoQueued(true); 
+
+        const newRandomVideo = await getNewRandomVideo(currentVideoId, currentVideoCategory);
+
+        if (newRandomVideo) {
+
+          setNextVideo(newRandomVideo);
+
+        } else {
+
+          setRandomVideoQueued(false);
+
+        }
+
+      }
+
+    }, [nextVideo, randomVideoQueued]);
+
+  
+
+    const togglePlayPause = useCallback(() => {
+
+      setIsPlaying(prev => !prev);
+
+    }, []);
+
+  
+
+    const playNextVideoInQueue = useCallback(() => {
+
+      if (nextVideo) {
+
+        playMedia(nextVideo, false);
+
+        setNextVideo(null);
+
+      }
+
+      else {
+
+        playNextRandomVideo(currentVideo?.id, currentVideo?.categoria);
+
+      }
+
+    }, [nextVideo, playMedia, playNextRandomVideo, currentVideo]);
+
+  
+
+    const removeNextVideoFromQueue = useCallback(() => {
+
       setNextVideo(null);
-    } else {
-      playNextRandomVideo(currentVideo?.id, currentVideo?.categoria);
-    }
-  }, [nextVideo, playMedia, playNextRandomVideo, currentVideo]);
 
-  const removeNextVideoFromQueue = useCallback(() => {
-    setNextVideo(null);
-  }, []);
+    }, []);
 
-  const value = useMemo(() => ({
-    currentVideo,
-    nextVideo,
-    isPlaying,
-    seekToFraction,
-    isFirstMedia,
-    randomVideoQueued,
-    streamStatus, 
-    playMedia,
-    playSpecificVideo,
-    playLiveStream, 
-    setIsPlaying,
-    togglePlayPause,
-    setSeekToFraction,
-    loadInitialPlaylist,
-    handleOnEnded,
-    handleOnProgress,
-    playNextVideoInQueue,
-    removeNextVideoFromQueue,
-  }), [
-    currentVideo,
-    nextVideo,
-    isPlaying,
-    seekToFraction,
-    isFirstMedia,
-    randomVideoQueued,
-    streamStatus,
-    playMedia,
-    playSpecificVideo,
-    playLiveStream,
-    setIsPlaying,
-    togglePlayPause,
-    setSeekToFraction,
-    loadInitialPlaylist,
-    handleOnEnded,
-    handleOnProgress,
-    playNextVideoInQueue,
-    removeNextVideoFromQueue
-  ]);
+  
+
+    const value = useMemo(() => ({
+
+      currentVideo,
+
+      nextVideo,
+
+      isPlaying,
+
+      seekToFraction,
+
+      isFirstMedia,
+
+      randomVideoQueued,
+
+      streamStatus, 
+
+      viewMode,
+
+      setViewMode,
+
+      playMedia,
+
+      playSpecificVideo,
+
+      playLiveStream, 
+
+      setIsPlaying,
+
+      togglePlayPause,
+
+      setSeekToFraction,
+
+      loadInitialPlaylist,
+
+      handleOnEnded,
+
+      handleOnProgress,
+
+      playNextVideoInQueue,
+
+      removeNextVideoFromQueue,
+
+    }), [
+
+      currentVideo,
+
+      nextVideo,
+
+      isPlaying,
+
+      seekToFraction,
+
+      isFirstMedia,
+
+      randomVideoQueued,
+
+      streamStatus,
+
+      viewMode,
+
+      setViewMode,
+
+      playMedia,
+
+      playSpecificVideo,
+
+      playLiveStream,
+
+      togglePlayPause,
+
+      setSeekToFraction,
+
+      loadInitialPlaylist,
+
+      handleOnEnded,
+
+      handleOnProgress,
+
+      playNextVideoInQueue,
+
+      removeNextVideoFromQueue
+
+    ]);
 
   return (
     <MediaPlayerContext.Provider value={value}>

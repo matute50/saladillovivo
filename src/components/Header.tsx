@@ -4,17 +4,19 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Sun, Moon, Share2 } from 'lucide-react';
+import { Sun, Moon, Share2, Tv, Newspaper } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import SearchBar from '@/components/ui/SearchBar';
 import useIsMobile from '@/hooks/useIsMobile';
+import { useMediaPlayer } from '@/context/MediaPlayerContext';
 
 const Header = () => {
+  const { viewMode, setViewMode } = useMediaPlayer();
   const [isDarkTheme, setIsDarkTheme] = useState(true);
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    if (typeof window !== 'undefined') { // Asegurar que el código solo se ejecute en el cliente
+    if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('theme');
       const initialTheme = savedTheme ? JSON.parse(savedTheme) : true;
       setIsDarkTheme(initialTheme);
@@ -38,7 +40,7 @@ const Header = () => {
   };
 
   const handleShare = () => {
-    if (typeof window !== 'undefined') { // Asegurar que el código solo se ejecute en el cliente
+    if (typeof window !== 'undefined') {
       const whatsappUrl = 'https://wa.me/?text=Descubr%C3%AD%20Saladillo%20Vivo.com,%20mucho%20m%C3%A1s%20que%20noticias';
       window.open(whatsappUrl, '_blank');
     }
@@ -70,6 +72,27 @@ const Header = () => {
 
         <nav className="flex-grow flex justify-end items-center space-x-2">
           <SearchBar />
+          {viewMode === 'diario' ? (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setViewMode('tv')}  
+              aria-label="Cambiar a modo TV"
+              className="pointer-events-auto"
+            >
+              <Tv size={isMobile ? 18 : 20} className="text-foreground" />
+            </Button>
+          ) : (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setViewMode('diario')}  
+              aria-label="Cambiar a modo Diario"
+              className="pointer-events-auto"
+            >
+              <Newspaper size={isMobile ? 18 : 20} className="text-foreground" />
+            </Button>
+          )}
           <Button variant="ghost" size="icon" onClick={handleShare} aria-label="Compartir en WhatsApp">
             <Share2 size={isMobile ? 18 : 20} className="text-foreground" />
           </Button>

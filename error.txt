@@ -1,26 +1,471 @@
-hot-reloader-client.js:99 Se borraron los datos de la consola
-hydration-error-info.js:63 ./src/components/layout/ExclusiveVideoCarousel.tsx
-Error: 
-  × Expected '}', got '<eof>'
-    ╭─[F:\GEMINI-CLI\SALADILLOVIVO_NEXT\saladillovivo\src\components\layout\ExclusiveVideoCarousel.tsx:36:1]
- 36 │   const { toast } = useToast();
- 37 │   const swiperRef = useRef(null);
- 38 │   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
- 39 │   const { buttonColor, buttonBorderColor } = useThemeButtonColors();
-    ·                                                                    ─
-    ╰────
-
-Caused by:
-    Syntax Error
-
-Import trace for requested module:
-./src/components/layout/ExclusiveVideoCarousel.tsx
-./src/components/layout/CategoryCycler.tsx
-./src/components/layout/DesktopLayout.tsx
-./src/components/HomePageClient.tsx
-console.error @ hydration-error-info.js:63
-window.console.error @ setup-hydration-warning.js:18
-handleErrors @ hot-reloader-client.js:162
-processMessage @ hot-reloader-client.js:239
-eval @ hot-reloader-client.js:67
-handleMessage @ websocket.js:45
+main-app.js?v=1763652002782:1847 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+warn-once.js:16 Image with src "https://storage.googleapis.com/hostinger-horizons-assets-prod/77d159f1-0d45-4b01-ba42-c8ca9cbd0d70/e9eb6580b7ad5742826daaa5df2b592d.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+warnOnce @ warn-once.js:16
+eval @ image-component.js:112
+Promise.then
+handleLoading @ image-component.js:37
+eval @ image-component.js:183
+commitAttachRef @ react-dom.development.js:21677
+safelyAttachRef @ react-dom.development.js:20803
+commitLayoutEffectOnFiber @ react-dom.development.js:21498
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21488
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21488
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21488
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21488
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21488
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21488
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21418
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21418
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21418
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21418
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21437
+commitLayoutEffects @ react-dom.development.js:22912
+commitRootImpl @ react-dom.development.js:26226
+commitRoot @ react-dom.development.js:26077
+commitRootWhenReady @ react-dom.development.js:24749
+finishConcurrentRender @ react-dom.development.js:24714
+performConcurrentWorkOnRoot @ react-dom.development.js:24559
+workLoop @ scheduler.development.js:256
+flushWork @ scheduler.development.js:225
+performWorkUntilDeadline @ scheduler.development.js:534
+HomePageClient.tsx:16 [HomePageClient] renderizando con viewMode: diario
+HomePageClient.tsx:16 [HomePageClient] renderizando con viewMode: diario
+script.debug.js:1 [Vercel Speed Insights] Debug mode is enabled by default in development. No requests will be sent to the server.
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+Recuperar terminó de cargarse: GET "<URL>".
+HomePageClient.tsx:16 [HomePageClient] renderizando con viewMode: diario
+HomePageClient.tsx:16 [HomePageClient] renderizando con viewMode: diario
+HomePageClient.tsx:16 [HomePageClient] renderizando con viewMode: diario
+HomePageClient.tsx:16 [HomePageClient] renderizando con viewMode: diario
+www-widgetapi.js:194 Failed to execute 'postMessage' on 'DOMWindow': The target origin provided ('https://www.youtube.com') does not match the recipient window's origin ('http://localhost:3001').
+(anónimas) @ www-widgetapi.js:194
+Eb @ www-widgetapi.js:190
+(anónimas) @ www-widgetapi.js:189
+setInterval
+Ab @ www-widgetapi.js:191
+X @ www-widgetapi.js:181
+eval @ YouTube.js:141
+Promise.then
+load @ YouTube.js:138
+eval @ Player.js:62
+componentDidMount @ YouTube.js:114
+commitClassLayoutLifecycles @ react-dom.development.js:21249
+commitLayoutEffectOnFiber @ react-dom.development.js:21421
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21418
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21552
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21518
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21488
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21418
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21488
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21488
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21488
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21488
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21488
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21488
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21552
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21518
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21488
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21488
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21488
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21488
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21488
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21418
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21418
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21418
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21552
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21518
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21488
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21488
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21418
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21418
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21418
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21418
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21407
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21577
+recursivelyTraverseLayoutEffects @ react-dom.development.js:22926
+commitLayoutEffectOnFiber @ react-dom.development.js:21437
+commitLayoutEffects @ react-dom.development.js:22912
+commitRootImpl @ react-dom.development.js:26226
+commitRoot @ react-dom.development.js:26077
+commitRootWhenReady @ react-dom.development.js:24749
+finishConcurrentRender @ react-dom.development.js:24714
+performConcurrentWorkOnRoot @ react-dom.development.js:24559
+workLoop @ scheduler.development.js:256
+flushWork @ scheduler.development.js:225
+performWorkUntilDeadline @ scheduler.development.js:534
+www-embed-player.js:1230 XHR terminó de cargarse: GET "https://googleads.g.doubleclick.net/pagead/id".
+Pq @ www-embed-player.js:1230
+Tq @ www-embed-player.js:1235
+(anónimas) @ www-embed-player.js:1832
+Gk @ www-embed-player.js:680
+Oy @ www-embed-player.js:1829
+$p @ www-embed-player.js:1851
+hz @ www-embed-player.js:1856
+nA @ www-embed-player.js:1909
+(anónimas) @ www-embed-player.js:2346
+(anónimas) @ JA3x21UjZCM?autoplay=1&mute=1&controls=0&origin=http%3A%2F%2Flocalhost%3A3001&playsinline=1&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1&disablekb=1&enablejsapi=1&widgetid=1&forigin=http%3A%2F%2Flocalhost%3A3001%2F&aoriginsup=1&gporigin=http%3A%2F%2Flocalhost%3A3001%2F&vf=6:10
+XHR terminó de cargarse: POST "<URL>".
+XHR terminó de cargarse: POST "<URL>".
+XHR terminó de cargarse: POST "<URL>".
+XHR terminó de cargarse: POST "<URL>".
+XHR terminó de cargarse: POST "<URL>".
+XHR terminó de cargarse: POST "<URL>".
+XHR terminó de cargarse: POST "<URL>".
+XHR terminó de cargarse: POST "<URL>".
+XHR terminó de cargarse: POST "<URL>".
+base.js:1694 No se pudo cargar Recuperar: POST "https://www.youtube.com/api/stats/qoe?fmt=134&afmt=251&cpn=yf5eFJhTKUCx1oCE&el=embedded&ns=yt&fexp=v1%2C24004644%2C494888%2C26510703%2C53408%2C34656%2C106030%2C18644%2C104297%2C13392%2C9252%2C3479%2C13030%2C23206%2C15179%2C2%2C20222%2C19814%2C39376%2C6109%2C9720%2C5385%2C25059%2C4174%2C15046%2C10671%2C4730%2C1257%2C7922%2C4338%2C4933%2C255%2C1734%2C563%2C11055%2C5550%2C2535%2C137%2C6062%2C293%2C3315%2C1372%2C2010%2C2356%2C63%2C199%2C1453%2C326%2C4927%2C4478%2C670%2C49%2C1208%2C1933%2C920%2C1241%2C662%2C1835%2C42%2C393%2C188%2C4165%2C396%2C2385%2C4856%2C6546%2C2343%2C75%2C4694%2C710%2C720%2C101%2C4772%2C379%2C315%2C518%2C2629%2C1661%2C1652%2C1355%2C2836%2C740%2C944%2C5407%2C1384%2C23&cl=833581616&seq=1&docid=JA3x21UjZCM&ei=qzEfabu2KIuyobIPjImR-QE&event=streamingstats&osid=AAAAAqluPFI%3AAOeUNAZVFcKeknFB__SEF6sWpWKGa-CbOg&plid=AAZECDuqtz5eo4mu&cbr=Chrome&cbrver=142.0.0.0&c=WEB_EMBEDDED_PLAYER&cver=1.20251119.01.00&cplayer=UNIPLAYER&cos=Windows&cosver=10.0&cplatform=DESKTOP&vps=0.000:N,0.007:B,1.280:B,1.280:B&cat=streaming,sabr&cmt=0.007:0.000,1.280:0.000&ctmp=esfw:usbc.1;hsu.1,atrkchg:t.1238;id.und;m.0&stream=0.392:A&afs=1.238:251::i:fl.-8.74;vg.-5.26;nm.4:CAEoAQ&vfs=1.280:134:134::a:CAEoAQ&view=1.280:399:223&bwm=1.280:26992:0.919&bwe=1.280:444146&bat=1.280:1:1&vis=1.280:0&bh=1.280:0.000&qclc=ChB5ZjVlRkpoVEtVQ3gxb0NFEAE".
+qYu @ base.js:1694
+mG @ base.js:5381
+(anónimas) @ base.js:5424
+ej.then @ base.js:8677
+d3A @ base.js:5424
+g.L.reportStats @ base.js:11524
+auU @ base.js:5432
+uwU @ base.js:5920
+ymQ @ base.js:5953
+g.L.zy @ base.js:11550
+$f.zy @ base.js:11381
+R5A @ base.js:5208
+M7E @ base.js:5333
+Yw @ base.js:5331
+w1 @ base.js:5329
+g.L.HV @ base.js:11265
+g.L.HV @ base.js:11071
+X @ base.js:4854
+Promise.then
+yLc @ base.js:4857
+X @ base.js:4854
+Promise.then
+yLc @ base.js:4857
+X @ base.js:4854
+Promise.then
+yLc @ base.js:4857
+T @ base.js:4852
+Promise.then
+g.L.start @ base.js:11140
+ox_ @ base.js:4856
+kR @ base.js:4861
+v2 @ base.js:4931
+V7u @ base.js:5327
+S4r @ base.js:5313
+dSE @ base.js:5312
+g.L.initialize @ base.js:11539
+ofu @ base.js:5945
+be_ @ base.js:5912
+(anónimas) @ base.js:5909
+ej.then @ base.js:8677
+C6 @ base.js:5909
+e0r @ base.js:5907
+g.L.Gs @ base.js:11826
+g.L.publish @ base.js:8622
+g.L.publish @ base.js:8853
+g.L.E6 @ base.js:10412
+g.pP @ base.js:4408
+(anónimas) @ base.js:5862
+wd @ base.js:162
+PUG.next @ base.js:163
+F @ base.js:168
+Promise.then
+r @ base.js:170
+(anónimas) @ base.js:171
+JGU @ base.js:170
+g.y @ base.js:172
+jPr @ base.js:5860
+(anónimas) @ base.js:5857
+wd @ base.js:162
+PUG.next @ base.js:163
+(anónimas) @ base.js:171
+JGU @ base.js:170
+g.y @ base.js:172
+wy_ @ base.js:5857
+K @ base.js:5848
+dvQ @ base.js:5851
+$vc @ base.js:5879
+lZG @ base.js:5906
+g.L.Gs @ base.js:11826
+g.L.Kf @ base.js:11825
+g.L.JN @ base.js:11835
+g.L.JN @ base.js:10987
+jv @ base.js:7272
+f2A @ base.js:7267
+g.Di @ base.js:7241
+g.Di.create @ base.js:13434
+a.G @ www-embed-player.js:2282
+fE @ www-embed-player.js:2283
+p.loadNewVideoConfig @ www-embed-player.js:2277
+(anónimas) @ www-embed-player.js:2275
+setTimeout
+cE @ www-embed-player.js:2275
+wE @ www-embed-player.js:2315
+(anónimas) @ www-embed-player.js:2348
+(anónimas) @ JA3x21UjZCM?autoplay=1&mute=1&controls=0&origin=http%3A%2F%2Flocalhost%3A3001&playsinline=1&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1&disablekb=1&enablejsapi=1&widgetid=1&forigin=http%3A%2F%2Flocalhost%3A3001%2F&aoriginsup=1&gporigin=http%3A%2F%2Flocalhost%3A3001%2F&vf=6:10
+No se pudo cargar Recuperar: GET "<URL>".
+No se pudo cargar Recuperar: GET "<URL>".
+No se pudo cargar Recuperar: GET "<URL>".
+No se pudo cargar Recuperar: GET "<URL>".
+No se pudo cargar Recuperar: GET "<URL>".
+No se pudo cargar Recuperar: GET "<URL>".
+Recuperar terminó de cargarse: POST "<URL>".
+Recuperar terminó de cargarse: POST "<URL>".
+Recuperar terminó de cargarse: POST "<URL>".
+Recuperar terminó de cargarse: POST "<URL>".
+Recuperar terminó de cargarse: POST "<URL>".
+Recuperar terminó de cargarse: POST "<URL>".
+Recuperar terminó de cargarse: POST "<URL>".
+Recuperar terminó de cargarse: POST "<URL>".
+Recuperar terminó de cargarse: POST "<URL>".
+Recuperar terminó de cargarse: POST "<URL>".
+Recuperar terminó de cargarse: POST "<URL>".
+Recuperar terminó de cargarse: POST "<URL>".
+Recuperar terminó de cargarse: POST "<URL>".
+Recuperar terminó de cargarse: POST "<URL>".
+Recuperar terminó de cargarse: POST "<URL>".
+HomePageClient.tsx:16 [HomePageClient] renderizando con viewMode: diario
+HomePageClient.tsx:16 [HomePageClient] renderizando con viewMode: diario
+HomePageClient.tsx:16 [HomePageClient] renderizando con viewMode: diario
+HomePageClient.tsx:16 [HomePageClient] renderizando con viewMode: diario
+base.js:1694 No se pudo cargar Recuperar: POST "https://www.youtube.com/api/stats/qoe?fmt=134&afmt=251&cpn=yf5eFJhTKUCx1oCE&el=embedded&ns=yt&fexp=v1%2C24004644%2C494888%2C26510703%2C53408%2C34656%2C106030%2C18644%2C104297%2C13392%2C9252%2C3479%2C13030%2C23206%2C15179%2C2%2C20222%2C19814%2C39376%2C6109%2C9720%2C5385%2C25059%2C4174%2C15046%2C10671%2C4730%2C1257%2C7922%2C4338%2C4933%2C255%2C1734%2C563%2C11055%2C5550%2C2535%2C137%2C6062%2C293%2C3315%2C1372%2C2010%2C2356%2C63%2C199%2C1453%2C326%2C4927%2C4478%2C670%2C49%2C1208%2C1933%2C920%2C1241%2C662%2C1835%2C42%2C393%2C188%2C4165%2C396%2C2385%2C4856%2C6546%2C2343%2C75%2C4694%2C710%2C720%2C101%2C4772%2C379%2C315%2C518%2C2629%2C1661%2C1652%2C1355%2C2836%2C740%2C944%2C5407%2C1384%2C23&cl=833581616&seq=2&docid=JA3x21UjZCM&ei=qzEfabu2KIuyobIPjImR-QE&event=streamingstats&osid=AAAAAqluPFI%3AAOeUNAZVFcKeknFB__SEF6sWpWKGa-CbOg&plid=AAZECDuqtz5eo4mu&cbr=Chrome&cbrver=142.0.0.0&c=WEB_EMBEDDED_PLAYER&cver=1.20251119.01.00&cplayer=UNIPLAYER&cos=Windows&cosver=10.0&cplatform=DESKTOP&user_intent=0&bh=1.403:6.106,10.002:21.830&cmt=1.403:0.049,2.154:0.800,10.002:8.647&vps=1.403:PL,10.002:PL&bwm=10.002:2006871:0.851&bwe=10.002:976983&bat=10.002:1:1&df=10.002:0&qclc=ChB5ZjVlRkpoVEtVQ3gxb0NFEAI".
+qYu @ base.js:1694
+mG @ base.js:5381
+(anónimas) @ base.js:5424
+ej.then @ base.js:8677
+d3A @ base.js:5424
+g.L.reportStats @ base.js:11524
+(anónimas) @ base.js:5428
+(anónimas) @ base.js:1653
+setInterval
+g.m_ @ base.js:1678
+VnQ @ base.js:5428
+g.L.Kf @ base.js:11825
+g.L.JN @ base.js:11835
+g.L.JN @ base.js:10987
+jv @ base.js:7272
+f2A @ base.js:7267
+g.Di @ base.js:7241
+g.Di.create @ base.js:13434
+a.G @ www-embed-player.js:2282
+fE @ www-embed-player.js:2283
+p.loadNewVideoConfig @ www-embed-player.js:2277
+(anónimas) @ www-embed-player.js:2275
+setTimeout
+cE @ www-embed-player.js:2275
+wE @ www-embed-player.js:2315
+(anónimas) @ www-embed-player.js:2348
+(anónimas) @ JA3x21UjZCM?autoplay=1&mute=1&controls=0&origin=http%3A%2F%2Flocalhost%3A3001&playsinline=1&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1&disablekb=1&enablejsapi=1&widgetid=1&forigin=http%3A%2F%2Flocalhost%3A3001%2F&aoriginsup=1&gporigin=http%3A%2F%2Flocalhost%3A3001%2F&vf=6:10
+Header.tsx:79 Botón de modo TV clickeado
+MediaPlayerContext.tsx:56 [MediaPlayerContext] Cambiando viewMode a: tv
