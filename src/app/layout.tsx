@@ -3,7 +3,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { NewsProvider } from "@/context/NewsContext";
 import { MediaPlayerProvider } from "@/context/MediaPlayerContext";
 import { VolumeProvider } from "@/context/VolumeContext";
-import type { Metadata } "next";
+import type { Metadata } from "next";
 import "@/app/globals.css";
 
 import Script from 'next/script';
