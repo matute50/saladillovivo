@@ -8,6 +8,7 @@ import "@/app/globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Script from 'next/script';
+import LayoutClientContent from "@/components/layout/LayoutClientContent";
 
 export const metadata: Metadata = {
   title: "Saladillo Vivo",
@@ -26,7 +27,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <NewsProvider>
           <VolumeProvider>
             <MediaPlayerProvider>
-              {children}
+              <LayoutClientContent>
+                {children}
+              </LayoutClientContent>
             </MediaPlayerProvider>
           </VolumeProvider>
         </NewsProvider>
@@ -40,3 +43,4 @@ export default function RootLayout({ children }: RootLayoutProps) {
     </html>
   );
 }
+

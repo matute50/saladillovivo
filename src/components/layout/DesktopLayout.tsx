@@ -1,8 +1,6 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import BannerSection from './BannerSection';
 import AdsSection from './AdsSection';
 import NewsTicker from '../NewsTicker';
@@ -71,7 +69,6 @@ const DesktopLayout = ({ data }: { data: PageData }) => {
 
   return (
     <>
-      <Header />
       <div className="bg-background/80 backdrop-blur-sm mb-0 md:mb-3 fixed top-[calc(var(--desktop-header-height)-18px)] w-full z-40">
         <NewsTicker tickerTexts={tickerTexts} />
       </div>
@@ -154,7 +151,6 @@ const DesktopLayout = ({ data }: { data: PageData }) => {
 
         </div>
       </main>
-      <Footer />
     </>
   );
 };

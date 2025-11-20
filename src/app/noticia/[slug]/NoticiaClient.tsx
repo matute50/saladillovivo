@@ -1,7 +1,6 @@
 // src/app/[slug]/NoticiaClient.tsx
 
-'use client'; 
-
+import Image from 'next/image';
 import React from 'react';
 import { useAudioPlayer } from '@/hooks/useAudioPlayer';
 import { Play, Pause, Loader2 } from 'lucide-react'; 
@@ -39,9 +38,10 @@ export default function NoticiaClient({ article }: { article: any }) {
             className="max-w-2xl mx-auto rounded-lg shadow-lg mb-6 relative" 
             style={{ aspectRatio: '16 / 9' }}
           >
-            <img
+            <Image
               src={article.imageUrl}
               alt={article.title}
+              fill
               className="w-full h-full object-cover rounded-lg"
             />
 

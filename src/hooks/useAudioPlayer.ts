@@ -1,3 +1,5 @@
+'use client';
+
 // src/hooks/useAudioPlayer.ts
 
 import { useState, useEffect, useCallback, useRef } from 'react';

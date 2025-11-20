@@ -1,8 +1,6 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import { useNews } from '@/context/NewsContext';
 import type { PageData } from '@/lib/types';
 import { categoryMappings, type CategoryMapping } from '@/lib/categoryMappings';
@@ -74,7 +72,6 @@ const MobileLayout = ({ data, isMobile }: { data: PageData; isMobile: boolean })
 
   return (
     <>
-      <Header />
       <div className="bg-background/80 backdrop-blur-sm fixed top-[calc(var(--header-height)-18px)] w-full z-40">
         <NewsTicker tickerTexts={tickerTexts} isMobile={isMobile} />
       </div>
@@ -149,7 +146,6 @@ const MobileLayout = ({ data, isMobile }: { data: PageData; isMobile: boolean })
           </section>
         </div>
       </main>
-      <Footer />
     </>
   );
 };
