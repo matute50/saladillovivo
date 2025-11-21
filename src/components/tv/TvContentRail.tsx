@@ -6,7 +6,6 @@ import { Video } from '@/lib/types';
 import { categoryMappings, type CategoryMapping } from '@/lib/categoryMappings';
 import CategoryCycler from '@/components/layout/CategoryCycler';
 // VideoTitleBar and its import removed as per user request
-import { useMediaPlayer } from '@/context/MediaPlayerContext'; // Import useMediaPlayer
 
 interface TvContentRailProps {
   searchResults: Video[];
@@ -19,10 +18,6 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
   const [allVideos, setAllVideos] = useState<Video[]>([]);
   const [categoryIndex, setCategoryIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-
-  // currentVideo from MediaPlayerContext is no longer directly used in this component
-  // after removing VideoTitleBar, but useMediaPlayer is still imported if needed for other reasons.
-  // const { currentVideo } = useMediaPlayer(); // This line can be removed if currentVideo is not used anymore
 
   useEffect(() => {
     const fetchVideos = async () => {

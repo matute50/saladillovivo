@@ -1,12 +1,11 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Newspaper } from 'lucide-react';
 import TvBackgroundPlayer from '../tv/TvBackgroundPlayer';
 import VideoControls from '../VideoControls';
 import TvContentRail from '../tv/TvContentRail';
-import { useRouter } from 'next/navigation'; // Importar useRouter
 import { useNews } from '@/context/NewsContext'; // Importar useNews
+import Image from 'next/image'; // Importar Image
 
 const TvModeLayout = () => {
   const { handleSearch, searchResults, isSearching, searchLoading } = useNews(); // Get search-related states from NewsContext
@@ -17,7 +16,6 @@ const TvModeLayout = () => {
   const [isOverlayVisible, setIsOverlayVisible] = useState(false);
   const hideOverlayTimer = useRef<NodeJS.Timeout | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false); // State for fullscreen
-  const router = useRouter(); // Inicializar useRouter
 
   const handleMouseEnter = () => {
     if (hideOverlayTimer.current) {
@@ -71,7 +69,7 @@ const TvModeLayout = () => {
       >
         {/* Header */}
         <div className="bg-gradient-to-b from-black/80 to-transparent p-8 pointer-events-auto">
-          <img src="/FONDO OSCURO.PNG" alt="Saladillo Vivo Logo" className="h-auto w-48" />
+          <Image src="/FONDO OSCURO.PNG" alt="Saladillo Vivo Logo" width={192} height={48} className="h-auto w-48" />
         </div>
 
         {/* Footer (Content Rail) */}
