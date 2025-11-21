@@ -1,13 +1,19 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import { Newspaper } from 'lucide-react';
 import TvBackgroundPlayer from '../tv/TvBackgroundPlayer';
 import VideoControls from '../VideoControls';
-import TvContentRail from '../tv/TvContentRail'; // Import the actual TvContentRail component
+import TvContentRail from '../tv/TvContentRail';
+import { useRouter } from 'next/navigation'; // Importar useRouter
+import { useNews } from '@/context/NewsContext'; // Importar useNews
 
 const TvModeLayout = () => {
+  const { handleSearch, searchResults, isSearching, searchLoading } = useNews(); // Get search-related states from NewsContext
+
+  const onSearchSubmit = useCallback((term: string) => {
+    handleSearch(term);
+  }, [handleSearch]);
   const [isOverlayVisible, setIsOverlayVisible] = useState(false);
   const hideOverlayTimer = useRef<NodeJS.Timeout | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false); // State for fullscreen
@@ -35,8 +41,9 @@ const TvModeLayout = () => {
   }, []);
 
   const handleSwitchToDailyMode = useCallback(() => {
-    router.push('/'); // Navegar a la página principal
-  }, [router]);
+    window.location.href = '/'; // Forzar recarga completa para navegar a la página principal
+  }, []);
+
 
   // Clear the timer when the component unmounts to prevent memory leaks
   useEffect(() => {
@@ -64,7 +71,7 @@ const TvModeLayout = () => {
       >
         {/* Header */}
         <div className="bg-gradient-to-b from-black/80 to-transparent p-8 pointer-events-auto">
-          <h1 className="text-3xl font-black text-white">SALADILLO VIVO</h1>
+          <img src="/FONDO OSCURO.PNG" alt="Saladillo Vivo Logo" className="h-auto w-48" />
         </div>
 
         {/* Footer (Content Rail) */}
@@ -72,7 +79,11 @@ const TvModeLayout = () => {
           <div className="flex justify-between items-end">
             {/* VideoControls removed from here */}
             {/* <VideoControls /> */}
-            <TvContentRail />
+            <TvContentRail
+                searchResults={searchResults}
+                isSearching={isSearching}
+                searchLoading={searchLoading}
+            />
           </div>
         </div>
 
@@ -83,14 +94,10 @@ const TvModeLayout = () => {
                 showControls={isOverlayVisible}
                 onToggleFullScreen={toggleFullScreen}
                 isFullScreen={isFullScreen}
+                onSwitchToDailyMode={handleSwitchToDailyMode}
+                onSearchSubmit={onSearchSubmit}
             />
           </div>
-          <button
-            onClick={handleSwitchToDailyMode}
-            className="rounded-md p-2 bg-black/10 text-white text-sm font-semibold backdrop-blur-lg shadow-lg shadow-black/50"
-          >
-            <Newspaper size={20} /> {/* Usar el icono de periódico */}
-          </button>
         </div>
       </div>
     </div>

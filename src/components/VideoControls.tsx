@@ -1,21 +1,66 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
-import { Play, Pause, Maximize, Minimize, VolumeX, Volume2, Volume1, Volume } from 'lucide-react';
+import { useNews } from '@/context/NewsContext'; // Import useNews to get global searchQuery
+import { Play, Pause, Maximize, Minimize, VolumeX, Volume2, Volume1, Search, Newspaper, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useVolume } from '@/context/VolumeContext'; // Import useVolume
+import { useVolume } from '@/context/VolumeContext'; // Use volume context
 import { Slider } from '@/components/ui/slider'; // Import Slider
+import { useDebounce } from '@/hooks/useDebounce'; // Import useDebounce hook
 
 interface VideoControlsProps {
   showControls: boolean;
   onToggleFullScreen: () => void;
   isFullScreen: boolean;
+  onSwitchToDailyMode: () => void; // New prop for switching to daily mode
+  onSearchSubmit: (term: string) => void; // New prop for submitting search
 }
 
-const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onToggleFullScreen, isFullScreen }) => {
+const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onToggleFullScreen, isFullScreen, onSwitchToDailyMode, onSearchSubmit }) => {
   const { isPlaying, togglePlayPause } = useMediaPlayer();
   const { volume, isMuted, setVolume, toggleMute } = useVolume(); // Use volume context
+  const { searchQuery } = useNews(); // Get global searchQuery from NewsContext
+
+  const [localQuery, setLocalQuery] = useState(searchQuery); // Local state for input
+  const debouncedQuery = useDebounce(localQuery, 400); // Debounce local query
+
+  // Synchronize local state if the global query clears from elsewhere
+  useEffect(() => {
+    if (searchQuery !== localQuery) {
+      setLocalQuery(searchQuery);
+    }
+  }, [searchQuery, localQuery]);
+
+  // Execute search when the debounced value changes
+  useEffect(() => {
+    // Only submit if debouncedQuery is different from current global searchQuery
+    // This prevents re-triggering search if NewsContext already updated searchQuery
+    // and also prevents empty search submission on initial render if searchQuery is empty
+    if (debouncedQuery !== searchQuery) {
+      onSearchSubmit(debouncedQuery);
+    }
+  }, [debouncedQuery, onSearchSubmit, searchQuery]);
+
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocalQuery(e.target.value);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault(); // Prevent default form submission
+      // For immediate search on Enter, use localQuery
+      if (localQuery.trim()) {
+        onSearchSubmit(localQuery.trim());
+      }
+    }
+  };
+
+  const clearSearch = () => {
+    setLocalQuery('');
+    onSearchSubmit(''); // Clear the search immediately
+  };
 
   // Si no se deben mostrar los controles, no renderizar nada
   if (!showControls) {
@@ -38,13 +83,11 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onToggleFul
           exit={{ opacity: 0, y: 20 }}
           transition={{ duration: 0.2 }}
         >
-          {/* --- Controles Izquierdos (Play/Pause y Volumen) --- */}
           <div className="flex items-center gap-4">
             <button onClick={togglePlayPause} className="text-white transition-colors">
               {isPlaying ? <Pause size={28} fill="white" /> : <Play size={28} fill="white" />}
             </button>
 
-            {/* Controles de Volumen */}
             <div className="flex items-center gap-2">
               <button onClick={toggleMute} className="text-white transition-colors">
                 <VolumeIcon size={24} />
@@ -59,8 +102,32 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onToggleFul
             </div>
           </div>
 
-          {/* --- Controles Derechos (Pantalla Completa) --- */}
           <div className="flex items-center gap-4">
+            {/* Search Box */}
+            <div className="relative flex items-center">
+              <input
+                type="text"
+                placeholder="Buscar..."
+                className="bg-black/20 text-white rounded-md pl-3 pr-10 py-1 focus:outline-none focus:ring-1 focus:ring-white/50"
+                value={localQuery}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+                maxLength={20}
+              />
+              {localQuery && (
+                <button
+                  onClick={clearSearch}
+                  className="absolute right-3 flex items-center justify-center text-gray-500 hover:text-white"
+                  aria-label="Limpiar búsqueda"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              )}
+              {!localQuery && <Search size={20} className="absolute right-3 text-white/70" />}
+            </div>
+            <button onClick={onSwitchToDailyMode} className="text-white transition-colors">
+              <Newspaper size={24} />
+            </button>
             <button onClick={onToggleFullScreen} className="text-white transition-colors">
               {isFullScreen ? <Minimize size={24} /> : <Maximize size={24} />}
             </button>

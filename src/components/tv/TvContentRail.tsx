@@ -8,7 +8,14 @@ import CategoryCycler from '@/components/layout/CategoryCycler';
 // VideoTitleBar and its import removed as per user request
 import { useMediaPlayer } from '@/context/MediaPlayerContext'; // Import useMediaPlayer
 
-const TvContentRail: React.FC = () => {
+interface TvContentRailProps {
+  searchResults: Video[];
+  isSearching: boolean;
+  searchLoading: boolean;
+}
+
+const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearching, searchLoading }) => {
+
   const [allVideos, setAllVideos] = useState<Video[]>([]);
   const [categoryIndex, setCategoryIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -61,6 +68,42 @@ const TvContentRail: React.FC = () => {
         Cargando contenido...
       </div>
     );
+  }
+
+  // Conditional rendering for search results
+  if (isSearching) {
+    if (searchLoading) {
+      return (
+        <div className="text-white p-4 bg-white/10 rounded-lg flex justify-center items-center h-[126px]">
+          Buscando videos...
+        </div>
+      );
+    } else if (searchResults.length > 0) {
+      const searchCategory: CategoryMapping = {
+        name: 'Tu Búsqueda',
+        dbCategory: 'search_results', // A unique identifier for search results
+        color: 'white',
+        highlight: false,
+      };
+      return (
+        <div className="w-full max-w-screen-xl mx-auto px-4">
+          <CategoryCycler 
+            allVideos={searchResults} // Pass search results as allVideos
+            activeCategory={searchCategory} // Use the virtual search category
+            onNext={() => {}} // Disable next/prev for search results
+            onPrev={() => {}} // Disable next/prev for search results
+            isMobile={false}
+            instanceId="search-carousel"
+          />
+        </div>
+      );
+    } else {
+      return (
+        <div className="text-white p-4 bg-white/10 rounded-lg flex justify-center items-center h-[126px]">
+          No se encontraron resultados para tu búsqueda.
+        </div>
+      );
+    }
   }
 
   return (

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNews } from '@/context/NewsContext';
 import { Search, X } from 'lucide-react';
-import { useDebounce } from '@/hooks/useDebounce'; // Suponiendo que tienes un hook de debounce
+import { useDebounce } from '@/hooks/useDebounce';
 
 const SearchBar = () => {
   const { handleSearch, searchQuery } = useNews();

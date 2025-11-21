@@ -12,14 +12,11 @@ const HomePageClient = ({ initialData }: { initialData: PageData }) => {
   const isMobile = useIsMobile();
   const { loadInitialPlaylist, viewMode } = useMediaPlayer();
 
-  // Carga la playlist inicial al montar el componente.
-  // Esto ahora se aplica tanto al modo 'diario' como al 'tv' para unificar la experiencia.
   useEffect(() => {
     loadInitialPlaylist(null);
   }, [loadInitialPlaylist]);
 
 
-  // Lógica de renderizado condicional
   if (viewMode === 'tv') {
     return <TvModeLayout />;
   }

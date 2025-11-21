@@ -8,7 +8,7 @@ import { formatDate } from '@/lib/utils';
 import { Article } from '@/lib/types';
 import Image from 'next/image';
 import { useAudioPlayer } from '@/hooks/useAudioPlayer';
-import { useThemeButtonColors } from '@/hooks/useThemeButtonColors'; // NUEVO
+import { useThemeButtonColors } from '@/hooks/useThemeButtonColors';
 
 interface NewsCardProps {
   newsItem: Article;
@@ -23,7 +23,6 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, class
 
   if (!newsItem) return null;
 
-  // El resto de las desestructuraciones y la lógica permanecen después del retorno temprano.
   const { titulo, fecha, slug, imageUrl, audio_url } = newsItem;
 
   const handleTogglePlay = (e: React.MouseEvent) => {
@@ -94,16 +93,16 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, class
             {dateDisplay}
 
             {audio_url && (
-              <motion.button // Cambiado a motion.button
+              <motion.button
                 onClick={handleTogglePlay}
                 className="carousel-nav-button shadow-lg shadow-black/50 absolute bottom-2 right-2 z-10 
-                           rounded-md p-1 border // Añadida la clase 'border'
+                           rounded-md p-1 border
                            flex items-center justify-center
                            hover:bg-opacity-70 transition-all focus:outline-none
                            ring-offset-background focus-visible:outline-none focus-visible:ring-2 
                            focus-visible:ring-ring focus-visible:ring-offset-2
-                           w-10 h-10" // Mantener el tamaño
-                animate={{ color: buttonColor, borderColor: buttonBorderColor }} // Se elimina backgroundColor
+                           w-10 h-10"
+                animate={{ color: buttonColor, borderColor: buttonBorderColor }}
                 transition={{ duration: 0.3, ease: 'easeInOut' }}
                 aria-label={state === 'playing' ? "Pausar audio" : "Reproducir audio"}
               >
