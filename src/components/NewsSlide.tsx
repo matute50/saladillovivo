@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion'; // <--- Importamos 'Variants'
 import { Volume2 } from 'lucide-react';
 
 const INTRO_MUSIC_SRC = '/audio/news-intro.mp3';
@@ -106,10 +106,18 @@ const DottedLines = () => {
 };
 
 const TickerTape = ({ text }: { text: string }) => {
-  const textVariants = {
+  // CORRECCIÓN: Tipamos explícitamente 'Variants' y usamos 'loop' como const o valor válido
+  const textVariants: Variants = {
     animate: {
       x: ['100%', '-100%'],
-      transition: { x: { repeat: Infinity, repeatType: 'loop', duration: 25, ease: 'linear' } },
+      transition: { 
+        x: { 
+          repeat: Infinity, 
+          repeatType: "loop", // TypeScript ahora sabe que esto es válido
+          duration: 25, 
+          ease: 'linear' 
+        } 
+      },
     },
   };
   return (
@@ -206,7 +214,6 @@ export default function NewsSlide({ article, onClose, isPublicView = false, isFo
     if (!isReady) return;
     startAudioSequence();
 
-    // CORRECCIÓN: Guardamos las referencias actuales para el cleanup
     const currentMusicAudio = musicAudioRef.current;
     const currentVoiceAudio = voiceAudioRef.current;
 
