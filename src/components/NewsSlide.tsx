@@ -5,13 +5,11 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Volume2 } from 'lucide-react';
 
-// --- Constantes ---
 const INTRO_MUSIC_SRC = '/audio/news-intro.mp3';
 const INTRO_DURATION = 2;
 const OUTRO_DURATION = 3;
 const FINAL_FADE_DURATION = 1.5;
 
-// --- Interfaces ---
 interface Article {
   id: string;
   title: string;
@@ -27,7 +25,6 @@ interface NewsSlideProps {
   isForCapture?: boolean;
 }
 
-// --- Componente: Fondo Geométrico Animado ---
 const GeometricBackground = () => {
   const shapes = Array.from({ length: 12 }).map((_, i) => ({
     id: i,
@@ -71,7 +68,6 @@ const GeometricBackground = () => {
   );
 };
 
-// --- Componente: Líneas Punteadas SVG ---
 const DottedLines = () => {
   return (
     <div className="absolute inset-0 z-20 pointer-events-none">
@@ -109,7 +105,6 @@ const DottedLines = () => {
   );
 };
 
-// --- Componente: Ticker Tape (Zócalo) ---
 const TickerTape = ({ text }: { text: string }) => {
   const textVariants = {
     animate: {
@@ -126,7 +121,6 @@ const TickerTape = ({ text }: { text: string }) => {
   );
 };
 
-// --- COMPONENTE PRINCIPAL ---
 export default function NewsSlide({ article, onClose, isPublicView = false, isForCapture = false }: NewsSlideProps) {
   const voiceAudioRef = useRef<HTMLAudioElement>(null);
   const musicAudioRef = useRef<HTMLAudioElement>(null);
@@ -137,11 +131,9 @@ export default function NewsSlide({ article, onClose, isPublicView = false, isFo
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [isPlaybackBlocked, setIsPlaybackBlocked] = useState(false);
 
-  // Fallback seguro de duración
   const safeAudioDuration = audioDuration > 0 ? audioDuration : 10;
   const totalDuration = INTRO_DURATION + safeAudioDuration + OUTRO_DURATION;
 
-  // Lógica de Audio (Robusta)
   const startAudioSequence = () => {
     if (isForCapture || !isReady || !article) return;
     const voiceAudio = voiceAudioRef.current;
@@ -213,11 +205,16 @@ export default function NewsSlide({ article, onClose, isPublicView = false, isFo
   useEffect(() => {
     if (!isReady) return;
     startAudioSequence();
+
+    // CORRECCIÓN: Guardamos las referencias actuales para el cleanup
+    const currentMusicAudio = musicAudioRef.current;
+    const currentVoiceAudio = voiceAudioRef.current;
+
     return () => {
       timersRef.current.forEach(clearTimeout);
       timersRef.current = [];
-      if (musicAudioRef.current) setTimeout(() => musicAudioRef.current?.pause(), 300);
-      if (voiceAudioRef.current) voiceAudioRef.current.pause();
+      if (currentMusicAudio) setTimeout(() => currentMusicAudio.pause(), 300);
+      if (currentVoiceAudio) currentVoiceAudio.pause();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReady]);
@@ -238,29 +235,22 @@ export default function NewsSlide({ article, onClose, isPublicView = false, isFo
     >
       <motion.div className="relative w-[1280px] h-[720px] bg-black shadow-2xl overflow-hidden" style={containerStyle}>
         
-        {/* 1. Fondo Imagen con Ken Burns */}
         {isReady && (
           <motion.div className="absolute inset-0 z-0" animate={{ scale: [1.0, 1.25, 1.0] }} transition={{ duration: totalDuration, ease: 'linear', repeat: Infinity }}>
             <Image src={article.miniatura_url || article.imageUrl || ''} alt={article.title} fill className="object-cover" priority />
           </motion.div>
         )}
 
-        {/* 2. Overlays y Gradientes */}
         <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
         <div className="absolute inset-0 z-10" style={{ boxShadow: 'inset 0 0 100px rgba(0,0,0,0.8)' }}></div>
 
-        {/* 3. FONDO GEOMÉTRICO */}
         <GeometricBackground />
-        
-        {/* 4. LÍNEAS SVG */}
         <DottedLines />
 
-        {/* 5. Logo */}
         <div className="absolute top-8 left-8 z-30 filter drop-shadow-[0_0_15px_rgba(255,255,255,0.6)]">
              <Image src="/logos/noticias.png" alt="Noticias" width={220} height={100} className="object-contain" />
         </div>
 
-        {/* 6. TÍTULO (Estilo Broadcast Recuperado) */}
         {isReady && (
           <div className="absolute bottom-24 right-12 z-30 flex flex-col items-end gap-2 text-right">
               {titleLines.map((line, index) => (
@@ -280,13 +270,11 @@ export default function NewsSlide({ article, onClose, isPublicView = false, isFo
           </div>
         )}
 
-        {/* 7. Barra de Progreso y Ticker */}
         <TickerTape text={article.title} />
         {isReady && !isForCapture && (
           <motion.div className="absolute top-0 left-0 h-1.5 bg-red-600 z-50" initial={{ width: 0 }} animate={{ width: "100%" }} transition={{ duration: totalDuration, ease: "linear" }} />
         )}
 
-        {/* 8. Botón Playback */}
         {isPlaybackBlocked && (
             <div className="absolute inset-0 z-50 bg-black/80 flex flex-col items-center justify-center backdrop-blur-md">
                 <button onClick={startAudioSequence} className="flex items-center gap-4 text-white text-2xl font-bold bg-red-600 px-10 py-6 rounded-xl animate-pulse">
@@ -306,7 +294,6 @@ export default function NewsSlide({ article, onClose, isPublicView = false, isFo
   );
 }
 
-// Funciones Auxiliares
 const splitTitleIntoLines = (text: string, maxLines: number): string[] => {
   const words = text.split(' ');
   const lines: string[] = [];
