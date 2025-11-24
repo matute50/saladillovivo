@@ -75,7 +75,7 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
       );
     } else if (searchResults.length > 0) {
       const searchCategory: CategoryMapping = {
-        name: 'Tu Búsqueda',
+        label: 'Tu Búsqueda',
         dbCategory: 'search_results', // A unique identifier for search results
         color: 'white',
         highlight: false,
