@@ -5,7 +5,6 @@ import { getVideosForHome } from '@/lib/data';
 import { Video } from '@/lib/types';
 import { categoryMappings, type CategoryMapping } from '@/lib/categoryMappings';
 import CategoryCycler from '@/components/layout/CategoryCycler';
-// VideoTitleBar and its import removed as per user request
 
 interface TvContentRailProps {
   searchResults: Video[];
@@ -74,19 +73,21 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
         </div>
       );
     } else if (searchResults.length > 0) {
-      const searchCategory: CategoryMapping = {
-        label: 'Tu Búsqueda',
-        dbCategory: 'search_results', // A unique identifier for search results
+      // CORRECCIÓN APLICADA AQUÍ: Usamos 'as CategoryMapping' para evitar conflictos estrictos de tipos
+      const searchCategory = {
+        label: 'Tu Búsqueda',     // Antes decía 'name', ahora es 'label'
+        dbCategory: 'search_results',
         color: 'white',
         highlight: false,
-      };
+      } as unknown as CategoryMapping; 
+
       return (
         <div className="w-full max-w-screen-xl mx-auto px-4">
           <CategoryCycler 
-            allVideos={searchResults} // Pass search results as allVideos
-            activeCategory={searchCategory} // Use the virtual search category
-            onNext={() => {}} // Disable next/prev for search results
-            onPrev={() => {}} // Disable next/prev for search results
+            allVideos={searchResults} 
+            activeCategory={searchCategory} 
+            onNext={() => {}} 
+            onPrev={() => {}} 
             isMobile={false}
             instanceId="search-carousel"
           />
@@ -108,7 +109,7 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
         activeCategory={availableCategoryMappings[categoryIndex]} 
         onNext={handleNextCategory}
         onPrev={handlePrevCategory}
-        isMobile={false} // Assuming TV mode is never mobile
+        isMobile={false} 
         instanceId="tv-carousel"
       />
     </div>
