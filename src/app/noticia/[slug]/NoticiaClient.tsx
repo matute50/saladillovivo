@@ -3,10 +3,11 @@
 
 import Image from 'next/image';
 import React from 'react';
-import { Play, Pause, Loader2 } from 'lucide-react'; 
+import { Play, Pause } from 'lucide-react'; 
 
 // Simulación del hook 'useAudioPlayer'
-const useAudioPlayer = (audioUrl: string | null) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const useAudioPlayer = (_audioUrl: string | null) => {
     const state = { isPlaying: false, time: 0 };
     const play = () => console.log('Simulación: Audio Play');
     const pause = () => console.log('Simulación: Audio Pause');
