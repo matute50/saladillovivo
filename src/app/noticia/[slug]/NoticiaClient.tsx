@@ -1,14 +1,22 @@
 // src/app/[slug]/NoticiaClient.tsx
+"use client";
 
 import Image from 'next/image';
 import React from 'react';
-import { useAudioPlayer } from '@/hooks/useAudioPlayer';
 import { Play, Pause, Loader2 } from 'lucide-react'; 
+
+// Simulación del hook 'useAudioPlayer'
+const useAudioPlayer = (audioUrl: string | null) => {
+    const state = { isPlaying: false, time: 0 };
+    const play = () => console.log('Simulación: Audio Play');
+    const pause = () => console.log('Simulación: Audio Pause');
+    return { state, play, pause };
+};
 
 // Recibimos 'article' como prop desde la página de servidor
 export default function NoticiaClient({ article }: { article: any }) {
   
-  // 1. INICIALIZAMOS EL HOOK DE AUDIO
+  // 1. INICIALIZAMOS EL HOOK DE AUDIO (usando la simulación)
   const { state, play, pause } = useAudioPlayer(article.audio_url || null);
 
   // 2. FUNCIÓN PARA EL BOTÓN
@@ -16,7 +24,7 @@ export default function NoticiaClient({ article }: { article: any }) {
     e.stopPropagation(); 
     e.preventDefault();
 
-    if (state === 'playing') {
+    if (state.isPlaying) { // Corregido para usar la propiedad del objeto state
       pause();
     } else {
       play(); 
@@ -57,12 +65,11 @@ export default function NoticiaClient({ article }: { article: any }) {
                            ring-offset-background focus-visible:outline-none focus-visible:ring-2 
                            focus-visible:ring-ring focus-visible:ring-offset-2
                            border border-white drop-shadow-[0_0_15px_black]"
-                aria-label={state === 'playing' ? "Pausar audio" : "Reproducir audio"}
+                aria-label={state.isPlaying ? "Pausar audio" : "Reproducir audio"}
               >
                 {/* Íconos huecos y de tamaño 20px */}
-                {state === 'playing' && <Pause size={20} />}
-                {(state === 'paused' || state === 'stopped' || state === 'error') && <Play size={20} />}
-                {state === 'loading' && <Loader2 size={20} className="animate-spin" />}
+                {state.isPlaying && <Pause size={20} />}
+                {(!state.isPlaying) && <Play size={20} />}
               </button>
             )}
           </div>

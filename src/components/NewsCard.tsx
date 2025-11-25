@@ -1,14 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { Calendar, Play, Pause, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Calendar, Play } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { Article } from '@/lib/types';
 import Image from 'next/image';
-import { useAudioPlayer } from '@/hooks/useAudioPlayer';
-import { useThemeButtonColors } from '@/hooks/useThemeButtonColors';
+import NewsSlide from './NewsSlide';
 
 interface NewsCardProps {
   newsItem: Article;
@@ -18,24 +17,25 @@ interface NewsCardProps {
 }
 
 const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, className = '' }) => {
-  const { state, play, pause } = useAudioPlayer(newsItem?.audio_url || null);
-  const { buttonColor, buttonBorderColor } = useThemeButtonColors(); // NUEVO
+  const [isSlideOpen, setIsSlideOpen] = useState(false);
 
+  // Fallback seguro si no hay datos
   if (!newsItem) return null;
 
   const { titulo, fecha, slug, imageUrl, audio_url } = newsItem;
+  
+  // El slide está disponible si hay un audio_url. Se puede expandir la lógica si hay otros tipos de slide.
+  const hasSlide = !!(audio_url);
 
-  const handleTogglePlay = (e: React.MouseEvent) => {
-    e.stopPropagation(); 
+  const handlePlaySlideClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     e.preventDefault();
-
-    if (state === 'playing') {
-      pause();
-    } else {
-      play(); 
-    }
+    setIsSlideOpen(true);
   };
 
+  const handleCloseSlide = () => {
+    setIsSlideOpen(false);
+  };
 
   let cardClass = 'card overflow-hidden flex flex-col group cursor-pointer';
   let titleClass = '';
@@ -72,54 +72,63 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, class
   const articleLink = `/noticia/${slug}`;
 
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-      className={`${cardClass} ${className}`}
-      aria-label={`Noticia: ${titulo}`}
-    >
-      <Link href={articleLink} className="flex flex-col h-full">
-        <div className={`relative news-image-container overflow-hidden ${imageContainerClass}`}>
-            <Image
-              src={imageUrl || "/placeholder.jpg"}
-              alt={`Imagen de: ${titulo}`}
-              width={400}
-              height={300}
-              priority={priority}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
-            />
-            {dateDisplay}
+    <>
+      <motion.article
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: index * 0.1 }}
+        className={`${cardClass} ${className}`}
+        aria-label={`Noticia: ${titulo}`}
+      >
+        <div className="h-full w-full flex flex-col">
+            <Link href={articleLink} passHref legacyBehavior>
+                <a className="contents">
+                    <div className={`relative news-image-container overflow-hidden ${imageContainerClass}`}>
+                        <Image
+                        src={imageUrl || "/placeholder.jpg"}
+                        alt={`Imagen de: ${titulo}`}
+                        layout="fill"
+                        objectFit="cover"
+                        priority={priority}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
+                        />
+                        {dateDisplay}
 
-            {audio_url && (
-              <motion.button
-                onClick={handleTogglePlay}
-                className="carousel-nav-button shadow-lg shadow-black/50 absolute bottom-2 right-2 z-10 
-                           rounded-md p-1 border
-                           flex items-center justify-center
-                           hover:bg-opacity-70 transition-all focus:outline-none
-                           ring-offset-background focus-visible:outline-none focus-visible:ring-2 
-                           focus-visible:ring-ring focus-visible:ring-offset-2
-                           w-10 h-10"
-                animate={{ color: buttonColor, borderColor: buttonBorderColor }}
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
-                aria-label={state === 'playing' ? "Pausar audio" : "Reproducir audio"}
-              >
-                {state === 'playing' && <Pause size={20} />}
-                {(state === 'paused' || state === 'stopped' || state === 'error') && <Play size={20} />}
-                {state === 'loading' && <Loader2 size={20} className="animate-spin" />}
-              </motion.button>
-            )}
-            
+                        {hasSlide && (
+                        <div className="absolute bottom-2 right-2 z-20">
+                            <button
+                            onClick={handlePlaySlideClick}
+                            className="z-10 bg-red-600 p-2 rounded-full border-2 border-white/20 shadow-lg
+                                        hover:bg-red-700 hover:scale-110 transition-all
+                                        flex items-center justify-center text-white"
+                            aria-label="Reproducir noticia en formato slide"
+                            >
+                            <Play size={24} fill="currentColor" />
+                            </button>
+                        </div>
+                        )}
+                    </div>
+                    <div className="p-2 flex flex-col flex-grow">
+                        <h3 className={titleClass}>
+                            {titulo}
+                        </h3>
+                    </div>
+                </a>
+            </Link>
         </div>
-        <div className="p-2 flex flex-col flex-grow">
-          <h3 className={titleClass}>
-            {titulo}
-          </h3>
-        </div>
-      </Link>
-    </motion.article>
+      </motion.article>
+
+      <AnimatePresence>
+        {isSlideOpen && (
+            <NewsSlide
+              article={newsItem}
+              onClose={handleCloseSlide}
+              isMuted={false}
+            />
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 

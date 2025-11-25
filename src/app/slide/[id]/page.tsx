@@ -32,10 +32,10 @@ export async function generateMetadata(
   }
 
   return {
-    title: article.title,
+    title: article.titulo || 'Noticia sin título',
     description: 'Noticia destacada en Saladillo Vivo',
     openGraph: {
-      title: article.title,
+      title: article.titulo || 'Noticia sin título',
       description: 'Ver slide de noticia',
       images: [article.imageUrl || '/placeholder.png'],
     },
@@ -52,8 +52,8 @@ export default async function SlidePage({ params }: Props) {
   return (
     <main className="w-screen h-screen bg-black overflow-hidden">
       <NewsSlide 
-        article={article} 
-        isPublicView={true} 
+        article={article}
+        onClose={() => {}}
       />
     </main>
   );
