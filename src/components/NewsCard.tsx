@@ -73,40 +73,52 @@ const InterruptSequenceModal: React.FC<InterruptSequenceModalProps> = ({ newsIte
     switch (phase) {
       case 'INTRO_1':
         return (
-          <motion.div key="intro1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
-            <ReactPlayer
-              url={introUrls[0]}
-              playing={true}
-              onEnded={handleIntro1End}
-              width="100%"
-              height="100%"
-              playsinline
-              muted
-            />
+          <motion.div key="intro1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}
+            className="flex items-center justify-center w-full h-full p-4" // Centering for the phase
+          >
+            <motion.div className="relative w-full max-w-[90vw] max-h-[90vh] aspect-video mx-auto my-auto"> {/* Inner content container */}
+              <ReactPlayer
+                url={introUrls[0]}
+                playing={true}
+                onEnded={handleIntro1End}
+                width="100%"
+                height="100%"
+                playsinline
+                muted
+              />
+            </motion.div>
           </motion.div>
         );
       case 'SLIDE':
         return (
-          <motion.div key="slide" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 1 }}>
-            <NewsSlide
-              article={newsItem}
-              onClose={handleSlideEnd}
-              isMuted={isMuted}
-            />
+          <motion.div key="slide" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 1 }}
+            className="flex items-center justify-center w-full h-full p-4" // Centering for the phase
+          >
+            <motion.div className="relative w-full max-w-[90vw] max-h-[90vh] aspect-video mx-auto my-auto"> {/* Inner content container */}
+              <NewsSlide
+                article={newsItem}
+                onClose={handleSlideEnd}
+                isMuted={isMuted}
+              />
+            </motion.div>
           </motion.div>
         );
       case 'INTRO_2':
         return (
-          <motion.div key="intro2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
-            <ReactPlayer
-              url={introUrls[1]}
-              playing={true}
-              onEnded={handleIntro2End}
-              width="100%"
-              height="100%"
-              playsinline
-              muted
-            />
+          <motion.div key="intro2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}
+            className="flex items-center justify-center w-full h-full p-4" // Centering for the phase
+          >
+            <motion.div className="relative w-full max-w-[90vw] max-h-[90vh] aspect-video mx-auto my-auto"> {/* Inner content container */}
+              <ReactPlayer
+                url={introUrls[1]}
+                playing={true}
+                onEnded={handleIntro2End}
+                width="100%"
+                height="100%"
+                playsinline
+                muted
+              />
+            </motion.div>
           </motion.div>
         );
       default:
