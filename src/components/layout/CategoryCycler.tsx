@@ -58,18 +58,24 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
         {!isSearchResult && onPrev && (
           <motion.button 
             onClick={onPrev}
-            className="carousel-nav-button-title p-0.5 rounded-md border-[1.5px] bg-black/10 text-foreground/80 border-white hover:bg-foreground/10 transition-colors shadow-lg shadow-black/50 backdrop-blur-lg"
+            className="carousel-nav-button-title p-0.5 rounded-md border-[1.5px] text-white border-white shadow-lg shadow-black/50 backdrop-blur-md"
+            animate={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
+            whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
           >
             <ChevronLeft size="20" />
           </motion.button>
         )}
-        <h2 className="text-2xl font-bold tracking-tight text-foreground/90 truncate text-center mx-2 drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)]">
+        <h2 className="text-2xl font-bold tracking-tight text-foreground/90 truncate text-center mx-2">
           {activeCategory.display}
         </h2>
         {!isSearchResult && onNext && (
           <motion.button 
             onClick={onNext}
-            className="carousel-nav-button-title p-0.5 rounded-md border-[1.5px] bg-black/10 text-foreground/80 border-white hover:bg-foreground/10 transition-colors shadow-lg shadow-black/50 backdrop-blur-lg"
+            className="carousel-nav-button-title p-0.5 rounded-md border-[1.5px] text-white border-white shadow-lg shadow-black/50 backdrop-blur-md"
+            animate={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
+            whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
           >
             <ChevronRight size="20" />
           </motion.button>

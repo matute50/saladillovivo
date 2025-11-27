@@ -12,6 +12,7 @@ import { useMediaPlayer } from '@/context/useMediaPlayer';
 import { useVolume } from '@/context/VolumeContext';
 import ReactPlayer from 'react-player';
 import { supabase } from '@/lib/supabaseClient';
+import { useThemeButtonColors } from '@/hooks/useThemeButtonColors';
 
 // --- Helper function to fetch random intros ---
 async function getRandomIntroUrls(count: number): Promise<string[]> {
@@ -148,6 +149,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, class
   const [isSequenceOpen, setIsSequenceOpen] = useState(false);
   const { setIsPlaying } = useMediaPlayer();
   const { setVolume } = useVolume();
+  const { buttonColor, buttonBorderColor } = useThemeButtonColors();
 
   // Fallback seguro si no hay datos
   if (!newsItem) return null;
@@ -230,17 +232,18 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, class
                         {dateDisplay}
 
                         {hasSlide && (
-                        <div className="absolute bottom-2 right-2 z-20">
-                            <button
-                            onClick={handlePlaySlideClick}
-                            className="z-10 bg-red-600 p-2 rounded-full border-2 border-white/20 shadow-lg
-                                        hover:bg-red-700 hover:scale-110 transition-all
-                                        flex items-center justify-center text-white"
-                            aria-label="Reproducir noticia en formato slide"
-                            >
-                            <Play size={24} fill="currentColor" />
-                            </button>
-                        </div>
+                            <div className="absolute bottom-2 right-2 z-20">
+                                <motion.button
+                                    onClick={handlePlaySlideClick}
+                                    className="z-10 rounded-md p-1 cursor-pointer border shadow-lg shadow-black/50 backdrop-blur-md"
+                                    animate={{ color: buttonColor, borderColor: buttonBorderColor, backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
+                                    whileHover={{ scale: 1.1, backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
+                                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                                    aria-label="Reproducir noticia en formato slide"
+                                >
+                                    <Play size={30} fill="currentColor" />
+                                </motion.button>
+                            </div>
                         )}
                     </div>
                     <div className="p-2 flex flex-col flex-grow">

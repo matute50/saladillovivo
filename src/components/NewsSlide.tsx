@@ -12,6 +12,9 @@ interface NewsSlideContentProps {
 }
 
 const NewsSlideContent: React.FC<NewsSlideContentProps> = ({ article, onClose, isMuted = false }) => {
+  if (!article || !article.titulo) {
+    return null;
+  }
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {

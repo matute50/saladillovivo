@@ -1,13 +1,10 @@
 import React from "react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { NewsProvider } from "@/context/NewsContext";
-import { MediaPlayerProvider } from "@/context/MediaPlayerContext";
-import { VolumeProvider } from "@/context/VolumeContext";
 import type { Metadata } from "next";
 import "@/app/globals.css";
 
 import Script from 'next/script';
-import LayoutClientContent from "@/components/layout/LayoutClientContent";
+import ClientLayoutWrapper from "./ClientLayoutWrapper";
 
 export const metadata: Metadata = {
   title: "Saladillo Vivo",
@@ -23,15 +20,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
     <html lang="es" suppressHydrationWarning>
       <head />
       <body className="bg-main-gradient">
-        <NewsProvider>
-          <VolumeProvider>
-            <MediaPlayerProvider>
-              <LayoutClientContent>
-                {children}
-              </LayoutClientContent>
-            </MediaPlayerProvider>
-          </VolumeProvider>
-        </NewsProvider>
+        <ClientLayoutWrapper>
+          {children}
+        </ClientLayoutWrapper>
 
         <Script
           src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"
@@ -42,4 +33,5 @@ export default function RootLayout({ children }: RootLayoutProps) {
     </html>
   );
 }
+
 

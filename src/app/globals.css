@@ -67,8 +67,8 @@
     --desktop-header-height: 72px;
     --ticker-height: 32px;
 
-    --carousel-button-color: 0, 0, 0; /* Negro para modo claro */
-    --carousel-button-border-color: 0, 0, 0; /* Negro para modo claro */
+    --carousel-button-color: 255, 255, 255; /* Blanco para modo claro */
+    --carousel-button-border-color: 255, 255, 255; /* Blanco para modo claro */
   }
 
   .dark {

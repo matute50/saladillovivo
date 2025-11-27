@@ -143,16 +143,18 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
         <>
           <motion.button
             id={`prev-${carouselId}`}
-            className="carousel-nav-button absolute top-1/2 -translate-y-1/2 left-0 z-20 rounded-md p-1 cursor-pointer border shadow-lg shadow-black/50"
-            animate={{ color: buttonColor, borderColor: buttonBorderColor }}
+            className="carousel-nav-button absolute top-1/2 -translate-y-1/2 left-0 z-20 rounded-md p-1 cursor-pointer border shadow-lg shadow-black/50 backdrop-blur-md"
+            animate={{ color: buttonColor, borderColor: buttonBorderColor, backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
+            whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
           >
             <ChevronLeft size={30} />
           </motion.button>
           <motion.button
             id={`next-${carouselId}`}
-            className="carousel-nav-button absolute top-1/2 -translate-y-1/2 right-0 z-20 rounded-md p-1 cursor-pointer border shadow-lg shadow-black/50"
-            animate={{ color: buttonColor, borderColor: buttonBorderColor }}
+            className="carousel-nav-button absolute top-1/2 -translate-y-1/2 right-0 z-20 rounded-md p-1 cursor-pointer border shadow-lg shadow-black/50 backdrop-blur-md"
+            animate={{ color: buttonColor, borderColor: buttonBorderColor, backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
+            whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
           >
             <ChevronRight size={30} />
