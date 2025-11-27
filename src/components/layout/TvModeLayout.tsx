@@ -25,9 +25,7 @@ const TvModeLayout = () => {
   };
 
   const handleMouseLeave = () => {
-    hideOverlayTimer.current = setTimeout(() => {
-      setIsOverlayVisible(false);
-    }, 2000); // 2-second delay
+    setIsOverlayVisible(false);
   };
 
   const toggleFullScreen = useCallback(() => {
@@ -45,9 +43,18 @@ const TvModeLayout = () => {
 
   // Clear the timer when the component unmounts to prevent memory leaks
   useEffect(() => {
+    // Request fullscreen when the component mounts
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().then(() => setIsFullScreen(true));
+    }
+
     return () => {
       if (hideOverlayTimer.current) {
         clearTimeout(hideOverlayTimer.current);
+      }
+      // Exit fullscreen when the component unmounts, if it's currently in fullscreen
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
       }
     };
   }, []);

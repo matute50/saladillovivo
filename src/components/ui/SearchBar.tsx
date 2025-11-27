@@ -16,7 +16,7 @@ const SearchBar = () => {
     if (searchQuery !== localQuery) {
       setLocalQuery(searchQuery);
     }
-  }, [searchQuery, localQuery]);
+  }, [searchQuery]);
 
   useEffect(() => {
     // Ejecutar la búsqueda cuando el valor debounced cambia

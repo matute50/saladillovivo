@@ -30,7 +30,7 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onToggleFul
     if (searchQuery !== localQuery) {
       setLocalQuery(searchQuery);
     }
-  }, [searchQuery, localQuery]);
+  }, [searchQuery]);
 
   // Execute search when the debounced value changes
   useEffect(() => {

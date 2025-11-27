@@ -43,7 +43,7 @@
     "@types/react-dom": "^18.2.0",
     "@types/rss": "^0.0.32",
     "autoprefixer": "^10.4.19",
-    "eslint": "^8.0.0",
+    "eslint": "^9.39.1",
     "eslint-config-next": "^16.0.5",
     "typescript": "^5"
   }

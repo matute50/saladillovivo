@@ -66,7 +66,7 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
             <ChevronLeft size="20" />
           </motion.button>
         )}
-        <h2 className="text-2xl font-bold tracking-tight text-foreground/90 truncate text-center mx-2">
+        <h2 className="text-3xl font-bold tracking-tight text-white truncate text-center mx-2 drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)]">
           {activeCategory.display}
         </h2>
         {!isSearchResult && onNext && (

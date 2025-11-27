@@ -73,13 +73,10 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
         </div>
       );
     } else if (searchResults.length > 0) {
-      // CORRECCIÓN APLICADA AQUÍ: Usamos 'as CategoryMapping' para evitar conflictos estrictos de tipos
-      const searchCategory = {
-        label: 'Tu Búsqueda',     // Antes decía 'name', ahora es 'label'
+      const searchCategory: CategoryMapping = {
+        display: 'Tu Búsqueda',
         dbCategory: 'search_results',
-        color: 'white',
-        highlight: false,
-      } as unknown as CategoryMapping; 
+      }; 
 
       return (
         <div className="w-full max-w-screen-xl mx-auto px-4">
@@ -89,6 +86,7 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
             onNext={() => {}} 
             onPrev={() => {}} 
             isMobile={false}
+            isSearchResult={true}
             instanceId="search-carousel"
           />
         </div>
