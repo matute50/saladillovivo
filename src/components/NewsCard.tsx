@@ -34,8 +34,8 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, className }) => {
   const { playerRect } = usePlayerGeometry(); 
   
   // OBTENEMOS LOS CONTROLES DE INTERRUPCIÓN
-  const { pause, play, currentVideo } = useMediaPlayer(); 
-  const { setMuted } = useVolume(); 
+  const { setIsPlaying, currentVideo } = useMediaPlayer(); 
+  const { setVolume, unmute } = useVolume(); 
 
   const hasSlide = !!(newsItem.url_slide || newsItem.audio_url);
 
@@ -57,9 +57,9 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, className }) => {
     
     // 2. Pausar el video principal, mutear y mostrar slide
     if (currentVideo) {
-        pause(); 
+        setIsPlaying(false); 
     }
-    setMuted(true); 
+    setVolume(0); 
     setShowSlide(true);
   };
 
@@ -67,9 +67,9 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, className }) => {
     // 1. Ocultar slide
     setShowSlide(false);
     // 2. Reanudar el video principal
-    play();
+    setIsPlaying(true);
     // 3. Restaurar volumen
-    setMuted(false); 
+    unmute(); 
   };
 
   const timeAgo = newsItem.createdAt 
