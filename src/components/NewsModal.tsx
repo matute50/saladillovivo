@@ -21,7 +21,7 @@ const NewsModal: React.FC<NewsModalProps> = ({ isOpen, onClose, newsData }) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xl"
       onClick={onClose} // Cierra el modal si se hace clic en el fondo
     >
       {/* Botón para cerrar el modal, posicionado en la esquina superior derecha */}
@@ -35,7 +35,7 @@ const NewsModal: React.FC<NewsModalProps> = ({ isOpen, onClose, newsData }) => {
 
       <motion.div
         layoutId={'media-' + newsData.id}
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        transition={{ type: "spring", stiffness: 200, damping: 25, mass: 1.2 }}
         className="relative w-full max-w-4xl"
         onClick={(e) => e.stopPropagation()} // Evita que el clic en el reproductor cierre el modal
       >

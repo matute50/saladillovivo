@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import VideoIntro from './VideoIntro'; 
 import NewsSlide from './NewsSlide'; // Renombrado para coincidir con el nombre de archivo real
 import { Article } from '@/lib/types';
@@ -24,30 +25,46 @@ export default function ReproductorMultimedia({ newsData, onComplete }: Reproduc
 
   return (
     <div 
-      className="relative w-full max-w-4xl aspect-video bg-black overflow-hidden rounded-xl shadow-2xl mx-auto"
+      className="relative w-full max-w-4xl aspect-video bg-black/20 backdrop-blur-sm overflow-hidden rounded-xl shadow-2xl mx-auto"
       aria-live="polite"
     >
-      {currentStage === 'intro' && (
-        <div className="absolute inset-0 w-full h-full">
-          <VideoIntro onEnd={handleVideoEnd} />
-        </div>
-      )}
+      <AnimatePresence mode='wait'>
+        {currentStage === 'intro' && (
+          <motion.div
+            key="intro"
+            className="absolute inset-0 w-full h-full"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <VideoIntro onEnd={handleVideoEnd} />
+          </motion.div>
+        )}
 
-      {currentStage === 'slide' && (
-        <div className="absolute inset-0 w-full h-full">
-          {/* 
-            Renderiza el slide solo si hay datos, de lo contrario muestra un error.
-            Le pasamos los datos de la noticia a través de la prop 'article'.
-          */}
-          {newsData ? (
-            <NewsSlide article={newsData} onEnd={onComplete} />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-white">
-              Error: No se pudieron cargar los datos de la noticia.
-            </div>
-          )}
-        </div>
-      )}
+        {currentStage === 'slide' && (
+          <motion.div
+            key="slide"
+            className="absolute inset-0 w-full h-full"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            {/* 
+              Renderiza el slide solo si hay datos, de lo contrario muestra un error.
+              Le pasamos los datos de la noticia a través de la prop 'article'.
+            */}
+            {newsData ? (
+              <NewsSlide article={newsData} onEnd={onComplete} />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-white">
+                Error: No se pudieron cargar los datos de la noticia.
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
