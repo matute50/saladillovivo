@@ -1,18 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Calendar, Play } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { Article } from '@/lib/types';
 import Image from 'next/image';
-import NewsSlide from './NewsSlide';
-import { useMediaPlayer } from '@/context/useMediaPlayer';
-import { useVolume } from '@/context/VolumeContext';
-import ReactPlayer from 'react-player';
-import { supabase } from '@/lib/supabaseClient';
-import { useThemeButtonColors } from '@/hooks/useThemeButtonColors';
 
 // --- Helper function to fetch random intros ---
 async function getRandomIntroUrls(count: number): Promise<string[]> {
@@ -27,153 +21,31 @@ async function getRandomIntroUrls(count: number): Promise<string[]> {
   return shuffled.slice(0, count);
 }
 
-// --- The new Interrupt Sequence Modal Component ---
-type InterruptPhase = 'INTRO_1' | 'SLIDE' | 'INTRO_2' | 'FADING_OUT' | 'IDLE';
-
-interface InterruptSequenceModalProps {
-  newsItem: Article;
-  onClose: () => void;
-  isMuted: boolean;
-}
-
-const InterruptSequenceModal: React.FC<InterruptSequenceModalProps> = ({ newsItem, onClose, isMuted }) => {
-  const [phase, setPhase] = useState<InterruptPhase>('IDLE');
-  const [introUrls, setIntroUrls] = useState<string[]>([]);
-  const { setIsPlaying } = useMediaPlayer();
-  const { unmute } = useVolume();
-
-  // 1. Fetch intros on mount
-  useEffect(() => {
-    getRandomIntroUrls(2).then(urls => {
-      if (urls.length === 2) {
-        setIntroUrls(urls);
-        setPhase('INTRO_1'); // Start the sequence once URLs are ready
-      } else {
-        // Fallback if intros can't be fetched
-        console.warn("Could not fetch 2 intros, proceeding directly to slide.");
-        setPhase('SLIDE');
-      }
-    });
-  }, []);
-
-  const handleSequenceEnd = useCallback(() => {
-    setIsPlaying(true); // Resume main video
-    unmute(); // Restore main volume
-    onClose(); // Close the modal
-  }, [setIsPlaying, unmute, onClose]);
-
-  const handleIntro1End = () => setPhase('SLIDE');
-  const handleSlideEnd = () => setPhase('INTRO_2');
-  const handleIntro2End = () => {
-    setPhase('FADING_OUT');
-    // The fade-out animation will trigger the final cleanup
-    setTimeout(handleSequenceEnd, 1000); // Match fade-out duration
-  };
-
-  const renderPhase = () => {
-    switch (phase) {
-      case 'INTRO_1':
-        return (
-          <motion.div key="intro1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}
-            className="flex items-center justify-center w-full h-full p-4" // Centering for the phase
-          >
-            <motion.div className="relative w-full max-w-[90vw] max-h-[90vh] aspect-video mx-auto my-auto"> {/* Inner content container */}
-              <ReactPlayer
-                url={introUrls[0]}
-                playing={true}
-                onEnded={handleIntro1End}
-                width="100%"
-                height="100%"
-                playsinline
-                muted
-              />
-            </motion.div>
-          </motion.div>
-        );
-      case 'SLIDE':
-        return (
-          <motion.div key="slide" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 1 }}
-            className="flex items-center justify-center w-full h-full p-4" // Centering for the phase
-          >
-            <motion.div className="relative w-full max-w-[90vw] max-h-[90vh] aspect-video mx-auto my-auto"> {/* Inner content container */}
-              <NewsSlide
-                article={newsItem}
-                onClose={handleSlideEnd}
-                isMuted={isMuted}
-              />
-            </motion.div>
-          </motion.div>
-        );
-      case 'INTRO_2':
-        return (
-          <motion.div key="intro2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}
-            className="flex items-center justify-center w-full h-full p-4" // Centering for the phase
-          >
-            <motion.div className="relative w-full max-w-[90vw] max-h-[90vh] aspect-video mx-auto my-auto"> {/* Inner content container */}
-              <ReactPlayer
-                url={introUrls[1]}
-                playing={true}
-                onEnded={handleIntro2End}
-                width="100%"
-                height="100%"
-                playsinline
-                muted
-              />
-            </motion.div>
-          </motion.div>
-        );
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black z-[100] flex items-center justify-center">
-      <AnimatePresence mode="wait">
-        {renderPhase()}
-      </AnimatePresence>
-    </div>
-  );
-};
-
-
 // --- Modified NewsCard Component ---
 interface NewsCardProps {
   newsItem: Article;
   variant: 'destacada-principal' | 'secundaria' | 'default';
   index?: number;
   className?: string;
+  onCardClick?: (article: Article) => void; // Prop para abrir el modal
 }
 
-const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, className = '' }) => {
-  const [isSequenceOpen, setIsSequenceOpen] = useState(false);
-  const { setIsPlaying } = useMediaPlayer();
-  const { setVolume } = useVolume();
-  const { buttonColor, buttonBorderColor } = useThemeButtonColors();
-
+const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, className = '', onCardClick }) => {
   // Fallback seguro si no hay datos
   if (!newsItem) return null;
 
-  const { titulo, fecha, slug, imageUrl, audio_url } = newsItem;
-  
-  const hasSlide = !!(audio_url);
+  const { titulo, fecha, slug, imageUrl } = newsItem;
 
-  const handlePlaySlideClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    
-    // --- FASE 1: PAUSA & SILENCIO (Pre-roll) ---
-    setIsPlaying(false); // Pausa el video principal
-    setVolume(0);       // Silencia el video principal
-    
-    setIsSequenceOpen(true); // Abre el modal de la secuencia
+  const handleImageClick = (e: React.MouseEvent) => {
+    // Si hay una función onCardClick, la usamos y prevenimos la navegación del Link
+    if (onCardClick) {
+      e.stopPropagation();
+      e.preventDefault();
+      onCardClick(newsItem);
+    }
   };
 
-  const handleCloseSequence = () => {
-    setIsSequenceOpen(false);
-  };
-
-  let cardClass = 'card overflow-hidden flex flex-col group cursor-pointer';
+  let cardClass = 'card overflow-hidden flex flex-col group';
   let titleClass = '';
   const imageContainerClass = 'aspect-video';
   let dateDisplay;
@@ -208,65 +80,51 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, class
   const articleLink = `/noticia/${slug}`;
 
   return (
-    <>
-      <motion.article
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: index * 0.1 }}
-        className={`${cardClass} ${className}`}
-        aria-label={`Noticia: ${titulo}`}
-      >
-        <div className="h-full w-full flex flex-col">
-            <Link href={articleLink} passHref legacyBehavior>
-                <a className="contents">
-                    <div className={`relative news-image-container overflow-hidden ${imageContainerClass}`}>
-                        <Image
-                        src={imageUrl || "/placeholder.jpg"}
-                        alt={titulo}
-                        fill
-                        objectFit="cover"
-                        priority={priority}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
-                        />
-                        {dateDisplay}
+    <motion.article
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: index * 0.1 }}
+      className={`${cardClass} ${className}`}
+      aria-label={`Noticia: ${titulo}`}
+    >
+      <div className="h-full w-full flex flex-col">
+        {/* El Link ahora envuelve toda la tarjeta para mejor accesibilidad, 
+            pero el click en la imagen será interceptado */}
+        <Link href={articleLink} passHref legacyBehavior>
+          <a className="contents">
+            <motion.div 
+              layoutId={'media-' + newsItem.id}
+              className={`relative news-image-container overflow-hidden ${imageContainerClass} cursor-pointer`}
+              onClick={handleImageClick} // <-- El click se maneja aquí
+            >
+              <Image
+                src={imageUrl || "/placeholder.jpg"}
+                alt={titulo}
+                fill
+                objectFit="cover"
+                priority={priority}
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
+              />
+              {dateDisplay}
 
-                        {hasSlide && (
-                            <div className="absolute bottom-2 right-2 z-20">
-                                <motion.button
-                                    onClick={handlePlaySlideClick}
-                                    className="z-10 rounded-md p-1 cursor-pointer border shadow-lg shadow-black/50 backdrop-blur-md"
-                                    animate={{ color: buttonColor, borderColor: buttonBorderColor, backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
-                                    whileHover={{ scale: 1.1, backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
-                                    transition={{ duration: 0.3, ease: 'easeInOut' }}
-                                    aria-label="Reproducir noticia en formato slide"
-                                >
-                                    <Play size={30} fill="currentColor" />
-                                </motion.button>
-                            </div>
-                        )}
-                    </div>
-                    <div className="p-2 flex flex-col flex-grow">
-                        <h3 className={titleClass}>
-                            {titulo}
-                        </h3>
-                    </div>
-                </a>
-            </Link>
-        </div>
-      </motion.article>
+              {/* Icono de Play sobre la imagen para indicar que es clickeable */}
+              <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <Play size={60} className="text-white drop-shadow-lg" fill="currentColor" />
+              </div>
 
-      <AnimatePresence>
-        {isSequenceOpen && (
-            <InterruptSequenceModal
-              newsItem={newsItem}
-              onClose={handleCloseSequence}
-              isMuted={false} // El slide de noticia puede tener su propio sonido
-            />
-        )}
-      </AnimatePresence>
-    </>
+            </motion.div>
+            <div className="p-2 flex flex-col flex-grow">
+              <h3 className={titleClass}>
+                {titulo}
+              </h3>
+            </div>
+          </a>
+        </Link>
+      </div>
+    </motion.article>
   );
 };
+
 
 export default NewsCard;

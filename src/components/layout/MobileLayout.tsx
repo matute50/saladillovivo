@@ -13,7 +13,7 @@ import NoResultsCard from './NoResultsCard';
 import BannerSection from './BannerSection';
 import AdsSection from './AdsSection';
 
-const MobileLayout = ({ data, isMobile }: { data: PageData; isMobile: boolean }) => {
+const MobileLayout = ({ data, isMobile, onCardClick }: { data: PageData; isMobile: boolean, onCardClick: (article: any) => void }) => {
   const { articles, videos, banners, ads, tickerTexts } = data;
   const { isSearching, searchResults, searchLoading, handleSearch } = useNews();
   const { featuredNews, secondaryNews } = articles;
@@ -87,10 +87,10 @@ const MobileLayout = ({ data, isMobile }: { data: PageData; isMobile: boolean })
             <h2 id="news-section-title" className="text-2xl font-bold tracking-tight text-foreground/90 mb-4">Noticias</h2>
             <div className="flex flex-col gap-4">
               {featuredNews && (
-                <NewsCard newsItem={featuredNews} variant="destacada-principal" />
+                <NewsCard newsItem={featuredNews} variant="destacada-principal" onCardClick={onCardClick} />
               )}
               {secondaryNews.map((noticia) => (
-                <NewsCard key={noticia.id} newsItem={noticia} variant="default" />
+                <NewsCard key={noticia.id} newsItem={noticia} variant="default" onCardClick={onCardClick} />
               ))}
             </div>
           </section>

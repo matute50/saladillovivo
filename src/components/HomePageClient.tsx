@@ -1,27 +1,40 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import DesktopLayout from './layout/DesktopLayout';
 import MobileLayout from './layout/MobileLayout';
 import TvModeLayout from './layout/TvModeLayout';
-import { PageData } from '@/lib/types';
+import type { PageData, Article } from '@/lib/types';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
 import useIsMobile from '@/hooks/useIsMobile';
+import NewsModal from './NewsModal'; // Importar el modal
 
 const HomePageClient = ({ initialData }: { initialData: PageData }) => {
   const isMobile = useIsMobile();
   const { loadInitialPlaylist, viewMode } = useMediaPlayer();
+  
+  // --- Estados para el modal de noticias ---
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedNews, setSelectedNews] = useState<Article | null>(null);
 
   useEffect(() => {
     loadInitialPlaylist(null);
   }, [loadInitialPlaylist]);
 
+  const handleOpenModal = (newsItem: Article) => {
+    setSelectedNews(newsItem);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
 
   if (viewMode === 'tv') {
     return <TvModeLayout />;
   }
 
-  // Si no es modo TV, renderiza el layout normal (diario)
   const data = {
     articles: initialData.articles || { allNews: [] },
     videos: initialData.videos || { allVideos: [] },
@@ -32,11 +45,25 @@ const HomePageClient = ({ initialData }: { initialData: PageData }) => {
     events: initialData.events,
   };
 
-  if (isMobile) {
-    return <MobileLayout data={data} isMobile={isMobile} />;
-  }
-
-  return <DesktopLayout data={data} />;
+  return (
+    <>
+      {isMobile ? (
+        <MobileLayout data={data} isMobile={isMobile} onCardClick={handleOpenModal} />
+      ) : (
+        <DesktopLayout data={data} onCardClick={handleOpenModal} />
+      )}
+      
+      <AnimatePresence onExitComplete={() => setSelectedNews(null)}>
+        {isModalOpen && selectedNews && (
+          <NewsModal
+            isOpen={isModalOpen}
+            onClose={handleCloseModal}
+            newsData={selectedNews}
+          />
+        )}
+      </AnimatePresence>
+    </>
+  );
 };
 
 export default HomePageClient;

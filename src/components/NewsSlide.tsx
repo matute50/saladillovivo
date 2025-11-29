@@ -3,57 +3,56 @@
 import React, { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Article } from '@/lib/types';
-import { X } from 'lucide-react';
 
-interface NewsSlideContentProps {
-  article: Article;
-  onClose: () => void;
-  isMuted?: boolean;
+interface NewsSlideProps {
+  article: Article | null;
+  onEnd: () => void; // Prop para notificar la finalización
 }
 
-const NewsSlideContent: React.FC<NewsSlideContentProps> = ({ article, onClose, isMuted = false }) => {
-  if (!article || !article.titulo) {
-    return null;
-  }
+const NewsSlide: React.FC<NewsSlideProps> = ({ article, onEnd }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
 
+  // Efecto para reproducir el audio y manejar su finalización
   useEffect(() => {
-    if (article.audio_url && audioRef.current) {
-      audioRef.current.muted = isMuted;
-      audioRef.current.play().catch(error => {
-        console.error("Audio autoplay failed:", error);
+    const audio = audioRef.current;
+    if (article?.audio_url && audio) {
+      audio.play().catch(error => {
+        console.error("La reproducción automática del audio falló:", error);
       });
+      
+      // El evento 'ended' se maneja directamente en el elemento JSX con onEnded
+      // Pero si quisiéramos usar un listener, sería así:
+      // audio.addEventListener('ended', onEnd);
+      // return () => audio.removeEventListener('ended', onEnd);
 
-      const handleAudioEnd = () => {
-        onClose();
-      };
+    } else if (!article?.audio_url) {
+      // Si no hay audio, cerramos el modal después de un tiempo prudencial (ej. 15 segundos)
+      const timer = setTimeout(() => {
+        onEnd();
+      }, 15000);
 
-      audioRef.current.addEventListener('ended', handleAudioEnd);
-
-      return () => {
-        if (audioRef.current) {
-          // eslint-disable-next-line react-hooks/exhaustive-deps
-          audioRef.current.removeEventListener('ended', handleAudioEnd);
-        }
-      };
-    } else {
-        const timer = setTimeout(() => {
-            onClose();
-        }, 15000);
-
-        return () => clearTimeout(timer);
+      return () => clearTimeout(timer);
     }
-  }, [article.audio_url, isMuted, onClose]);
+  }, [article, onEnd]);
+
+  // Manejo de error si no hay datos
+  if (!article) {
+    return (
+      <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-black text-white p-4">
+        <p className="text-lg text-red-500">Error: No se pudieron cargar los datos del slide.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center animate-fadeIn">
+    <div className="absolute inset-0 w-full h-full bg-black">
       <style jsx>{`
         @keyframes fadeIn {
           from { opacity: 0; }
           to { opacity: 1; }
         }
         .animate-fadeIn {
-          animation: fadeIn 0.3s ease-in-out;
+          animation: fadeIn 0.5s ease-in-out forwards;
         }
         @keyframes slideUp {
           from { transform: translateY(20px); opacity: 0; }
@@ -71,59 +70,39 @@ const NewsSlideContent: React.FC<NewsSlideContentProps> = ({ article, onClose, i
         }
       `}</style>
 
-      <div className="relative w-full h-full max-w-screen max-h-screen">
-        {article.imageUrl && (
-          <Image
-            src={article.imageUrl}
-            alt={article.titulo}
-            layout="fill"
-            objectFit="cover"
-            className="opacity-40"
-            priority
-          />
-        )}
+      {article.imageUrl && (
+        <Image
+          src={article.imageUrl}
+          alt={article.titulo}
+          layout="fill"
+          objectFit="cover"
+          className="opacity-40 animate-fadeIn"
+          priority
+        />
+      )}
 
-        <div className="absolute inset-0 flex flex-col justify-end p-4 md:p-12">
-          <div className="text-white relative z-10 w-full">
-            <h1 className="text-3xl md:text-6xl font-bold leading-tight mb-4 opacity-0 animate-slideUp" style={{ textShadow: '2px 2px 8px rgba(0,0,0,0.8)' }}>
-              {article.titulo}
-            </h1>
-            {article.resumen && (
-              <div className="relative w-full bg-red-600/80 text-white overflow-hidden whitespace-nowrap py-2">
-                 <p className="inline-block text-lg md:text-xl font-semibold animate-ticker pl-4">
-                    {article.resumen}
-                 </p>
-              </div>
-            )}
-          </div>
+      <div className="absolute inset-0 flex flex-col justify-end p-4 md:p-12 z-10">
+        <div className="text-white w-full">
+          <h1 className="text-3xl md:text-6xl font-bold leading-tight mb-4 opacity-0 animate-slideUp" style={{ textShadow: '2px 2px 8px rgba(0,0,0,0.8)' }}>
+            {article.titulo}
+          </h1>
+          {article.resumen && (
+            <div className="relative w-full bg-red-600/80 text-white overflow-hidden whitespace-nowrap py-2 mt-4">
+               <p className="inline-block text-lg md:text-xl font-semibold animate-ticker pl-4">
+                  {article.resumen}
+               </p>
+            </div>
+          )}
         </div>
       </div>
 
-      <button
-        onClick={onClose}
-        className="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-75 transition-colors z-20"
-        aria-label="Cerrar"
-      >
-        <X size={32} />
-      </button>
-
-      {article.audio_url && <audio ref={audioRef} src={article.audio_url} />}
+      {/* 
+        Elemento de audio (no visible) con el manejador onEnded.
+        Este se disparará cuando el audio termine, llamando a la función onEnd.
+      */}
+      {article.audio_url && <audio ref={audioRef} src={article.audio_url} onEnded={onEnd} />}
     </div>
   );
-};
-
-interface NewsSlideProps {
-  article: Article;
-  onClose: () => void;
-  isMuted?: boolean;
-}
-
-const NewsSlide: React.FC<NewsSlideProps> = ({ article, onClose, isMuted = false }) => {
-  if (!article || !article.titulo) {
-    return null;
-  }
-  
-  return <NewsSlideContent article={article} onClose={onClose} isMuted={isMuted} />;
 };
 
 export default NewsSlide;

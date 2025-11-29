@@ -6,9 +6,10 @@ import type { Article } from '@/lib/types';
 
 interface NewsColumnProps {
   news: Article[];
+  onCardClick: (article: Article) => void;
 }
 
-const NewsColumn: React.FC<NewsColumnProps> = ({ news }) => {
+const NewsColumn: React.FC<NewsColumnProps> = ({ news, onCardClick }) => {
   if (!news || news.length === 0) {
     return null;
   }
@@ -26,6 +27,7 @@ const NewsColumn: React.FC<NewsColumnProps> = ({ news }) => {
           newsItem={featuredNews}
           variant="destacada-principal"
           className="col-span-1 md:col-span-2"
+          onCardClick={onCardClick}
         />
       )}
 
@@ -37,6 +39,7 @@ const NewsColumn: React.FC<NewsColumnProps> = ({ news }) => {
             newsItem={noticia}
             variant="secundaria"
             index={index}
+            onCardClick={onCardClick}
           />
         ))}
       </div>
@@ -49,6 +52,7 @@ const NewsColumn: React.FC<NewsColumnProps> = ({ news }) => {
             newsItem={noticia}
             variant="default"
             index={index + 2} // Continuamos el delay de la animación
+            onCardClick={onCardClick}
           />
         ))}
       </div>

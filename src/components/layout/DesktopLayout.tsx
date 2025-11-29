@@ -16,7 +16,7 @@ import { useNews } from '@/context/NewsContext';
 import NoResultsCard from './NoResultsCard';
 import NewsCard from '../NewsCard';
 
-const DesktopLayout = ({ data }: { data: PageData }) => {
+const DesktopLayout = ({ data, onCardClick }: { data: PageData, onCardClick: (article: any) => void }) => {
   const {
     articles = { allNews: [] },
     videos = { allVideos: [] },
@@ -79,7 +79,7 @@ const DesktopLayout = ({ data }: { data: PageData }) => {
             
             {/* Left Column (News) */}
             <div className="col-span-1 lg:col-span-5 flex flex-col gap-6">
-              <NewsColumn news={topNews} />
+              <NewsColumn news={topNews} onCardClick={onCardClick} />
             </div>
 
             {/* Middle Column (Video) */}
@@ -137,6 +137,7 @@ const DesktopLayout = ({ data }: { data: PageData }) => {
                       newsItem={noticia}
                       variant="default"
                       index={index}
+                      onCardClick={onCardClick}
                     />
                   ))}
                 </div>
