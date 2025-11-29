@@ -35,6 +35,8 @@ interface MediaPlayerContextType {
   handleOnProgress: (progress: ProgressState, currentVideoId: string | undefined, currentVideoCategory: string | undefined) => void;
   playNextVideoInQueue: () => void;
   removeNextVideoFromQueue: () => void;
+  pause: () => void;
+  play: () => void;
 }
 
 const MediaPlayerContext = createContext<MediaPlayerContextType | undefined>(undefined);
@@ -86,8 +88,9 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
     const { setVolume } = useVolume(); 
 
     // 'useRef' para 'userVolume' ha sido eliminado
-
   
+    const pause = useCallback(() => setIsPlaying(false), []);
+    const play = useCallback(() => setIsPlaying(true), []);
 
     const playMedia = useCallback((media: Video, isFirst = false) => {
 
@@ -456,7 +459,8 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
       playNextVideoInQueue,
 
       removeNextVideoFromQueue,
-
+      pause,
+      play,
     }), [
 
       currentVideo,
@@ -495,8 +499,9 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
 
       playNextVideoInQueue,
 
-      removeNextVideoFromQueue
-
+      removeNextVideoFromQueue,
+      pause,
+      play,
     ]);
 
   return (

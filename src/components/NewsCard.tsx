@@ -1,5 +1,6 @@
 'use client';
 
+<<<<<<< HEAD
 import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -7,29 +8,34 @@ import { Calendar, Play } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { Article } from '@/lib/types';
 import Image from 'next/image';
+=======
+import React, { useState, useRef } from 'react'; // <-- useRef added here
+import Image from 'next/image';
+import Link from 'next/link';
+import { Play, Clock } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { es } from 'date-fns/locale';
+import NewsSlide from '@/components/NewsSlide';
+import { AnimatePresence, motion } from 'framer-motion';
+import ReactDOM from 'react-dom';
+>>>>>>> 5b048a202ef90287a84fcb91ce290d361e79329c
 
-// --- Helper function to fetch random intros ---
-async function getRandomIntroUrls(count: number): Promise<string[]> {
-  const { data, error } = await supabase.from('intros').select('url');
-  if (error || !data || data.length === 0) {
-    console.error('Error fetching intros or no intros found:', error);
-    return [];
-  }
-  const urls = data.map(item => item.url);
-  // Shuffle and pick
-  const shuffled = urls.sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, count);
-}
+import { useMediaPlayer } from '@/context/MediaPlayerContext';
+import { useVolume } from '@/context/VolumeContext'; // Asumimos que este existe
 
+<<<<<<< HEAD
 // --- Modified NewsCard Component ---
+=======
+>>>>>>> 5b048a202ef90287a84fcb91ce290d361e79329c
 interface NewsCardProps {
-  newsItem: Article;
-  variant: 'destacada-principal' | 'secundaria' | 'default';
+  newsItem: any; 
+  variant?: string; 
   index?: number;
   className?: string;
   onCardClick?: (article: Article) => void; // Prop para abrir el modal
 }
 
+<<<<<<< HEAD
 const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, className = '', onCardClick }) => {
   // Fallback seguro si no hay datos
   if (!newsItem) return null;
@@ -50,36 +56,126 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, class
   const imageContainerClass = 'aspect-video';
   let dateDisplay;
   let priority = false;
+=======
+// Interfaz para las coordenadas del thumbnail
+interface RectCoords {
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+}
 
-  switch (variant) {
-    case 'destacada-principal':
-      cardClass += ' shadow-pop';
-      titleClass = 'font-futura-bold text-3xl mt-2 text-card-foreground';
-      priority = true;
-      dateDisplay = (
-        <div className="date-on-image">
-          <Calendar size={12} className="inline-block mr-1" />
-          {formatDate(fecha, 'numeric')}
-        </div>
-      );
-      break;
+const NewsCard: React.FC<NewsCardProps> = ({ newsItem, className }) => {
+  const [showSlide, setShowSlide] = useState(false);
+  
+  // REF: Necesario para medir la posición y tamaño de la imagen que disparamos
+  const imageRef = useRef<HTMLDivElement>(null); 
+  
+  // ESTADO: Almacena las coordenadas de la imagen de la tarjeta
+  const [thumbnailRect, setThumbnailRect] = useState<RectCoords | null>(null); 
 
-    case 'secundaria':
-    case 'default':
-      cardClass += ' shadow-pop';
-      titleClass = `font-futura-bold text-card-foreground group-hover:text-primary transition-colors ${variant === 'secundaria' ? 'text-lg line-clamp-4' : 'text-base line-clamp-3'}`;
-      dateDisplay = (
-        <div className="date-on-image">
-          <Calendar size={10} className="mr-1" />
-          <span>{formatDate(fecha, 'numeric')}</span>
-        </div>
-      );
-      break;
-  }
+  // OBTENEMOS LOS CONTROLES DE INTERRUPCIÓN
+  const { pause, play, currentVideo } = useMediaPlayer(); 
+  const { setMuted } = useVolume(); 
 
-  const articleLink = `/noticia/${slug}`;
+  const hasSlide = !!(newsItem.url_slide || newsItem.audio_url);
+
+  // --- LÓGICA DE DISPARO DEL MODAL ---
+  const handlePlaySlide = (e: React.MouseEvent) => {
+    e.preventDefault(); 
+    e.stopPropagation();
+
+    if (!imageRef.current) {
+        console.warn("No se pudo obtener la referencia de la imagen. Abortando slide.");
+        return;
+    }
+
+    // 1. Mide la posición y tamaño exactos de la miniatura
+    const rect = imageRef.current.getBoundingClientRect();
+    setThumbnailRect({
+        top: rect.top,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height,
+    });
+    
+    // 2. Pausa y mutea el reproductor principal
+    if (currentVideo) { pause(); } 
+    setMuted(true); 
+    
+    // 3. Muestra el slide
+    setShowSlide(true);
+  };
+
+  const handleCloseSlide = () => {
+    setShowSlide(false);
+    play();
+    setMuted(false); 
+  };
+
+  const timeAgo = newsItem.createdAt 
+    ? formatDistanceToNow(new Date(newsItem.createdAt), { addSuffix: true, locale: es })
+    : '';
+>>>>>>> 5b048a202ef90287a84fcb91ce290d361e79329c
+
+  const slideArticleData = {
+    id: newsItem.id,
+    title: newsItem.title || 'Sin Título',
+    imageUrl: newsItem.imageUrl,
+    audio_url: newsItem.audio_url,
+    miniatura_url: newsItem.miniatura_url
+  };
+
+  // --- MODAL QUE SE ANCLA AL THUMBNAIL (Portal) ---
+  const SlideModal = () => {
+    if (!showSlide || typeof document === 'undefined' || !thumbnailRect) return null;
+    
+    // APLICAMOS LAS COORDENADAS MEDIDAS DIRECTAMENTE
+    const alignedStyle = {
+      position: 'fixed' as const,
+      top: thumbnailRect.top,
+      left: thumbnailRect.left,
+      width: thumbnailRect.width,
+      height: thumbnailRect.height,
+      zIndex: 9999,
+      transition: 'opacity 0.3s', // Solo transición de opacidad
+      backgroundColor: 'transparent',
+    };
+
+    return ReactDOM.createPortal(
+        <AnimatePresence>
+            <motion.div 
+                key="anchored-slide-modal"
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }} 
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                style={alignedStyle} // APLICAMOS LAS COORDENADAS DINÁMICAS
+                // Clases mínimas: solo overflow y redondeado
+                className="overflow-hidden rounded-lg shadow-2xl" 
+            >
+                <NewsSlide 
+                    article={slideArticleData} 
+                    onClose={handleCloseSlide} 
+                    isPublicView={false}
+                    isMuted={false} // Se activa el sonido con el clic
+                />
+                
+                {/* Botón Cerrar */}
+                <button 
+                    onClick={handleCloseSlide}
+                    className="absolute top-2 right-2 text-white bg-black/50 p-2 rounded-full hover:bg-red-600 transition-colors z-[10000] cursor-pointer"
+                >
+                    ✕ CERRAR
+                </button>
+            </motion.div>
+        </AnimatePresence>,
+        document.body
+    );
+  };
 
   return (
+<<<<<<< HEAD
     <motion.article
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -123,6 +219,56 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, variant, index = 0, class
         </Link>
       </div>
     </motion.article>
+=======
+    <>
+      {showSlide && <SlideModal />}
+
+      <div className={`group relative flex flex-col bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300 h-full ${className || ''}`}>
+        
+        {/* ASIGNAMOS EL REF AL CONTENEDOR DE LA IMAGEN */}
+        <div ref={imageRef} className="relative w-full aspect-video overflow-hidden">
+          <Link href={`/noticia/${newsItem.slug || newsItem.id}`}>
+            <Image
+              src={newsItem.imageUrl || '/placeholder.png'}
+              alt={newsItem.title || 'Noticia'}
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          </Link>
+
+          {(newsItem.category || newsItem.categoria) && (
+            <span className="absolute top-2 left-2 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded uppercase shadow-sm z-10">
+              {newsItem.category || newsItem.categoria}
+            </span>
+          )}
+
+          {/* BOTÓN PLAY (Disparador) */}
+          {hasSlide && (
+            <button
+              onClick={handlePlaySlide}
+              className="absolute bottom-2 right-2 z-20 bg-red-600 text-white p-2 rounded-full shadow-lg hover:bg-red-700 hover:scale-110 transition-all duration-200 flex items-center justify-center border-2 border-white/20"
+              title="Ver en modo TV"
+            >
+              <Play size={20} fill="currentColor" className="ml-0.5" />
+            </button>
+          )}
+        </div>
+
+        <div className="p-4 flex flex-col flex-grow">
+          <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+            <Clock size={14} />
+            <span>{timeAgo}</span>
+          </div>
+          
+          <Link href={`/noticia/${newsItem.slug || newsItem.id}`} className="block flex-grow">
+            <h3 className="font-bold text-gray-800 leading-tight hover:text-blue-700 transition-colors line-clamp-3">
+              {newsItem.title}
+            </h3>
+          </Link>
+        </div>
+      </div>
+    </>
+>>>>>>> 5b048a202ef90287a84fcb91ce290d361e79329c
   );
 };
 
