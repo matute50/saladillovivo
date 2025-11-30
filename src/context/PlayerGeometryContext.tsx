@@ -1,9 +1,9 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, ReactNode, useRef } from 'react';
+import React, { createContext, useContext, useState, useMemo, useCallback, ReactNode } from 'react';
 
 // 1. Interface for Geometry Data
-interface PlayerGeometry {
+export interface PlayerGeometry {
   top: number;
   left: number;
   width: number;
@@ -12,13 +12,13 @@ interface PlayerGeometry {
 }
 
 // 2. Interfaz para el Contexto
-interface PlayerGeometryContextType extends PlayerGeometry {
+export interface PlayerGeometryContextType extends PlayerGeometry {
   setCoordinates: (rect: DOMRect | null) => void; 
   playerRect: PlayerGeometry;
 }
 
 // Estado por defecto
-const DEFAULT_GEOMETRY: PlayerGeometry = {
+export const DEFAULT_GEOMETRY: PlayerGeometry = {
   top: 0,
   left: 0,
   width: 0,
@@ -26,8 +26,8 @@ const DEFAULT_GEOMETRY: PlayerGeometry = {
   isReady: false,
 };
 
-// 3. Crear Contexto
-const PlayerGeometryContext = createContext<PlayerGeometryContextType | undefined>(undefined);
+// 3. Crear Contexto para las coordenadas del reproductor
+export const PlayerGeometryContext = createContext<PlayerGeometryContextType | undefined>(undefined);
 
 // 4. Hook para Consumidores (usePlayerGeometry)
 export const usePlayerGeometry = () => {
@@ -39,7 +39,7 @@ export const usePlayerGeometry = () => {
 };
 
 // 5. Componente Proveedor
-export const PlayerGeometryProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const PlayerGeometryProvider = ({ children }: { children: ReactNode }) => {
   const [playerGeometry, setPlayerGeometry] = useState<PlayerGeometry>(DEFAULT_GEOMETRY);
 
   const setCoordinates = useCallback((rect: DOMRect | null) => {

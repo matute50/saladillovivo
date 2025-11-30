@@ -78,7 +78,7 @@ const CustomControls: React.FC<CustomControlsProps> = ({
       
       <div className="flex w-full items-center justify-between pt-1 pb-2">
         <div className="flex items-center gap-4">
-          <button onClick={togglePlayPause} className="text-white focus:outline-none" aria-label={isPlaying ? "Pausar" : "Reproducir"} >
+          <button onClick={togglePlayPause} className="p-2 text-white rounded-md border border-white/10 shadow-lg shadow-black/50 backdrop-blur-md bg-black/40 hover:bg-black/60 focus:outline-none transition-colors duration-300" aria-label={isPlaying ? "Pausar" : "Reproducir"} >
             {isPlaying ? <PauseIcon /> : <PlayIcon />}
           </button>
           <span className="text-xs font-medium tracking-wide" style={{ fontVariantNumeric: 'tabular-nums' }}>

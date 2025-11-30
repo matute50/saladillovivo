@@ -25,9 +25,9 @@ const NewsColumn: React.FC<NewsColumnProps> = ({ news, onCardClick }) => {
       {featuredNews && (
         <NewsCard
           newsItem={featuredNews}
-          variant="destacada-principal"
           className="col-span-1 md:col-span-2"
           onCardClick={onCardClick}
+          isFeatured={true}
         />
       )}
 
@@ -37,7 +37,6 @@ const NewsColumn: React.FC<NewsColumnProps> = ({ news, onCardClick }) => {
           <NewsCard
             key={noticia.id}
             newsItem={noticia}
-            variant="secundaria"
             index={index}
             onCardClick={onCardClick}
           />
@@ -50,7 +49,6 @@ const NewsColumn: React.FC<NewsColumnProps> = ({ news, onCardClick }) => {
           <NewsCard
             key={noticia.id}
             newsItem={noticia}
-            variant="default"
             index={index + 2} // Continuamos el delay de la animación
             onCardClick={onCardClick}
           />

@@ -82,11 +82,10 @@ const CategoryPage = async ({ params }: { params: { categoria: string } }) => {
       {categoryNews.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {categoryNews.map((noticia, index) => (
-            <NewsCard 
-              key={noticia.id} 
-              newsItem={noticia} 
+            <NewsCard
+              key={noticia.id}
+              newsItem={noticia}
               index={index}
-              variant="default"
             />
           ))}
         </div>

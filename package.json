@@ -37,15 +37,15 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@types/chrome": "^0.1.27",
     "@types/node": "^20",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "@types/rss": "^0.0.32",
+    "@typescript-eslint/eslint-plugin": "^7.2.0",
+    "@typescript-eslint/parser": "^7.2.0",
     "autoprefixer": "^10.4.19",
-    "eslint": "^9.39.1",
-    "eslint-config-next": "^16.0.5",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "14.2.3",
     "typescript": "^5"
   }
 }

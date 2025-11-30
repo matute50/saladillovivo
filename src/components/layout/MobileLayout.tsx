@@ -87,10 +87,10 @@ const MobileLayout = ({ data, isMobile, onCardClick }: { data: PageData; isMobil
             <h2 id="news-section-title" className="text-2xl font-bold tracking-tight text-foreground/90 mb-4">Noticias</h2>
             <div className="flex flex-col gap-4">
               {featuredNews && (
-                <NewsCard newsItem={featuredNews} variant="destacada-principal" onCardClick={onCardClick} />
+                <NewsCard newsItem={featuredNews} onCardClick={onCardClick} />
               )}
               {secondaryNews.map((noticia) => (
-                <NewsCard key={noticia.id} newsItem={noticia} variant="default" onCardClick={onCardClick} />
+                <NewsCard key={noticia.id} newsItem={noticia} onCardClick={onCardClick} />
               ))}
             </div>
           </section>

@@ -17,7 +17,7 @@ export const useShieldMode = () => {
   return context;
 };
 
-export const ShieldModeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const ShieldModeProvider = ({ children }: { children: ReactNode }) => {
   const [isShieldActive, setIsShieldActive] = useState(false);
 
   const toggleShield = useCallback(() => {
@@ -27,7 +27,7 @@ export const ShieldModeProvider: React.FC<{ children: ReactNode }> = ({ children
   const value = useMemo(() => ({
     isShieldActive,
     toggleShield,
-  }), [isShieldActive]);
+  }), [isShieldActive, toggleShield]);
 
   return (
     <ShieldModeContext.Provider value={value}>

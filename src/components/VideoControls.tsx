@@ -25,12 +25,12 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onToggleFul
   const [localQuery, setLocalQuery] = useState(searchQuery); // Local state for input
   const debouncedQuery = useDebounce(localQuery, 400); // Debounce local query
 
-  // Synchronize local state if the global query clears from elsewhere
-  useEffect(() => {
+// Synchronize local state if the global query clears from elsewhere
+    useEffect(() => {
     if (searchQuery !== localQuery) {
       setLocalQuery(searchQuery);
     }
-  }, [searchQuery]);
+  }, [searchQuery, localQuery]);
 
   // Execute search when the debounced value changes
   useEffect(() => {

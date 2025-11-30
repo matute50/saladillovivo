@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useShieldMode } from '@/hooks/useShieldMode';
+import { useShieldMode } from '@/context/ShieldModeContext';
 
 const ShieldTestOverlay = () => {
   const { toggleShield } = useShieldMode();

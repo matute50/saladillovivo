@@ -239,6 +239,7 @@
   .card {
     background-image: linear-gradient(to bottom, hsl(var(--card-start)), hsl(var(--card-end)));
     @apply rounded-lg text-card-foreground;
+    box-shadow: 0 10px 15px -3px var(--shadow-color), 0 4px 6px -2px var(--shadow-color);
   }
 
 

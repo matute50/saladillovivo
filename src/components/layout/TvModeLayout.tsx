@@ -41,16 +41,17 @@ const TvModeLayout = () => {
   }, []);
 
 
-  // Clear the timer when the component unmounts to prevent memory leaks
   useEffect(() => {
     // Request fullscreen when the component mounts
     if (document.documentElement.requestFullscreen) {
       document.documentElement.requestFullscreen().then(() => setIsFullScreen(true));
     }
 
+    const currentTimer = hideOverlayTimer.current; // Capturar el valor aquí
+
     return () => {
-      if (hideOverlayTimer.current) {
-        clearTimeout(hideOverlayTimer.current);
+      if (currentTimer) { // Usar el valor capturado
+        clearTimeout(currentTimer);
       }
       // Exit fullscreen when the component unmounts, if it's currently in fullscreen
       if (document.fullscreenElement) {

@@ -20,7 +20,6 @@ const MoreNewsGrid: React.FC<MoreNewsGridProps> = ({ news }) => {
           <NewsCard
             key={noticia.id}
             newsItem={noticia}
-            variant="default"
             index={index} // El delay de animación se reinicia para esta sección
           />
         ))}

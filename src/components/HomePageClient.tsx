@@ -56,7 +56,6 @@ const HomePageClient = ({ initialData }: { initialData: PageData }) => {
       <AnimatePresence onExitComplete={() => setSelectedNews(null)}>
         {isModalOpen && selectedNews && (
           <NewsModal
-            isOpen={isModalOpen}
             onClose={handleCloseModal}
             newsData={selectedNews}
           />

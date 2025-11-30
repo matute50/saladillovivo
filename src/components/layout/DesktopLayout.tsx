@@ -135,7 +135,6 @@ const DesktopLayout = ({ data, onCardClick }: { data: PageData, onCardClick: (ar
                     <NewsCard
                       key={noticia.id}
                       newsItem={noticia}
-                      variant="default"
                       index={index}
                       onCardClick={onCardClick}
                     />

@@ -53,7 +53,7 @@ export default async function SlidePage({ params }: Props) {
     <main className="w-screen h-screen bg-black overflow-hidden">
       <NewsSlide 
         article={article}
-        onClose={() => {}}
+        onEnd={() => {}}
       />
     </main>
   );

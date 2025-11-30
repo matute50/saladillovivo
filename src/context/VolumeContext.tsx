@@ -9,9 +9,10 @@ interface VolumeContextType {
   volume: number;
   isMuted: boolean;
   setVolume: (volume: number) => void;
+  setMuted: (muted: boolean) => void;
   toggleMute: () => void;
-  unmute: () => void; 
-  ramp: (targetVolume: number, duration: number) => void; 
+  unmute: () => void;
+  ramp: (targetVolume: number, duration: number) => void;
 }
 
 const VolumeContext = createContext<VolumeContextType | undefined>(undefined);
@@ -69,14 +70,24 @@ export const VolumeProvider = ({ children }: { children: React.ReactNode }) => {
     setFaderVolume(userVolume.current);
   }, [setFaderVolume]);
 
+  const setMuted = useCallback((muted: boolean) => {
+    setIsMuted(muted);
+    if (muted) {
+      setFaderVolume(0);
+    } else {
+      setFaderVolume(userVolume.current);
+    }
+  }, [setFaderVolume]);
+
   const value = useMemo(() => ({
     volume,
     isMuted,
     setVolume, // Nuestra función que "salta"
+    setMuted,
     toggleMute, // Nuestra función que "salta"
     unmute,
     ramp: dummyRamp, // Pasa la función vacía
-  }), [volume, isMuted, setVolume, toggleMute, unmute, dummyRamp]);
+  }), [volume, isMuted, setVolume, setMuted, toggleMute, unmute, dummyRamp]);
 
   return (
     <VolumeContext.Provider value={value}>

@@ -7,13 +7,10 @@ import type { Video } from '@/lib/types'; // Asegúrate de que la ruta sea corre
 declare global {
   interface Window {
     __onGCastApiAvailable?: (isAvailable: boolean) => void;
-    cast?: any; // El SDK de Cast adjuntará 'cast' a window
-  }
-  
-  // Esto "fusiona" la propiedad 'cast' con la definición
-  // existente de 'chrome' que tiene TypeScript, sin re-declararla.
-  interface Chrome {
     cast?: any;
+    chrome?: {
+        cast?: any;
+    };
   }
 }
 // --- FIN DEL ARREGLO ---

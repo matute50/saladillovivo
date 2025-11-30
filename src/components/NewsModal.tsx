@@ -6,7 +6,6 @@ import ReproductorMultimedia from './ReproductorMultimedia';
 import type { Article } from '@/lib/types'; // Importando el tipo para la noticia
 
 interface NewsModalProps {
-  isOpen: boolean;
   onClose: () => void;
   newsData: Article; // Se asume que newsData no será nulo cuando el modal esté abierto
 }
@@ -15,7 +14,7 @@ interface NewsModalProps {
  * NewsModal: Un componente de superposición (overlay) para mostrar el reproductor multimedia
  * de una noticia específica. Se muestra sobre el contenido de la página.
  */
-const NewsModal: React.FC<NewsModalProps> = ({ isOpen, onClose, newsData }) => {
+const NewsModal: React.FC<NewsModalProps> = ({ onClose, newsData }) => {
   return (
     <motion.div
       initial={{ opacity: 0 }}

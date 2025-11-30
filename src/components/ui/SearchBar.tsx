@@ -12,11 +12,10 @@ const SearchBar = () => {
   const debouncedQuery = useDebounce(localQuery, 400);
 
   useEffect(() => {
-    // Sincronizar el estado local si la consulta global se borra desde otro lugar
     if (searchQuery !== localQuery) {
       setLocalQuery(searchQuery);
     }
-  }, [searchQuery]);
+  }, [searchQuery, localQuery]);
 
   useEffect(() => {
     // Ejecutar la búsqueda cuando el valor debounced cambia
