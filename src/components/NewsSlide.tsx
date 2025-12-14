@@ -51,7 +51,7 @@ const NewsSlide: React.FC<NewsSlideProps> = ({ article, onEnd }) => {
         <iframe
           src={article.url_slide}
           className="absolute inset-0 w-full h-full border-0"
-          title={article.title || "Slide de Noticia"}
+          title={article.titulo || "Slide de Noticia"}
           allow="autoplay" // Permite la reproducción automática del contenido del iframe
           allowFullScreen // Permite pantalla completa si el contenido del iframe lo soporta
         />
