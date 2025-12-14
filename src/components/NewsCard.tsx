@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Play } from 'lucide-react';
 import { Article } from '@/lib/types';
 import { format } from 'date-fns';
@@ -25,7 +25,6 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
   const slug = newsItem.slug;
   const imageUrl = newsItem.imageUrl;
   const createdAt = newsItem.createdAt || newsItem.fecha;
-  const category = newsItem.category || newsItem.categoria;
   const hasSlide = !!newsItem.url_slide;
 
   const handleImageClick = (e: React.MouseEvent) => {

@@ -61,7 +61,7 @@ export const useAudioPlayer = (audioUrl: string | null) => {
         audio.removeEventListener('canplaythrough', onCanPlay); // Limpiamos el nuevo evento
       }
     };
-  }, [audioUrl]);
+  }, [audioUrl, state, onPlaying, onPaused, onEnded, onError, onLoading, onCanPlay]);
 
   const play = useCallback(() => {
     if (audioRef.current && (state === 'paused' || state === 'stopped')) {
