@@ -17,6 +17,7 @@ export interface Article {
   meta_keywords?: string;
   miniatura_url?: string;
   audio_url?: string | null; // <-- AÑADIDO
+  url_slide?: string;
 }
 
 export interface SupabaseArticle {
@@ -34,6 +35,7 @@ export interface SupabaseArticle {
   meta_description?: string;
   meta_keywords?: string;
   audio_url?: string; // <-- AÑADIDO
+  url_slide?: string;
 }
 
 export interface Video {

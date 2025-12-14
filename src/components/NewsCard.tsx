@@ -8,18 +8,6 @@ import { Play } from 'lucide-react';
 import { Article } from '@/lib/types';
 import { format } from 'date-fns';
 
-import NewsSlide from '@/components/NewsSlide';
-import ReactDOM from 'react-dom';
-import { useMediaPlayer } from '@/context/MediaPlayerContext';
-import { useVolume } from '@/context/VolumeContext';
-
-interface RectCoords {
-    top: number;
-    left: number;
-    width: number;
-    height: number;
-}
-
 interface NewsCardProps {
   newsItem: any;
   index?: number;
@@ -29,16 +17,10 @@ interface NewsCardProps {
 }
 
 const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = '', onCardClick, isFeatured = false }) => {
-  const [showSlide, setShowSlide] = useState(false);
   const imageRef = useRef<HTMLDivElement>(null);
-  const [thumbnailRect, setThumbnailRect] = useState<RectCoords | null>(null);
-
-  const { pause, play, currentVideo } = useMediaPlayer();
-  const { setMuted } = useVolume();
 
   if (!newsItem) return null;
 
-  // Standardize property access
   const title = newsItem.title || newsItem.titulo;
   const slug = newsItem.slug;
   const imageUrl = newsItem.imageUrl;
@@ -59,101 +41,20 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
   const handlePlaySlide = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
-    if (!imageRef.current) {
-        console.warn("No se pudo obtener la referencia de la imagen. Abortando slide.");
-        return;
+    if (onCardClick) {
+      onCardClick(newsItem);
+    } else {
+      console.warn("onCardClick no está definido, no se puede reproducir el slide integrado.");
     }
-
-    const rect = imageRef.current.getBoundingClientRect();
-    setThumbnailRect({
-        top: rect.top,
-        left: rect.left,
-        width: rect.width,
-        height: rect.height,
-    });
-
-    if (currentVideo) { pause(); }
-    setMuted(true);
-    setShowSlide(true);
-  };
-
-  const handleCloseSlide = () => {
-    setShowSlide(false);
-    play();
-    setMuted(false);
-  };
-
-
-
-  const slideArticleData: Article = {
-    id: newsItem.id,
-    titulo: title,
-    slug: slug,
-    description: newsItem.description || '',
-    resumen: newsItem.resumen || '',
-    contenido: newsItem.contenido || '',
-    fecha: createdAt,
-    createdAt: createdAt,
-    updatedAt: newsItem.updatedAt || createdAt,
-    autor: newsItem.autor || 'Saladillo Vivo',
-    categoria: category,
-    imageUrl: imageUrl,
-    featureStatus: newsItem.featureStatus || null,
-    audio_url: newsItem.audio_url,
-    miniatura_url: newsItem.miniatura_url
-  };
-
-  const SlideModal = () => {
-    if (!showSlide || typeof document === 'undefined' || !thumbnailRect) return null;
-
-    const alignedStyle = {
-      position: 'fixed' as const,
-      top: thumbnailRect.top,
-      left: thumbnailRect.left,
-      width: thumbnailRect.width,
-      height: thumbnailRect.height,
-      zIndex: 9999,
-      transition: 'opacity 0.3s',
-      backgroundColor: 'transparent',
-    };
-
-    return ReactDOM.createPortal(
-        <AnimatePresence>
-            <motion.div
-                key="anchored-slide-modal"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                style={alignedStyle}
-                className="overflow-hidden rounded-lg shadow-2xl"
-            >
-                <NewsSlide
-                    article={slideArticleData}
-                    onEnd={handleCloseSlide}
-                />
-
-                <button
-                    onClick={handleCloseSlide}
-                    className="absolute top-2 right-2 text-white bg-black/50 p-2 rounded-full hover:bg-red-600 transition-colors z-[10000] cursor-pointer"
-                >
-                    ✕ CERRAR
-                </button>
-            </motion.div>
-        </AnimatePresence>,
-        document.body
-    );
   };
 
   const articleLink = `/noticia/${slug || newsItem.id}`;
-  const priority = index < 4; // Prioritize loading for first few images
+  const priority = index < 4;
 
   const titleSizeClass = isFeatured ? 'text-[28.224px]' : 'text-[19.494px]';
 
   return (
     <>
-      {showSlide && <SlideModal />}
       <motion.article
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -180,13 +81,9 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
             </span>
           )}
 
-          {hasSlide && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <Play size={60} className="text-white drop-shadow-lg" fill="currentColor" />
-            </div>
-          )}
 
-          {hasSlide /* && !onCardClick */ && (
+
+          {hasSlide && (
             <motion.button
               onClick={handlePlaySlide}
               className="absolute bottom-2 right-2 z-20 p-2 rounded-full shadow-lg flex items-center justify-center bg-black/15 border-[1.5px] text-white border-white shadow-black/50 backdrop-blur-md"
@@ -201,11 +98,6 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
         </div>
 
         <div className="p-4 flex flex-col flex-grow">
-          {/* <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
-            <Clock size={14} />
-            <span>{timeAgo}</span>
-          </div> */}
-
           <Link href={articleLink} className="block flex-grow">
             <h3 className={`font-bold ${titleSizeClass} text-black dark:text-white text-shadow-[0_2px_4px_rgba(0,0,0,0.2)] dark:text-shadow-[0_2px_4px_rgba(0,0,0,0.5)] leading-tight hover:text-blue-700 transition-colors line-clamp-4`}>
               {title}

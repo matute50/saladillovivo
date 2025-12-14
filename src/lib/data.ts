@@ -23,7 +23,7 @@ export async function getArticlesForHome(limitSecondary: number = 5) {
   const now = new Date().toISOString();
   
   // --- CAMBIO 1: Añadido 'audio_url' al select ---
-  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,imageUrl,featureStatus,updatedAt,createdAt,slug,description,meta_title,meta_description,meta_keywords,published_at,audio_url&or=(published_at.is.null,published_at.lte.${now})&order=createdAt.desc`;
+  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,imageUrl,featureStatus,updatedAt,createdAt,slug,description,meta_title,meta_description,meta_keywords,published_at,audio_url,url_slide&or=(published_at.is.null,published_at.lte.${now})&order=createdAt.desc`;
 
   try {
     const response = await fetch(apiUrl, {
@@ -53,6 +53,7 @@ export async function getArticlesForHome(limitSecondary: number = 5) {
       meta_description: item.meta_description,
       meta_keywords: item.meta_keywords,
       audio_url: item.audio_url, // <-- CAMBIO 2: Añadido al objeto
+      url_slide: item.url_slide,
     }));
 
     let featuredNews: Article | null = null;
@@ -352,7 +353,7 @@ export async function getArticlesForRss(limit: number = 50): Promise<Article[]> 
   const now = new Date().toISOString();
   
   // --- CAMBIO 3: Añadido 'audio_url' al select de RSS ---
-  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,imageUrl,featureStatus,updatedAt,createdAt,slug,description,meta_title,meta_description,meta_keywords,published_at,miniatura_url,audio_url&or=(published_at.is.null,published_at.lte.${now})&order=createdAt.desc&limit=${limit}`;
+  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,imageUrl,featureStatus,updatedAt,createdAt,slug,description,meta_title,meta_description,meta_keywords,published_at,miniatura_url,audio_url,url_slide&or=(published_at.is.null,published_at.lte.${now})&order=createdAt.desc&limit=${limit}`;
 
   try {
     const response = await fetch(apiUrl, {
@@ -389,6 +390,7 @@ export async function getArticlesForRss(limit: number = 50): Promise<Article[]> 
       meta_description: item.meta_description,
       meta_keywords: item.meta_keywords,
       audio_url: item.audio_url, // <-- CAMBIO 4: Añadido al objeto
+      url_slide: item.url_slide,
     }));
 
   } catch (error) {

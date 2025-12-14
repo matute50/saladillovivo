@@ -1,10 +1,7 @@
 import React from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import NewsCard from '@/components/NewsCard';
 import { Article } from '@/lib/types';
+import CategoryPageClient from './CategoryPageClient'; // Importar el nuevo componente de cliente
 
 interface SupabaseArticleData {
   id: string;
@@ -20,13 +17,15 @@ interface SupabaseArticleData {
   meta_title?: string;
   meta_description?: string;
   meta_keywords?: string;
+  url_slide?: string;
 }
 
-// This function fetches news for a specific category
+// Esta función obtiene las noticias para una categoría específica.
+// (Se mantiene igual)
 async function getNewsForCategory(category: string): Promise<Article[]> {
   const { data, error } = await supabase
     .from('articles')
-    .select('id, title, text, imageUrl, miniatura_url, featureStatus, createdAt, updatedAt, slug, description, meta_title, meta_description, meta_keywords')
+    .select('id, title, text, imageUrl, miniatura_url, featureStatus, createdAt, updatedAt, slug, description, meta_title, meta_description, meta_keywords, url_slide')
     .eq('featureStatus', category)
     .order('createdAt', { ascending: false });
 
@@ -35,7 +34,6 @@ async function getNewsForCategory(category: string): Promise<Article[]> {
     return [];
   }
 
-  // Mapear los datos de la base de datos a la interfaz Article
   return (data as SupabaseArticleData[] || []).map((item): Article => ({
     id: item.id,
     titulo: item.title,
@@ -43,72 +41,37 @@ async function getNewsForCategory(category: string): Promise<Article[]> {
     description: item.description || (item.text ? item.text.substring(0, 160) : 'Descripción no disponible.'),
     resumen: item.text ? item.text.substring(0, 150) + (item.text.length > 150 ? '...' : '') : 'Resumen no disponible.',
     contenido: item.text || 'Contenido no disponible.',
-    fecha: item.createdAt, // Usar createdAt como fecha principal
+    fecha: item.createdAt,
     createdAt: item.createdAt,
     updatedAt: item.updatedAt,
-    autor: 'Equipo Editorial', // Asumir un autor por defecto
+    autor: 'Equipo Editorial',
     categoria: item.featureStatus,
     imageUrl: item.imageUrl || 'https://saladillovivo.vercel.app/default-og-image.png',
     featureStatus: item.featureStatus,
     meta_title: item.meta_title,
     meta_description: item.meta_description,
     meta_keywords: item.meta_keywords,
+    url_slide: item.url_slide,
   }));
 }
 
+// El componente de página ahora es un componente de servidor simple.
 const CategoryPage = async ({ params }: { params: { categoria: string } }) => {
   const { categoria } = params;
-  const categoryNews = await getNewsForCategory(categoria);
+  const categoryNews = await getNewsForCategory(categoria);
 
-
+  // Renderiza el componente de cliente y le pasa los datos.
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <Link href="/">
-          <Button variant="ghost" className="mb-4 -ml-3">
-            <ArrowLeft size={16} className="mr-2" />
-            Volver a inicio
-          </Button>
-        </Link>
-        
-        <h1 className="text-3xl font-bold mb-2 capitalize">
-          Categoría: {categoria}
-        </h1>
-        <p className="text-muted-foreground">
-          Explora las últimas noticias sobre {categoria}
-        </p>
-      </div>
-
-      {categoryNews.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {categoryNews.map((noticia, index) => (
-            <NewsCard
-              key={noticia.id}
-              newsItem={noticia}
-              index={index}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-12">
-          <h3 className="text-xl font-medium mb-2">No hay noticias disponibles</h3>
-          <p className="text-muted-foreground mb-6">
-            No se encontraron noticias en esta categoría.
-          </p>
-          <Link href="/">
-            <Button>
-              Volver a la página principal
-            </Button>
-          </Link>
-        </div>
-      )}
-    </div>
+    <CategoryPageClient 
+      categoria={categoria} 
+      initialData={categoryNews} 
+    />
   );
 };
 
 export default CategoryPage;
 
-// Generate static paths for all categories at build time
+// La función generateStaticParams se mantiene igual.
 export async function generateStaticParams() {
   const { data, error } = await supabase.from('articles').select('featureStatus');
 
@@ -117,7 +80,6 @@ export async function generateStaticParams() {
     return [];
   }
 
-  // Get unique category values
   const uniqueCategories = [...new Set(data.map(item => item.featureStatus).filter((status): status is string => typeof status === 'string' && status.trim() !== ''))];
 
   return uniqueCategories.map(categoria => ({

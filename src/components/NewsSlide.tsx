@@ -44,6 +44,22 @@ const NewsSlide: React.FC<NewsSlideProps> = ({ article, onEnd }) => {
     );
   }
 
+  // Lógica principal: Priorizar url_slide para iframe
+  if (article.url_slide) {
+    return (
+      <div className="w-full aspect-video bg-black rounded-lg overflow-hidden relative shadow-xl">
+        <iframe
+          src={article.url_slide}
+          className="absolute inset-0 w-full h-full border-0"
+          title={article.title || "Slide de Noticia"}
+          allow="autoplay" // Permite la reproducción automática del contenido del iframe
+          allowFullScreen // Permite pantalla completa si el contenido del iframe lo soporta
+        />
+      </div>
+    );
+  }
+
+  // Fallback: Si no hay url_slide, renderizar el contenido de la noticia manualmente (lógica existente)
   return (
     <div className="absolute inset-0 w-full h-full bg-black">
       <style jsx>{`
@@ -81,12 +97,15 @@ const NewsSlide: React.FC<NewsSlideProps> = ({ article, onEnd }) => {
         />
       )}
 
-      <div className="absolute inset-0 flex flex-col justify-end p-4 md:p-12 z-10">
-        <div className="text-white w-full">
-          <h1 className="text-3xl md:text-6xl font-bold leading-tight mb-4 opacity-0 animate-slideUp" style={{ textShadow: '2px 2px 8px rgba(0,0,0,0.8)' }}>
-            {article.titulo}
-          </h1>
-          {article.resumen && (
+                          <div className="absolute inset-0 flex flex-col justify-end p-4 md:p-12 z-10">
+
+                            <div className="text-white w-full">
+
+                              <h1 className="text-3xl md:text-6xl font-bold leading-tight mb-4 opacity-0 animate-slideUp" style={{ textShadow: '2px 2px 8px rgba(0,0,0,0.8)' }}>
+
+                                {article.titulo}
+
+                              </h1>          {article.resumen && (
             <div className="relative w-full bg-red-600/80 text-white overflow-hidden whitespace-nowrap py-2 mt-4">
                <p className="inline-block text-lg md:text-xl font-semibold animate-ticker pl-4">
                   {article.resumen}
@@ -96,10 +115,6 @@ const NewsSlide: React.FC<NewsSlideProps> = ({ article, onEnd }) => {
         </div>
       </div>
 
-      {/* 
-        Elemento de audio (no visible) con el manejador onEnded.
-        Este se disparará cuando el audio termine, llamando a la función onEnd.
-      */}
       {article.audio_url && <audio ref={audioRef} src={article.audio_url} onEnded={onEnd} />}
     </div>
   );
