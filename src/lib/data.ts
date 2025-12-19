@@ -23,7 +23,8 @@ export async function getArticlesForHome(limitSecondary: number = 5) {
   const now = new Date().toISOString();
   
   // --- CAMBIO 1: Añadido 'audio_url' al select ---
-  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,imageUrl,featureStatus,updatedAt,createdAt,slug,description,meta_title,meta_description,meta_keywords,published_at,audio_url,url_slide&or=(published_at.is.null,published_at.lte.${now})&order=createdAt.desc`;
+  const limit = limitSecondary + 5; // Fetch a few extra to ensure we get a featured and enough secondary
+  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,imageUrl,featureStatus,updatedAt,createdAt,slug,description,meta_title,meta_description,meta_keywords,published_at,audio_url,url_slide&or=published_at.is.null,published_at.lte.${now}&order=createdAt.desc&limit=${limit}`;
 
   try {
     const response = await fetch(apiUrl, {
@@ -353,7 +354,7 @@ export async function getArticlesForRss(limit: number = 50): Promise<Article[]> 
   const now = new Date().toISOString();
   
   // --- CAMBIO 3: Añadido 'audio_url' al select de RSS ---
-  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,imageUrl,featureStatus,updatedAt,createdAt,slug,description,meta_title,meta_description,meta_keywords,published_at,miniatura_url,audio_url,url_slide&or=(published_at.is.null,published_at.lte.${now})&order=createdAt.desc&limit=${limit}`;
+  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,imageUrl,featureStatus,updatedAt,createdAt,slug,description,meta_title,meta_description,meta_keywords,published_at,miniatura_url,audio_url,url_slide&or=published_at.is.null,published_at.lte.${now}&order=createdAt.desc&limit=${limit}`;
 
   try {
     const response = await fetch(apiUrl, {
