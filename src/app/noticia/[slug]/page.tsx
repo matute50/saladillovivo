@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const { data: article } = await supabase
     .from('articles')
-    .select('title, description, og_image_url') 
+    .select('titulo, description, og_image_url') 
     .eq('slug', slug)
     .single();
 
@@ -30,10 +30,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   return {
-    title: article.title,
+    title: article.titulo,
     description: article.description,
     openGraph: {
-      title: article.title,
+      title: article.titulo,
       description: article.description,
       type: 'article',
       images: [
@@ -41,13 +41,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           url: article.og_image_url, 
           width: 1200,
           height: 628,
-          alt: article.title,
+          alt: article.titulo,
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: article.title,
+      title: article.titulo,
       description: article.description,
       images: [article.og_image_url],  
     },
@@ -67,7 +67,7 @@ export default async function NoticiaPage({ params }: Props) {
   // 1. Buscamos los datos de la noticia con campos específicos
   const { data: rawArticle, error } = await supabase
     .from('articles')
-    .select('id, title, text, description, slug, featureStatus, createdAt, updatedAt, autor, categoria, thumbnail_url, audio_url')
+    .select('id, titulo, contenido, description, slug, featureStatus, created_at, updatedAt, autor, categoria, thumbnail_url, audio_url')
     .eq('slug', slug)
     .single();
 
@@ -79,13 +79,13 @@ export default async function NoticiaPage({ params }: Props) {
   // 2. Mapeamos los datos crudos a nuestra interfaz Article
   const article: Article = {
     id: rawArticle.id,
-    titulo: rawArticle.title,
+    titulo: rawArticle.titulo,
     slug: rawArticle.slug,
     description: rawArticle.description,
-    resumen: rawArticle.text ? rawArticle.text.substring(0, 150) + (rawArticle.text.length > 150 ? '...' : '') : '',
-    contenido: rawArticle.text || '',
-    fecha: rawArticle.createdAt,
-    createdAt: rawArticle.createdAt,
+    resumen: rawArticle.contenido ? rawArticle.contenido.substring(0, 150) + (rawArticle.contenido.length > 150 ? '...' : '') : '',
+    contenido: rawArticle.contenido || '',
+    fecha: rawArticle.created_at,
+    created_at: rawArticle.created_at,
     updatedAt: rawArticle.updatedAt,
     autor: rawArticle.autor,
     categoria: rawArticle.categoria,

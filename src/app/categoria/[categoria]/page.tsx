@@ -7,7 +7,6 @@ interface SupabaseArticleData {
   id: string;
   title: string;
   text: string;
-  miniatura_url?: string;
   thumbnail_url?: string;
   featureStatus: 'featured' | 'secondary' | 'tertiary' | null;
   created_at: string; // My fix
@@ -17,6 +16,7 @@ interface SupabaseArticleData {
   meta_title?: string;
   meta_description?: string;
   meta_keywords?: string;
+  audio_url?: string; // Add audio_url
   url_slide?: string; // From remote
 }
 
@@ -25,7 +25,7 @@ async function getNewsForCategory(category: string): Promise<Article[]> {
   const { data, error } = await supabase
     .from('articles')
     // My select query (with created_at, thumbnail_url, no imageUrl, and url_slide from remote)
-    .select('id, title, text, miniatura_url, thumbnail_url, featureStatus, created_at, updatedAt, slug, description, meta_title, meta_description, meta_keywords, url_slide')
+    .select('id, title, text, thumbnail_url, featureStatus, created_at, updatedAt, slug, description, meta_title, meta_description, meta_keywords, audio_url, url_slide')
     .eq('featureStatus', category)
     .order('created_at', { ascending: false }); // My fix
 

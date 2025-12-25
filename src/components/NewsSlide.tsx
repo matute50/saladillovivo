@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import Image from 'next/image';
 import { Article } from '@/lib/types';
 import { isValidSlideUrl } from '@/lib/utils';
 
@@ -13,23 +12,26 @@ interface NewsSlideProps {
 const NewsSlide: React.FC<NewsSlideProps> = ({ article, onEnd }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // If the article or its slide URL is invalid, end the process immediately.
-  if (!article || !isValidSlideUrl(article.url_slide)) {
-    useEffect(() => {
-      onEnd();
-    }, [onEnd]);
-    return null; // Render nothing, as per the requirement.
-  }
-
-  // Effect for playing the video
   useEffect(() => {
+    // If the article or its slide URL is invalid, end the process.
+    if (!article || !isValidSlideUrl(article.url_slide)) {
+      onEnd();
+      return; // Exit the effect.
+    }
+
+    // Otherwise, play the video.
     const video = videoRef.current;
     if (video) {
       video.play().catch(error => {
         console.error("La reproducción automática del video falló:", error);
       });
     }
-  }, [article]);
+  }, [article, onEnd]);
+
+  // Render nothing if the article is invalid. This check happens after hooks.
+  if (!article || !isValidSlideUrl(article.url_slide)) {
+    return null;
+  }
 
   return (
     <div className="absolute inset-0 w-full h-full bg-black">

@@ -15,7 +15,6 @@ export interface Article {
   meta_title?: string;
   meta_description?: string;
   meta_keywords?: string;
-  miniatura_url?: string;
   thumbnail_url?: string;
   audio_url?: string | null;
   url_slide?: string | null;
@@ -26,7 +25,6 @@ export interface SupabaseArticle {
   title: string;
   text: string;
   imageUrl: string;
-  miniatura_url?: string;
   featureStatus: 'featured' | 'secondary' | 'tertiary' | null;
   created_at: string;
   updatedAt: string;

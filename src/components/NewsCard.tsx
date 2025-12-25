@@ -34,7 +34,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
   const imageRef = useRef<HTMLDivElement>(null);
   const [thumbnailRect, setThumbnailRect] = useState<RectCoords | null>(null);
 
-  const { pause, play, currentVideo, playSpecificVideo, playTemporaryVideo } = useMediaPlayer();
+  const { pause, play, currentVideo, playTemporaryVideo } = useMediaPlayer();
   const { setMuted } = useVolume();
 
   if (!newsItem) return null;
@@ -133,7 +133,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
     imageUrl: imageUrl,
     featureStatus: newsItem.featureStatus || null,
     audio_url: newsItem.audio_url,
-    miniatura_url: newsItem.miniatura_url
+
   };
 
   const SlideModal = () => {

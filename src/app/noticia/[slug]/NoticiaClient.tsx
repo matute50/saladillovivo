@@ -38,7 +38,7 @@ export default function NoticiaClient({ article }: { article: Article }) {
     <main className="container mx-auto max-w-4xl px-4 py-8">
       <article>
         <h1 className="text-3xl font-bold leading-tight text-gray-900 dark:text-white md:text-4xl mb-4">
-          {article.title}
+          {article.titulo}
         </h1>
         
         {/* --- INICIO DE CAMBIOS (IMAGEN Y BOTÓN) --- */}
@@ -80,10 +80,10 @@ export default function NoticiaClient({ article }: { article: Article }) {
 
 
         {/* Cuerpo de la noticia (sin cambios) */}
-        {article.text ? (
+        {article.contenido ? (
           <div
             className="prose prose-lg dark:prose-invert max-w-none"
-            dangerouslySetInnerHTML={{ __html: article.text }}
+            dangerouslySetInnerHTML={{ __html: article.contenido }}
           />
         ) : (
           <p className="text-lg dark:text-gray-300">{article.description}</p>

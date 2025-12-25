@@ -21,22 +21,22 @@ export async function GET() {
 
   try {
     let allNews = await getArticlesForRss();
-    allNews = allNews.filter(article => article.miniatura_url);
+    allNews = allNews.filter(article => article.thumbnail_url);
 
     allNews.forEach(article => {
-      if (article.miniatura_url && article.slug) {
-        const cleanMiniaturaUrl = article.miniatura_url.split('?')[0];
+      if (article.thumbnail_url && article.slug) {
+        const cleanThumbnailUrl = article.thumbnail_url.split('?')[0];
         const articleUrl = `${SITE_URL}/noticia/${article.slug}`;
 
-        const facebookImageUrl = `${SITE_URL}/api/og?imageUrl=${encodeURIComponent(cleanMiniaturaUrl)}&w=1200&h=630`;
-        const instagramImageUrl = `${SITE_URL}/api/og?imageUrl=${encodeURIComponent(cleanMiniaturaUrl)}&w=1080&h=1350`;
+        const facebookImageUrl = `${SITE_URL}/api/og?imageUrl=${encodeURIComponent(cleanThumbnailUrl)}&w=1200&h=630`;
+        const instagramImageUrl = `${SITE_URL}/api/og?imageUrl=${encodeURIComponent(cleanThumbnailUrl)}&w=1080&h=1350`;
 
         feed.item({
           title: article.titulo,
           description: article.description || '',
           url: articleUrl,
           guid: article.id,
-          date: article.createdAt,
+          date: article.created_at,
           custom_elements: [
             {
               'media:content': {

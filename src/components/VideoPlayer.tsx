@@ -69,7 +69,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     const introVideos = React.useMemo(() => ['/azul.mp4', '/cuadros.mp4', '/cuadros2.mp4', '/lineal.mp4', '/RUIDO.mp4'], []);
 
     useEffect(() => {
-      const isYt = src && (src.includes('youtube.com') || src.includes('youtu.be'));
+      const isYt = !!(src && (src.includes('youtube.com') || src.includes('youtu.be')));
       setIsYouTube(isYt);
 
       if (typeof window !== 'undefined' && isYt) {

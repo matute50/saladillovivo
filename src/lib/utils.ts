@@ -45,7 +45,7 @@ export const formatDate = (dateString: string, format: 'short' | 'numeric' = 'nu
   }
 };
 
-export function isValidSlideUrl(url: string | null | undefined): boolean {
+export function isValidSlideUrl(url: string | null | undefined): url is string {
   if (!url) {
     return false;
   }
