@@ -118,7 +118,6 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
   };
 
 
-
   const slideArticleData: Article = {
     id: newsItem.id,
     titulo: title,

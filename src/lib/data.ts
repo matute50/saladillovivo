@@ -22,8 +22,8 @@ export async function getArticlesForHome(limitSecondary: number = 5) {
   const { supabaseUrl, supabaseAnonKey } = checkSupabaseCredentials();
   const now = new Date().toISOString();
 
-  // --- CAMBIO 1: Añadido 'audio_url' al select ---
-  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,thumbnail_url,featureStatus,updatedAt,created_at,slug,description,meta_title,meta_description,meta_keywords,published_at,audio_url,url_slide&or=(published_at.is.null,published_at.lte.${now})&order=created_at.desc`;
+  const limit = limitSecondary + 5; // Keep remote's limit logic
+  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,thumbnail_url,featureStatus,updatedAt,created_at,slug,description,meta_title,meta_description,meta_keywords,published_at,audio_url,url_slide&or=(published_at.is.null,published_at.lte.${now})&order=created_at.desc&limit=${limit}`;
 
   try {
     const response = await fetch(apiUrl, {
@@ -285,7 +285,7 @@ export async function getInterviews(): Promise<Interview[]> {
     nombre: item.nombre,
     url: item.url,
     createdAt: item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString(),
-    updatedAt: item.updated_at ? new Date(item.updated_at).toISOString() : (item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString()),
+    updatedAt: item.updated_at ? new Date(item.updatedAt).toISOString() : (item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString()),
     categoria: item.categoria,
     imagen: item.imagen,
   }));
@@ -362,7 +362,6 @@ export async function getArticlesForRss(limit: number = 50): Promise<Article[]> 
   const { supabaseUrl, supabaseAnonKey } = checkSupabaseCredentials();
   const now = new Date().toISOString();
 
-  // --- CAMBIO 3: Añadido 'audio_url' al select de RSS ---
   const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,thumbnail_url,featureStatus,updatedAt,created_at,slug,description,meta_title,meta_description,meta_keywords,published_at,miniatura_url,audio_url,url_slide&or=(published_at.is.null,published_at.lte.${now})&order=created_at.desc&limit=${limit}`;
 
   try {

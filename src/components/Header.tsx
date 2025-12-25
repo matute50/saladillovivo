@@ -18,7 +18,7 @@ const Header = () => {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('theme');
-      const initialTheme = savedTheme ? JSON.parse(savedTheme) : true;
+      const initialTheme = savedTheme === 'dark'; // Si savedTheme es 'dark', es true; de lo contrario, es false.
       setIsDarkTheme(initialTheme);
       if (initialTheme) {
         document.documentElement.classList.add('dark');
@@ -36,7 +36,7 @@ const Header = () => {
     } else {
       document.documentElement.classList.remove('dark');
     }
-    localStorage.setItem('theme', JSON.stringify(newThemeState));
+    localStorage.setItem('theme', newThemeState ? 'dark' : 'light');
   };
 
   const handleShare = () => {

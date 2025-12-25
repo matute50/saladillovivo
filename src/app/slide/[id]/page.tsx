@@ -3,6 +3,7 @@ import NewsSlide from '@/components/NewsSlide';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { isValidSlideUrl } from '@/lib/utils';
+import { Article } from '@/lib/types'; // Import Article type
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -31,8 +32,8 @@ async function getArticle(id: string): Promise<Article | null> {
     description: data.description,
     resumen: data.resumen,
     contenido: data.contenido,
-    fecha: data.created_at,
-    created_at: data.created_at,
+    fecha: data.created_at, // Use created_at
+    created_at: data.created_at, // Use created_at
     updatedAt: data.updatedAt,
     autor: data.autor,
     categoria: data.categoria,
@@ -49,7 +50,6 @@ async function getArticle(id: string): Promise<Article | null> {
   return article;
 }
 
-// CORRECCIÓN: Quitamos el argumento 'parent' que causaba el error
 export async function generateMetadata(
   { params }: Props
 ): Promise<Metadata> {
