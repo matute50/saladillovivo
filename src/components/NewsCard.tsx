@@ -4,7 +4,6 @@ import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play } from 'lucide-react';
 import { Article, Video } from '@/lib/types';
 import { format } from 'date-fns';
 import { isValidSlideUrl } from '@/lib/utils';
@@ -213,24 +212,9 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
             </span>
           )}
 
-          {hasSlide && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <Play size={60} className="text-white drop-shadow-lg" fill="currentColor" />
-            </div>
-          )}
 
-          {hasSlide /* && !onCardClick */ && (
-            <motion.button
-              onClick={handlePlaySlide}
-              className="absolute bottom-2 right-2 z-20 p-2 rounded-full shadow-lg flex items-center justify-center bg-black/15 border-[1.5px] text-white border-white shadow-black/50 backdrop-blur-md"
-              title="Ver en modo TV"
-              animate={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
-              whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
-              transition={{ duration: 0.3, ease: 'easeInOut' }}
-            >
-              <Play size={20} fill="currentColor" className="ml-0.5" />
-            </motion.button>
-          )}
+
+
         </div>
 
         <div className="p-4 flex flex-col flex-grow">
