@@ -10,10 +10,10 @@ interface SupabaseArticleData {
   id: string;
   title: string;
   text: string;
-  imageUrl: string;
   miniatura_url?: string;
+  thumbnail_url?: string;
   featureStatus: 'featured' | 'secondary' | 'tertiary' | null;
-  createdAt: string;
+  created_at: string;
   updatedAt: string;
   slug: string;
   description: string;
@@ -26,9 +26,9 @@ interface SupabaseArticleData {
 async function getNewsForCategory(category: string): Promise<Article[]> {
   const { data, error } = await supabase
     .from('articles')
-    .select('id, title, text, imageUrl, miniatura_url, featureStatus, createdAt, updatedAt, slug, description, meta_title, meta_description, meta_keywords')
+    .select('id, title, text, miniatura_url, thumbnail_url, featureStatus, created_at, updatedAt, slug, description, meta_title, meta_description, meta_keywords')
     .eq('featureStatus', category)
-    .order('createdAt', { ascending: false });
+    .order('created_at', { ascending: false });
 
   if (error) {
     console.error('Error fetching news for category:', error);
@@ -43,12 +43,13 @@ async function getNewsForCategory(category: string): Promise<Article[]> {
     description: item.description || (item.text ? item.text.substring(0, 160) : 'Descripción no disponible.'),
     resumen: item.text ? item.text.substring(0, 150) + (item.text.length > 150 ? '...' : '') : 'Resumen no disponible.',
     contenido: item.text || 'Contenido no disponible.',
-    fecha: item.createdAt, // Usar createdAt como fecha principal
-    createdAt: item.createdAt,
+    fecha: item.created_at, // Usar created_at como fecha principal
+    created_at: item.created_at,
     updatedAt: item.updatedAt,
     autor: 'Equipo Editorial', // Asumir un autor por defecto
     categoria: item.featureStatus,
-    imageUrl: item.imageUrl || 'https://saladillovivo.vercel.app/default-og-image.png',
+    imageUrl: item.thumbnail_url || 'https://saladillovivo.vercel.app/default-og-image.png',
+    thumbnail_url: item.thumbnail_url,
     featureStatus: item.featureStatus,
     meta_title: item.meta_title,
     meta_description: item.meta_description,
@@ -110,7 +111,7 @@ export default CategoryPage;
 
 // Generate static paths for all categories at build time
 export async function generateStaticParams() {
-  const { data, error } = await supabase.from('articles').select('featureStatus');
+  const { data, error } = await supabase.from('articles').select('featureStatus, created_at').order('created_at', { ascending: false });
 
   if (error || !data) {
     console.error("Failed to fetch categories for static generation", error);

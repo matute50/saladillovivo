@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Article } from '@/lib/types';
+import { isValidSlideUrl } from '@/lib/utils';
 
 interface NewsSlideProps {
   article: Article | null;
@@ -10,39 +11,25 @@ interface NewsSlideProps {
 }
 
 const NewsSlide: React.FC<NewsSlideProps> = ({ article, onEnd }) => {
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Efecto para reproducir el audio y manejar su finalización
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (article?.audio_url && audio) {
-      audio.play().catch(error => {
-        console.error("La reproducción automática del audio falló:", error);
-      });
-      
-      // El evento 'ended' se maneja directamente en el elemento JSX con onEnded
-      // Pero si quisiéramos usar un listener, sería así:
-      // audio.addEventListener('ended', onEnd);
-      // return () => audio.removeEventListener('ended', onEnd);
-
-    } else if (!article?.audio_url) {
-      // Si no hay audio, cerramos el modal después de un tiempo prudencial (ej. 15 segundos)
-      const timer = setTimeout(() => {
-        onEnd();
-      }, 15000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [article, onEnd]);
-
-  // Manejo de error si no hay datos
-  if (!article) {
-    return (
-      <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-black text-white p-4">
-        <p className="text-lg text-red-500">Error: No se pudieron cargar los datos del slide.</p>
-      </div>
-    );
+  // If the article or its slide URL is invalid, end the process immediately.
+  if (!article || !isValidSlideUrl(article.url_slide)) {
+    useEffect(() => {
+      onEnd();
+    }, [onEnd]);
+    return null; // Render nothing, as per the requirement.
   }
+
+  // Effect for playing the video
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video) {
+      video.play().catch(error => {
+        console.error("La reproducción automática del video falló:", error);
+      });
+    }
+  }, [article]);
 
   return (
     <div className="absolute inset-0 w-full h-full bg-black">
@@ -70,37 +57,30 @@ const NewsSlide: React.FC<NewsSlideProps> = ({ article, onEnd }) => {
         }
       `}</style>
 
-      {article.imageUrl && (
-        <Image
-          src={article.imageUrl}
-          alt={article.titulo}
-          layout="fill"
-          objectFit="cover"
-          className="opacity-40 animate-fadeIn"
-          priority
-        />
-      )}
+      <video
+        ref={videoRef}
+        src={article.url_slide}
+        className="w-full h-full object-cover animate-fadeIn"
+        onEnded={onEnd}
+        autoPlay
+        muted
+        playsInline
+      />
 
-      <div className="absolute inset-0 flex flex-col justify-end p-4 md:p-12 z-10">
+      <div className="absolute inset-0 flex flex-col justify-end p-4 md:p-12 z-10 pointer-events-none">
         <div className="text-white w-full">
           <h1 className="text-3xl md:text-6xl font-bold leading-tight mb-4 opacity-0 animate-slideUp" style={{ textShadow: '2px 2px 8px rgba(0,0,0,0.8)' }}>
             {article.titulo}
           </h1>
           {article.resumen && (
             <div className="relative w-full bg-red-600/80 text-white overflow-hidden whitespace-nowrap py-2 mt-4">
-               <p className="inline-block text-lg md:text-xl font-semibold animate-ticker pl-4">
-                  {article.resumen}
-               </p>
+              <p className="inline-block text-lg md:text-xl font-semibold animate-ticker pl-4">
+                {article.resumen}
+              </p>
             </div>
           )}
         </div>
       </div>
-
-      {/* 
-        Elemento de audio (no visible) con el manejador onEnded.
-        Este se disparará cuando el audio termine, llamando a la función onEnd.
-      */}
-      {article.audio_url && <audio ref={audioRef} src={article.audio_url} onEnded={onEnd} />}
     </div>
   );
 };

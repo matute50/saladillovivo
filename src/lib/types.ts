@@ -6,7 +6,7 @@ export interface Article {
   resumen: string;
   contenido: string;
   fecha: string;
-  createdAt: string;
+  created_at: string;
   updatedAt: string;
   autor: string;
   categoria: string | null;
@@ -16,7 +16,9 @@ export interface Article {
   meta_description?: string;
   meta_keywords?: string;
   miniatura_url?: string;
-  audio_url?: string | null; // <-- AÑADIDO
+  thumbnail_url?: string;
+  audio_url?: string | null;
+  url_slide?: string | null; // <-- AÑADIDO
 }
 
 export interface SupabaseArticle {
@@ -26,14 +28,16 @@ export interface SupabaseArticle {
   imageUrl: string;
   miniatura_url?: string;
   featureStatus: 'featured' | 'secondary' | 'tertiary' | null;
-  createdAt: string;
+  created_at: string;
   updatedAt: string;
   slug: string;
   description: string;
   meta_title?: string;
   meta_description?: string;
   meta_keywords?: string;
-  audio_url?: string; // <-- AÑADIDO
+  audio_url?: string;
+  thumbnail_url?: string;
+  url_slide?: string; // <-- AÑADIDO
 }
 
 export interface Video {

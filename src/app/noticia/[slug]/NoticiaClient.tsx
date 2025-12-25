@@ -4,6 +4,7 @@
 import Image from 'next/image';
 import React from 'react';
 import { Play, Pause } from 'lucide-react'; 
+import { Article } from '@/lib/types';
 
 // Simulación del hook 'useAudioPlayer'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -15,7 +16,7 @@ const useAudioPlayer = (_audioUrl: string | null) => {
 };
 
 // Recibimos 'article' como prop desde la página de servidor
-export default function NoticiaClient({ article }: { article: any }) {
+export default function NoticiaClient({ article }: { article: Article }) {
   
   // 1. INICIALIZAMOS EL HOOK DE AUDIO (usando la simulación)
   const { state, play, pause } = useAudioPlayer(article.audio_url || null);
@@ -49,7 +50,7 @@ export default function NoticiaClient({ article }: { article: any }) {
           >
             <Image
               src={article.imageUrl}
-              alt={article.title}
+              alt={article.titulo}
               fill
               className="w-full h-full object-cover rounded-lg"
             />

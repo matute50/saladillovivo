@@ -26,6 +26,7 @@ interface MediaPlayerContextType {
   setViewMode: (mode: 'diario' | 'tv') => void;
   playMedia: (media: Video, isFirst?: boolean) => void;
   playSpecificVideo: (media: Video) => void;
+  playTemporaryVideo: (media: Video) => void;
   playLiveStream: (status: { liveStreamUrl: string; isLive: boolean; }) => void; 
   setIsPlaying: (isPlaying: boolean) => void;
   togglePlayPause: () => void;
@@ -64,6 +65,7 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
   
 
     const [currentVideo, setCurrentVideo] = useState<Video | null>(null);
+    const [interruptedVideo, setInterruptedVideo] = useState<Video | null>(null);
 
     const [nextVideo, setNextVideo] = useState<Video | null>(null);
 
@@ -116,6 +118,13 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
 
     }, [setVolume]);
 
+    const playTemporaryVideo = useCallback((media: Video) => {
+      if (currentVideo) {
+        setInterruptedVideo(currentVideo);
+      }
+      setCurrentVideo(media);
+      setIsPlaying(true);
+    }, [currentVideo]);
   
 
         const playSpecificVideo = useCallback((media: Video) => {
@@ -256,8 +265,13 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
 
         const handleOnEnded = useCallback(() => {
 
+          if (interruptedVideo) {
+            setCurrentVideo(interruptedVideo);
+            setInterruptedVideo(null);
+            setIsPlaying(true);
+            return;
+          }
   
-
           if (viewMode === 'tv') { // Lógica específica del modo TV
 
   
@@ -438,13 +452,15 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
 
       setViewMode,
 
-      playMedia,
+            playMedia,
 
-      playSpecificVideo,
+            playSpecificVideo,
 
-      playLiveStream, 
+            playTemporaryVideo,
 
-      setIsPlaying,
+            playLiveStream, 
+
+            setIsPlaying,
 
       togglePlayPause,
 
@@ -479,15 +495,17 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
 
       viewMode,
 
-      setViewMode,
+            setViewMode,
 
-      playMedia,
+            playMedia,
 
-      playSpecificVideo,
+            playSpecificVideo,
 
-      playLiveStream,
+            playTemporaryVideo,
 
-      togglePlayPause,
+            playLiveStream,
+
+            togglePlayPause,
 
       setSeekToFraction,
 

@@ -1,6 +1,6 @@
 "use client";
 import React, { useRef, useEffect, forwardRef, useImperativeHandle, useState, useCallback } from 'react';
-import ReactPlayer from 'react-player/youtube';
+import ReactPlayer from 'react-player';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useVolume } from '@/context/VolumeContext';
 
@@ -58,6 +58,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     ref
   ) => {
     const playerRef = useRef<ReactPlayer | null>(null);
+    const [isYouTube, setIsYouTube] = useState(false);
     
     // Obtenemos los datos de volumen
     const { isMuted, volume } = useVolume();
@@ -68,7 +69,10 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     const introVideos = React.useMemo(() => ['/azul.mp4', '/cuadros.mp4', '/cuadros2.mp4', '/lineal.mp4', '/RUIDO.mp4'], []);
 
     useEffect(() => {
-      if (typeof window !== 'undefined' && src && (src.includes('youtube.com') || src.includes('youtu.be'))) {
+      const isYt = src && (src.includes('youtube.com') || src.includes('youtu.be'));
+      setIsYouTube(isYt);
+
+      if (typeof window !== 'undefined' && isYt) {
         const randomIntro = introVideos[Math.floor(Math.random() * introVideos.length)];
         setIntroVideo(randomIntro);
         setShowIntro(true);
@@ -95,20 +99,28 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     // el contexto de volumen con el reproductor interno.
     useEffect(() => {
       if (playerRef.current) {
-        const internalPlayer = playerRef.current.getInternalPlayer() as YouTubePlayer;
+        const internalPlayer = playerRef.current.getInternalPlayer() as any;
         if (internalPlayer) {
           if (isMuted) {
-            internalPlayer?.mute?.();
+            if (isYouTube) {
+              internalPlayer.mute?.();
+            } else {
+              internalPlayer.muted = true;
+            }
           } else {
-            internalPlayer?.unMute?.();
-            // Nos aseguramos de que 'setVolume' exista antes de llamarlo
-            if (typeof internalPlayer.setVolume === 'function') {
-              internalPlayer.setVolume(volume * 100); 
+            if (isYouTube) {
+              internalPlayer.unMute?.();
+              if (typeof internalPlayer.setVolume === 'function') {
+                internalPlayer.setVolume(volume * 100);
+              }
+            } else {
+              internalPlayer.muted = false;
+              internalPlayer.volume = volume;
             }
           }
         }
       }
-    }, [isMuted, volume]); // Se ejecuta solo cuando isMuted o volume cambian
+    }, [isMuted, volume, isYouTube]); // Depend on isYouTube as well
 
 
     // --- SE BORRÓ EL useEffect DUPLICADO ---
@@ -126,15 +138,52 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
     // (useImperativeHandle - sin cambios)
     useImperativeHandle(ref, () => ({
-      play: () => { if (typeof window !== 'undefined' && playerRef.current) (playerRef.current.getInternalPlayer() as YouTubePlayer).playVideo(); },
-      pause: () => { if (typeof window !== 'undefined' && playerRef.current) (playerRef.current.getInternalPlayer() as YouTubePlayer).pauseVideo(); },
-      mute: () => { if (typeof window !== 'undefined' && playerRef.current) { const internalPlayer = playerRef.current.getInternalPlayer() as YouTubePlayer; internalPlayer?.mute?.(); } },
-      unmute: () => { if (typeof window !== 'undefined' && playerRef.current) { const internalPlayer = playerRef.current.getInternalPlayer() as YouTubePlayer; internalPlayer?.unMute?.(); } },
-      setVolume: (vol: number) => { 
+      play: () => {
+        if (typeof window !== 'undefined' && playerRef.current) {
+          if (isYouTube) {
+            (playerRef.current.getInternalPlayer() as YouTubePlayer)?.playVideo?.();
+          } else {
+            // For file players, the internal player is the video element itself
+            (playerRef.current.getInternalPlayer() as HTMLVideoElement)?.play?.();
+          }
+        }
+      },
+      pause: () => {
+        if (typeof window !== 'undefined' && playerRef.current) {
+          if (isYouTube) {
+            (playerRef.current.getInternalPlayer() as YouTubePlayer)?.pauseVideo?.();
+          } else {
+            (playerRef.current.getInternalPlayer() as HTMLVideoElement)?.pause?.();
+          }
+        }
+      },
+      mute: () => {
+        if (typeof window !== 'undefined' && playerRef.current) {
+          if (isYouTube) {
+            (playerRef.current.getInternalPlayer() as YouTubePlayer)?.mute?.();
+          } else if (playerRef.current.getInternalPlayer()) {
+            (playerRef.current.getInternalPlayer() as HTMLVideoElement).muted = true;
+          }
+        }
+      },
+      unmute: () => {
+        if (typeof window !== 'undefined' && playerRef.current) {
+          if (isYouTube) {
+            (playerRef.current.getInternalPlayer() as YouTubePlayer)?.unMute?.();
+          } else if (playerRef.current.getInternalPlayer()) {
+            (playerRef.current.getInternalPlayer() as HTMLVideoElement).muted = false;
+          }
+        }
+      },
+      setVolume: (vol: number) => {
         if (typeof window !== 'undefined' && playerRef.current) {
           const internalPlayer = playerRef.current.getInternalPlayer();
-          if (internalPlayer && typeof internalPlayer.setVolume === 'function') {
-            internalPlayer.setVolume(vol * 100); 
+          if (internalPlayer) {
+            if (isYouTube && typeof (internalPlayer as YouTubePlayer).setVolume === 'function') {
+              (internalPlayer as YouTubePlayer).setVolume(vol * 100);
+            } else {
+              (internalPlayer as HTMLVideoElement).volume = vol;
+            }
           }
         }
       },
@@ -143,7 +192,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           playerRef.current.seekTo(fraction, 'fraction');
         }
       },
-      getInternalPlayer: () => playerRef.current ? (playerRef.current.getInternalPlayer() as YouTubePlayer) : null,
+      getInternalPlayer: () => playerRef.current ? (playerRef.current.getInternalPlayer() as any) : null,
       getReactPlayer: () => playerRef.current,
     }));
 
@@ -177,19 +226,21 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             controls={false}
             pip={true}
             muted={isMuted}
-            config={{
-              playerVars: {
-                autoplay: 1, // <--- ¡Añadido!
-                showinfo: 0,
-                rel: 0,
-                iv_load_policy: 3,
-                modestbranding: 1,
-                controls: 0,
-                disablekb: 1,
-                playsinline: 1,
-                origin: typeof window !== 'undefined' ? window.location.origin : '',
-              },
-            }}
+            config={isYouTube ? {
+              youtube: {
+                playerVars: {
+                  autoplay: 1,
+                  showinfo: 0,
+                  rel: 0,
+                  iv_load_policy: 3,
+                  modestbranding: 1,
+                  controls: 0,
+                  disablekb: 1,
+                  playsinline: 1,
+                  origin: typeof window !== 'undefined' ? window.location.origin : '',
+                },
+              }
+            } : undefined}
             onReady={onReady}
             onPlay={onPlay}
             onPause={handlePlayerPause}

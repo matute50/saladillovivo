@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import VideoIntro from './VideoIntro'; 
 import NewsSlide from './NewsSlide'; // Renombrado para coincidir con el nombre de archivo real
 import { Article } from '@/lib/types';
+import { isValidSlideUrl } from '@/lib/utils';
 
 interface ReproductorMultimediaProps {
   newsData: Article | null;
@@ -19,6 +20,10 @@ export default function ReproductorMultimedia({ newsData, onComplete }: Reproduc
   const [currentStage, setCurrentStage] = useState<'intro' | 'slide'>('intro');
 
   const handleVideoEnd = () => {
+    if (!newsData || !isValidSlideUrl(newsData.url_slide)) {
+      onComplete();
+      return;
+    }
     console.log('Video de introducción terminado. Cambiando a slide de noticias.');
     setCurrentStage('slide');
   };
@@ -51,17 +56,7 @@ export default function ReproductorMultimedia({ newsData, onComplete }: Reproduc
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
           >
-            {/* 
-              Renderiza el slide solo si hay datos, de lo contrario muestra un error.
-              Le pasamos los datos de la noticia a través de la prop 'article'.
-            */}
-            {newsData ? (
-              <NewsSlide article={newsData} onEnd={onComplete} />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-white">
-                Error: No se pudieron cargar los datos de la noticia.
-              </div>
-            )}
+            <NewsSlide article={newsData!} onEnd={onComplete} />
           </motion.div>
         )}
       </AnimatePresence>

@@ -5,8 +5,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play } from 'lucide-react';
-import { Article } from '@/lib/types';
+import { Article, Video } from '@/lib/types';
 import { format } from 'date-fns';
+import { isValidSlideUrl } from '@/lib/utils';
 
 import NewsSlide from '@/components/NewsSlide';
 import ReactDOM from 'react-dom';
@@ -33,7 +34,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
   const imageRef = useRef<HTMLDivElement>(null);
   const [thumbnailRect, setThumbnailRect] = useState<RectCoords | null>(null);
 
-  const { pause, play, currentVideo } = useMediaPlayer();
+  const { pause, play, currentVideo, playSpecificVideo, playTemporaryVideo } = useMediaPlayer();
   const { setMuted } = useVolume();
 
   if (!newsItem) return null;
@@ -42,9 +43,9 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
   const title = newsItem.title || newsItem.titulo;
   const slug = newsItem.slug;
   const imageUrl = newsItem.imageUrl;
-  const createdAt = newsItem.createdAt || newsItem.fecha;
+  const createdAt = newsItem.created_at || newsItem.fecha;
   const category = newsItem.category || newsItem.categoria;
-  const hasSlide = !!newsItem.url_slide;
+  const hasSlide = isValidSlideUrl(newsItem.url_slide);
 
   const handleImageClick = (e: React.MouseEvent) => {
     if (onCardClick) {
@@ -60,6 +61,23 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
     e.preventDefault();
     e.stopPropagation();
 
+    // Si es un video webm, usar el reproductor principal
+    if (newsItem.url_slide && newsItem.url_slide.includes('.webm')) {
+      const slideAsVideo: Video = {
+        id: newsItem.id.toString(),
+        nombre: title,
+        url: newsItem.url_slide,
+        createdAt: createdAt,
+        categoria: category || 'Slides',
+        imagen: imageUrl || '/placeholder.png',
+        novedad: false,
+        type: 'video',
+      };
+      playTemporaryVideo(slideAsVideo);
+      return;
+    }
+
+    // Lógica original para el modal
     if (!imageRef.current) {
         console.warn("No se pudo obtener la referencia de la imagen. Abortando slide.");
         return;
@@ -84,6 +102,21 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
     setMuted(false);
   };
 
+  const handleMouseEnter = () => {
+    if (hasSlide && newsItem.url_slide && newsItem.url_slide.includes('.webm')) {
+      // Evita duplicar el link de precarga
+      if (document.getElementById('video-preload-link')) {
+        return;
+      }
+      const link = document.createElement('link');
+      link.id = 'video-preload-link';
+      link.rel = 'preload';
+      link.as = 'video';
+      link.href = newsItem.url_slide;
+      document.head.appendChild(link);
+    }
+  };
+
 
 
   const slideArticleData: Article = {
@@ -94,7 +127,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
     resumen: newsItem.resumen || '',
     contenido: newsItem.contenido || '',
     fecha: createdAt,
-    createdAt: createdAt,
+    created_at: createdAt,
     updatedAt: newsItem.updatedAt || createdAt,
     autor: newsItem.autor || 'Saladillo Vivo',
     categoria: category,
@@ -155,6 +188,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
     <>
       {showSlide && <SlideModal />}
       <motion.article
+        onMouseEnter={handleMouseEnter}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: index * 0.1 }}

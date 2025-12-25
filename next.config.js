@@ -22,6 +22,14 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'ahorasaladillo-diariodigital.com.ar',
       },
+      {
+        protocol: 'https',
+        hostname: 'pub-5b294f92f42e4cbda687d0122e15bc72.r2.dev',
+      },
+      {
+        protocol: 'https',
+        hostname: 'saladillovivo.vercel.app',
+      },
     ],
 
   },

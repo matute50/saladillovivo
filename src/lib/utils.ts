@@ -44,3 +44,10 @@ export const formatDate = (dateString: string, format: 'short' | 'numeric' = 'nu
     return 'Fecha inválida';
   }
 };
+
+export function isValidSlideUrl(url: string | null | undefined): boolean {
+  if (!url) {
+    return false;
+  }
+  return url.startsWith('https://pub-5b294f92f42e4cbda687d0122e15bc72.r2.dev/slides/');
+}

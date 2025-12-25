@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabaseClient';
+import { Article } from '@/lib/types';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import React from 'react';
@@ -63,19 +64,38 @@ export const revalidate = 60; // 60 segundos
 export default async function NoticiaPage({ params }: Props) {
   const { slug } = params;
 
-  // 1. Buscamos los datos completos de la noticia
-  const { data: article } = await supabase
+  // 1. Buscamos los datos de la noticia con campos específicos
+  const { data: rawArticle, error } = await supabase
     .from('articles')
-    .select('*') // Pedimos todo
+    .select('id, title, text, description, slug, featureStatus, createdAt, updatedAt, autor, categoria, thumbnail_url, audio_url')
     .eq('slug', slug)
     .single();
 
-  // 2. Si no existe, mostramos la página 404
-  if (!article) {
+  // Si hay un error o no hay artículo, mostramos 404
+  if (error || !rawArticle) {
     notFound();
   }
 
-  // 3. Renderizamos el COMPONENTE DE CLIENTE y le pasamos los datos
+  // 2. Mapeamos los datos crudos a nuestra interfaz Article
+  const article: Article = {
+    id: rawArticle.id,
+    titulo: rawArticle.title,
+    slug: rawArticle.slug,
+    description: rawArticle.description,
+    resumen: rawArticle.text ? rawArticle.text.substring(0, 150) + (rawArticle.text.length > 150 ? '...' : '') : '',
+    contenido: rawArticle.text || '',
+    fecha: rawArticle.createdAt,
+    createdAt: rawArticle.createdAt,
+    updatedAt: rawArticle.updatedAt,
+    autor: rawArticle.autor,
+    categoria: rawArticle.categoria,
+    imageUrl: rawArticle.thumbnail_url || '', // Mapeamos thumbnail_url a imageUrl
+    thumbnail_url: rawArticle.thumbnail_url,
+    featureStatus: rawArticle.featureStatus,
+    audio_url: rawArticle.audio_url,
+  };
+
+  // 3. Renderizamos el COMPONENTE DE CLIENTE y le pasamos el objeto Article
   return (
     <NoticiaClient article={article} />
   );

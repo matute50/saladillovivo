@@ -21,9 +21,9 @@ function checkSupabaseCredentials() {
 export async function getArticlesForHome(limitSecondary: number = 5) {
   const { supabaseUrl, supabaseAnonKey } = checkSupabaseCredentials();
   const now = new Date().toISOString();
-  
+
   // --- CAMBIO 1: Añadido 'audio_url' al select ---
-  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,imageUrl,featureStatus,updatedAt,createdAt,slug,description,meta_title,meta_description,meta_keywords,published_at,audio_url&or=(published_at.is.null,published_at.lte.${now})&order=createdAt.desc`;
+  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,thumbnail_url,featureStatus,updatedAt,created_at,slug,description,meta_title,meta_description,meta_keywords,published_at,audio_url,url_slide&or=(published_at.is.null,published_at.lte.${now})&order=created_at.desc`;
 
   try {
     const response = await fetch(apiUrl, {
@@ -33,7 +33,16 @@ export async function getArticlesForHome(limitSecondary: number = 5) {
       },
       next: { revalidate: 60 } // Revalidate every 60 seconds
     });
-    const articles: SupabaseArticle[] = (await response.json()) as SupabaseArticle[];
+    if (!response.ok) {
+      console.error('Supabase fetch failed in getArticlesForHome. Status:', response.status, 'Text:', await response.text());
+      return { featuredNews: null, secondaryNews: [], allNews: [] };
+    }
+    const rawArticles = await response.json();
+    if (!Array.isArray(rawArticles)) {
+      console.error('Supabase response is not an array in getArticlesForHome:', rawArticles);
+      return { featuredNews: null, secondaryNews: [], allNews: [] };
+    }
+    const articles: SupabaseArticle[] = rawArticles as SupabaseArticle[];
 
     const processedNews = articles.map((item: SupabaseArticle): Article => ({
       id: item.id,
@@ -42,24 +51,26 @@ export async function getArticlesForHome(limitSecondary: number = 5) {
       description: item.description || (item.text ? item.text.substring(0, 160) : 'Descripción no disponible.'),
       resumen: item.text ? item.text.substring(0, 150) + (item.text.length > 150 ? '...' : '') : 'Resumen no disponible.',
       contenido: item.text || 'Contenido no disponible.',
-      fecha: item.updatedAt ? new Date(item.updatedAt).toISOString() : (item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString()),
-      createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
-      updatedAt: item.updatedAt ? new Date(item.updatedAt).toISOString() : (item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString()),
+      fecha: item.updatedAt ? new Date(item.updatedAt).toISOString() : (item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString()),
+      created_at: item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString(),
+      updatedAt: item.updatedAt ? new Date(item.updatedAt).toISOString() : (item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString()),
       autor: 'Equipo Editorial',
       categoria: item.featureStatus,
-      imageUrl: item.imageUrl || 'https://saladillovivo.vercel.app/default-og-image.png',
+      imageUrl: item.thumbnail_url || 'https://saladillovivo.vercel.app/default-og-image.png',
+      thumbnail_url: item.thumbnail_url,
       featureStatus: item.featureStatus,
       meta_title: item.meta_title,
       meta_description: item.meta_description,
       meta_keywords: item.meta_keywords,
-      audio_url: item.audio_url, // <-- CAMBIO 2: Añadido al objeto
+      audio_url: item.audio_url,
+      url_slide: item.url_slide, // <-- AÑADIDO
     }));
 
     let featuredNews: Article | null = null;
     const secondaryNews: Article[] = [];
 
     const featuredIndex = processedNews.findIndex(news => news.featureStatus === 'featured');
-    
+
     if (featuredIndex !== -1) {
       featuredNews = processedNews.splice(featuredIndex, 1)[0];
     } else if (processedNews.length > 0) {
@@ -129,7 +140,7 @@ export async function getVideosForHome(limitRecent: number = 4) {
 
   // Combinar videos forzados (al principio) con videos no forzados
   const videos: Video[] = [...forcedVideos, ...nonForcedVideos];
-  
+
   // Derive categories from the full list of videos (antes de cualquier splice)
   const videoCategories = [...new Set(videos.map(v => v.categoria).filter(Boolean))].sort();
 
@@ -152,7 +163,7 @@ export async function getVideosForHome(limitRecent: number = 4) {
       featuredVideo = mutableVideos.shift()!;
     }
   }
-  
+
   recentVideos.push(...mutableVideos);
 
   return {
@@ -203,7 +214,7 @@ export async function getNewRandomVideo(currentId?: string, currentCategory?: st
   if (currentId && data.length > 1) {
     selectableVideos = selectableVideos.filter(video => video.id !== currentId);
   }
-  
+
   // Excluir videos de la misma categoría si se proporciona currentCategory
   if (currentCategory) {
     const filteredByCategory = selectableVideos.filter(video => video.categoria !== currentCategory);
@@ -327,7 +338,7 @@ export async function getArticles() {
   // ... (original getArticles implementation can be kept or deprecated)
   // For now, let's just re-route it to the new function to avoid breaking other parts.
   const { allNews } = await getArticlesForHome(100); // Large limit to get all
-  
+
   // Recreate the old structure if needed elsewhere, otherwise this can be removed.
   const destacada = allNews.find(a => a.featureStatus === 'featured') || null;
   const noticias2 = allNews.filter(a => a.featureStatus === 'secondary');
@@ -350,9 +361,9 @@ export async function getArticles() {
 export async function getArticlesForRss(limit: number = 50): Promise<Article[]> {
   const { supabaseUrl, supabaseAnonKey } = checkSupabaseCredentials();
   const now = new Date().toISOString();
-  
+
   // --- CAMBIO 3: Añadido 'audio_url' al select de RSS ---
-  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,imageUrl,featureStatus,updatedAt,createdAt,slug,description,meta_title,meta_description,meta_keywords,published_at,miniatura_url,audio_url&or=(published_at.is.null,published_at.lte.${now})&order=createdAt.desc&limit=${limit}`;
+  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,thumbnail_url,featureStatus,updatedAt,created_at,slug,description,meta_title,meta_description,meta_keywords,published_at,miniatura_url,audio_url,url_slide&or=(published_at.is.null,published_at.lte.${now})&order=created_at.desc&limit=${limit}`;
 
   try {
     const response = await fetch(apiUrl, {
@@ -377,18 +388,20 @@ export async function getArticlesForRss(limit: number = 50): Promise<Article[]> 
       description: item.description || (item.text ? item.text.substring(0, 160) : 'Descripción no disponible.'),
       resumen: item.text ? item.text.substring(0, 150) + (item.text.length > 150 ? '...' : '') : 'Resumen no disponible.',
       contenido: item.text || 'Contenido no disponible.',
-      fecha: item.updatedAt ? new Date(item.updatedAt).toISOString() : (item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString()),
-      createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
-      updatedAt: item.updatedAt ? new Date(item.updatedAt).toISOString() : (item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString()),
+      fecha: item.updatedAt ? new Date(item.updatedAt).toISOString() : (item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString()),
+      created_at: item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString(),
+      updatedAt: item.updatedAt ? new Date(item.updatedAt).toISOString() : (item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString()),
       autor: 'Equipo Editorial',
       categoria: item.featureStatus,
-      imageUrl: item.imageUrl || 'https://saladillovivo.vercel.app/default-og-image.png',
+      imageUrl: item.thumbnail_url || 'https://saladillovivo.vercel.app/default-og-image.png',
+      thumbnail_url: item.thumbnail_url,
       miniatura_url: item.miniatura_url,
       featureStatus: item.featureStatus,
       meta_title: item.meta_title,
       meta_description: item.meta_description,
       meta_keywords: item.meta_keywords,
-      audio_url: item.audio_url, // <-- CAMBIO 4: Añadido al objeto
+      audio_url: item.audio_url,
+      url_slide: item.url_slide, // <-- AÑADIDO
     }));
 
   } catch (error) {
@@ -402,7 +415,7 @@ export async function getVideos() {
     .from('videos')
     .select('id, nombre, url, createdAt, categoria, imagen, novedad')
     .order('createdAt', { ascending: false });
-  
+
   if (error) {
     console.error('Error fetching videos:', error);
     return [];
