@@ -33,6 +33,7 @@ export interface SupabaseArticle {
   meta_title?: string;
   meta_description?: string;
   meta_keywords?: string;
+  audio_url?: string;
   url_slide?: string;
 
 }
