@@ -227,7 +227,15 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             controls={false}
             pip={true}
             muted={isMuted}
-            config={isYouTube ? {
+            config={{
+              file: {
+                attributes: {
+                  preload: 'auto',
+                  crossOrigin: 'anonymous',
+                  style: { objectFit: 'cover' }
+                },
+                forceVideo: true
+              },
               youtube: {
                 playerVars: {
                   autoplay: 1,
@@ -241,7 +249,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
                   origin: typeof window !== 'undefined' ? window.location.origin : '',
                 },
               }
-            } : undefined}
+            }}
             onReady={onReady}
             onPlay={onPlay}
             onPause={handlePlayerPause}
