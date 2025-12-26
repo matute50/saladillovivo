@@ -7,6 +7,7 @@ interface SupabaseArticleData {
   id: string;
   title: string;
   text: string;
+  imageUrl?: string;
   featureStatus: 'featured' | 'secondary' | 'tertiary' | null;
   created_at: string; // My fix
   updatedAt: string;
