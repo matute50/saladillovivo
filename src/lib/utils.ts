@@ -46,8 +46,14 @@ export const formatDate = (dateString: string, format: 'short' | 'numeric' = 'nu
 };
 
 export function isValidSlideUrl(url: string | null | undefined): url is string {
+  console.log('DEBUG isValidSlideUrl - Input URL:', url);
   if (!url) {
+    console.log('DEBUG isValidSlideUrl - URL is null or undefined.');
     return false;
   }
-  return url.startsWith('https://media.saladillovivo.com.ar/slides/');
+  const startsWithCorrectPrefix = url.startsWith('https://media.saladillovivo.com.ar/slides/');
+  console.log('DEBUG isValidSlideUrl - Starts with correct prefix:', startsWithCorrectPrefix);
+  const includesWebm = url.includes('.webm');
+  console.log('DEBUG isValidSlideUrl - Includes .webm:', includesWebm);
+  return startsWithCorrectPrefix;
 }

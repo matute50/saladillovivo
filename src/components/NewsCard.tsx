@@ -161,7 +161,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
 
 
 
-  const hasSlide = isValidSlideUrl(newsItem.url_slide);
+    const hasSlide = isValidSlideUrl(newsItem.url_slide);
 
 
 
@@ -169,7 +169,55 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
 
 
 
-  const hasWebmSlide = hasSlide && newsItem.url_slide && newsItem.url_slide.includes('.webm');
+    const hasWebmSlide = hasSlide && newsItem.url_slide && newsItem.url_slide.includes('.webm');
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+    console.log('DEBUG NewsCard - newsItem.id:', newsItem.id);
+
+
+
+
+
+
+
+    console.log('DEBUG NewsCard - newsItem.url_slide:', newsItem.url_slide);
+
+
+
+
+
+
+
+    console.log('DEBUG NewsCard - hasSlide:', hasSlide);
+
+
+
+
+
+
+
+    console.log('DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes(\'.webm\'):', newsItem.url_slide && newsItem.url_slide.includes('.webm'));
+
+
+
+
+
+
+
+    console.log('DEBUG NewsCard - hasWebmSlide (final):', hasWebmSlide);
 
 
 
