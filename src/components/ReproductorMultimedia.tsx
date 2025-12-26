@@ -42,7 +42,7 @@ export default function ReproductorMultimedia({ onComplete, videoToPlay }: Repro
       aria-live="polite"
     >
         {videoToPlay ? (
-          <VideoPlayer videoUrl={videoToPlay.url} onEnded={onComplete} autoplay={true} muted={false} />
+          <VideoPlayer src={videoToPlay.url} onEnded={onComplete} playing={true} muted={false} />
         ) : (
           <motion.div
             key="intro"

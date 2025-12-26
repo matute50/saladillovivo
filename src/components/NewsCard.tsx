@@ -10,7 +10,6 @@ import { format } from 'date-fns';
 import { isValidSlideUrl } from '@/lib/utils';
 
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
-import { useVolume } from '@/context/VolumeContext';
 
 
 

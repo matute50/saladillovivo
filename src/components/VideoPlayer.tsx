@@ -17,6 +17,7 @@ interface VideoPlayerProps {
   onDuration?: (duration: number) => void;
   seekToFraction?: number | null;
   setSeekToFraction?: (fraction: number | null) => void;
+  muted?: boolean;
 }
 
 interface YouTubePlayer {
