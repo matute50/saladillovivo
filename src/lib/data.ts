@@ -22,6 +22,7 @@ export async function getArticlesForHome(limitSecondary: number = 5) {
   const { supabaseUrl, supabaseAnonKey } = checkSupabaseCredentials();
   const now = new Date().toISOString();
 
+  const limit = limitSecondary + 5; // Keep remote's limit logic
   const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,image_url,featureStatus,updatedAt,created_at,slug,description,meta_title,meta_description,meta_keywords,published_at,audio_url,url_slide&or=(published_at.is.null,published_at.lte.${now})&order=created_at.desc&limit=${limit}`;
 
   try {
