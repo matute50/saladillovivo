@@ -24,7 +24,7 @@ export interface SupabaseArticle {
   id: string;
   title: string;
   text: string;
-  imageUrl: string;
+  image_url: string;
   featureStatus: 'featured' | 'secondary' | 'tertiary' | null;
   created_at: string;
   updatedAt: string;

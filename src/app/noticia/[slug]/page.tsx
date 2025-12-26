@@ -67,7 +67,7 @@ export default async function NoticiaPage({ params }: Props) {
   // 1. Buscamos los datos de la noticia con campos específicos
   const { data: rawArticle, error } = await supabase
     .from('articles')
-    .select('id, titulo, contenido, description, slug, featureStatus, created_at, updatedAt, autor, categoria, imageUrl, audio_url')
+    .select('id, titulo, contenido, description, slug, featureStatus, created_at, updatedAt, autor, categoria, image_url, audio_url')
     .eq('slug', slug)
     .single();
 
@@ -89,7 +89,7 @@ export default async function NoticiaPage({ params }: Props) {
     updatedAt: rawArticle.updatedAt,
     autor: rawArticle.autor,
     categoria: rawArticle.categoria,
-    imageUrl: rawArticle.imageUrl || '',
+    imageUrl: rawArticle.image_url || '',
     featureStatus: rawArticle.featureStatus,
     audio_url: rawArticle.audio_url,
   };
