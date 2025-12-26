@@ -49,5 +49,5 @@ export function isValidSlideUrl(url: string | null | undefined): url is string {
   if (!url) {
     return false;
   }
-  return url.startsWith('https://pub-5b294f92f42e4cbda687d0122e15bc72.r2.dev/slides/');
+  return url.startsWith('https://media.saladillovivo.com.ar/slides/');
 }
