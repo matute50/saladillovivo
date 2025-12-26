@@ -219,6 +219,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         {/* (ReactPlayer - sin cambios) */}
         <div className="plyr-container" style={{ width: '100%', height: '100%' }}>
           <ReactPlayer
+            origin={typeof window !== 'undefined' ? window.location.origin : ''}
             ref={playerRef}
             url={src}
             width="100%"

@@ -55,5 +55,5 @@ export function isValidSlideUrl(url: string | null | undefined): url is string {
   console.log('DEBUG isValidSlideUrl - Starts with correct prefix:', startsWithCorrectPrefix);
   const includesWebm = url.includes('.webm');
   console.log('DEBUG isValidSlideUrl - Includes .webm:', includesWebm);
-  return startsWithCorrectPrefix;
+  return startsWithCorrectPrefix && includesWebm;
 }
