@@ -22,38 +22,35 @@ const NewsColumn: React.FC<NewsColumnProps> = ({ news, onCardClick }) => {
   return (
     <div className="flex flex-col gap-6">
       {/* 1. Noticia Destacada */}
-      {featuredNews && (
-        <NewsCard
-          newsItem={featuredNews}
-          className="col-span-1 md:col-span-2"
-          onCardClick={onCardClick}
-          isFeatured={true}
-        />
-      )}
-
+                {featuredNews && (
+                  <NewsCard
+                    newsItem={featuredNews}
+                    className="col-span-1 md:col-span-2"
+                    onCardClick={onCardClick}
+                    isFeatured={true}
+                  />
+                )}
       {/* 2. Noticias Secundarias */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {secondaryNews.map((noticia, index) => (
-          <NewsCard
-            key={noticia.id}
-            newsItem={noticia}
-            index={index}
-            onCardClick={onCardClick}
-          />
-        ))}
-      </div>
+                    {secondaryNews.map((noticia, index) => (
+                      <NewsCard
+                        key={noticia.id}
+                        newsItem={noticia}
+                        index={index}
+                        onCardClick={onCardClick}
+                      />
+                    ))}      </div>
 
       {/* 3. Noticias Terciarias (sin jerarquía) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {tertiaryNews.map((noticia, index) => (
-          <NewsCard
-            key={noticia.id}
-            newsItem={noticia}
-            index={index + 2} // Continuamos el delay de la animación
-            onCardClick={onCardClick}
-          />
-        ))}
-      </div>
+                    {tertiaryNews.map((noticia, index) => (
+                      <NewsCard
+                        key={noticia.id}
+                        newsItem={noticia}
+                        index={index + 2} // Continuamos el delay de la animación
+                        onCardClick={onCardClick}
+                      />
+                    ))}      </div>
     </div>
   );
 };

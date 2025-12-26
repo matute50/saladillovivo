@@ -3,18 +3,25 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import ReproductorMultimedia from './ReproductorMultimedia';
-import type { Article } from '@/lib/types'; // Importando el tipo para la noticia
+import { Video } from '@/lib/types';
+
 
 interface NewsModalProps {
+
+
   onClose: () => void;
-  newsData: Article; // Se asume que newsData no será nulo cuando el modal esté abierto
+
+
+  videoToPlay?: Video | null;
+
+
 }
 
 /**
  * NewsModal: Un componente de superposición (overlay) para mostrar el reproductor multimedia
  * de una noticia específica. Se muestra sobre el contenido de la página.
  */
-const NewsModal: React.FC<NewsModalProps> = ({ onClose, newsData }) => {
+const NewsModal: React.FC<NewsModalProps> = ({ onClose, videoToPlay }) => {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -33,13 +40,13 @@ const NewsModal: React.FC<NewsModalProps> = ({ onClose, newsData }) => {
       </button>
 
       <motion.div
-        layoutId={'media-' + newsData.id}
+        layoutId={'media-player-modal'}
         transition={{ type: "spring", stiffness: 200, damping: 25, mass: 1.2 }}
         className="relative w-full max-w-4xl"
         onClick={(e) => e.stopPropagation()} // Evita que el clic en el reproductor cierre el modal
       >
         {/* El reproductor multimedia se renderiza aquí en el centro */}
-        <ReproductorMultimedia newsData={newsData} onComplete={onClose} />
+        <ReproductorMultimedia onComplete={onClose} videoToPlay={videoToPlay} />
       </motion.div>
     </motion.div>
   );

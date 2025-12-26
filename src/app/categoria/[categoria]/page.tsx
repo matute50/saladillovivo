@@ -18,6 +18,7 @@ interface SupabaseArticleData {
   meta_keywords?: string;
   audio_url?: string; // Add audio_url
   url_slide?: string; // From remote
+
 }
 
 // This function obtains the news for a specific category.
@@ -54,6 +55,7 @@ async function getNewsForCategory(category: string): Promise<Article[]> {
     meta_keywords: item.meta_keywords,
     audio_url: item.audio_url,
     url_slide: item.url_slide, // Both had this, keep it.
+
   }));
 }
 

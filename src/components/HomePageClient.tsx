@@ -10,6 +10,7 @@ import { useMediaPlayer } from '@/context/MediaPlayerContext';
 import useIsMobile from '@/hooks/useIsMobile';
 import NewsModal from './NewsModal'; // Importar el modal
 
+
 const HomePageClient = ({ initialData }: { initialData: PageData }) => {
   const isMobile = useIsMobile();
   const { loadInitialPlaylist, viewMode } = useMediaPlayer();
@@ -30,6 +31,8 @@ const HomePageClient = ({ initialData }: { initialData: PageData }) => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
   };
+  
+
 
   if (viewMode === 'tv') {
     return <TvModeLayout />;
@@ -53,11 +56,22 @@ const HomePageClient = ({ initialData }: { initialData: PageData }) => {
         <DesktopLayout data={data} onCardClick={handleOpenModal} />
       )}
       
+      
+      
       <AnimatePresence onExitComplete={() => setSelectedNews(null)}>
         {isModalOpen && selectedNews && (
           <NewsModal
             onClose={handleCloseModal}
-            newsData={selectedNews}
+            videoToPlay={selectedNews.url_slide ? {
+                id: selectedNews.id,
+                nombre: selectedNews.titulo,
+                url: selectedNews.url_slide,
+                createdAt: selectedNews.created_at,
+                categoria: selectedNews.categoria || 'Noticias',
+                imagen: selectedNews.imageUrl,
+                novedad: false,
+                type: 'video',
+            } : null}
           />
         )}
       </AnimatePresence>

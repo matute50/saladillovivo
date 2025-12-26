@@ -324,7 +324,7 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
 
   
 
-        }, [viewMode, isUserSelected, nextVideo, playMedia, playNextRandomVideo, currentVideo]);
+        }, [viewMode, isUserSelected, nextVideo, playMedia, playNextRandomVideo, currentVideo, interruptedVideo]);
 
   
 

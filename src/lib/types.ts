@@ -18,6 +18,7 @@ export interface Article {
   thumbnail_url?: string;
   audio_url?: string | null;
   url_slide?: string | null;
+
 }
 
 export interface SupabaseArticle {
@@ -36,6 +37,7 @@ export interface SupabaseArticle {
   audio_url?: string;
   thumbnail_url?: string;
   url_slide?: string;
+
 }
 
 export interface Video {

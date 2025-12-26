@@ -8,7 +8,7 @@ import dynamic from 'next/dynamic';
 
 const VideoSection = dynamic(() => import('./VideoSection'), { ssr: false });
 import NewsColumn from './NewsColumn';
-import type { PageData } from '@/lib/types';
+import type { PageData, Article } from '@/lib/types';
 import CategoryCycler from './CategoryCycler';
 import { categoryMappings, type CategoryMapping } from '@/lib/categoryMappings';
 
@@ -16,7 +16,7 @@ import { useNews } from '@/context/NewsContext';
 import NoResultsCard from './NoResultsCard';
 import NewsCard from '../NewsCard';
 
-const DesktopLayout = ({ data, onCardClick }: { data: PageData, onCardClick: (article: any) => void }) => {
+const DesktopLayout = ({ data, onCardClick }: { data: PageData, onCardClick: (article: Article) => void }) => {
   const {
     articles = { allNews: [] },
     videos = { allVideos: [] },

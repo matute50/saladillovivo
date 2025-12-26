@@ -1,31 +1,39 @@
 'use client';
 
-import React, { useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import VideoIntro from './VideoIntro'; 
-import NewsSlide from './NewsSlide'; // Renombrado para coincidir con el nombre de archivo real
-import { Article } from '@/lib/types';
-import { isValidSlideUrl } from '@/lib/utils';
+import React from 'react';
+import { motion } from 'framer-motion';
+import VideoIntro from './VideoIntro';
+import VideoPlayer from './VideoPlayer'; 
+import { Video } from '@/lib/types';
+
+
+
 
 interface ReproductorMultimediaProps {
-  newsData: Article | null;
+
+
+
+
   onComplete: () => void;
+
+
+
+
+  videoToPlay?: Video | null;
+
+
+
+
 }
 
 /**
  * ReproductorMultimedia: Actúa como un "stage" para mostrar una secuencia.
  * Comienza con un video de intro y luego pasa a un slide de noticias.
  */
-export default function ReproductorMultimedia({ newsData, onComplete }: ReproductorMultimediaProps) {
-  const [currentStage, setCurrentStage] = useState<'intro' | 'slide'>('intro');
-
+export default function ReproductorMultimedia({ onComplete, videoToPlay }: ReproductorMultimediaProps) {
   const handleVideoEnd = () => {
-    if (!newsData || !isValidSlideUrl(newsData.url_slide)) {
-      onComplete();
-      return;
-    }
-    console.log('Video de introducción terminado. Cambiando a slide de noticias.');
-    setCurrentStage('slide');
+    console.log('Video de introducción terminado. Finalizando secuencia.');
+    onComplete();
   };
 
   return (
@@ -33,8 +41,9 @@ export default function ReproductorMultimedia({ newsData, onComplete }: Reproduc
       className="relative w-full max-w-4xl aspect-video bg-black/20 backdrop-blur-sm overflow-hidden rounded-xl shadow-2xl mx-auto"
       aria-live="polite"
     >
-      <AnimatePresence mode='wait'>
-        {currentStage === 'intro' && (
+        {videoToPlay ? (
+          <VideoPlayer videoUrl={videoToPlay.url} onEnded={onComplete} autoplay={true} muted={false} />
+        ) : (
           <motion.div
             key="intro"
             className="absolute inset-0 w-full h-full"
@@ -46,20 +55,6 @@ export default function ReproductorMultimedia({ newsData, onComplete }: Reproduc
             <VideoIntro onEnd={handleVideoEnd} />
           </motion.div>
         )}
-
-        {currentStage === 'slide' && (
-          <motion.div
-            key="slide"
-            className="absolute inset-0 w-full h-full"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <NewsSlide article={newsData!} onEnd={onComplete} />
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

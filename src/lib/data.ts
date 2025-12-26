@@ -63,7 +63,7 @@ export async function getArticlesForHome(limitSecondary: number = 5) {
       meta_description: item.meta_description,
       meta_keywords: item.meta_keywords,
       audio_url: item.audio_url,
-      url_slide: item.url_slide, // <-- AÑADIDO
+      url_slide: item.url_slide,
     }));
 
     let featuredNews: Article | null = null;
@@ -400,7 +400,8 @@ export async function getArticlesForRss(limit: number = 50): Promise<Article[]> 
       meta_description: item.meta_description,
       meta_keywords: item.meta_keywords,
       audio_url: item.audio_url,
-      url_slide: item.url_slide, // <-- AÑADIDO
+      url_slide: item.url_slide,
+
     }));
 
   } catch (error) {

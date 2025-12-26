@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useNews } from '@/context/NewsContext';
-import type { PageData } from '@/lib/types';
+import type { PageData, Article } from '@/lib/types';
 import { categoryMappings, type CategoryMapping } from '@/lib/categoryMappings';
 
 import NewsTicker from '../NewsTicker';
@@ -13,7 +13,7 @@ import NoResultsCard from './NoResultsCard';
 import BannerSection from './BannerSection';
 import AdsSection from './AdsSection';
 
-const MobileLayout = ({ data, isMobile, onCardClick }: { data: PageData; isMobile: boolean, onCardClick: (article: any) => void }) => {
+const MobileLayout = ({ data, isMobile, onCardClick }: { data: PageData; isMobile: boolean, onCardClick: (article: Article) => void }) => {
   const { articles, videos, banners, ads, tickerTexts } = data;
   const { isSearching, searchResults, searchLoading, handleSearch } = useNews();
   const { featuredNews, secondaryNews } = articles;
