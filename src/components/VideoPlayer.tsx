@@ -60,6 +60,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
   ) => {
     const playerRef = useRef<ReactPlayer | null>(null);
     const [isYouTube, setIsYouTube] = useState(false);
+    const [isWebmSlide, setIsWebmSlide] = useState(false);
     
     // Obtenemos los datos de volumen
     const { isMuted, volume } = useVolume();
@@ -72,6 +73,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     useEffect(() => {
       const isYt = !!(src && (src.includes('youtube.com') || src.includes('youtu.be')));
       setIsYouTube(isYt);
+      const isWebm = !!(src && src.endsWith('.webm')); // Detect .webm
+      setIsWebmSlide(isWebm); // Set new state
 
       if (typeof window !== 'undefined' && isYt) {
         const randomIntro = introVideos[Math.floor(Math.random() * introVideos.length)];
@@ -102,26 +105,40 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       if (playerRef.current) {
         const internalPlayer = playerRef.current.getInternalPlayer() as any;
         if (internalPlayer) {
-          if (isMuted) {
-            if (isYouTube) {
-              internalPlayer.mute?.();
-            } else {
-              internalPlayer.muted = true;
-            }
-          } else {
-            if (isYouTube) {
+          // New logic for .webm slides: always unmuted and set volume
+          if (isWebmSlide) {
+            // For YouTube, use its specific unmute/setVolume methods
+            if (isYouTube) { 
               internalPlayer.unMute?.();
               if (typeof internalPlayer.setVolume === 'function') {
                 internalPlayer.setVolume(volume * 100);
               }
-            } else {
+            } else { // For file players (like .webm), set muted to false and volume
               internalPlayer.muted = false;
               internalPlayer.volume = volume;
+            }
+          } else { // Existing logic for other videos based on global mute state
+            if (isMuted) {
+              if (isYouTube) {
+                internalPlayer.mute?.();
+              } else {
+                internalPlayer.muted = true;
+              }
+            } else {
+              if (isYouTube) {
+                internalPlayer.unMute?.();
+                if (typeof internalPlayer.setVolume === 'function') {
+                  internalPlayer.setVolume(volume * 100);
+                }
+              } else {
+                internalPlayer.muted = false;
+                internalPlayer.volume = volume;
+              }
             }
           }
         }
       }
-    }, [isMuted, volume, isYouTube]); // Depend on isYouTube as well
+    }, [isMuted, volume, isYouTube, isWebmSlide]);
 
 
     // --- SE BORRÓ EL useEffect DUPLICADO ---
