@@ -23,7 +23,7 @@ export async function getArticlesForHome(limitSecondary: number = 5) {
   const now = new Date().toISOString();
 
   const limit = limitSecondary + 5; // Keep remote's limit logic
-  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,thumbnail_url,featureStatus,updatedAt,created_at,slug,description,meta_title,meta_description,meta_keywords,published_at,audio_url,url_slide&or=(published_at.is.null,published_at.lte.${now})&order=created_at.desc&limit=${limit}`;
+  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,imageUrl,featureStatus,updatedAt,created_at,slug,description,meta_title,meta_description,meta_keywords,published_at,audio_url,url_slide&or=(published_at.is.null,published_at.lte.${now})&order=created_at.desc&limit=${limit}`;
 
   try {
     const response = await fetch(apiUrl, {
@@ -56,8 +56,7 @@ export async function getArticlesForHome(limitSecondary: number = 5) {
       updatedAt: item.updatedAt ? new Date(item.updatedAt).toISOString() : (item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString()),
       autor: 'Equipo Editorial',
       categoria: item.featureStatus,
-      imageUrl: item.thumbnail_url || 'https://saladillovivo.vercel.app/default-og-image.png',
-      thumbnail_url: item.thumbnail_url,
+      imageUrl: item.imageUrl || 'https://saladillovivo.vercel.app/default-og-image.png',
       featureStatus: item.featureStatus,
       meta_title: item.meta_title,
       meta_description: item.meta_description,
@@ -362,7 +361,7 @@ export async function getArticlesForRss(limit: number = 50): Promise<Article[]> 
   const { supabaseUrl, supabaseAnonKey } = checkSupabaseCredentials();
   const now = new Date().toISOString();
 
-  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,thumbnail_url,featureStatus,updatedAt,created_at,slug,description,meta_title,meta_description,meta_keywords,published_at,audio_url,url_slide&or=(published_at.is.null,published_at.lte.${now})&order=created_at.desc&limit=${limit}`;
+  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,imageUrl,featureStatus,updatedAt,created_at,slug,description,meta_title,meta_description,meta_keywords,published_at,audio_url,url_slide&or=(published_at.is.null,published_at.lte.${now})&order=created_at.desc&limit=${limit}`;
 
   try {
     const response = await fetch(apiUrl, {
@@ -392,8 +391,7 @@ export async function getArticlesForRss(limit: number = 50): Promise<Article[]> 
       updatedAt: item.updatedAt ? new Date(item.updatedAt).toISOString() : (item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString()),
       autor: 'Equipo Editorial',
       categoria: item.featureStatus,
-      imageUrl: item.thumbnail_url || 'https://saladillovivo.vercel.app/default-og-image.png',
-      thumbnail_url: item.thumbnail_url,
+      imageUrl: item.imageUrl || 'https://saladillovivo.vercel.app/default-og-image.png',
 
       featureStatus: item.featureStatus,
       meta_title: item.meta_title,

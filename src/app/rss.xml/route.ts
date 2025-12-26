@@ -21,11 +21,11 @@ export async function GET() {
 
   try {
     let allNews = await getArticlesForRss();
-    allNews = allNews.filter(article => article.thumbnail_url);
+    allNews = allNews.filter(article => article.imageUrl);
 
     allNews.forEach(article => {
-      if (article.thumbnail_url && article.slug) {
-        const cleanThumbnailUrl = article.thumbnail_url.split('?')[0];
+      if (article.imageUrl && article.slug) {
+        const cleanThumbnailUrl = article.imageUrl.split('?')[0];
         const articleUrl = `${SITE_URL}/noticia/${article.slug}`;
 
         const facebookImageUrl = `${SITE_URL}/api/og?imageUrl=${encodeURIComponent(cleanThumbnailUrl)}&w=1200&h=630`;
