@@ -14,6 +14,7 @@ export interface Article {
   featureStatus: 'featured' | 'secondary' | 'tertiary' | null;
   meta_title?: string;
   meta_description?: string;
+  meta_keywords?: string;
   audio_url?: string | null;
   url_slide?: string | null;
 
