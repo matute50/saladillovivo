@@ -57,6 +57,7 @@ export async function getArticlesForHome(limitSecondary: number = 5) {
       autor: 'Equipo Editorial',
       categoria: item.featureStatus,
       imageUrl: item.image_url || 'https://saladillovivo.vercel.app/default-og-image.png',
+      featureStatus: item.featureStatus,
       meta_title: item.meta_title,
       meta_description: item.meta_description,
       meta_keywords: item.meta_keywords,
