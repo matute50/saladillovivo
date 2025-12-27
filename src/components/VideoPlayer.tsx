@@ -1,67 +1,31 @@
 "use client";
-import React, { useRef, useEffect, forwardRef, useImperativeHandle, useState, useCallback } from 'react';
+import React, { useRef, useEffect, forwardRef, useState } from 'react';
 import ReactPlayer from 'react-player';
 import { motion, AnimatePresence } from 'framer-motion';
 import { gsap, Power2 } from 'gsap';
 import { useVolume } from '@/context/VolumeContext';
 
-// (Interfaces - sin cambios)
-interface VideoPlayerProps {
-  src?: string; // Make src optional as it might not be present in image/audio mode
-  imageUrl?: string;
-  audioUrl?: string;
-  playing: boolean;
-  onReady?: () => void;
-  onPlay?: () => void;
-  onPause?: () => void;
-  onEnded?: () => void;
-  onError?: (error: Error) => void;
-  onProgress?: (state: { played: number; playedSeconds: number; loaded: number; loadedSeconds: number }) => void;
-  onDuration?: (duration: number) => void;
-  seekToFraction?: number | null;
-  setSeekToFraction?: (fraction: number | null) => void;
-  muted?: boolean;
+// 1. INTERFAZ ACTUALIZADA
+export interface VideoPlayerProps {
+  videoUrl?: string | null; // RENOMBRADO: Antes era 'url', ahora es 'videoUrl'
+  imageUrl?: string | null;
+  audioUrl?: string | null;
+  onClose: () => void;
+  autoplay?: boolean;
 }
 
-interface YouTubePlayer {
-  playVideo: () => void;
-  pauseVideo: () => void;
-  mute: () => void;
-  unMute: () => void;
-  setVolume: (volume: number) => void;
-}
-
-export interface VideoPlayerRef {
-  play: () => void;
-  pause: () => void;
-  mute: () => void;
-  unmute: () => void;
-  setVolume: (volume: number) => void;
-  seekTo: (fraction: number) => void;
-  getInternalPlayer: () => YouTubePlayer | null;
-  getReactPlayer: () => ReactPlayer | null;
-}
-// (Fin Interfaces)
 
 
-const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
+
+const VideoPlayer = forwardRef<any, VideoPlayerProps>(
   (
     {
-      playing,
-      onReady,
-      onPlay,
-      onPause,
-      onEnded,
-      onError,
-      onProgress,
-      onDuration,
-      seekToFraction,
-      setSeekToFraction,
+      videoUrl, // Destructuramos videoUrl
       imageUrl,
       audioUrl,
-      src,
-    },
-    ref
+      onClose,
+      autoplay = true,
+    }
   ) => {
     const playerRef = useRef<ReactPlayer | null>(null);
     const imgRef = useRef<HTMLImageElement | null>(null);
@@ -78,9 +42,9 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     const introVideos = React.useMemo(() => ['/azul.mp4', '/cuadros.mp4', '/cuadros2.mp4', '/lineal.mp4', '/RUIDO.mp4'], []);
 
     useEffect(() => {
-      const isYt = !!(src && (src.includes('youtube.com') || src.includes('youtu.be')));
+      const isYt = !!(videoUrl && (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')));
       setIsYouTube(isYt);
-      const isWebm = !!(src && src.endsWith('.webm')); // Detect .webm
+      const isWebm = !!(videoUrl && videoUrl.endsWith('.webm')); // Detect .webm
       setIsWebmSlide(isWebm); // Set new state
 
       if (typeof window !== 'undefined' && isYt) {
@@ -96,16 +60,12 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       } else {
         setShowIntro(false);
       }
-    }, [src, introVideos]);
+    }, [videoUrl, introVideos]);
 
-    // Nuevo useEffect para asegurar el autoplay después de la intro o al inicio de la página
-    const handlePlayerPause = useCallback(() => {
-      if (onPause) onPause();
-    }, [onPause]);
-
+    // La prop 'playing' ha sido eliminada. La lógica de reproducción se gestionará mediante 'autoplay'.
+    // El callback `handlePlayerPause` y las props de pausa, ready, error, progress, duration, seekTo, setSeekToFraction ya no existen.
 
     // --- ARREGLO FINAL ---
-    // Había dos 'useEffect' idénticos. Los combinamos en uno solo.
     // Este hook es AHORA la única fuente de verdad que sincroniza
     // el contexto de volumen con el reproductor interno.
     useEffect(() => {
@@ -153,11 +113,12 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       const imageElement = imgRef.current;
       const audioElement = audioRef.current;
 
-      if (imageUrl && audioUrl && imageElement && audioElement && playing) {
+      // Usar autoplay en lugar de playing
+      if (imageUrl && audioUrl && imageElement && audioElement && autoplay) {
         // Stop any previous animation
         if (tl) tl.kill();
 
-        // Ensure audio plays when in this mode and `playing` prop is true
+        // Ensure audio plays when in this mode and `autoplay` prop is true
         // Mute state is handled by the audio element directly in JSX based on isWebmSlide
         const playAudio = async () => {
           try {
@@ -190,7 +151,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             ease: Power2.easeInOut,
           }
         );
-      } else if (imageElement && !playing) {
+      } else if (imageElement && !autoplay) { // Usar autoplay
         if (tl) tl.kill();
         gsap.set(imageElement, { scale: 1, x: 0, y: 0 }); // Reset image to original state
         if (audioElement) audioElement.pause();
@@ -200,7 +161,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         if (tl) tl.kill();
         if (audioElement) audioElement.pause();
       };
-    }, [imageUrl, audioUrl, playing]);
+    }, [imageUrl, audioUrl, autoplay]); // playing changed to autoplay
 
 
     // --- SE BORRÓ EL useEffect DUPLICADO ---
@@ -209,72 +170,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
 
     // (Hook de seekTo - sin cambios)
-    useEffect(() => {
-        if (typeof window !== 'undefined' && playerRef.current && seekToFraction !== null && typeof seekToFraction === 'number') {
-            playerRef.current.seekTo(seekToFraction, 'fraction');
-            if (setSeekToFraction) setSeekToFraction(null);
-        }
-    }, [seekToFraction, setSeekToFraction]);
-
-    // (useImperativeHandle - sin cambios)
-    useImperativeHandle(ref, () => ({
-      play: () => {
-        if (typeof window !== 'undefined' && playerRef.current) {
-          if (isYouTube) {
-            (playerRef.current.getInternalPlayer() as YouTubePlayer)?.playVideo?.();
-          } else {
-            // For file players, the internal player is the video element itself
-            (playerRef.current.getInternalPlayer() as HTMLVideoElement)?.play?.();
-          }
-        }
-      },
-      pause: () => {
-        if (typeof window !== 'undefined' && playerRef.current) {
-          if (isYouTube) {
-            (playerRef.current.getInternalPlayer() as YouTubePlayer)?.pauseVideo?.();
-          } else {
-            (playerRef.current.getInternalPlayer() as HTMLVideoElement)?.pause?.();
-          }
-        }
-      },
-      mute: () => {
-        if (typeof window !== 'undefined' && playerRef.current) {
-          if (isYouTube) {
-            (playerRef.current.getInternalPlayer() as YouTubePlayer)?.mute?.();
-          } else if (playerRef.current.getInternalPlayer()) {
-            (playerRef.current.getInternalPlayer() as HTMLVideoElement).muted = true;
-          }
-        }
-      },
-      unmute: () => {
-        if (typeof window !== 'undefined' && playerRef.current) {
-          if (isYouTube) {
-            (playerRef.current.getInternalPlayer() as YouTubePlayer)?.unMute?.();
-          } else if (playerRef.current.getInternalPlayer()) {
-            (playerRef.current.getInternalPlayer() as HTMLVideoElement).muted = false;
-          }
-        }
-      },
-      setVolume: (vol: number) => {
-        if (typeof window !== 'undefined' && playerRef.current) {
-          const internalPlayer = playerRef.current.getInternalPlayer();
-          if (internalPlayer) {
-            if (isYouTube && typeof (internalPlayer as YouTubePlayer).setVolume === 'function') {
-              (internalPlayer as YouTubePlayer).setVolume(vol * 100);
-            } else {
-              (internalPlayer as HTMLVideoElement).volume = vol;
-            }
-          }
-        }
-      },
-      seekTo: (fraction) => {
-        if (typeof window !== 'undefined' && playerRef.current) {
-          playerRef.current.seekTo(fraction, 'fraction');
-        }
-      },
-      getInternalPlayer: () => playerRef.current ? (playerRef.current.getInternalPlayer() as any) : null,
-      getReactPlayer: () => playerRef.current,
-    }), [isYouTube]);
+    // El hook de seekTo y useImperativeHandle se eliminan por la nueva interfaz.
+    // Solo se mantienen playerRef y imgRef.
 
     return (
       <>
@@ -299,14 +196,14 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         {/* (ReactPlayer - sin cambios) */}
         <div className="plyr-container" style={{ width: '100%', height: '100%' }}>
           {/* MODO A: VIDEO / YOUTUBE (Lógica existente intacta) */}
-          {src ? (
+          {videoUrl ? ( // Usar videoUrl en lugar de src
             <ReactPlayer
               origin={typeof window !== 'undefined' ? window.location.origin : ''}
               ref={playerRef}
-              url={src}
+              url={videoUrl} // Usar videoUrl en lugar de src
               width="100%"
               height="100%"
-              playing={playing && !showIntro}
+              playing={autoplay && !showIntro} // Usar autoplay en lugar de playing
               controls={false}
               pip={true}
               muted={isMuted} // Use current isMuted state for video mode
@@ -333,13 +230,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
                   },
                 }
               }}
-              onReady={onReady}
-              onPlay={onPlay}
-              onPause={handlePlayerPause}
-              onEnded={onEnded}
-              onError={onError}
-              onProgress={onProgress}
-              onDuration={onDuration}
+              onEnded={onClose} // Reemplazado por onClose
             />
           ) : (
             imageUrl && audioUrl ? (
@@ -354,8 +245,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
                 <audio
                   ref={audioRef}
                   src={audioUrl}
-                  onEnded={onEnded} // Usar la prop onEnded existente
-                  autoPlay={playing}
+                  onEnded={onClose} // Usar onClose
+                  autoPlay={autoplay} // Usar autoplay
                   muted={isWebmSlide ? false : isMuted} // Mantener la lógica de muted
                   loop={false} // Mantener la lógica de loop
                 />

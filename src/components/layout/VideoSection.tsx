@@ -3,10 +3,10 @@
 // --- ARREGLO 1: Importar 'useEffect' ---
 import React, { useCallback, useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import VideoPlayer, { type VideoPlayerRef } from '@/components/VideoPlayer';
+import VideoPlayer from '@/components/VideoPlayer';
 import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
-import { useMediaPlayer, type ProgressState } from '@/context/MediaPlayerContext';
+import { useMediaPlayer } from '@/context/MediaPlayerContext';
 import { Play, Cast } from 'lucide-react';
 import CustomControls from '@/components/CustomControls';
 import useCast from '@/hooks/useCast';
@@ -18,13 +18,7 @@ interface VideoSectionProps {
   isMobile: boolean;
 }
 
-// Mover esto afuera para que sea una constante reutilizable
-const defaultProgressState: ProgressState = {
-  played: 0,
-  playedSeconds: 0,
-  loaded: 0,
-  loadedSeconds: 0,
-};
+
 
 const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMobile }) => {
   const [isMobileFullscreen, setIsMobileFullscreen] = useState(false);
@@ -35,26 +29,15 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
   const {
     currentVideo,
     isPlaying,
-    seekToFraction,
-    setSeekToFraction,
-    handleOnEnded,
-    handleOnProgress, 
+    handleOnEnded, 
   } = useMediaPlayer();
   
-  // --- ARREGLO 2: 'progress' y 'duration' son ESTADOS LOCALES ---
-  const [progress, setProgress] = useState<ProgressState>(defaultProgressState);
-  const [duration, setDuration] = useState(0);
 
-  // --- ARREGLO 3: ¡LA CLAVE! Resetear el estado local al cambiar de video ---
-  // Este useEffect soluciona la "vibración" y la "contaminación"
-  useEffect(() => {
-    setProgress(defaultProgressState);
-    setDuration(0);
-  }, [currentVideo]); // Depende de 'currentVideo'
-  // --- FIN ARREGLO 3 ---
+
+
 
   const { isCastAvailable, handleCast } = useCast(currentVideo);
-  const playerRef = useRef<VideoPlayerRef>(null);
+
   const [showControls, setShowControls] = useState(false);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -130,19 +113,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
     return media.url;
   };
 
-  // --- ARREGLO 4: Nuevo manejador local para 'onProgress' ---
-  const handleProgressUpdate = (newProgress: ProgressState) => {
-    // 1. Actualiza el estado local (para el slider)
-    setProgress(newProgress);
-    
-    // 2. Llama a la función del contexto (para cargar el sig. video)
-    handleOnProgress(newProgress, currentVideo?.id, currentVideo?.categoria);
-  };
 
-  // --- ARREGLO 5: Nuevo manejador para 'onDuration' ---
-  const handleDuration = (newDuration: number) => {
-    setDuration(newDuration);
-  };
 
   const playerCore = (
     <div 
@@ -156,16 +127,9 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
         {currentVideo && (
           <VideoPlayer
             key={currentVideo.id || currentVideo.url} // El 'key' es crucial
-            ref={playerRef}
-            src={currentVideo.url}
-            playing={isPlaying}
-            onEnded={handleOnEnded}
-            // --- ARREGLO 6: Pasar los nuevos manejadores locales ---
-            onProgress={handleProgressUpdate} 
-            onDuration={handleDuration}     
-            // --- Fin Arreglo 6 ---
-            seekToFraction={seekToFraction}
-            setSeekToFraction={setSeekToFraction}
+            videoUrl={currentVideo.url}
+            autoplay={isPlaying}
+            onClose={handleOnEnded}
           />
         )}
 
@@ -236,9 +200,6 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
                 <CustomControls 
                   onToggleFullScreen={toggleFullScreen} 
                   isFullScreen={isFullScreen} 
-                  progress={progress} // <-- Pasa el estado local
-                  duration={duration} // <-- Pasa el estado local
-                  setSeekToFraction={setSeekToFraction}
                 />
                 {/* --- Fin Arreglo 7 --- */}
              </motion.div>
