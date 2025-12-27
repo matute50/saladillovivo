@@ -118,19 +118,44 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
 
     }, [setVolume]);
 
-    const playTemporaryVideo = useCallback((media: SlideMedia) => {
+    const playTemporaryVideo = useCallback(async (media: SlideMedia) => { // Ahora es async
+      let finalMediaData = { ...media };
+
+      // DETECTAR SI ES UN MANIFIESTO JSON
+      if (media.url && media.url.endsWith('.json')) {
+          try {
+              console.log("📥 Descargando slide manifiesto...", media.url);
+              const response = await fetch(media.url);
+              const slideData = await response.json();
+              
+              // TRANSFORMAMOS EL JSON EN DATOS PARA EL PLAYER
+              finalMediaData = {
+                  ...finalMediaData,
+                  type: 'image', // Forzamos modo slide
+                  url: "",       // Anulamos URL de video para que no confunda
+                  // Mapeamos los campos del JSON a lo que espera tu Player
+                  imageSourceUrl: slideData.image_url || slideData.imageUrl || slideData.imagen, // Changed imageUrl to imageSourceUrl
+                  audioSourceUrl: slideData.audio_url || slideData.audioUrl || slideData.audioSourceUrl, // Changed audioUrl to audioSourceUrl
+                  duration: slideData.duration || 15
+              };
+          } catch (error) {
+              console.error("Error leyendo slide json:", error);
+              return; // Salir si falla
+          }
+      }
+
       // Validation check: Allow media with a video URL OR with both image and audio URLs.
-      const isValidMediaSource = media.url || ((media as any).imageUrl && (media as any).audio_url) || (media.imageSourceUrl && media.audioSourceUrl);
+      const isValidMediaSource = finalMediaData.url || ((finalMediaData as any).imageUrl && (finalMediaData as any).audio_url) || (finalMediaData.imageSourceUrl && finalMediaData.audioSourceUrl);
       if (!isValidMediaSource) {
-        console.warn("Play bloqueado: Faltan datos de URL de video o de imagen/audio.", media);
+        console.warn("Play bloqueado: Faltan datos de URL de video o de imagen/audio.", finalMediaData);
         return;
       }
-      console.log("Iniciando reproducción de:", media);
+      console.log("Iniciando reproducción de:", finalMediaData);
 
       if (currentVideo) {
         setInterruptedVideo(currentVideo);
       }
-      setCurrentVideo(media);
+      setCurrentVideo(finalMediaData); // Usamos finalMediaData
       setIsPlaying(true);
     }, [currentVideo]);
   
