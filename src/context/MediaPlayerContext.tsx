@@ -119,12 +119,13 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
     }, [setVolume]);
 
     const playTemporaryVideo = useCallback((media: SlideMedia) => {
-      // Validation check
-      const isValidMediaSource = media.url || (media.imageSourceUrl && media.audioSourceUrl);
+      // Validation check: Allow media with a video URL OR with both image and audio URLs.
+      const isValidMediaSource = media.url || ((media as any).imageUrl && (media as any).audio_url) || (media.imageSourceUrl && media.audioSourceUrl);
       if (!isValidMediaSource) {
-        console.warn("Intento de reproducir medio inválido: no se encontraron fuentes de video o imagen/audio.", media);
+        console.warn("Play bloqueado: Faltan datos de URL de video o de imagen/audio.", media);
         return;
       }
+      console.log("Iniciando reproducción de:", media);
 
       if (currentVideo) {
         setInterruptedVideo(currentVideo);
