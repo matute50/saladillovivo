@@ -119,6 +119,13 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
     }, [setVolume]);
 
     const playTemporaryVideo = useCallback((media: SlideMedia) => {
+      // Validation check
+      const isValidMediaSource = media.url || (media.imageSourceUrl && media.audioSourceUrl);
+      if (!isValidMediaSource) {
+        console.warn("Intento de reproducir medio inválido: no se encontraron fuentes de video o imagen/audio.", media);
+        return;
+      }
+
       if (currentVideo) {
         setInterruptedVideo(currentVideo);
       }
