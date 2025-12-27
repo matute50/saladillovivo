@@ -195,43 +195,32 @@ const VideoPlayer = forwardRef<any, VideoPlayerProps>(
         
         {/* (ReactPlayer - sin cambios) */}
         <div className="plyr-container" style={{ width: '100%', height: '100%' }}>
-          {/* MODO A: VIDEO / YOUTUBE (Lógica existente intacta) */}
-          {videoUrl ? ( // Usar videoUrl en lugar de src
-            <ReactPlayer
-              origin={typeof window !== 'undefined' ? window.location.origin : ''}
-              ref={playerRef}
-              url={videoUrl} // Usar videoUrl en lugar de src
-              width="100%"
-              height="100%"
-              playing={autoplay && !showIntro} // Usar autoplay en lugar de playing
-              controls={false}
-              pip={true}
-              muted={isMuted} // Use current isMuted state for video mode
-              config={{
-                file: {
-                  attributes: {
-                    preload: 'auto',
-                    crossOrigin: 'anonymous',
-                    style: { objectFit: 'cover' }
-                  },
-                  forceVideo: true
-                },
-                youtube: {
-                  playerVars: {
-                    autoplay: 1,
-                    showinfo: 0,
-                    rel: 0,
-                    iv_load_policy: 3,
-                    modestbranding: 1,
-                    controls: 0,
-                    disablekb: 1,
-                    playsinline: 1,
-                    origin: typeof window !== 'undefined' ? window.location.origin : '',
-                  },
-                }
-              }}
-              onEnded={onClose} // Reemplazado por onClose
-            />
+          {videoUrl && typeof videoUrl === 'string' && videoUrl.trim() !== '' ? (
+            <div className='player-wrapper relative w-full h-full bg-black'>
+              <ReactPlayer
+                key={videoUrl} 
+                ref={playerRef}
+                className='react-player'
+                url={videoUrl}
+                width='100%'
+                height='100%'
+                playing={autoplay && !showIntro}
+                controls={true}
+                onReady={() => console.log("✅ YouTube Player Ready:", videoUrl)}
+                onStart={() => console.log("▶ YouTube Started")}
+                onEnded={onClose}
+                onError={(e) => console.error("❌ Error en YouTube Player:", e)}
+                config={{
+                  youtube: {
+                    playerVars: { 
+                      showinfo: 0,
+                      modestbranding: 1,
+                      origin: typeof window !== 'undefined' ? window.location.origin : undefined
+                    }
+                  }
+                }}
+              />
+            </div>
           ) : (
             imageUrl && audioUrl ? (
               <div className="absolute inset-0 overflow-hidden bg-black">
@@ -245,10 +234,10 @@ const VideoPlayer = forwardRef<any, VideoPlayerProps>(
                 <audio
                   ref={audioRef}
                   src={audioUrl}
-                  onEnded={onClose} // Usar onClose
-                  autoPlay={autoplay} // Usar autoplay
-                  muted={isWebmSlide ? false : isMuted} // Mantener la lógica de muted
-                  loop={false} // Mantener la lógica de loop
+                  onEnded={onClose}
+                  autoPlay={autoplay}
+                  muted={isWebmSlide ? false : isMuted}
+                  loop={false}
                 />
               </div>
             ) : null
