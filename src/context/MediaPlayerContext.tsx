@@ -3,7 +3,7 @@
 // --- ARREGLO: Eliminado 'useRef' de esta línea ---
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react'; 
 import { getVideosForHome, getNewRandomVideo } from '@/lib/data';
-import { Video, SlideMedia } from '@/lib/types';
+import { SlideMedia } from '@/lib/types';
 import { useVolume } from './VolumeContext';
 
 // Exportamos 'ProgressState' para que VideoSection pueda usarlo

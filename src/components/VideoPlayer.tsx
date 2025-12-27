@@ -274,7 +274,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       },
       getInternalPlayer: () => playerRef.current ? (playerRef.current.getInternalPlayer() as any) : null,
       getReactPlayer: () => playerRef.current,
-    }), []);
+    }), [isYouTube]);
 
     return (
       <>
@@ -344,6 +344,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           ) : (
             imageUrl && audioUrl ? (
               <div className="absolute inset-0 overflow-hidden bg-black">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   ref={imgRef}
                   src={imageUrl}

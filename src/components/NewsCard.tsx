@@ -5,9 +5,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Play } from 'lucide-react';
-import { Article, Video, SlideMedia } from '@/lib/types';
+import { Article, SlideMedia } from '@/lib/types';
 import { format } from 'date-fns';
-import { isValidSlideUrl } from '@/lib/utils';
 
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
 
