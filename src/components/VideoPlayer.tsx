@@ -342,24 +342,21 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
               onDuration={onDuration}
             />
           ) : (
-            {/* MODO B: GENERADO POR CLIENTE (Nueva Lógica) */}
             imageUrl && audioUrl ? (
               <div className="absolute inset-0 overflow-hidden bg-black">
-                {/* Imagen Animada */}
                 <img
                   ref={imgRef}
                   src={imageUrl}
                   className="w-full h-full object-cover"
                   alt="News Slide"
                 />
-                {/* Audio Sincronizado */}
                 <audio
                   ref={audioRef}
                   src={audioUrl}
-                  onEnded={onEnded} // Reutilizamos la función de fin de video existente
-                  autoPlay={playing} // Auto-play if 'playing' prop is true
-                  muted={isWebmSlide ? false : isMuted} // Apply mute logic (webm always unmuted)
-                  loop={false} // Slides should not loop by default
+                  onEnded={onEnded} // Usar la prop onEnded existente
+                  autoPlay={playing}
+                  muted={isWebmSlide ? false : isMuted} // Mantener la lógica de muted
+                  loop={false} // Mantener la lógica de loop
                 />
               </div>
             ) : null
