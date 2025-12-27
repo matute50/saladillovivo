@@ -4,7 +4,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import VideoIntro from './VideoIntro';
 import VideoPlayer from './VideoPlayer'; 
-import { Video } from '@/lib/types';
+import { SlideMedia } from '@/lib/types';
 
 
 
@@ -19,7 +19,7 @@ interface ReproductorMultimediaProps {
 
 
 
-  videoToPlay?: Video | null;
+  videoToPlay?: SlideMedia | null;
 
 
 
@@ -42,7 +42,14 @@ export default function ReproductorMultimedia({ onComplete, videoToPlay }: Repro
       aria-live="polite"
     >
         {videoToPlay ? (
-          <VideoPlayer src={videoToPlay.url} onEnded={onComplete} playing={true} muted={false} />
+          <VideoPlayer
+            src={videoToPlay.type === 'video' || videoToPlay.type === 'stream' ? videoToPlay.url : undefined}
+            imageUrl={videoToPlay.type === 'image' ? videoToPlay.imageSourceUrl : undefined}
+            audioUrl={videoToPlay.type === 'image' ? videoToPlay.audioSourceUrl : undefined}
+            onEnded={onComplete}
+            playing={true}
+            muted={false}
+          />
         ) : (
           <motion.div
             key="intro"

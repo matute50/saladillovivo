@@ -5,7 +5,7 @@ import { AnimatePresence } from 'framer-motion';
 import DesktopLayout from './layout/DesktopLayout';
 import MobileLayout from './layout/MobileLayout';
 import TvModeLayout from './layout/TvModeLayout';
-import type { PageData, Article } from '@/lib/types';
+import type { PageData, Article, SlideMedia } from '@/lib/types';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
 import useIsMobile from '@/hooks/useIsMobile';
 import NewsModal from './NewsModal'; // Importar el modal
@@ -62,16 +62,40 @@ const HomePageClient = ({ initialData }: { initialData: PageData }) => {
         {isModalOpen && selectedNews && (
           <NewsModal
             onClose={handleCloseModal}
-            videoToPlay={selectedNews.url_slide ? {
-                id: selectedNews.id,
-                nombre: selectedNews.titulo,
-                url: selectedNews.url_slide,
-                createdAt: selectedNews.created_at,
-                categoria: selectedNews.categoria || 'Noticias',
-                imagen: selectedNews.imageUrl,
-                novedad: false,
-                type: 'video',
-            } : null}
+            videoToPlay={(() => {
+                let slideMedia: SlideMedia | null = null;
+                const hasAnySlideUrl = !!selectedNews.url_slide;
+                const isWebmVideoSlide = hasAnySlideUrl && selectedNews.url_slide?.endsWith('.webm');
+                const isMp4VideoSlide = hasAnySlideUrl && selectedNews.url_slide?.endsWith('.mp4');
+                const hasImageAudioForSlide = !!selectedNews.image_url && !!selectedNews.audio_url;
+
+                if (isWebmVideoSlide || isMp4VideoSlide) {
+                    slideMedia = {
+                        id: selectedNews.id,
+                        nombre: selectedNews.titulo,
+                        url: selectedNews.url_slide!,
+                        createdAt: selectedNews.created_at,
+                        categoria: selectedNews.categoria || 'Noticias',
+                        imagen: selectedNews.imageUrl,
+                        novedad: false,
+                        type: 'video',
+                    };
+                } else if (hasImageAudioForSlide) {
+                    slideMedia = {
+                        id: selectedNews.id,
+                        nombre: selectedNews.titulo,
+                        url: "", // Placeholder
+                        imageSourceUrl: selectedNews.image_url!,
+                        audioSourceUrl: selectedNews.audio_url!,
+                        createdAt: selectedNews.created_at,
+                        categoria: selectedNews.categoria || 'Noticias',
+                        imagen: selectedNews.imageUrl,
+                        novedad: false,
+                        type: 'image',
+                    };
+                }
+                return slideMedia;
+            })()}
           />
         )}
       </AnimatePresence>
