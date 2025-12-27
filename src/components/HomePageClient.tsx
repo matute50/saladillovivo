@@ -67,7 +67,7 @@ const HomePageClient = ({ initialData }: { initialData: PageData }) => {
                 const hasAnySlideUrl = !!selectedNews.url_slide;
                 const isWebmVideoSlide = hasAnySlideUrl && selectedNews.url_slide?.endsWith('.webm');
                 const isMp4VideoSlide = hasAnySlideUrl && selectedNews.url_slide?.endsWith('.mp4');
-                const hasImageAudioForSlide = !!selectedNews.image_url && !!selectedNews.audio_url;
+                const hasImageAudioForSlide = !!selectedNews.imageUrl && !!selectedNews.audio_url;
 
                 if (isWebmVideoSlide || isMp4VideoSlide) {
                     slideMedia = {
@@ -85,7 +85,7 @@ const HomePageClient = ({ initialData }: { initialData: PageData }) => {
                         id: selectedNews.id,
                         nombre: selectedNews.titulo,
                         url: "", // Placeholder
-                        imageSourceUrl: selectedNews.image_url!,
+                        imageSourceUrl: selectedNews.imageUrl!,
                         audioSourceUrl: selectedNews.audio_url!,
                         createdAt: selectedNews.created_at,
                         categoria: selectedNews.categoria || 'Noticias',
