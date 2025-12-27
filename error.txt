@@ -1,45 +1,66 @@
-Actúa como un Experto en React y Debugging.
+Actúa como un Experto en React y Debugging de Video.
 
-**CORRECCIÓN DE PANTALLA NEGRA EN YOUTUBE:**
-El usuario reporta que los videos de YouTube se ven en negro.
-**CAUSA:** Recientemente renombramos la prop del componente a `videoUrl`, pero es muy probable que dentro del JSX, el componente `<ReactPlayer>` siga intentando leer la variable antigua `url` o no esté recibiendo la nueva.
+**ERROR CRÍTICO EN YOUTUBE (Stack Overflow / Player Not Available):**
+El reproductor de YouTube está fallando con: `ReactPlayer: YouTube player could not call playVideo – The player was not available`.
+El log muestra un bucle infinito de llamadas, lo que sugiere que el componente se está renderizando en bucle o que la prop `videoUrl` está cambiando inestablemente.
+
+**OBJETIVO:**
+Blindar el componente `VideoPlayer.tsx` para asegurar que:
+1.  `ReactPlayer` SOLO se renderice si hay una `videoUrl` válida (string no vacío).
+2.  Usar la prop `key` para forzar una instancia limpia cuando cambia el video.
+3.  Manejar el evento `onReady` para evitar llamar a `play()` antes de tiempo.
 
 **TAREA:**
 1.  Abre `src/components/VideoPlayer.tsx`.
-2.  Busca la instanciación de `<ReactPlayer ... />`.
-3.  **CORRIGE LA PROP `url`:**
-    * *Incorrecto (Probable):* `url={url}` o `url={props.url}`
-    * *Correcto (Necesario):* `url={videoUrl}`
+2.  **REEMPLAZA** la lógica de renderizado del `ReactPlayer` con este bloque robusto.
 
-4.  **CORRIGE LA CONDICIÓN DE RENDERIZADO:**
-    Asegúrate de que el `if` que decide si mostrar el video también use la variable nueva.
-    * *Incorrecto:* `if (url) { ... }`
-    * *Correcto:* `if (videoUrl) { ... }`
-
-**CÓDIGO DE REFERENCIA (Cómo debe quedar el bloque del Player):**
+**CÓDIGO A IMPLEMENTAR (Reemplaza el bloque if(videoUrl)):**
 
 ```tsx
-// Dentro del return...
+  // --- DENTRO DEL RETURN DEL COMPONENTE ---
 
-{/* Usamos videoUrl para decidir si renderizamos el Player */}
-{videoUrl ? (
-    <div className='player-wrapper'>
-        <ReactPlayer
-            ref={playerRef}
-            className='react-player'
-            // AQUÍ ESTÁ LA CLAVE: Pasamos la variable correcta
-            url={videoUrl} 
-            
-            width='100%'
-            height='100%'
-            playing={playing}
-            controls={true}
-            // ... resto de tus props (onEnded, onReady, etc) ...
-        />
+  // VALIDACIÓN ESTRICTA: Solo renderiza si videoUrl es un string válido
+  {videoUrl && typeof videoUrl === 'string' && videoUrl.trim() !== '' ? (
+    <div className='player-wrapper relative w-full h-full bg-black'>
+      <ReactPlayer
+        // LA CLAVE MAESTRA: Forzamos recrear el componente si cambia la URL
+        key={videoUrl} 
+        
+        ref={playerRef}
+        className='react-player'
+        
+        // Pasamos la prop correcta
+        url={videoUrl}
+        
+        width='100%'
+        height='100%'
+        
+        // Manejo de Estado
+        playing={playing} // Asegúrate de que 'playing' viene del estado o props
+        controls={true}
+        
+        // Callbacks de Seguridad
+        onReady={() => console.log("✅ YouTube Player Ready:", videoUrl)}
+        onStart={() => console.log("▶ YouTube Started")}
+        onEnded={onClose}
+        onError={(e) => console.error("❌ Error en YouTube Player:", e)}
+        
+        // Configuración para evitar errores de autolay
+        config={{
+          youtube: {
+            playerVars: { 
+              showinfo: 0,
+              modestbranding: 1,
+              origin: typeof window !== 'undefined' ? window.location.origin : undefined
+            }
+          }
+        }}
+      />
     </div>
-) : (
-    /* Bloque Else (Slide Generado) ... */
+  ) : (
+    // ... AQUÍ VA TU LÓGICA DE SLIDE GENERADO (Imagen + Audio) ...
+    // Asegúrate de que este bloque else siga existiendo como lo definimos antes
     imageUrl && audioUrl ? (
-        // ... lógica de imagen ...
+       // ... código del slide ...
     ) : null
-)}
+  )}

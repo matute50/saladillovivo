@@ -119,6 +119,7 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
     }, [setVolume]);
 
     const playTemporaryVideo = useCallback(async (media: SlideMedia) => { // Ahora es async
+      pause(); // Detener el video actual
       let finalMediaData = { ...media };
 
       // DETECTAR SI ES UN MANIFIESTO JSON
@@ -157,7 +158,7 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
       }
       setCurrentVideo(finalMediaData); // Usamos finalMediaData
       setIsPlaying(true);
-    }, [currentVideo]);
+    }, [currentVideo, pause]);
   
 
         const playSpecificVideo = useCallback((media: SlideMedia) => {
