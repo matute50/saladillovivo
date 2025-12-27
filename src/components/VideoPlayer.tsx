@@ -62,7 +62,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       src,
     },
     ref
-  ) => {
+  ) => (
     const playerRef = useRef<ReactPlayer | null>(null);
     const imgRef = useRef<HTMLImageElement | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -368,9 +368,8 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         <div className="absolute inset-0 z-10"></div>
       </div>
       </React.Fragment>
-    );
-  }
-);
+    ) // Cierre del paréntesis de la función de renderizado
+); // Cierre del paréntesis de forwardRef
 
 VideoPlayer.displayName = 'VideoPlayer';
 
