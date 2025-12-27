@@ -3,7 +3,7 @@
 // --- ARREGLO: Eliminado 'useRef' de esta línea ---
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react'; 
 import { getVideosForHome, getNewRandomVideo } from '@/lib/data';
-import { Video } from '@/lib/types';
+import { Video, SlideMedia } from '@/lib/types';
 import { useVolume } from './VolumeContext';
 
 // Exportamos 'ProgressState' para que VideoSection pueda usarlo
@@ -15,8 +15,8 @@ export interface ProgressState {
 }
 
 interface MediaPlayerContextType {
-  currentVideo: Video | null;
-  nextVideo: Video | null;
+  currentVideo: SlideMedia | null;
+  nextVideo: SlideMedia | null;
   isPlaying: boolean;
   seekToFraction: number | null;
   isFirstMedia: boolean;
@@ -24,9 +24,9 @@ interface MediaPlayerContextType {
   streamStatus: { liveStreamUrl: string; isLive: boolean; } | null; 
   viewMode: 'diario' | 'tv';
   setViewMode: (mode: 'diario' | 'tv') => void;
-  playMedia: (media: Video, isFirst?: boolean) => void;
-  playSpecificVideo: (media: Video) => void;
-  playTemporaryVideo: (media: Video) => void;
+  playMedia: (media: SlideMedia, isFirst?: boolean) => void;
+  playSpecificVideo: (media: SlideMedia) => void;
+  playTemporaryVideo: (media: SlideMedia) => void;
   playLiveStream: (status: { liveStreamUrl: string; isLive: boolean; }) => void; 
   setIsPlaying: (isPlaying: boolean) => void;
   togglePlayPause: () => void;
@@ -64,10 +64,10 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
 
   
 
-    const [currentVideo, setCurrentVideo] = useState<Video | null>(null);
-    const [interruptedVideo, setInterruptedVideo] = useState<Video | null>(null);
+    const [currentVideo, setCurrentVideo] = useState<SlideMedia | null>(null);
+    const [interruptedVideo, setInterruptedVideo] = useState<SlideMedia | null>(null);
 
-    const [nextVideo, setNextVideo] = useState<Video | null>(null);
+    const [nextVideo, setNextVideo] = useState<SlideMedia | null>(null);
 
     const [isPlaying, setIsPlaying] = useState(false);
 
@@ -94,7 +94,7 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
     const pause = useCallback(() => setIsPlaying(false), []);
     const play = useCallback(() => setIsPlaying(true), []);
 
-    const playMedia = useCallback((media: Video, isFirst = false) => {
+    const playMedia = useCallback((media: SlideMedia, isFirst = false) => {
 
       setCurrentVideo(media);
 
@@ -118,7 +118,7 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
 
     }, [setVolume]);
 
-    const playTemporaryVideo = useCallback((media: Video) => {
+    const playTemporaryVideo = useCallback((media: SlideMedia) => {
       if (currentVideo) {
         setInterruptedVideo(currentVideo);
       }
@@ -127,7 +127,7 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
     }, [currentVideo]);
   
 
-        const playSpecificVideo = useCallback((media: Video) => {
+        const playSpecificVideo = useCallback((media: SlideMedia) => {
 
   
 
@@ -199,57 +199,99 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
 
   
 
-    const playLiveStream = useCallback((status: { liveStreamUrl: string; isLive: boolean; }) => {
-
-      if (status && status.isLive) {
-
-        const liveVideo: Video = { id: 'live-stream', nombre: 'TRANSMISIÓN EN VIVO', url: status.liveStreamUrl, createdAt: new Date().toISOString(), categoria: 'En Vivo', imagen: '/PARCHE.png', novedad: true, };
-
-        playMedia(liveVideo, false);
-
-      }
-
-    }, [playMedia]);
+        const playLiveStream = useCallback((status: { liveStreamUrl: string; isLive: boolean; }) => {
 
   
 
-    const loadInitialPlaylist = useCallback(async (videoUrlToPlay: string | null) => {
-
-      const { allVideos: fetchedVideos } = await getVideosForHome(100);
-
-      if (fetchedVideos && fetchedVideos.length > 0) {
-
-        let videoToPlay: Video;
-
-        if (videoUrlToPlay) {
-
-          const specificVideo = fetchedVideos.find(v => v.url === videoUrlToPlay);
-
-          videoToPlay = specificVideo || fetchedVideos[0];
-
-        } else {
-
-          const randomIndex = Math.floor(Math.random() * fetchedVideos.length);
-
-          videoToPlay = fetchedVideos[randomIndex];
-
-        }
-
-        playMedia(videoToPlay, true);
-
-        setIsPlaying(true); // Aseguramos que el autoplay esté activado para el primer video.
-
-      }
-
-    }, [playMedia, setIsPlaying]);
+          if (status && status.isLive) {
 
   
 
-    const playNextRandomVideo = useCallback(async (currentVideoId?: string, currentVideoCategory?: string) => {
+            const liveVideo: SlideMedia = { id: 'live-stream', nombre: 'TRANSMISIÓN EN VIVO', url: status.liveStreamUrl, createdAt: new Date().toISOString(), categoria: 'En Vivo', imagen: '/PARCHE.png', novedad: true, type: 'stream', };
 
-      const nextVideo = await getNewRandomVideo(currentVideoId, currentVideoCategory);
+  
 
-      if (nextVideo) {
+            playMedia(liveVideo, false);
+
+  
+
+          }
+
+  
+
+        }, [playMedia]);
+
+  
+
+        const loadInitialPlaylist = useCallback(async (videoUrlToPlay: string | null) => {
+
+  
+
+          const { allVideos: fetchedVideos } = await getVideosForHome(100);
+
+  
+
+          if (fetchedVideos && fetchedVideos.length > 0) {
+
+  
+
+            let videoToPlay: SlideMedia; // Change from Video to SlideMedia
+
+  
+
+            if (videoUrlToPlay) {
+
+  
+
+              const specificVideo = fetchedVideos.find(v => v.url === videoUrlToPlay);
+
+  
+
+              videoToPlay = specificVideo || fetchedVideos[0];
+
+  
+
+            } else {
+
+  
+
+              const randomIndex = Math.floor(Math.random() * fetchedVideos.length);
+
+  
+
+              videoToPlay = fetchedVideos[randomIndex];
+
+  
+
+            }
+
+  
+
+            playMedia(videoToPlay, true);
+
+  
+
+            setIsPlaying(true); // Aseguramos que el autoplay esté activado para el primer video.
+
+  
+
+          }
+
+  
+
+        }, [playMedia, setIsPlaying]);
+
+  
+
+        const playNextRandomVideo = useCallback(async (currentVideoId?: string, currentVideoCategory?: string) => {
+
+  
+
+          const nextVideo: SlideMedia | null = await getNewRandomVideo(currentVideoId, currentVideoCategory);
+
+  
+
+          if (nextVideo) {
 
         playMedia(nextVideo, false);
 

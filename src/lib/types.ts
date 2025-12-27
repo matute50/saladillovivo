@@ -54,6 +54,11 @@ export interface Video {
   duration?: number;
 }
 
+export interface SlideMedia extends Video {
+  imageSourceUrl?: string;
+  audioSourceUrl?: string;
+}
+
 export interface Interview {
   id: string;
   nombre: string;
