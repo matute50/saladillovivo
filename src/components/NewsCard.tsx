@@ -249,7 +249,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
                           {format(new Date(createdAt), "dd/MM/yyyy")}
                       </span>
                     )}
-                    {(isWebmVideoSlide || isMp4VideoSlide || hasImageAudioForSlide) && (
+                    {(newsItem.url_slide || (newsItem.image_url && newsItem.audio_url)) && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <motion.button
                           onClick={handlePlaySlide}
