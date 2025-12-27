@@ -277,7 +277,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     }), []);
 
     return (
-      <React.Fragment>
+      <>
         <div className="relative w-full h-full">
         {/* (Intro - sin cambios) */}
         <AnimatePresence>
@@ -367,7 +367,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         </div>
         <div className="absolute inset-0 z-10"></div>
       </div>
-      </React.Fragment>
+      </>
     );
   } // <--- Cierre de la función de renderizado
 ); // <--- Cierre del forwardRef
