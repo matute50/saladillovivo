@@ -274,7 +274,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       },
       getInternalPlayer: () => playerRef.current ? (playerRef.current.getInternalPlayer() as any) : null,
       getReactPlayer: () => playerRef.current,
-    }));
+    }), []);
 
     return (
       <div className="relative w-full h-full">
