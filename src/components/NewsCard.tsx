@@ -206,6 +206,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
           imagen: imageUrl || '/placeholder.png',
           novedad: false,
           type: 'image', // New type for image+audio slides
+          url: "", // Placeholder para satisfacer la interfaz SlideMedia
         };
       }
   
