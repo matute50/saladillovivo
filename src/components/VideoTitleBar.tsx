@@ -1,119 +1,59 @@
 'use client';
 
-import React, { useRef, useEffect, useState } from 'react';
+import React from 'react';
+import { useMediaPlayer } from '@/context/MediaPlayerContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getDisplayCategory } from '@/lib/categoryMappings';
+import { X } from 'lucide-react';
 
-const VideoTitleBar = ({ playingMedia, isMobile }) => {
-  const textRef = useRef<HTMLParagraphElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [isOverflowing, setIsOverflowing] = useState(false);
-  const [animationKey, setAnimationKey] = useState(0);
-  const [isVisible, setIsVisible] = useState(true);
+import { cn } from '@/lib/utils';
 
-  let titleText = null;
-  if (playingMedia) {
-    if (playingMedia.type === 'stream') {
-      titleText = `ESTÁS VIENDO EN VIVO ${playingMedia.title.toUpperCase()}`;
-    } else if (playingMedia.category !== 'SV') {
-      titleText = `ESTÁS VIENDO ${playingMedia.category.toUpperCase()}, ${playingMedia.title.toUpperCase()}`;
-    } else {
-      titleText = ' '; // Empty space for SV category
-    }
-  }
+interface VideoTitleBarProps {
+  className?: string;
+}
 
-  useEffect(() => {
-    const checkOverflow = () => {
-      if (isMobile && textRef.current && containerRef.current) {
-        const isCurrentlyOverflowing = textRef.current.scrollWidth > containerRef.current.clientWidth;
-        if (isCurrentlyOverflowing !== isOverflowing) {
-          setIsOverflowing(isCurrentlyOverflowing);
-        }
-      } else if (!isMobile) {
-        setIsOverflowing(false);
-      }
-    };
-    
-    checkOverflow();
-    const timeoutId = setTimeout(checkOverflow, 2100); // Re-check after fade-in
-    window.addEventListener('resize', checkOverflow);
-    
-    return () => {
-      clearTimeout(timeoutId);
-      window.removeEventListener('resize', checkOverflow);
-    };
-  }, [titleText, isMobile, isOverflowing]);
+const VideoTitleBar: React.FC<VideoTitleBarProps> = ({ className }) => {
+  const { currentVideo, nextVideo, playNextVideoInQueue, removeNextVideoFromQueue } = useMediaPlayer();
 
-  useEffect(() => {
-    if (!titleText || titleText.trim() === '') {
-      setIsVisible(false);
-      return;
-    }
+  const displayCurrentCategory = currentVideo?.categoria ? getDisplayCategory(currentVideo.categoria) : null;
+  const currentVideoTitle = currentVideo?.nombre || null;
 
-    setIsVisible(true);
-    let visibilityTimeout;
-    let animationInterval;
+  const displayNextCategory = nextVideo?.categoria ? getDisplayCategory(nextVideo.categoria) : null;
+  const nextVideoTitle = nextVideo?.nombre || null;
 
-    if (isMobile) {
-        const sequence = () => {
-            setIsVisible(true);
-            setAnimationKey(prev => prev + 1); // Trigger animation/scroll
-
-            visibilityTimeout = setTimeout(() => {
-                setIsVisible(false);
-            }, 8000); // 8s visible
-        };
-
-        sequence();
-        animationInterval = setInterval(sequence, 23000); // 8s visible + 15s delay
-    } else {
-        // Desktop logic, simple fade in/out
-        setIsVisible(true);
-    }
-    
-    return () => {
-      clearTimeout(visibilityTimeout);
-      clearInterval(animationInterval);
-    };
-
-  }, [isMobile, isOverflowing, titleText]);
-
-  const mobileScrollVariants = {
-    animate: {
-      x: [0, -(textRef.current?.scrollWidth || 0) + (containerRef.current?.clientWidth || 0) - 5],
-      transition: {
-        x: {
-          duration: 7,
-          ease: 'linear',
-          delay: 1, // Start scroll after 1 sec
-        },
-      }
-    }
-  };
-  
   return (
-    <div ref={containerRef} className="w-full pl-1 pt-1 overflow-hidden h-[20px]">
-      <AnimatePresence>
-        {titleText && titleText.trim() !== '' && isVisible && (
-          <motion.div
-            key={animationKey}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 2, ease: "easeInOut" }}
-            className="w-full"
-          >
-            <motion.p
-              ref={textRef}
-              className="font-century-gothic text-xs uppercase text-foreground whitespace-nowrap"
-              variants={isOverflowing ? mobileScrollVariants : {}}
-              animate="animate"
-            >
-              {titleText}
-            </motion.p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+    <AnimatePresence>
+      {(currentVideoTitle || nextVideoTitle) && (
+        <motion.div
+          className={cn("w-full p-2 card text-right shadow-lg flex flex-col gap-1", className)}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          transition={{ duration: 0.3 }}
+        >
+          {currentVideoTitle && (
+            <div className="flex items-center justify-end gap-2">
+              <p className="font-semibold text-black dark:text-white truncate uppercase text-[10px] drop-shadow-sm">
+                ESTÁS VIENDO: {displayCurrentCategory && `${displayCurrentCategory.toUpperCase()}, `}{currentVideoTitle}
+              </p>
+              <button onClick={playNextVideoInQueue} className="text-red-500 hover:text-red-700 transition-colors">
+                <X size={16} />
+              </button>
+            </div>
+          )}
+          {nextVideoTitle && (
+            <div className="flex items-center justify-end gap-2">
+              <p className="font-semibold text-black dark:text-white truncate uppercase text-[10px] drop-shadow-sm">
+                PRÓXIMO VIDEO: {displayNextCategory && `${displayNextCategory.toUpperCase()}, `}{nextVideoTitle}
+              </p>
+              <button onClick={removeNextVideoFromQueue} className="text-red-500 hover:text-red-700 transition-colors">
+                <X size={16} />
+              </button>
+            </div>
+          )}
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 

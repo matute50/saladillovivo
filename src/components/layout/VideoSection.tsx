@@ -1,239 +1,271 @@
 'use client';
 
+// --- ARREGLO 1: Importar 'useEffect' ---
 import React, { useCallback, useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import VideoPlayer from '@/components/VideoPlayer';
-import VideoControls from '@/components/VideoControls';
-import VideoTitleBar from '@/components/VideoTitleBar';
+import VideoPlayer, { type VideoPlayerRef } from '@/components/VideoPlayer';
 import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
-import { useMediaPlayer } from '@/context/MediaPlayerContext';
-import { Play, Cast, VolumeX } from 'lucide-react';
+import { useMediaPlayer, type ProgressState } from '@/context/MediaPlayerContext';
+import { Play, Cast } from 'lucide-react';
+import CustomControls from '@/components/CustomControls';
+import useCast from '@/hooks/useCast';
+import VideoTitleBar from '@/components/VideoTitleBar';
+import type { Video } from '@/lib/types';
 
-const VideoSection = ({ 
-  isMobileFixed = false, 
-  isMobile
-}) => {
+interface VideoSectionProps {
+  isMobileFixed?: boolean;
+  isMobile: boolean;
+}
+
+// Mover esto afuera para que sea una constante reutilizable
+const defaultProgressState: ProgressState = {
+  played: 0,
+  playedSeconds: 0,
+  loaded: 0,
+  loadedSeconds: 0,
+};
+
+const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMobile }) => {
   const [isMobileFullscreen, setIsMobileFullscreen] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const playerContainerRef = useRef<HTMLDivElement>(null);
   
+  // 'progress' y 'duration' ya NO vienen del contexto
   const {
-    playerRef,
-    currentMedia,
-    playerStatus,
+    currentVideo,
     isPlaying,
-    volume,
-    isMuted,
-    unmute,
-    showControls,
-    progress,
-    duration,
-    videoOpacity,
-    isCastAvailable,
-    handlePlayerReady,
-    handleError,
-    togglePlayPause,
-    toggleMute,
-    handleVolumeChange,
-    handleMouseEnterControls,
-    handleMouseLeaveControls,
-    handleTouchShowControls,
-    handleProgress,
-    handleDuration,
-    handleSeek,
-    handleCast,
-    handlePlay,
-    handlePause,
-    handleEnded,
-    playingMedia
+    seekToFraction,
+    setSeekToFraction,
+    handleOnEnded,
+    handleOnProgress, 
   } = useMediaPlayer();
+  
+  // --- ARREGLO 2: 'progress' y 'duration' son ESTADOS LOCALES ---
+  const [progress, setProgress] = useState<ProgressState>(defaultProgressState);
+  const [duration, setDuration] = useState(0);
 
-  const customHandleMouseLeaveControls = useCallback(() => {
-    handleMouseLeaveControls(true); // pass true for faster fade
-  }, [handleMouseLeaveControls]);
+  // --- ARREGLO 3: ¡LA CLAVE! Resetear el estado local al cambiar de video ---
+  // Este useEffect soluciona la "vibración" y la "contaminación"
+  useEffect(() => {
+    setProgress(defaultProgressState);
+    setDuration(0);
+  }, [currentVideo]); // Depende de 'currentVideo'
+  // --- FIN ARREGLO 3 ---
 
+  const { isCastAvailable, handleCast } = useCast(currentVideo);
+  const playerRef = useRef<VideoPlayerRef>(null);
+  const [showControls, setShowControls] = useState(false);
+  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const toggleFullScreen = useCallback(async () => {
-    const playerElement = playerRef.current?.wrapper;
-    if (!playerElement) return;
-
+  // (Lógica de showControls, fullScreen, getThumbnailUrl - sin cambios)
+  const handleShowControls = useCallback(() => {
+    setShowControls(true);
+    if (controlsTimeoutRef.current) {
+      clearTimeout(controlsTimeoutRef.current);
+    }
+    controlsTimeoutRef.current = setTimeout(() => {
+      setShowControls(false);
+    }, 3000);
+  }, []);
+  const handleTouchShowControls = () => {
+    setShowControls(prev => {
+      const newShowControls = !prev;
+      if (newShowControls && controlsTimeoutRef.current) {
+         clearTimeout(controlsTimeoutRef.current);
+      }
+      if (newShowControls) {
+         controlsTimeoutRef.current = setTimeout(() => {
+           setShowControls(false);
+         }, 3000);
+      }
+      return newShowControls;
+    });
+  };
+  const handleMouseEnter = () => {
+    if (!isMobile) {
+      handleShowControls();
+    }
+  };
+  const handleMouseLeave = () => {
+    if (!isMobile) {
+      setShowControls(false);
+    }
+  };
+  const toggleFullScreen = () => {
+    if (!playerContainerRef.current) return;
     if (!document.fullscreenElement) {
-      if (playerElement.requestFullscreen) {
-        await playerElement.requestFullscreen({ navigationUI: "hide" }).catch(err => console.error(err));
-      }
-      if (isMobile) {
-        try {
-          if (window.screen.orientation && typeof window.screen.orientation.lock === 'function') {
-            await window.screen.orientation.lock('landscape');
-          }
-        } catch(err) {
-          console.error("No se pudo bloquear la orientación:", err)
-        }
-      }
+      playerContainerRef.current.requestFullscreen();
     } else {
       if (document.exitFullscreen) {
-        await document.exitFullscreen().catch(err => console.error(err));
-      }
-      if (isMobile) {
-        if (window.screen.orientation && typeof window.screen.orientation.unlock === 'function') {
-          window.screen.orientation.unlock();
-        }
+        document.exitFullscreen();
       }
     }
-  }, [playerRef, isMobile]);
-
+  };
   useEffect(() => {
     const handleFullscreenChange = () => {
+      setIsFullScreen(!!document.fullscreenElement);
       if (isMobile) {
         setIsMobileFullscreen(!!document.fullscreenElement);
       }
     };
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    
     const handleOrientationChange = () => {
-       setIsMobileFullscreen(!!document.fullscreenElement);
+        setIsMobileFullscreen(!!document.fullscreenElement);
     };
-
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
     window.addEventListener('orientationchange', handleOrientationChange);
-
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
       window.removeEventListener('orientationchange', handleOrientationChange);
     };
   }, [isMobile]);
-
-  const renderPlayerState = () => {
-    const baseClasses = "absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-70 z-10 text-white text-center p-4 md:rounded-xl";
-    
-    switch (playerStatus) {
-      case 'loading':
-        return (
-          <div className={baseClasses}>
-            <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-            <p className="mt-4 text-lg">Cargando...</p>
-          </div>
-        );
-      // Other cases would go here
-      default:
-        return null;
+  const getThumbnailUrl = (media: Video | null) => {
+    if (!media?.url) return '/placeholder.png';
+    const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})?/;
+    const videoIdMatch = media.url.match(youtubeRegex);
+    if (videoIdMatch) {
+      const videoId = videoIdMatch[1];
+      return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
     }
+    return media.url;
+  };
+
+  // --- ARREGLO 4: Nuevo manejador local para 'onProgress' ---
+  const handleProgressUpdate = (newProgress: ProgressState) => {
+    // 1. Actualiza el estado local (para el slider)
+    setProgress(newProgress);
+    
+    // 2. Llama a la función del contexto (para cargar el sig. video)
+    handleOnProgress(newProgress, currentVideo?.id, currentVideo?.categoria);
+  };
+
+  // --- ARREGLO 5: Nuevo manejador para 'onDuration' ---
+  const handleDuration = (newDuration: number) => {
+    setDuration(newDuration);
   };
 
   const playerCore = (
     <div 
-      className="relative w-full h-full aspect-video bg-black overflow-hidden border-0 md:border md:rounded-xl shadow-player card-blur-player"
-      onMouseEnter={handleMouseEnterControls}
-      onMouseLeave={customHandleMouseLeaveControls}
-      onTouchStart={handleTouchShowControls}
+      ref={playerContainerRef}
+      className="relative w-full h-full aspect-video bg-black overflow-hidden border-0 md:border md:rounded-xl shadow-pop card-blur-player"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onClick={isMobile ? handleTouchShowControls : undefined}
     >
       <div className="absolute inset-0 w-full h-full md:rounded-xl overflow-hidden">
-        {renderPlayerState()}
-        
-        {currentMedia?.type !== 'image' && (
-          <motion.div
-            className="w-full h-full"
-            animate={{ opacity: videoOpacity }}
-            transition={{ duration: 2, ease: 'linear' }}
-          >
-            <VideoPlayer
-              key={`${currentMedia?.url}-${isMobileFullscreen}`}
-              playerRef={playerRef}
-              src={currentMedia?.url}
-              playing={isPlaying}
-              volume={volume}
-              muted={isMuted}
-              onReady={handlePlayerReady}
-              onPlay={() => handlePlay(currentMedia)}
-              onPause={handlePause}
-              onEnded={handleEnded}
-              onError={handleError}
-              onProgress={handleProgress}
-              onDuration={handleDuration}
-              isMobile={isMobile}
-            />
-          </motion.div>
+        {currentVideo && (
+          <VideoPlayer
+            key={currentVideo.id || currentVideo.url} // El 'key' es crucial
+            ref={playerRef}
+            src={currentVideo.url}
+            playing={isPlaying}
+            onEnded={handleOnEnded}
+            // --- ARREGLO 6: Pasar los nuevos manejadores locales ---
+            onProgress={handleProgressUpdate} 
+            onDuration={handleDuration}     
+            // --- Fin Arreglo 6 ---
+            seekToFraction={seekToFraction}
+            setSeekToFraction={setSeekToFraction}
+          />
         )}
 
-        {/* Custom Image overlay for LCP optimization */}
-        {!isPlaying && currentMedia?.type === 'video' && currentMedia?.url && (
+        {/* (Lógica de 'Image', 'AnimatePresence', 'Cast', 'Play' - sin cambios) */}
+        {!isPlaying && currentVideo?.type === 'video' && currentVideo?.url && (
           <Image
-            src={currentMedia.url.includes('v=') 
-              ? `https://img.youtube.com/vi/${currentMedia.url.split('v=')[1].split('&')[0]}/maxresdefault.jpg`
-              : currentMedia.url // Fallback if not a YouTube video, or handle other types
-            } // Extract YouTube video ID
-            alt={`Miniatura de ${currentMedia.title}`}
-            layout="fill"
-            objectFit="cover"
+            src={getThumbnailUrl(currentVideo)}
+            alt={`Miniatura de ${currentVideo?.title}`}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="absolute inset-0 z-0 object-cover"
             priority
-            className="absolute inset-0 z-0"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              if (target.src.includes('maxresdefault.jpg')) {
+                target.src = getThumbnailUrl(currentVideo).replace('maxresdefault.jpg', 'hqdefault.jpg');
+              } else if (target.src.includes('hqdefault.jpg')) {
+                target.src = getThumbnailUrl(currentVideo).replace('hqdefault.jpg', 'mqdefault.jpg');
+              } else {
+                target.src = '/placeholder.png';
+              }
+            }}
           />
         )}
         <AnimatePresence>
-          {!isPlaying && currentMedia?.url && (currentMedia.type === 'video' || currentMedia.type === 'stream') && (
-              <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="absolute inset-0 bg-black/20 flex items-center justify-center z-10 pointer-events-none"
-              >
-                  <div className="p-4 bg-black/40 rounded-full">
-                      <Play size={48} className="text-white/80" fill="white" />
-                  </div>
-              </motion.div>
+          {showControls && isCastAvailable && (
+            <motion.div
+              className="absolute top-4 right-4 z-30"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <button onClick={handleCast} className="text-white hover:text-orange-500 transition-colors">
+                <Cast size={24} />
+              </button>
+            </motion.div>
           )}
         </AnimatePresence>
         <AnimatePresence>
-        {showControls && currentMedia?.type !== 'image' && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute bottom-0 left-0 right-0 z-30"
-          >
-          <VideoControls
-            isPlaying={isPlaying}
-            isMuted={isMuted}
-            progress={progress}
-            duration={duration}
-            volume={volume}
-            togglePlayPause={togglePlayPause}
-            toggleMute={toggleMute}
-            onSeek={handleSeek}
-            onVolumeChange={handleVolumeChange}
-            toggleFullScreen={toggleFullScreen}
-            isFullscreen={isMobileFullscreen || !!document.fullscreenElement}
-            isMobileFixed={isMobileFixed}
-            isCastAvailable={isCastAvailable}
-            handleCast={handleCast}
-            isLive={currentMedia?.type === 'stream'}
-          />
-          </motion.div>
-        )}
+          {!isPlaying && currentVideo?.url && (currentVideo.type === 'video' || currentVideo.type === 'stream') && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="absolute inset-0 bg-black/20 flex items-center justify-center z-10 pointer-events-none"
+              >
+                <div className="p-4 bg-black/40 rounded-full">
+                    <Play size={48} className="text-white/80" fill="white" />
+                </div>
+              </motion.div>
+          )}
+        </AnimatePresence>
+        {/* --- Fin Lógica sin cambios --- */}
+
+
+        <AnimatePresence>
+          {showControls && currentVideo?.type !== 'image' && (
+             <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ duration: 0.2 }}
+                className="absolute bottom-0 left-0 right-0 w-full z-30"
+             >
+                {/* --- ARREGLO 7: Pasar los estados locales al slider --- */}
+                <CustomControls 
+                  onToggleFullScreen={toggleFullScreen} 
+                  isFullScreen={isFullScreen} 
+                  progress={progress} // <-- Pasa el estado local
+                  duration={duration} // <-- Pasa el estado local
+                  setSeekToFraction={setSeekToFraction}
+                />
+                {/* --- Fin Arreglo 7 --- */}
+             </motion.div>
+          )}
         </AnimatePresence>
       </div>
     </div>
   );
   
+  // (Lógica del portal y wrapper - sin cambios)
   if (isMobileFixed && isMobileFullscreen) {
      return ReactDOM.createPortal(
-      <div className="fullscreen-portal fixed inset-0 w-full h-full bg-black z-[9999]">
-        {playerCore}
-      </div>,
-      document.body
-    );
+       <div className="fullscreen-portal fixed inset-0 w-full h-full bg-black z-[9999]">
+         {playerCore}
+       </div>,
+       document.body
+     );
   }
-
   const wrapperClasses = isMobileFixed
     ? "fixed top-[var(--header-height)] left-0 w-full flex flex-col bg-background z-40"
     : "w-full flex flex-col";
-
   return (
     <div className={wrapperClasses}>
        <div className="relative">
-          {playerCore}
+         {playerCore}
        </div>
-      <VideoTitleBar playingMedia={playingMedia} isMobile={isMobile} />
+       <VideoTitleBar className="mt-0" />
     </div>
   );
 };

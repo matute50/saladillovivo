@@ -1,16 +1,33 @@
-'use client';
-
 import React from 'react';
 import Image from 'next/image';
 
-const ImageModal = ({ isOpen, onClose, imageUrl }) => {
+interface ImageModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  imageUrl: string;
+  imageAlt: string;
+}
+
+const ImageModal: React.FC<ImageModalProps> = ({ isOpen, onClose, imageUrl, imageAlt }) => {
   if (!isOpen) return null;
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }} onClick={onClose}>
-      <div style={{ padding: '1rem', position: 'relative' }} onClick={e => e.stopPropagation()}>
-        <Image src={imageUrl} alt="Decreto" width={800} height={1100} style={{ objectFit: 'contain', maxHeight: '90vh', maxWidth: '90vw' }} />
-        <button onClick={onClose} style={{ position: 'absolute', top: '20px', right: '20px', color: 'white', background: 'black', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer' }}>X</button>
+    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+      <div className="relative bg-white p-2 rounded-lg shadow-lg max-w-3xl max-h-[90vh] overflow-hidden">
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 bg-gray-800 text-white rounded-full p-2 z-10"
+        >
+          &times;
+        </button>
+        <Image
+          src={imageUrl}
+          alt={imageAlt}
+          width={800} // Adjust as needed
+          height={600} // Adjust as needed
+          className="object-contain" // Reemplaza objectFit
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
+        />
       </div>
     </div>
   );

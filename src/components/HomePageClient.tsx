@@ -1,58 +1,106 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import DesktopLayout from './layout/DesktopLayout';
 import MobileLayout from './layout/MobileLayout';
+import TvModeLayout from './layout/TvModeLayout';
+import type { PageData, Article, SlideMedia } from '@/lib/types';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
+import useIsMobile from '@/hooks/useIsMobile';
+import NewsModal from './NewsModal'; // Importar el modal
 
-const useIsMobile = () => {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 1024); // Use 1024px as the breakpoint for desktop layout
-    };
-    checkScreenSize();
-    window.addEventListener('resize', checkScreenSize);
-    return () => window.removeEventListener('resize', checkScreenSize);
-  }, []);
-  return isMobile;
-};
 
-const HomePageClient = ({ data }) => {
+const HomePageClient = ({ initialData }: { initialData: PageData }) => {
   const isMobile = useIsMobile();
-  const [hasMounted, setHasMounted] = useState(false);
-  const { playUserSelectedVideo } = useMediaPlayer();
-  const { videos, interviews } = data;
+  const { loadInitialPlaylist, viewMode } = useMediaPlayer();
+  
+  // --- Estados para el modal de noticias ---
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedNews, setSelectedNews] = useState<Article | null>(null);
 
   useEffect(() => {
-    setHasMounted(true);
-  }, []);
+    loadInitialPlaylist(null);
+  }, [loadInitialPlaylist]);
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const videoUrl = params.get('videoUrl');
+  const handleOpenModal = (newsItem: Article) => {
+    setSelectedNews(newsItem);
+    setIsModalOpen(true);
+  };
 
-    if (videoUrl && videos && interviews) {
-        const combinedVideos = [...interviews, ...videos];
-        const videoToPlay = combinedVideos.find(v => v.url === videoUrl);
-
-        if (videoToPlay) {
-            playUserSelectedVideo(videoToPlay);
-            window.history.replaceState(null, '', window.location.pathname);
-        }
-    }
-  }, [videos, interviews, playUserSelectedVideo]);
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+  
 
 
-  if (!hasMounted) {
-    return null; // Return null on first render to avoid hydration mismatch
+  if (viewMode === 'tv') {
+    return <TvModeLayout />;
   }
 
-  if (isMobile) {
-    return <MobileLayout data={data} isMobile={isMobile} />;
-  }
+  const data = {
+    articles: initialData.articles || { allNews: [] },
+    videos: initialData.videos || { allVideos: [] },
+    tickerTexts: initialData.tickerTexts,
+    interviews: initialData.interviews,
+    banners: initialData.banners,
+    ads: initialData.ads,
+    events: initialData.events,
+  };
 
-  return <DesktopLayout data={data} isMobile={isMobile} />;
+  return (
+    <>
+      {isMobile ? (
+        <MobileLayout data={data} isMobile={isMobile} onCardClick={handleOpenModal} />
+      ) : (
+        <DesktopLayout data={data} onCardClick={handleOpenModal} />
+      )}
+      
+      
+      
+      <AnimatePresence onExitComplete={() => setSelectedNews(null)}>
+        {isModalOpen && selectedNews && (
+          <NewsModal
+            onClose={handleCloseModal}
+            videoToPlay={(() => {
+                let slideMedia: SlideMedia | null = null;
+                const hasAnySlideUrl = !!selectedNews.url_slide;
+                const isWebmVideoSlide = hasAnySlideUrl && selectedNews.url_slide?.endsWith('.webm');
+                const isMp4VideoSlide = hasAnySlideUrl && selectedNews.url_slide?.endsWith('.mp4');
+                const hasImageAudioForSlide = !!selectedNews.imageUrl && !!selectedNews.audio_url;
+
+                if (isWebmVideoSlide || isMp4VideoSlide) {
+                    slideMedia = {
+                        id: selectedNews.id,
+                        nombre: selectedNews.titulo,
+                        url: selectedNews.url_slide!,
+                        createdAt: selectedNews.created_at,
+                        categoria: selectedNews.categoria || 'Noticias',
+                        imagen: selectedNews.imageUrl,
+                        novedad: false,
+                        type: 'video',
+                    };
+                } else if (hasImageAudioForSlide) {
+                    slideMedia = {
+                        id: selectedNews.id,
+                        nombre: selectedNews.titulo,
+                        url: "", // Placeholder
+                        imageSourceUrl: selectedNews.imageUrl!,
+                        audioSourceUrl: selectedNews.audio_url!,
+                        createdAt: selectedNews.created_at,
+                        categoria: selectedNews.categoria || 'Noticias',
+                        imagen: selectedNews.imageUrl,
+                        novedad: false,
+                        type: 'image',
+                    };
+                }
+                return slideMedia;
+            })()}
+          />
+        )}
+      </AnimatePresence>
+    </>
+  );
 };
 
 export default HomePageClient;

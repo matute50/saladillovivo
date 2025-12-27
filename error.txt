@@ -1,0 +1,468 @@
+ DEBUG isValidSlideUrl - Input URL: 
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 152
+ DEBUG NewsCard - newsItem.url_slide: 
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): 
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: 
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 156
+ DEBUG NewsCard - newsItem.url_slide: 
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): 
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: 
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 155
+ DEBUG NewsCard - newsItem.url_slide: 
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): 
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 153
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 151
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 150
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 149
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: 
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 148
+ DEBUG NewsCard - newsItem.url_slide: 
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): 
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 147
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 146
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: 
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 152
+ DEBUG NewsCard - newsItem.url_slide: 
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): 
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: 
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 156
+ DEBUG NewsCard - newsItem.url_slide: 
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): 
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: 
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 155
+ DEBUG NewsCard - newsItem.url_slide: 
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): 
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 153
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 151
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 150
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 149
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: 
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 148
+ DEBUG NewsCard - newsItem.url_slide: 
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): 
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 147
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 146
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: 
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 152
+ DEBUG NewsCard - newsItem.url_slide: 
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): 
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: 
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 156
+ DEBUG NewsCard - newsItem.url_slide: 
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): 
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: 
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 155
+ DEBUG NewsCard - newsItem.url_slide: 
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): 
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 153
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 151
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 150
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 149
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: 
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 148
+ DEBUG NewsCard - newsItem.url_slide: 
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): 
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 147
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 146
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: 
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 152
+ DEBUG NewsCard - newsItem.url_slide: 
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): 
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: 
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 156
+ DEBUG NewsCard - newsItem.url_slide: 
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): 
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: 
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 155
+ DEBUG NewsCard - newsItem.url_slide: 
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): 
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 153
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 151
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 150
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 149
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: 
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 148
+ DEBUG NewsCard - newsItem.url_slide: 
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): 
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 147
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 146
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ Failed to execute 'postMessage' on 'DOMWindow': The target origin provided ('https://www.youtube.com') does not match the recipient window's origin ('https://saladillovivo-git-main-matias11972-saladillovivo.vercel.app').
+(anónimas) @ www-widgetapi.js:194
+ DEBUG isValidSlideUrl - Input URL: 
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 152
+ DEBUG NewsCard - newsItem.url_slide: 
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): 
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: 
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 156
+ DEBUG NewsCard - newsItem.url_slide: 
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): 
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: 
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 155
+ DEBUG NewsCard - newsItem.url_slide: 
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): 
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 153
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 151
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 150
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 149
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: 
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 148
+ DEBUG NewsCard - newsItem.url_slide: 
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): 
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 147
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 146
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: 
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 152
+ DEBUG NewsCard - newsItem.url_slide: 
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): 
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: 
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 156
+ DEBUG NewsCard - newsItem.url_slide: 
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): 
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: 
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 155
+ DEBUG NewsCard - newsItem.url_slide: 
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): 
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 153
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 151
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 150
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 149
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: 
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 148
+ DEBUG NewsCard - newsItem.url_slide: 
+ DEBUG NewsCard - hasSlide: false
+ DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): 
+ DEBUG NewsCard - hasWebmSlide (final): false
+ DEBUG isValidSlideUrl - Input URL: null
+ DEBUG isValidSlideUrl - URL is null or undefined.
+ DEBUG NewsCard - newsItem.id: 147
+ DEBUG NewsCard - newsItem.url_slide: null
+ DEBUG NewsCard - hasSlide: false
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - hasWebmSlide (final): false
+300-0f2aee54cd9c3555.js:1 DEBUG isValidSlideUrl - Input URL: null
+300-0f2aee54cd9c3555.js:1 DEBUG isValidSlideUrl - URL is null or undefined.
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - newsItem.id: 146
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - newsItem.url_slide: null
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - hasSlide: false
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - hasWebmSlide (final): false
+300-0f2aee54cd9c3555.js:1 DEBUG isValidSlideUrl - Input URL: 
+300-0f2aee54cd9c3555.js:1 DEBUG isValidSlideUrl - URL is null or undefined.
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - newsItem.id: 152
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - newsItem.url_slide: 
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - hasSlide: false
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): 
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - hasWebmSlide (final): false
+300-0f2aee54cd9c3555.js:1 DEBUG isValidSlideUrl - Input URL: 
+300-0f2aee54cd9c3555.js:1 DEBUG isValidSlideUrl - URL is null or undefined.
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - newsItem.id: 156
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - newsItem.url_slide: 
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - hasSlide: false
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): 
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - hasWebmSlide (final): false
+300-0f2aee54cd9c3555.js:1 DEBUG isValidSlideUrl - Input URL: 
+300-0f2aee54cd9c3555.js:1 DEBUG isValidSlideUrl - URL is null or undefined.
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - newsItem.id: 155
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - newsItem.url_slide: 
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - hasSlide: false
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): 
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - hasWebmSlide (final): false
+300-0f2aee54cd9c3555.js:1 DEBUG isValidSlideUrl - Input URL: null
+300-0f2aee54cd9c3555.js:1 DEBUG isValidSlideUrl - URL is null or undefined.
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - newsItem.id: 153
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - newsItem.url_slide: null
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - hasSlide: false
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - hasWebmSlide (final): false
+300-0f2aee54cd9c3555.js:1 DEBUG isValidSlideUrl - Input URL: null
+300-0f2aee54cd9c3555.js:1 DEBUG isValidSlideUrl - URL is null or undefined.
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - newsItem.id: 151
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - newsItem.url_slide: null
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - hasSlide: false
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - hasWebmSlide (final): false
+300-0f2aee54cd9c3555.js:1 DEBUG isValidSlideUrl - Input URL: null
+300-0f2aee54cd9c3555.js:1 DEBUG isValidSlideUrl - URL is null or undefined.
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - newsItem.id: 150
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - newsItem.url_slide: null
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - hasSlide: false
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - newsItem.url_slide && newsItem.url_slide.includes('.webm'): null
+page-1b9cf1c71ab83558.js:1 DEBUG NewsCard - hasWebmSlide (final): false
+www-widgetapi.js:194 Failed to execute 'postMessage' on 'DOMWindow': The target origin provided ('https://www.youtube.com') does not match the recipient window's origin ('https://saladillovivo-git-main-matias11972-saladillovivo.vercel.app').
+(anónimas) @ www-widgetapi.js:194
+Eb @ www-widgetapi.js:190
+(anónimas) @ www-widgetapi.js:189

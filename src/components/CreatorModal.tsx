@@ -1,16 +1,19 @@
-'use client';
-
 import React from 'react';
 
-const CreatorModal = ({ isOpen, onClose }) => {
+interface CreatorModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const CreatorModal: React.FC<CreatorModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={onClose}>
-      <div style={{ background: 'white', padding: '2rem', borderRadius: '8px', color: 'black' }} onClick={e => e.stopPropagation()}>
-        <h2 style={{ marginTop: 0 }}>Creador</h2>
-        <p>Contenido del modal del creador.</p>
-        <button onClick={onClose}>Cerrar</button>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-4 rounded-lg shadow-lg">
+        <h2 className="text-xl font-bold mb-4">Creator Modal</h2>
+        <p>This is a placeholder for the Creator Modal content.</p>
+        <button onClick={onClose} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded">Close</button>
       </div>
     </div>
   );

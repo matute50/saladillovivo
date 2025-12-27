@@ -1,128 +1,101 @@
-import React from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { Calendar, User, Tag } from 'lucide-react';
-import NoResultsCard from '@/components/layout/NoResultsCard';
-import Image from 'next/image';
+import { Article } from '@/lib/types';
+import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import React from 'react';
 
-// Define the shape of the article data
-interface Article {
-  id: number;
-  title: string;
-  text: string;
-  imageUrl: string;
-  featureStatus: string;
-  createdAt: string;
-  slug: string;
-  description: string;
-}
+// --- ARREGLO 1: IMPORTAR EL NUEVO CLIENTE ---
+import NoticiaClient from './NoticiaClient'; // Importamos el componente de cliente
 
-interface ContentPageProps {
-  params: {
-    slug: string;
-  };
-}
+// Definimos los props que Next.js le pasa a la página
+type Props = {
+  params: { slug: string };
+};
 
-// This function fetches the data for a single news item
-async function getNews(slug: string): Promise<Article | null> {
-  const { data, error } = await supabase
+// --- ARREGLO 2: GENERAR METADATA (SIN CAMBIOS) ---
+// Esta función se ejecuta en el servidor (sigue igual)
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = params;
+
+  const { data: article } = await supabase
     .from('articles')
-    .select('*')
+    .select('titulo, description, og_image_url') 
     .eq('slug', slug)
     .single();
 
-  if (error) {
-    console.error('Error fetching news:', error);
-    return null;
+  if (!article) {
+    return {
+      title: 'Noticia no encontrada',
+    };
   }
 
-  return data;
+  return {
+    title: article.titulo,
+    description: article.description,
+    openGraph: {
+      title: article.titulo,
+      description: article.description,
+      type: 'article',
+      images: [
+        {
+          url: article.og_image_url, 
+          width: 1200,
+          height: 628,
+          alt: article.titulo,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: article.titulo,
+      description: article.description,
+      images: [article.og_image_url],  
+    },
+  };
 }
+// --- FIN DEL ARREGLO 2 ---
 
-// The page component is now an async function
-const ContentPage = async ({ params }: ContentPageProps) => {
-  const newsItem = await getNews(params.slug);
 
-  if (!newsItem) {
-    notFound(); // Use Next.js 404 page
+// --- COMPONENTE DE PÁGINA (MODIFICADO) ---
+// Sigue siendo un 'async function' (Componente de Servidor)
+
+export const revalidate = 60; // 60 segundos
+
+export default async function NoticiaPage({ params }: Props) {
+  const { slug } = params;
+
+  // 1. Buscamos los datos de la noticia con campos específicos
+  const { data: rawArticle, error } = await supabase
+    .from('articles')
+    .select('id, titulo, contenido, description, slug, featureStatus, created_at, updatedAt, autor, categoria, image_url, audio_url')
+    .eq('slug', slug)
+    .single();
+
+  // Si hay un error o no hay artículo, mostramos 404
+  if (error || !rawArticle) {
+    notFound();
   }
 
-  const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return 'Fecha no disponible';
-    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-    try {
-      return new Date(dateString).toLocaleDateString('es-ES', options);
-    } catch (error) {
-      console.error("Error al formatear fecha:", dateString, error);
-      return 'Fecha inválida';
-    }
+  // 2. Mapeamos los datos crudos a nuestra interfaz Article
+  const article: Article = {
+    id: rawArticle.id,
+    titulo: rawArticle.titulo,
+    slug: rawArticle.slug,
+    description: rawArticle.description,
+    resumen: rawArticle.contenido ? rawArticle.contenido.substring(0, 150) + (rawArticle.contenido.length > 150 ? '...' : '') : '',
+    contenido: rawArticle.contenido || '',
+    fecha: rawArticle.created_at,
+    created_at: rawArticle.created_at,
+    updatedAt: rawArticle.updatedAt,
+    autor: rawArticle.autor,
+    categoria: rawArticle.categoria,
+    imageUrl: rawArticle.image_url || '',
+    featureStatus: rawArticle.featureStatus,
+    audio_url: rawArticle.audio_url,
   };
 
+  // 3. Renderizamos el COMPONENTE DE CLIENTE y le pasamos el objeto Article
   return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-6 md:p-8">
-        <article>
-            <header className="mb-6">
-              <h1 className="font-futura-bold text-3xl md:text-4xl lg:text-5xl mb-4 text-foreground leading-tight">
-                {newsItem.title}
-              </h1>
-              <div className="flex flex-wrap items-center text-sm text-muted-foreground gap-x-4 gap-y-2">
-                <div className="flex items-center">
-                  <Calendar size={14} className="mr-1.5" />
-                  <span>{formatDate(newsItem.createdAt)}</span>
-                </div>
-                <div className="flex items-center">
-                    <User size={14} className="mr-1.5" />
-                    <span>Equipo Editorial</span>
-                </div>
-                {newsItem.featureStatus && (
-                  <div className="flex items-center text-primary font-medium">
-                    <Tag size={14} className="mr-1.5" />
-                    <span>{newsItem.featureStatus}</span>
-                  </div>
-                )}
-              </div>
-            </header>
-
-            {newsItem.imageUrl && (
-                <div className="mb-6 rounded-lg overflow-hidden aspect-video bg-muted shadow-lg">
-                <Image 
-                    className="w-full h-full object-cover"
-                    alt={`Imagen de: ${newsItem.title}`}
-                    src={newsItem.imageUrl}
-                    width={1280}
-                    height={720}
-                    priority // Prioritize loading the main image
-                />
-                </div>
-            )}
-            
-            <div className="prose prose-base sm:prose-lg dark:prose-invert max-w-none text-foreground/90">
-              {newsItem.text.split('\n\n').map((parrafo, index) => (
-                <p key={index} className="mb-4 leading-relaxed">
-                  {parrafo}
-                </p>
-              ))}
-            </div>
-        </article>
-    </div>
+    <NoticiaClient article={article} />
   );
-};
-
-export default ContentPage;
-
-// Generate static paths for all news items at build time
-export async function generateStaticParams() {
-  const { data: articles, error } = await supabase.from('articles').select('slug');
-
-  if (error || !articles) {
-    console.error("Failed to fetch slugs for static generation", error);
-    return [];
-  }
-
-  // Filter for valid, non-empty string slugs and map them
-  return articles
-    .filter(article => article && typeof article.slug === 'string' && article.slug.trim() !== '')
-    .map(article => ({
-      slug: article.slug,
-    }));
 }
