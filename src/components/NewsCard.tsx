@@ -176,42 +176,46 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
     };
   
     const handlePlaySlide = (e: React.MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
+      e.stopPropagation(); // Evita abrir el modal de lectura
   
-      // Determine the slide type and construct SlideMedia object
-      let slideToPlay: SlideMedia | null = null;
+      // 1. DEFINIR QUÉ VAMOS A REPRODUCIR
+      let mediaData: SlideMedia | null = null;
   
-      if (isWebmVideoSlide || isMp4VideoSlide) {
-        // It's a video slide
-        slideToPlay = {
+      if (isWebmVideoSlide || isMp4VideoSlide) { // Check for actual video files first
+        // CASO A: Video Clásico
+        mediaData = {
           id: newsItem.id.toString(),
-          nombre: title,
-          url: newsItem.url_slide!, // Asserting because isWebmVideoSlide implies url_slide exists
-          createdAt: createdAt,
-          categoria: 'Slides',
-          imagen: imageUrl || '/placeholder.png',
-          novedad: false,
           type: 'video',
+          url: newsItem.url_slide!, // Use url_slide for videos
+          nombre: title,
+          createdAt: createdAt, // Add for consistency with SlideMedia
+          categoria: 'Slides', // Add for consistency with SlideMedia
+          imagen: imageUrl || '/placeholder.png', // Add for consistency with SlideMedia
+          novedad: false, // Add for consistency with SlideMedia
         };
       } else if (hasImageAudioForSlide) {
-        // It's an image + audio slide
-        slideToPlay = {
+        // CASO B: Slide Generado (NUEVO)
+        mediaData = {
           id: newsItem.id.toString(),
+          type: 'image', // Importante para que el Player sepa usar GSAP
+          url: "",       // Placeholder vacío para satisfacer la interfaz SlideMedia
+          imageSourceUrl: newsItem.image_url!,
+          audioSourceUrl: newsItem.audio_url!,
           nombre: title,
-          imageSourceUrl: newsItem.image_url!, // Asserting because hasImageAudioForSlide implies image_url exists
-          audioSourceUrl: newsItem.audio_url!, // Asserting because hasImageAudioForSlide implies audio_url exists
-          createdAt: createdAt,
-          categoria: 'Slides',
-          imagen: imageUrl || '/placeholder.png',
-          novedad: false,
-          type: 'image', // New type for image+audio slides
-          url: "", // Placeholder para satisfacer la interfaz SlideMedia
+          createdAt: createdAt, // Add for consistency with SlideMedia
+          categoria: 'Slides', // Add for consistency with SlideMedia
+          imagen: imageUrl || '/placeholder.png', // Add for consistency with SlideMedia
+          novedad: false, // Add for consistency with SlideMedia
+          duration: 15 // Opcional: Duración por defecto
         };
       }
   
-      if (slideToPlay) {
-        playTemporaryVideo(slideToPlay);
+      // 2. DISPARAR LA REPRODUCCIÓN
+      if (mediaData) {
+        console.log("▶ Reproduciendo Slide:", mediaData);
+        playTemporaryVideo(mediaData); // Usar la función correcta
+      } else {
+        console.warn("⚠ No hay datos reproducibles para esta noticia");
       }
     };
   
