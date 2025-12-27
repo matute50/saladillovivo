@@ -2,11 +2,14 @@
 import React, { useRef, useEffect, forwardRef, useImperativeHandle, useState, useCallback } from 'react';
 import ReactPlayer from 'react-player';
 import { motion, AnimatePresence } from 'framer-motion';
+import { gsap, Power2 } from 'gsap';
 import { useVolume } from '@/context/VolumeContext';
 
 // (Interfaces - sin cambios)
 interface VideoPlayerProps {
-  src: string;
+  src?: string; // Make src optional as it might not be present in image/audio mode
+  imageUrl?: string;
+  audioUrl?: string;
   playing: boolean;
   onReady?: () => void;
   onPlay?: () => void;
@@ -44,7 +47,6 @@ export interface VideoPlayerRef {
 const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
   (
     {
-      src,
       playing,
       onReady,
       onPlay,
@@ -55,10 +57,15 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       onDuration,
       seekToFraction,
       setSeekToFraction,
+      imageUrl,
+      audioUrl,
+      src,
     },
     ref
   ) => {
     const playerRef = useRef<ReactPlayer | null>(null);
+    const imgRef = useRef<HTMLImageElement | null>(null);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
     const [isYouTube, setIsYouTube] = useState(false);
     const [isWebmSlide, setIsWebmSlide] = useState(false);
     
@@ -139,6 +146,61 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         }
       }
     }, [isMuted, volume, isYouTube, isWebmSlide]);
+
+    // Ken Burns effect for image slides
+    useEffect(() => {
+      let tl: gsap.core.Timeline | undefined;
+      const imageElement = imgRef.current;
+      const audioElement = audioRef.current;
+
+      if (imageUrl && audioUrl && imageElement && audioElement && playing) {
+        // Stop any previous animation
+        if (tl) tl.kill();
+
+        // Ensure audio plays when in this mode and `playing` prop is true
+        // Mute state is handled by the audio element directly in JSX based on isWebmSlide
+        const playAudio = async () => {
+          try {
+            await audioElement.play();
+          } catch (error) {
+            console.warn('Audio playback prevented:', error);
+          }
+        };
+
+        playAudio();
+
+        // Get random start and end points for Ken Burns effect
+        const startScale = 1 + Math.random() * 0.1; // 1.0 to 1.1
+        const endScale = 1 + Math.random() * 0.1;   // 1.0 to 1.1
+        const startX = (Math.random() - 0.5) * 20;  // -10 to 10
+        const startY = (Math.random() - 0.5) * 20;  // -10 to 10
+        const endX = (Math.random() - 0.5) * 20;    // -10 to 10
+        const endY = (Math.random() - 0.5) * 20;    // -10 to 10
+
+        // Create GSAP timeline
+        tl = gsap.timeline({ repeat: -1, yoyo: true }); // Loop indefinitely, yoyo back and forth
+
+        tl.fromTo(imageElement,
+          { scale: startScale, x: startX, y: startY },
+          {
+            scale: endScale,
+            x: endX,
+            y: endY,
+            duration: 10 + Math.random() * 10, // Animation duration between 10-20 seconds
+            ease: Power2.easeInOut,
+          }
+        );
+      } else if (imageElement && !playing) {
+        if (tl) tl.kill();
+        gsap.set(imageElement, { scale: 1, x: 0, y: 0 }); // Reset image to original state
+        if (audioElement) audioElement.pause();
+      }
+
+      return () => {
+        if (tl) tl.kill();
+        if (audioElement) audioElement.pause();
+      };
+    }, [imageUrl, audioUrl, playing]);
 
 
     // --- SE BORRÓ EL useEffect DUPLICADO ---
@@ -235,47 +297,72 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         
         {/* (ReactPlayer - sin cambios) */}
         <div className="plyr-container" style={{ width: '100%', height: '100%' }}>
-          <ReactPlayer
-            origin={typeof window !== 'undefined' ? window.location.origin : ''}
-            ref={playerRef}
-            url={src}
-            width="100%"
-            height="100%"
-            playing={playing && !showIntro}
-            controls={false}
-            pip={true}
-            muted={isMuted}
-            config={{
-              file: {
-                attributes: {
-                  preload: 'auto',
-                  crossOrigin: 'anonymous',
-                  style: { objectFit: 'cover' }
+          {/* MODO A: VIDEO / YOUTUBE (Lógica existente intacta) */}
+          {src ? (
+            <ReactPlayer
+              origin={typeof window !== 'undefined' ? window.location.origin : ''}
+              ref={playerRef}
+              url={src}
+              width="100%"
+              height="100%"
+              playing={playing && !showIntro}
+              controls={false}
+              pip={true}
+              muted={isMuted} // Use current isMuted state for video mode
+              config={{
+                file: {
+                  attributes: {
+                    preload: 'auto',
+                    crossOrigin: 'anonymous',
+                    style: { objectFit: 'cover' }
+                  },
+                  forceVideo: true
                 },
-                forceVideo: true
-              },
-              youtube: {
-                playerVars: {
-                  autoplay: 1,
-                  showinfo: 0,
-                  rel: 0,
-                  iv_load_policy: 3,
-                  modestbranding: 1,
-                  controls: 0,
-                  disablekb: 1,
-                  playsinline: 1,
-                  origin: typeof window !== 'undefined' ? window.location.origin : '',
-                },
-              }
-            }}
-            onReady={onReady}
-            onPlay={onPlay}
-            onPause={handlePlayerPause}
-            onEnded={onEnded}
-            onError={onError}
-            onProgress={onProgress}
-            onDuration={onDuration}
-          />
+                youtube: {
+                  playerVars: {
+                    autoplay: 1,
+                    showinfo: 0,
+                    rel: 0,
+                    iv_load_policy: 3,
+                    modestbranding: 1,
+                    controls: 0,
+                    disablekb: 1,
+                    playsinline: 1,
+                    origin: typeof window !== 'undefined' ? window.location.origin : '',
+                  },
+                }
+              }}
+              onReady={onReady}
+              onPlay={onPlay}
+              onPause={handlePlayerPause}
+              onEnded={onEnded}
+              onError={onError}
+              onProgress={onProgress}
+              onDuration={onDuration}
+            />
+          ) : (
+            {/* MODO B: GENERADO POR CLIENTE (Nueva Lógica) */}
+            (imageUrl && audioUrl) && (
+              <div className="absolute inset-0 overflow-hidden bg-black">
+                {/* Imagen Animada */}
+                <img
+                  ref={imgRef}
+                  src={imageUrl}
+                  className="w-full h-full object-cover"
+                  alt="News Slide"
+                />
+                {/* Audio Sincronizado */}
+                <audio
+                  ref={audioRef}
+                  src={audioUrl}
+                  onEnded={onEnded} // Reutilizamos la función de fin de video existente
+                  autoPlay={playing} // Auto-play if 'playing' prop is true
+                  muted={isWebmSlide ? false : isMuted} // Apply mute logic (webm always unmuted)
+                  loop={false} // Slides should not loop by default
+                />
+              </div>
+            )
+          )}
         </div>
         <div className="absolute inset-0 z-10"></div>
       </div>
