@@ -342,7 +342,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             />
           ) : (
             {/* MODO B: GENERADO POR CLIENTE (Nueva Lógica) */}
-            (imageUrl && audioUrl) && (
+            {imageUrl && audioUrl ? (
               <div className="absolute inset-0 overflow-hidden bg-black">
                 {/* Imagen Animada */}
                 <img
@@ -361,7 +361,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
                   loop={false} // Slides should not loop by default
                 />
               </div>
-            )
+            ) : null}
           )}
         </div>
         <div className="absolute inset-0 z-10"></div>
