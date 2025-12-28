@@ -156,16 +156,9 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
   
       const hasAnySlideUrl = !!newsItem.url_slide;
       const isWebmVideoSlide = hasAnySlideUrl && newsItem.url_slide.endsWith('.webm');
-      const isMp4VideoSlide = hasAnySlideUrl && newsItem.url_slide.endsWith('.mp4'); // Consider MP4 as video slide
+      const isMp4VideoSlide = hasAnySlideUrl && newsItem.url_slide.endsWith('.mp4');
+      const isJsonSlide = hasAnySlideUrl && newsItem.url_slide.endsWith('.json');
       const hasImageAudioForSlide = !!newsItem.image_url && !!newsItem.audio_url;
-  
-      // console.log('DEBUG NewsCard - newsItem.id:', newsItem.id);
-      // console.log('DEBUG NewsCard - newsItem.url_slide:', newsItem.url_slide);
-      // console.log('DEBUG NewsCard - hasAnySlideUrl:', hasAnySlideUrl);
-      // console.log('DEBUG NewsCard - isWebmVideoSlide:', isWebmVideoSlide);
-      // console.log('DEBUG NewsCard - isMp4VideoSlide:', isMp4VideoSlide);
-      // console.log('DEBUG NewsCard - hasImageAudioForSlide:', hasImageAudioForSlide);
-      // console.log('DEBUG NewsCard - hasWebmSlide (final):', hasWebmSlide); // Keep this for clarity if needed.
   
     const handleImageClick = (e: React.MouseEvent) => {
       if (onCardClick) {
@@ -178,42 +171,49 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
     const handlePlaySlide = (e: React.MouseEvent) => {
       e.stopPropagation(); // Evita abrir el modal de lectura
   
-      // 1. DEFINIR QUÉ VAMOS A REPRODUCIR
       let mediaData: SlideMedia | null = null;
   
-      if (isWebmVideoSlide || isMp4VideoSlide) { // Check for actual video files first
-        // CASO A: Video Clásico
+      if (isWebmVideoSlide || isMp4VideoSlide) {
         mediaData = {
           id: newsItem.id.toString(),
           type: 'video',
-          url: newsItem.url_slide!, // Use url_slide for videos
+          url: newsItem.url_slide!,
           nombre: title,
-          createdAt: createdAt, // Add for consistency with SlideMedia
-          categoria: 'Slides', // Add for consistency with SlideMedia
-          imagen: imageUrl || '/placeholder.png', // Add for consistency with SlideMedia
-          novedad: false, // Add for consistency with SlideMedia
+          createdAt: createdAt,
+          categoria: 'Slides',
+          imagen: imageUrl || '/placeholder.png',
+          novedad: false,
         };
-      } else if (hasImageAudioForSlide) {
-        // CASO B: Slide Generado (NUEVO)
+      } else if (isJsonSlide) {
         mediaData = {
           id: newsItem.id.toString(),
-          type: 'image', // Importante para que el Player sepa usar GSAP
-          url: "",       // Placeholder vacío para satisfacer la interfaz SlideMedia
+          type: 'video', // Placeholder type
+          url: newsItem.url_slide!, // Pass the JSON URL to the player
+          nombre: title,
+          createdAt: createdAt,
+          categoria: 'Slides',
+          imagen: imageUrl || '/placeholder.png',
+          novedad: false,
+        };
+      } else if (hasImageAudioForSlide) {
+        mediaData = {
+          id: newsItem.id.toString(),
+          type: 'image',
+          url: "",
           imageSourceUrl: newsItem.image_url!,
           audioSourceUrl: newsItem.audio_url!,
           nombre: title,
-          createdAt: createdAt, // Add for consistency with SlideMedia
-          categoria: 'Slides', // Add for consistency with SlideMedia
-          imagen: imageUrl || '/placeholder.png', // Add for consistency with SlideMedia
-          novedad: false, // Add for consistency with SlideMedia
-          duration: 15 // Opcional: Duración por defecto
+          createdAt: createdAt,
+          categoria: 'Slides',
+          imagen: imageUrl || '/placeholder.png',
+          novedad: false,
+          duration: 15
         };
       }
   
-      // 2. DISPARAR LA REPRODUCCIÓN
       if (mediaData) {
         console.log("▶ Reproduciendo Slide:", mediaData);
-        playTemporaryVideo(mediaData); // Usar la función correcta
+        playTemporaryVideo(mediaData);
       } else {
         console.warn("⚠ No hay datos reproducibles para esta noticia");
       }

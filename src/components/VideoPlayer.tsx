@@ -1,18 +1,22 @@
 "use client";
 import React, { useRef, useEffect, forwardRef, useState } from 'react';
-import ReactPlayer from 'react-player';
+import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
 import { gsap, Power2 } from 'gsap';
 import { useVolume } from '@/context/VolumeContext';
 
-// 1. INTERFAZ DE PROPS
+// Importación dinámica sin SSR
+const ReactPlayer = dynamic(() => import('react-player'), { 
+  ssr: false,
+  loading: () => <div className="w-full h-full bg-black flex items-center justify-center"></div>
+});
+
 export interface VideoPlayerProps {
-  videoUrl?: string | null; // URL del video (YouTube / MP4)
-  imageUrl?: string | null; // URL de la imagen (Slide Generado)
-  audioUrl?: string | null; // URL del audio (Slide Generado)
-  onClose: () => void;      // Callback al terminar
-  autoplay?: boolean;       // Control de autostart
-  duration?: number;        // Duración opcional
+  videoUrl?: string | null;
+  imageUrl?: string | null;
+  audioUrl?: string | null;
+  onClose: () => void;
+  autoplay?: boolean;
 }
 
 const VideoPlayer = forwardRef<any, VideoPlayerProps>(
@@ -25,235 +29,252 @@ const VideoPlayer = forwardRef<any, VideoPlayerProps>(
       autoplay = true,
     }
   ) => {
-    const playerRef = useRef<ReactPlayer | null>(null);
+    // Refs
+    const playerRef = useRef<any>(null);
     const imgRef = useRef<HTMLImageElement | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     
     // Estados internos
+    const [finalVideoUrl, setFinalVideoUrl] = useState<string | null>(null);
+    const [finalImageUrl, setFinalImageUrl] = useState<string | null>(imageUrl || null);
+    const [finalAudioUrl, setFinalAudioUrl] = useState<string | null>(audioUrl || null);
+    const [isLoadingJson, setIsLoadingJson] = useState(false);
+
+    // Estados lógicos
     const [isYouTube, setIsYouTube] = useState(false);
     const [isWebmSlide, setIsWebmSlide] = useState(false);
-    
-    // Contexto de Volumen Global
-    const { isMuted, volume } = useVolume();
+    const [hasMounted, setHasMounted] = useState(false);
 
-    // Estados para Intro (Videos aleatorios)
+    // Contexto de Volumen
+    const { volume } = useVolume(); 
+
+    // Intro
     const [introVideo, setIntroVideo] = useState('');
     const [showIntro, setShowIntro] = useState(false);
     const introVideos = React.useMemo(() => ['/azul.mp4', '/cuadros.mp4', '/cuadros2.mp4', '/lineal.mp4', '/RUIDO.mp4'], []);
 
-    // 1. DETECCIÓN DE TIPO DE VIDEO E INTRO
+    // 1. MONTAJE
     useEffect(() => {
-      // Validamos que videoUrl sea un string seguro
-      const safeUrl = videoUrl || "";
+      setHasMounted(true);
+    }, []);
+
+    // 2. PARSER DE FUENTES (JSON)
+    useEffect(() => {
+      const resolveMediaSource = async () => {
+        setFinalVideoUrl(null);
+        setFinalImageUrl(imageUrl || null);
+        setFinalAudioUrl(audioUrl || null);
+
+        if (!videoUrl) return;
+
+        if (videoUrl.toLowerCase().endsWith('.json')) {
+          console.log("📄 Interpretando slide JSON...", videoUrl);
+          setIsLoadingJson(true);
+          try {
+            const res = await fetch(videoUrl);
+            if (!res.ok) throw new Error("Error fetching JSON");
+            const data = await res.json();
+            
+            setFinalImageUrl(data.image_url || data.imageUrl || data.imagen);
+            setFinalAudioUrl(data.audio_url || data.audioUrl || data.audio);
+            setFinalVideoUrl(null); 
+          } catch (error) {
+            console.error("❌ Error en JSON:", error);
+            onClose();
+          } finally {
+            setIsLoadingJson(false);
+          }
+        } else {
+          setFinalVideoUrl(videoUrl);
+          setFinalImageUrl(null);
+        }
+      };
+      resolveMediaSource();
+    }, [videoUrl, imageUrl, audioUrl]); 
+
+    // 3. DETECCIÓN DE TIPO
+    useEffect(() => {
+      const safeUrl = finalVideoUrl || "";
       const isYt = !!(safeUrl && (safeUrl.includes('youtube.com') || safeUrl.includes('youtu.be')));
       setIsYouTube(isYt);
       
       const isWebm = !!(safeUrl && safeUrl.endsWith('.webm'));
       setIsWebmSlide(isWebm);
 
-      // Solo mostramos intro si es YouTube y estamos en el cliente
-      if (typeof window !== 'undefined' && isYt) {
+      if (hasMounted && isYt && !isLoadingJson) {
         const randomIntro = introVideos[Math.floor(Math.random() * introVideos.length)];
         setIntroVideo(randomIntro);
         setShowIntro(true);
-
-        const timer = setTimeout(() => {
-          setShowIntro(false);
-        }, 4000);
-
+        const timer = setTimeout(() => setShowIntro(false), 4000);
         return () => clearTimeout(timer);
       } else {
         setShowIntro(false);
       }
-    }, [videoUrl, introVideos]);
+    }, [finalVideoUrl, introVideos, hasMounted, isLoadingJson]);
 
-    // 2. GESTIÓN DE VOLUMEN (Sincronización Player <-> Contexto)
+    // 4. CONTROL DE VOLUMEN FORZADO
     useEffect(() => {
+      if (!hasMounted) return;
+      
+      const isMuted = volume === 0;
+      const activeVolume = volume;
+
       if (playerRef.current) {
-        const internalPlayer = playerRef.current.getInternalPlayer() as any;
-        
+        const internalPlayer = playerRef.current.getInternalPlayer ? playerRef.current.getInternalPlayer() : null;
         if (internalPlayer) {
-          // Lógica para videos WebM (Slides antiguos)
-          if (isWebmSlide) {
-             if (isYouTube) { 
-               internalPlayer.unMute?.();
-               if (typeof internalPlayer.setVolume === 'function') {
-                 internalPlayer.setVolume(volume * 100);
-               }
-             } else { 
-               internalPlayer.muted = false;
-               internalPlayer.volume = volume;
-             }
-          } else { 
-            // Lógica estándar (YouTube o MP4 normal)
-            if (isMuted) {
-              if (isYouTube) {
+          try {
+            if (isYouTube) {
+              if (isMuted) {
                 internalPlayer.mute?.();
               } else {
-                internalPlayer.muted = true;
-              }
-            } else {
-              if (isYouTube) {
                 internalPlayer.unMute?.();
-                if (typeof internalPlayer.setVolume === 'function') {
-                  internalPlayer.setVolume(volume * 100);
-                }
-              } else {
-                internalPlayer.muted = false;
-                internalPlayer.volume = volume;
               }
+              internalPlayer.setVolume?.(activeVolume * 100);
+            } else {
+               internalPlayer.muted = isMuted;
+               internalPlayer.volume = activeVolume;
             }
-          }
+          } catch(e) {}
         }
       }
       
-      // Control de volumen para el elemento <audio> nativo (Slides Generados)
       if (audioRef.current) {
-          audioRef.current.volume = volume;
           audioRef.current.muted = isMuted;
+          audioRef.current.volume = activeVolume;
       }
-      
-    }, [isMuted, volume, isYouTube, isWebmSlide]);
+    }, [volume, isYouTube, hasMounted, finalVideoUrl]); 
 
-    // 3. EFECTO KEN BURNS (GSAP) PARA SLIDES GENERADOS
+    // 5. ANIMACIÓN GSAP
     useEffect(() => {
+      if (!hasMounted || isLoadingJson) return;
       let tl: gsap.core.Timeline | undefined;
-      const imageElement = imgRef.current;
-      const audioElement = audioRef.current;
 
-      // Solo activar si NO hay videoUrl y SÍ hay imagen+audio
-      if (!videoUrl && imageUrl && audioUrl && imageElement && audioElement && autoplay) {
-        
-        // Limpiar animaciones previas
+      if (!finalVideoUrl && finalImageUrl && finalAudioUrl && imgRef.current && audioRef.current && autoplay) {
         if (tl) tl.kill();
 
         const playAudio = async () => {
           try {
-            audioElement.volume = volume;
-            audioElement.muted = isMuted;
-            await audioElement.play();
+            if (audioRef.current) {
+                const isMuted = volume === 0;
+                audioRef.current.muted = isMuted;
+                audioRef.current.volume = volume;
+                await audioRef.current.play();
+            }
           } catch (error) {
-            console.warn('Audio playback auto-prevented:', error);
+            console.warn('Audio play warning:', error);
           }
         };
         playAudio();
 
-        // Configurar escalas y movimiento aleatorio
         const startScale = 1 + Math.random() * 0.1; 
         const endScale = 1 + Math.random() * 0.1;   
         const startX = (Math.random() - 0.5) * 20;  
-        const startY = (Math.random() - 0.5) * 20;  
         const endX = (Math.random() - 0.5) * 20;    
-        const endY = (Math.random() - 0.5) * 20;    
 
-        // Crear Timeline
         tl = gsap.timeline({ repeat: -1, yoyo: true });
-
-        tl.fromTo(imageElement,
-          { scale: startScale, x: startX, y: startY },
-          {
-            scale: endScale,
-            x: endX,
-            y: endY,
-            duration: 15 + Math.random() * 5, 
-            ease: Power2.easeInOut,
-          }
+        tl.fromTo(imgRef.current,
+          { scale: startScale, x: startX },
+          { scale: endScale, x: endX, duration: 15, ease: Power2.easeInOut }
         );
-      } else if (imageElement && !autoplay) {
-        if (tl) tl.kill();
-        gsap.set(imageElement, { scale: 1, x: 0, y: 0 });
-        if (audioElement) audioElement.pause();
-      }
+      } 
+      return () => { if (tl) tl.kill(); };
+    }, [finalImageUrl, finalAudioUrl, finalVideoUrl, autoplay, hasMounted, isLoadingJson, volume]); 
 
-      return () => {
-        if (tl) tl.kill();
-        if (audioElement) audioElement.pause();
-      };
-    }, [imageUrl, audioUrl, autoplay, videoUrl, volume, isMuted]); 
+    if (!hasMounted) return null;
+    if (isLoadingJson) return <div className="w-full h-full bg-black" />;
 
+    const initialVolume = volume > 0 ? volume : 1.0;
 
     return (
-      <>
-        <div className="relative w-full h-full">
-          {/* --- CAPA DE INTRODUCCIÓN --- */}
-          <AnimatePresence>
-            {showIntro && (
-              <motion.video
-                key="intro-video"
-                className="absolute inset-0 w-full h-full object-cover z-20"
-                src={introVideo}
-                autoPlay
-                muted
-                playsInline
-                initial={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.8, delay: 3.2 }}
-              />
-            )}
-          </AnimatePresence>
-          
-          <div className="plyr-container" style={{ width: '100%', height: '100%' }}>
-            
-            {/* --- MODO A: REPRODUCTOR DE VIDEO (YouTube / MP4) --- */}
-            {videoUrl && typeof videoUrl === 'string' && videoUrl.trim() !== '' ? (
-              <div className='player-wrapper relative w-full h-full bg-black'>
-                <ReactPlayer
-                  // [CRÍTICO] KEY: Fuerza remontaje si cambia el video, evitando loops de error
-                  key={videoUrl} 
-                  
-                  ref={playerRef}
-                  className='react-player'
-                  url={videoUrl} // Pasamos videoUrl
-                  
-                  width='100%'
-                  height='100%'
-                  playing={autoplay && !showIntro}
-                  controls={true}
-                  
-                  // Callbacks de seguridad
-                  onReady={() => console.log("✅ Video Ready:", videoUrl)}
-                  onEnded={onClose}
-                  onError={(e) => console.error("❌ Error Player (Ignorado):", e)}
-                  
-                  config={{
-                    youtube: {
-                      playerVars: { 
-                        showinfo: 0,
-                        modestbranding: 1,
-                        origin: typeof window !== 'undefined' ? window.location.origin : undefined
-                      }
+      <div className="relative w-full h-full bg-black overflow-hidden">
+        {/* INTRO YOUTUBE */}
+        <AnimatePresence>
+          {showIntro && (
+            <motion.video
+              key="intro-video"
+              className="absolute inset-0 w-full h-full object-cover z-20 pointer-events-none"
+              src={introVideo}
+              autoPlay
+              muted={true}
+              playsInline
+              initial={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.8, delay: 3.2 }}
+            />
+          )}
+        </AnimatePresence>
+        
+        <div className="w-full h-full">
+          {finalVideoUrl && typeof finalVideoUrl === 'string' ? (
+            /* --- MODO VIDEO (LIMPIO) --- */
+            // pointer-events-none en el wrapper evita clics en el video (pausa/menu contextual)
+            // pero permite ver el video. Los controles propios deben estar en una capa superior (z-index mayor).
+            <div className='player-wrapper relative w-full h-full pointer-events-none'>
+              <ReactPlayer
+                key={finalVideoUrl}
+                ref={playerRef}
+                className='react-player'
+                url={finalVideoUrl}
+                width='100%'
+                height='100%'
+                
+                // AUTOPLAY FORZADO Y CONTROLES APAGADOS
+                playing={autoplay && !showIntro}
+                controls={false} // <--- APAGA CONTROLES NATIVOS
+                
+                muted={true}
+                volume={initialVolume}
+                
+                onEnded={onClose}
+                onError={(e: any) => console.error("Player Error:", e)}
+                
+                config={{
+                  youtube: {
+                    playerVars: { 
+                      autoplay: 1,
+                      controls: 0,       // Refuerzo: Apagar controles
+                      disablekb: 1,      // Apagar teclado
+                      fs: 0,             // Apagar botón fullscreen
+                      modestbranding: 1, // Minimizar logo
+                      rel: 0,
+                      showinfo: 0,
+                      iv_load_policy: 3, // Sin anotaciones
+                      origin: window.location.origin,
                     }
-                  }}
+                  },
+                  file: {
+                    attributes: {
+                      style: { objectFit: 'cover', width: '100%', height: '100%' },
+                      autoPlay: true,
+                      muted: true
+                    }
+                  }
+                }}
+              />
+            </div>
+          ) : (
+            /* --- MODO SLIDE --- */
+            finalImageUrl && finalAudioUrl ? (
+              <div className="absolute inset-0 overflow-hidden bg-black pointer-events-none">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  ref={imgRef}
+                  src={finalImageUrl}
+                  className="w-full h-full object-cover"
+                  alt="Slide"
+                />
+                <audio
+                  ref={audioRef}
+                  src={finalAudioUrl}
+                  onEnded={onClose}
+                  autoPlay={autoplay}
+                  muted={true}
                 />
               </div>
-            ) : (
-              /* --- MODO B: SLIDE GENERADO (Imagen + Audio) --- */
-              imageUrl && audioUrl ? (
-                <div className="absolute inset-0 overflow-hidden bg-black">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    ref={imgRef}
-                    src={imageUrl}
-                    className="w-full h-full object-cover"
-                    alt="News Slide"
-                  />
-                  <audio
-                    ref={audioRef}
-                    src={audioUrl}
-                    onEnded={onClose}
-                    autoPlay={autoplay}
-                    // El mute se controla via useEffect, pero dejamos esto por seguridad inicial
-                    muted={isMuted} 
-                  />
-                </div>
-              ) : null
-            )}
-          </div>
-          
-          {/* Overlay opcional z-10 */}
-          <div className="absolute inset-0 z-10 pointer-events-none"></div>
+            ) : null
+          )}
         </div>
-      </>
+      </div>
     );
   } 
 );

@@ -24,7 +24,7 @@ export const useVolume = () => {
 };
 
 export const VolumeProvider = ({ children }: { children: React.ReactNode }) => {
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
   
   // 'useFader' ya no devuelve 'ramp' ni 'cancelRamp'
   const { volume, setVolume: setFaderVolume } = useFader(0); 
