@@ -194,38 +194,47 @@ const VideoPlayer = forwardRef<any, VideoPlayerProps>(
           
           <div className="plyr-container" style={{ width: '100%', height: '100%' }}>
             
-            {/* --- MODO A: REPRODUCTOR DE VIDEO (YouTube / MP4) --- */}
+            {/* --- MODO A: REPRODUCTOR DE VIDEO (YouTube / MP4 / HTML) --- */}
             {videoUrl && typeof videoUrl === 'string' && videoUrl.trim() !== '' ? (
-              <div className='player-wrapper relative w-full h-full bg-black'>
-                <ReactPlayer
-                  // [CRÍTICO] KEY: Fuerza remontaje si cambia el video, evitando loops de error
-                  key={videoUrl} 
-                  
-                  ref={playerRef}
-                  className='react-player'
-                  url={videoUrl} // Pasamos videoUrl
-                  
-                  width='100%'
-                  height='100%'
-                  playing={autoplay && !showIntro}
-                  controls={true}
-                  
-                  // Callbacks de seguridad
-                  onReady={() => console.log("✅ Video Ready:", videoUrl)}
-                  onEnded={onClose}
-                  onError={(e) => console.error("❌ Error Player (Ignorado):", e)}
-                  
-                  config={{
-                    youtube: {
-                      playerVars: { 
-                        showinfo: 0,
-                        modestbranding: 1,
-                        origin: typeof window !== 'undefined' ? window.location.origin : undefined
-                      }
-                    }
-                  }}
+              videoUrl.endsWith('.html') ? (
+                <iframe
+                  src={videoUrl}
+                  className="w-full h-full"
+                  title="HTML Slide"
+                  allow="autoplay"
                 />
-              </div>
+              ) : (
+                <div className='player-wrapper relative w-full h-full bg-black'>
+                  <ReactPlayer
+                    // [CRÍTICO] KEY: Fuerza remontaje si cambia el video, evitando loops de error
+                    key={videoUrl}
+                    
+                    ref={playerRef}
+                    className='react-player'
+                    url={videoUrl} // Pasamos videoUrl
+                    
+                    width='100%'
+                    height='100%'
+                    playing={autoplay && !showIntro}
+                    controls={true}
+                    
+                    // Callbacks de seguridad
+                    onReady={() => console.log("✅ Video Ready:", videoUrl)}
+                    onEnded={onClose}
+                    onError={(e) => console.error("❌ Error Player (Ignorado):", e)}
+                    
+                    config={{
+                      youtube: {
+                        playerVars: { 
+                          showinfo: 0,
+                          modestbranding: 1,
+                          origin: typeof window !== 'undefined' ? window.location.origin : undefined
+                        }
+                      }
+                    }}
+                  />
+                </div>
+              )
             ) : (
               /* --- MODO B: SLIDE GENERADO (Imagen + Audio) --- */
               imageUrl && audioUrl ? (

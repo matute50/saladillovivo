@@ -128,7 +128,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
           <VideoPlayer
             key={currentVideo.id || currentVideo.url} // El 'key' es crucial
             videoUrl={currentVideo.url}
-            autoplay={isPlaying}
+            autoplay={true}
             onClose={handleOnEnded}
           />
         )}

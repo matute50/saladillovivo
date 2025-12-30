@@ -180,6 +180,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
   
       // 1. DEFINIR QUÉ VAMOS A REPRODUCIR
       let mediaData: SlideMedia | null = null;
+      const isHtmlSlide = hasAnySlideUrl && newsItem.url_slide.endsWith('.html');
   
       if (isWebmVideoSlide || isMp4VideoSlide) { // Check for actual video files first
         // CASO A: Video Clásico
@@ -192,6 +193,18 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
           categoria: 'Slides', // Add for consistency with SlideMedia
           imagen: imageUrl || '/placeholder.png', // Add for consistency with SlideMedia
           novedad: false, // Add for consistency with SlideMedia
+        };
+      } else if (isHtmlSlide) {
+        // CASO C: Slide HTML
+        mediaData = {
+            id: newsItem.id.toString(),
+            type: 'video', // 'video' type will be handled by VideoPlayer to render an iframe
+            url: newsItem.url_slide!,
+            nombre: title,
+            createdAt: createdAt,
+            categoria: 'Slides',
+            imagen: imageUrl || '/placeholder.png',
+            novedad: false,
         };
       } else if (hasImageAudioForSlide) {
         // CASO B: Slide Generado (NUEVO)
