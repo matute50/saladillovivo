@@ -4,6 +4,7 @@ import React from "react";
 import { NewsProvider } from "@/context/NewsContext";
 import { MediaPlayerProvider } from "@/context/MediaPlayerContext";
 import { VolumeProvider } from "@/context/VolumeContext";
+import { NewsPlayerProvider } from "@/context/NewsPlayerContext"; // <--- NUEVO
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useMediaPlayer } from "@/context/MediaPlayerContext";
@@ -30,7 +31,10 @@ export default function ClientLayoutWrapper({ children }: ClientLayoutWrapperPro
     <NewsProvider>
       <VolumeProvider>
         <MediaPlayerProvider>
-          <ClientContent>{children}</ClientContent>
+          {/* Agregamos el proveedor de Slides aquí */}
+          <NewsPlayerProvider>
+            <ClientContent>{children}</ClientContent>
+          </NewsPlayerProvider>
         </MediaPlayerProvider>
       </VolumeProvider>
     </NewsProvider>
