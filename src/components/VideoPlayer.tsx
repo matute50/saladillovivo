@@ -38,8 +38,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     const { volume: globalVolume } = useVolume(); 
     const { activeSlide } = useNewsPlayer(); 
     
-    // Conectamos con el cerebro del reproductor para la precarga y el autoplay
-    const { handleOnProgress, handleOnEnded } = useMediaPlayer();
+    // Importamos togglePlayPause para permitir pausar al hacer clic en la pantalla
+    const { handleOnProgress, handleOnEnded, togglePlayPause } = useMediaPlayer();
 
     const [introVideo, setIntroVideo] = useState('');
     const [showIntro, setShowIntro] = useState(false);
@@ -49,7 +49,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     useEffect(() => { setIsMounted(true); }, []);
 
     // --- 2. Lógica de Interrupción (Slides / Noticias) ---
-    // Cuando entra una noticia (activeSlide), pausamos el video de fondo y guardamos el segundo exacto.
     useEffect(() => {
       if (activeSlide) {
         if (playerRef.current) {
@@ -62,7 +61,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         }
         setIsPlayingMain(false); 
       } else {
-        // Al terminar la noticia, reanudamos el video principal desde donde quedó.
         setIsPlayingMain(true);
         if (playerRef.current && resumeTimeRef.current > 0) {
           setTimeout(() => {
@@ -97,7 +95,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
               allow="autoplay"
               title="News Slide"
             />
-            {/* El botón de cierre se eliminó intencionalmente para forzar la vista completa */}
         </div>
     ) : null;
 
@@ -105,7 +102,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     return (
       <div className="relative w-full h-full bg-black overflow-hidden group">
-        <div className="w-full h-full absolute inset-0 z-0">
+        
+        {/* CAPA DE VIDEO (FONDO)
+            Aplicamos 'pointer-events-none' para que el mouse "atraviese" el video.
+            Así, YouTube nunca detecta el hover y nunca muestra sus títulos ni botones.
+        */}
+        <div className="w-full h-full absolute inset-0 z-0 pointer-events-none">
             <ReactPlayer
               ref={playerRef}
               url={urlToPlay}
@@ -116,19 +118,31 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
               volume={effectiveVolume}
               muted={effectiveVolume === 0}
               
-              // Eventos CLAVE para la continuidad y precarga
               onProgress={handleOnProgress}
               onEnded={onClose || handleOnEnded} 
               
               config={{
                 youtube: {
                   playerVars: { 
-                    autoplay: 1, controls: 0, modestbranding: 1, rel: 0, showinfo: 0, iv_load_policy: 3
+                    // Ocultamos controles explícitamente, aunque el pointer-events-none hace el trabajo pesado
+                    autoplay: 1, controls: 0, modestbranding: 1, rel: 0, showinfo: 0, iv_load_policy: 3, disablekb: 1
                   }
                 }
               }}
             />
         </div>
+
+        {/* CAPA DE CONTROL TRANSPARENTE (INTERACCIÓN BÁSICA)
+            Esta capa invisible captura los clics para Pausar/Reproducir,
+            ya que desactivamos los clics directos sobre YouTube.
+        */}
+        {!activeSlide && (
+          <div 
+            className="absolute inset-0 z-10 cursor-pointer" 
+            onClick={togglePlayPause}
+            title="Click para Pausar/Reproducir"
+          />
+        )}
 
         <AnimatePresence>
           {showIntro && !activeSlide && (
