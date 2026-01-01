@@ -7,7 +7,7 @@ import { Play } from 'lucide-react';
 import { Article, SlideMedia } from '@/lib/types';
 import { format } from 'date-fns';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
-import { useNewsPlayer } from '@/context/NewsPlayerContext'; //
+import { useNewsPlayer } from '@/context/NewsPlayerContext';
 
 interface NewsCardProps {
   newsItem: any;
@@ -19,7 +19,6 @@ interface NewsCardProps {
 
 const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = '', onCardClick, isFeatured = false }) => {
   const { playTemporaryVideo } = useMediaPlayer();
-  // Incorporamos NewsPlayer para manejar los .html correctamente
   const { playSlide } = useNewsPlayer(); 
 
   if (!newsItem) return null;
@@ -56,14 +55,11 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
     // CASO A: Slide HTML (Requiere Iframe del NewsPlayer)
     if (isHtmlSlide) {
         console.log("▶ Reproduciendo Slide HTML en Overlay:", title);
-        // Enviamos el slide al contexto que maneja iframes
+        
         if (playSlide) {
+            // CORRECCIÓN: Solo pasamos 'url' para cumplir con el tipo SlideData estricto
             playSlide({
-                url: urlSlide,
-                title: title,
-                // Pasamos datos extra por si el player los necesita
-                image_url: imageUrl,
-                audio_url: audioUrl
+                url: urlSlide
             });
         } else {
             console.error("NewsPlayer no disponible para reproducir HTML");
@@ -123,9 +119,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
       {/* CONTENEDOR BASE */}
       <div className="relative w-full h-full aspect-video overflow-hidden bg-black">
         
-        {/* CAPA 1: FONDO INTERACTIVO (Abre la noticia) 
-            Z-index: 10
-        */}
+        {/* CAPA 1: FONDO INTERACTIVO (Abre la noticia) */}
         <div 
           className="absolute inset-0 z-10 cursor-pointer"
           onClick={handleOpenNews}
@@ -142,7 +136,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
             {/* Degradado para texto */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-90" />
 
-            {/* FECHA: Arriba Izquierda */}
+            {/* FECHA */}
             {createdAt && (
               <div className="absolute top-3 left-3">
                 <span className="bg-black/60 backdrop-blur-md text-white text-[9px] md:text-[11px] font-medium px-2 py-1 rounded border border-white/10 shadow-sm">
@@ -151,7 +145,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
               </div>
             )}
 
-            {/* TÍTULO: Abajo, dentro de imagen */}
+            {/* TÍTULO */}
             <div className="absolute bottom-0 left-0 w-full p-4">
                 <h3 className={`font-bold ${titleSizeClass} text-white leading-tight drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] group-hover:text-blue-200 transition-colors line-clamp-3`}>
                   {title}
@@ -159,9 +153,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
             </div>
         </div>
 
-        {/* CAPA 2: BOTÓN PLAY (Z-index: 30)
-            Captura su propio clic sin interferir con el fondo
-        */}
+        {/* CAPA 2: BOTÓN PLAY */}
         {isPlayable && (
           <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
             <motion.button
