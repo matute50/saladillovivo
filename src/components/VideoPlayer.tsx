@@ -10,12 +10,21 @@ const ReactPlayer = dynamic(() => import('react-player'), {
   loading: () => <div className="w-full h-full bg-black flex items-center justify-center"></div>
 });
 
+// Interfaz flexible para evitar errores de TypeScript en otros componentes
 export interface VideoPlayerProps {
-  mainVideoUrl: string;
+  mainVideoUrl?: string | null; // Nuevo estándar
+  videoUrl?: string | null;     // Viejo estándar (compatibilidad)
+  imageUrl?: string | null;     // Legacy (se ignora pero se permite)
+  audioUrl?: string | null;     // Legacy (se ignora pero se permite)
   onClose?: () => void;
+  autoplay?: boolean;           // Legacy (se ignora)
 }
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ mainVideoUrl }) => {
+const VideoPlayer: React.FC<VideoPlayerProps> = ({ 
+  mainVideoUrl, 
+  videoUrl 
+  // No desestructuramos imageUrl, audioUrl, ni autoplay para evitar error de "unused variable"
+}) => {
     // --- 1. REFS Y ESTADOS ---
     const playerRef = useRef<any>(null);
     const resumeTimeRef = useRef<number>(0);
@@ -23,6 +32,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ mainVideoUrl }) => {
     const [isMounted, setIsMounted] = useState(false);
     const [isPlayingMain, setIsPlayingMain] = useState(true);
     
+    // Unificamos la URL: usa la nueva si existe, si no la vieja
+    const urlToPlay = mainVideoUrl || videoUrl || "";
+
     // Contextos
     const { volume: globalVolume } = useVolume(); 
     const { activeSlide, stopSlide } = useNewsPlayer();
@@ -39,7 +51,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ mainVideoUrl }) => {
     // --- 3. LÓGICA DE INTERRUPCIÓN ---
     useEffect(() => {
       if (activeSlide) {
-        // A) Entra un Slide: Guardar tiempo y pausar
         if (playerRef.current) {
           try {
             const t = playerRef.current.getCurrentTime();
@@ -49,11 +60,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ mainVideoUrl }) => {
           } catch(e) { console.warn(e); }
         }
         setIsPlayingMain(false); 
-
       } else {
-        // B) Se va el Slide: Reanudar
         setIsPlayingMain(true);
-        
         if (playerRef.current && resumeTimeRef.current > 0) {
           setTimeout(() => {
              playerRef.current?.seekTo(resumeTimeRef.current, 'seconds');
@@ -64,8 +72,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ mainVideoUrl }) => {
 
     // --- 4. INTRO LOGIC ---
     useEffect(() => {
-      if (isMounted && mainVideoUrl && !activeSlide) {
-        const isYt = mainVideoUrl.includes('youtube') || mainVideoUrl.includes('youtu.be');
+      if (isMounted && urlToPlay && !activeSlide) {
+        const isYt = urlToPlay.includes('youtube') || urlToPlay.includes('youtu.be');
         if (isYt) {
           const randomIntro = introVideos[Math.floor(Math.random() * introVideos.length)];
           setIntroVideo(randomIntro);
@@ -74,11 +82,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ mainVideoUrl }) => {
           return () => clearTimeout(timer);
         }
       }
-    }, [mainVideoUrl, introVideos, isMounted, activeSlide]);
+    }, [urlToPlay, introVideos, isMounted, activeSlide]);
 
     if (!isMounted) return <div className="w-full h-full bg-black" />;
 
-    // Contenido del Slide (Overlay)
     const slideOverlay = activeSlide ? (
         <div className="absolute inset-0 z-50 bg-black animate-in fade-in duration-300">
             <iframe 
@@ -103,7 +110,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ mainVideoUrl }) => {
         <div className="w-full h-full absolute inset-0 z-0">
             <ReactPlayer
               ref={playerRef}
-              url={mainVideoUrl}
+              url={urlToPlay}
               width="100%"
               height="100%"
               playing={isPlayingMain && !showIntro}
