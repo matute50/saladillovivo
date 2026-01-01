@@ -17,7 +17,7 @@ export interface Article {
   meta_keywords?: string;
   audio_url?: string | null;
   url_slide?: string | null;
-
+  animation_duration?: number; // <--- Agregado para corregir el error de build
 }
 
 export interface SupabaseArticle {
@@ -35,7 +35,7 @@ export interface SupabaseArticle {
   meta_keywords?: string;
   audio_url?: string;
   url_slide?: string;
-
+  animation_duration?: number; // <--- Agregado para consistencia
 }
 
 export interface Video {
