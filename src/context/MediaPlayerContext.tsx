@@ -30,7 +30,8 @@ interface MediaPlayerContextType {
   setSeekToFraction: (fraction: number | null) => void;
   loadInitialPlaylist: (videoUrlToPlay: string | null) => Promise<void>;
   handleOnEnded: () => void;
-  handleOnProgress: (progress: ProgressState, currentVideoId: string | undefined, currentVideoCategory: string | undefined) => void;
+  // Simplificamos la firma de la función (ya no requiere IDs manuales)
+  handleOnProgress: (progress: ProgressState) => void;
   playNextVideoInQueue: () => void;
   removeNextVideoFromQueue: () => void;
   pause: () => void;
@@ -49,6 +50,7 @@ export const useMediaPlayer = () => {
 
 export const MediaPlayerProvider = ({ children }: { children: React.ReactNode }) => {
   const [viewMode, _setViewMode] = useState<'diario' | 'tv'>('diario');
+  
   const setViewMode = useCallback((mode: 'diario' | 'tv') => {
       console.log(`[MediaPlayerContext] Cambiando viewMode a: ${mode}`);
       _setViewMode(mode);
@@ -105,7 +107,7 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
         setIsFirstMedia(false);
         setRandomVideoQueued(false);
       } catch (error) {
-        console.error("Error al reproducir video temporal:", error); // <-- USAMOS LA VARIABLE PARA EVITAR ERROR DE BUILD
+        console.error("Error al reproducir video temporal:", error);
         if (wasPlaying) play();
       }
   }, [currentVideo, interruptedVideo, isPlaying, pause, play]);
@@ -148,16 +150,19 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
   }, [playMedia, loadInitialPlaylist]);
 
   const handleOnEnded = useCallback(() => {
+      // 1. Si estábamos viendo una noticia (video interrumpido), volvemos al video principal
       if (interruptedVideo) {
         setCurrentVideo(interruptedVideo);
         setInterruptedVideo(null);
         setIsPlaying(true);
         return;
       }
+      // 2. Si no, seguimos con la programación habitual
       if (viewMode === 'tv') {
           playNextRandomVideo(currentVideo?.id, currentVideo?.categoria);
       } else {
           if (isUserSelected) setIsUserSelected(false);
+          // Si tenemos uno precargado, úsalo. Si no, busca uno nuevo ahora.
           if (nextVideo) {
               playMedia(nextVideo, false);
               setNextVideo(null);
@@ -167,19 +172,26 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
       }
   }, [viewMode, isUserSelected, nextVideo, playMedia, playNextRandomVideo, currentVideo, interruptedVideo]);
 
-  const handleOnProgress = useCallback(async (progress: ProgressState, currentVideoId: string | undefined, currentVideoCategory: string | undefined) => {
-      if (viewMode === 'tv') return;
-      const duration = progress.loadedSeconds;
-      if (currentVideoId && !nextVideo && !randomVideoQueued && duration && (duration - progress.playedSeconds < 40)) {
+  // --- NUEVA LÓGICA DE PRECARGA ---
+  const handleOnProgress = useCallback(async (progress: ProgressState) => {
+      // No precargar si estamos en modo TV o si estamos viendo una noticia (interruptedVideo)
+      if (viewMode === 'tv' || interruptedVideo) return;
+      if (!currentVideo) return;
+
+      // Si llevamos más de 5 segundos de video Y aún no tenemos el próximo en cola...
+      if (!nextVideo && !randomVideoQueued && progress.playedSeconds > 5) {
           setRandomVideoQueued(true); 
-          const newRandomVideo = await getNewRandomVideo(currentVideoId, currentVideoCategory);
+          console.log("📥 Precargando siguiente video aleatorio...");
+          
+          const newRandomVideo = await getNewRandomVideo(currentVideo.id, currentVideo.categoria);
           if (newRandomVideo) {
               setNextVideo(newRandomVideo);
+              console.log("✅ Video precargado:", newRandomVideo.nombre);
           } else {
-              setRandomVideoQueued(false);
+              setRandomVideoQueued(false); // Reintentar luego si falló
           }
       }
-  }, [viewMode, nextVideo, randomVideoQueued]);
+  }, [viewMode, nextVideo, randomVideoQueued, currentVideo, interruptedVideo]);
 
   const togglePlayPause = useCallback(() => setIsPlaying(prev => !prev), []);
 

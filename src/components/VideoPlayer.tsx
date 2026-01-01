@@ -4,54 +4,51 @@ import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useVolume } from '@/context/VolumeContext';
 import { useNewsPlayer } from '@/context/NewsPlayerContext';
+import { useMediaPlayer } from '@/context/MediaPlayerContext';
 
 const ReactPlayer = dynamic(() => import('react-player'), { 
   ssr: false,
   loading: () => <div className="w-full h-full bg-black flex items-center justify-center"></div>
 });
 
-// Interfaz flexible para evitar errores de TypeScript en otros componentes durante el build
 export interface VideoPlayerProps {
-  mainVideoUrl?: string | null; // Nuevo estándar
-  videoUrl?: string | null;     // Viejo estándar (compatibilidad)
-  imageUrl?: string | null;     // Legacy (se permite pero se ignora)
-  audioUrl?: string | null;     // Legacy (se permite pero se ignora)
+  mainVideoUrl?: string | null;
+  videoUrl?: string | null;
+  imageUrl?: string | null;
+  audioUrl?: string | null;
   onClose?: () => void;
-  autoplay?: boolean;           // Legacy (se permite pero se ignora)
+  autoplay?: boolean;
 }
 
 const VideoPlayer: React.FC<VideoPlayerProps> = ({ 
   mainVideoUrl, 
-  videoUrl 
-  // No desestructuramos el resto para evitar errores de "unused variable"
+  videoUrl,
+  onClose 
 }) => {
-    // --- 1. REFS Y ESTADOS ---
     const playerRef = useRef<any>(null);
     const resumeTimeRef = useRef<number>(0);
     
     const [isMounted, setIsMounted] = useState(false);
     const [isPlayingMain, setIsPlayingMain] = useState(true);
     
-    // Unificamos la URL: usa la nueva si existe, si no la vieja
+    // Compatibilidad de URL
     const urlToPlay = mainVideoUrl || videoUrl || "";
 
-    // Contextos
     const { volume: globalVolume } = useVolume(); 
-    const { activeSlide, stopSlide } = useNewsPlayer();
+    const { activeSlide } = useNewsPlayer(); // stopSlide ya no se usa manualmente
+    
+    const { handleOnProgress, handleOnEnded } = useMediaPlayer();
 
-    // Intro States
     const [introVideo, setIntroVideo] = useState('');
     const [showIntro, setShowIntro] = useState(false);
     
     const introVideos = React.useMemo(() => ['/azul.mp4', '/cuadros.mp4', '/cuadros2.mp4', '/lineal.mp4', '/RUIDO.mp4'], []);
 
-    // --- 2. MONTAJE ---
     useEffect(() => { setIsMounted(true); }, []);
 
-    // --- 3. LÓGICA DE INTERRUPCIÓN ---
+    // Lógica de Interrupción (Slides)
     useEffect(() => {
       if (activeSlide) {
-        // A) Entra un Slide: Guardar tiempo y pausar
         if (playerRef.current) {
           try {
             const t = playerRef.current.getCurrentTime();
@@ -62,7 +59,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         }
         setIsPlayingMain(false); 
       } else {
-        // B) Se va el Slide: Reanudar
         setIsPlayingMain(true);
         if (playerRef.current && resumeTimeRef.current > 0) {
           setTimeout(() => {
@@ -72,7 +68,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       }
     }, [activeSlide]);
 
-    // --- 4. INTRO LOGIC ---
+    // Lógica de Intro (Branding)
     useEffect(() => {
       if (isMounted && urlToPlay && !activeSlide) {
         const isYt = urlToPlay.includes('youtube') || urlToPlay.includes('youtu.be');
@@ -88,6 +84,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     if (!isMounted) return <div className="w-full h-full bg-black" />;
 
+    // --- Overlay del Slide (SIN BOTÓN DE CIERRE) ---
     const slideOverlay = activeSlide ? (
         <div className="absolute inset-0 z-50 bg-black animate-in fade-in duration-300">
             <iframe 
@@ -96,12 +93,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
               allow="autoplay"
               title="News Slide"
             />
-            <button 
-                onClick={(e) => { e.stopPropagation(); stopSlide(); }}
-                className="absolute top-4 right-4 bg-black/50 hover:bg-red-600 text-white w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-sm transition-all z-50 pointer-events-auto cursor-pointer"
-            >
-                ✕
-            </button>
+            {/* Botón X eliminado para forzar la reproducción completa */}
         </div>
     ) : null;
 
@@ -119,6 +111,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
               controls={false}
               volume={effectiveVolume}
               muted={effectiveVolume === 0}
+              
+              onProgress={handleOnProgress}
+              onEnded={onClose || handleOnEnded} 
+              
               config={{
                 youtube: {
                   playerVars: { 
