@@ -3,8 +3,6 @@
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react'; 
 import { getVideosForHome, getNewRandomVideo } from '@/lib/data';
 import { SlideMedia } from '@/lib/types';
-// Eliminamos import de useVolume que no se usaba realmente
-// import { useVolume } from './VolumeContext'; 
 
 export interface ProgressState {
   played: number;
@@ -67,8 +65,6 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
   
   const [streamStatus] = useState<{ liveStreamUrl: string; isLive: boolean; } | null>({ liveStreamUrl: 'https://www.youtube.com/watch?v=pand8Im1jag', isLive: true });
 
-  // --- LIMPIEZA: Eliminada la línea de setVolume que causaba el error ---
-
   const pause = useCallback(() => setIsPlaying(false), []);
   const play = useCallback(() => setIsPlaying(true), []);
 
@@ -109,6 +105,7 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
         setIsFirstMedia(false);
         setRandomVideoQueued(false);
       } catch (error) {
+        console.error("Error al reproducir video temporal:", error); // <-- USAMOS LA VARIABLE PARA EVITAR ERROR DE BUILD
         if (wasPlaying) play();
       }
   }, [currentVideo, interruptedVideo, isPlaying, pause, play]);

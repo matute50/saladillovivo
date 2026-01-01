@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef, useEffect, useState } from 'react'; // Quitamos forwardRef si no se usa externamente
+import React, { useRef, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useVolume } from '@/context/VolumeContext';
@@ -11,8 +11,8 @@ const ReactPlayer = dynamic(() => import('react-player'), {
 });
 
 export interface VideoPlayerProps {
-  mainVideoUrl: string; // Simplificado: solo necesitamos la URL principal
-  onClose?: () => void; // Opcional ahora
+  mainVideoUrl: string;
+  onClose?: () => void;
 }
 
 const VideoPlayer: React.FC<VideoPlayerProps> = ({ mainVideoUrl }) => {
@@ -22,8 +22,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ mainVideoUrl }) => {
     
     const [isMounted, setIsMounted] = useState(false);
     const [isPlayingMain, setIsPlayingMain] = useState(true);
-    const [localVolume, setLocalVolume] = useState(1);
-
+    
     // Contextos
     const { volume: globalVolume } = useVolume(); 
     const { activeSlide, stopSlide } = useNewsPlayer();
@@ -32,7 +31,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ mainVideoUrl }) => {
     const [introVideo, setIntroVideo] = useState('');
     const [showIntro, setShowIntro] = useState(false);
     
-    // Memoizamos el array de intros
     const introVideos = React.useMemo(() => ['/azul.mp4', '/cuadros.mp4', '/cuadros2.mp4', '/lineal.mp4', '/RUIDO.mp4'], []);
 
     // --- 2. MONTAJE ---
@@ -50,13 +48,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ mainVideoUrl }) => {
             }
           } catch(e) { console.warn(e); }
         }
-        setLocalVolume(0);
         setIsPlayingMain(false); 
 
       } else {
         // B) Se va el Slide: Reanudar
         setIsPlayingMain(true);
-        setLocalVolume(globalVolume > 0 ? globalVolume : 1);
         
         if (playerRef.current && resumeTimeRef.current > 0) {
           setTimeout(() => {
@@ -64,7 +60,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ mainVideoUrl }) => {
           }, 100);
         }
       }
-    }, [activeSlide, globalVolume]);
+    }, [activeSlide]);
 
     // --- 4. INTRO LOGIC ---
     useEffect(() => {
