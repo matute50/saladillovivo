@@ -25,6 +25,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   videoUrl,
   onClose 
 }) => {
+    // --- 1. Refs y Estados ---
     const playerRef = useRef<any>(null);
     const resumeTimeRef = useRef<number>(0);
     
@@ -35,8 +36,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     const urlToPlay = mainVideoUrl || videoUrl || "";
 
     const { volume: globalVolume } = useVolume(); 
-    const { activeSlide } = useNewsPlayer(); // stopSlide ya no se usa manualmente
+    const { activeSlide } = useNewsPlayer(); 
     
+    // Conectamos con el cerebro del reproductor para la precarga y el autoplay
     const { handleOnProgress, handleOnEnded } = useMediaPlayer();
 
     const [introVideo, setIntroVideo] = useState('');
@@ -46,7 +48,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     useEffect(() => { setIsMounted(true); }, []);
 
-    // Lógica de Interrupción (Slides)
+    // --- 2. Lógica de Interrupción (Slides / Noticias) ---
+    // Cuando entra una noticia (activeSlide), pausamos el video de fondo y guardamos el segundo exacto.
     useEffect(() => {
       if (activeSlide) {
         if (playerRef.current) {
@@ -59,6 +62,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         }
         setIsPlayingMain(false); 
       } else {
+        // Al terminar la noticia, reanudamos el video principal desde donde quedó.
         setIsPlayingMain(true);
         if (playerRef.current && resumeTimeRef.current > 0) {
           setTimeout(() => {
@@ -68,7 +72,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       }
     }, [activeSlide]);
 
-    // Lógica de Intro (Branding)
+    // --- 3. Lógica de Intro (Branding) ---
     useEffect(() => {
       if (isMounted && urlToPlay && !activeSlide) {
         const isYt = urlToPlay.includes('youtube') || urlToPlay.includes('youtu.be');
@@ -84,7 +88,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     if (!isMounted) return <div className="w-full h-full bg-black" />;
 
-    // --- Overlay del Slide (SIN BOTÓN DE CIERRE) ---
+    // --- 4. Overlay del Slide (SIN BOTÓN DE CIERRE) ---
     const slideOverlay = activeSlide ? (
         <div className="absolute inset-0 z-50 bg-black animate-in fade-in duration-300">
             <iframe 
@@ -93,7 +97,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
               allow="autoplay"
               title="News Slide"
             />
-            {/* Botón X eliminado para forzar la reproducción completa */}
+            {/* El botón de cierre se eliminó intencionalmente para forzar la vista completa */}
         </div>
     ) : null;
 
@@ -112,6 +116,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
               volume={effectiveVolume}
               muted={effectiveVolume === 0}
               
+              // Eventos CLAVE para la continuidad y precarga
               onProgress={handleOnProgress}
               onEnded={onClose || handleOnEnded} 
               

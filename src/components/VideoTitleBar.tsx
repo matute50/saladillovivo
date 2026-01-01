@@ -2,8 +2,7 @@
 
 import React from 'react';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
-// Importamos el contexto de noticias para detectar el slide
-import { useNewsPlayer } from '@/context/NewsPlayerContext';
+import { useNewsPlayer } from '@/context/NewsPlayerContext'; //
 import { motion, AnimatePresence } from 'framer-motion';
 import { getDisplayCategory } from '@/lib/categoryMappings';
 import { X } from 'lucide-react';
@@ -16,7 +15,8 @@ interface VideoTitleBarProps {
 
 const VideoTitleBar: React.FC<VideoTitleBarProps> = ({ className }) => {
   const { currentVideo, nextVideo, playNextVideoInQueue, removeNextVideoFromQueue } = useMediaPlayer();
-  // Hook para saber si hay un slide reproduciéndose
+  
+  // Hook para detectar si hay una noticia interrumpiendo
   const { activeSlide } = useNewsPlayer();
 
   const displayCurrentCategory = currentVideo?.categoria ? getDisplayCategory(currentVideo.categoria) : null;
@@ -25,12 +25,9 @@ const VideoTitleBar: React.FC<VideoTitleBarProps> = ({ className }) => {
   const displayNextCategory = nextVideo?.categoria ? getDisplayCategory(nextVideo.categoria) : null;
   const nextVideoTitle = nextVideo?.nombre || null;
 
-  // Lógica de visualización:
-  // Si hay slide, mostramos la barra aunque no haya nextVideo, para mostrar el mensaje de interrupción.
+  // Lógica de visualización
   const isSlideActive = !!activeSlide;
   const showMainBar = !!(currentVideoTitle || nextVideoTitle || isSlideActive);
-  
-  // La segunda línea se muestra si hay un próximo video cargado O si hay un slide activo (para mostrar "Continuar viendo")
   const showSecondLine = !!(nextVideoTitle || isSlideActive);
 
   return (
@@ -43,7 +40,7 @@ const VideoTitleBar: React.FC<VideoTitleBarProps> = ({ className }) => {
           exit={{ opacity: 0, y: 20 }}
           transition={{ duration: 0.3 }}
         >
-          {/* PRIMERA LÍNEA: Video Actual o Noticia */}
+          {/* PRIMERA LÍNEA: Video Actual o Aviso de Noticia */}
           {currentVideoTitle && (
             <div className="flex items-center justify-end gap-2">
               <p className="font-semibold text-black dark:text-white truncate uppercase text-[10px] drop-shadow-sm">
@@ -68,10 +65,10 @@ const VideoTitleBar: React.FC<VideoTitleBarProps> = ({ className }) => {
             <div className="flex items-center justify-end gap-2">
               <p className="font-semibold text-black dark:text-white truncate uppercase text-[10px] drop-shadow-sm">
                 {isSlideActive ? (
-                  /* Si hay slide, usamos esta línea para mostrar qué video continúa después */
+                  /* Muestra qué video se retomará al terminar la noticia */
                   <>CONTINUAR VIENDO: {currentVideoTitle}</>
                 ) : (
-                  /* Si NO hay slide, mostramos el próximo video precargado (aleatorio o de cola) */
+                  /* Muestra el próximo video precargado */
                   nextVideoTitle && <>PRÓXIMO VIDEO: {displayNextCategory && `${displayNextCategory.toUpperCase()}, `}{nextVideoTitle}</>
                 )}
               </p>
