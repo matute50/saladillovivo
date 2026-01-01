@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
-import { useNewsPlayer } from '@/context/NewsPlayerContext'; //
+import { useNewsPlayer } from '@/context/NewsPlayerContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getDisplayCategory } from '@/lib/categoryMappings';
 import { X } from 'lucide-react';
@@ -15,8 +15,6 @@ interface VideoTitleBarProps {
 
 const VideoTitleBar: React.FC<VideoTitleBarProps> = ({ className }) => {
   const { currentVideo, nextVideo, playNextVideoInQueue, removeNextVideoFromQueue } = useMediaPlayer();
-  
-  // Hook para detectar si hay una noticia interrumpiendo
   const { activeSlide } = useNewsPlayer();
 
   const displayCurrentCategory = currentVideo?.categoria ? getDisplayCategory(currentVideo.categoria) : null;
@@ -25,36 +23,39 @@ const VideoTitleBar: React.FC<VideoTitleBarProps> = ({ className }) => {
   const displayNextCategory = nextVideo?.categoria ? getDisplayCategory(nextVideo.categoria) : null;
   const nextVideoTitle = nextVideo?.nombre || null;
 
-  // Lógica de visualización
   const isSlideActive = !!activeSlide;
   const showMainBar = !!(currentVideoTitle || nextVideoTitle || isSlideActive);
+  
   const showSecondLine = !!(nextVideoTitle || isSlideActive);
 
   return (
     <AnimatePresence>
       {showMainBar && (
         <motion.div
-          className={cn("w-full p-2 card text-right shadow-lg flex flex-col gap-1", className)}
+          className={cn("w-full py-0.5 px-2 card text-right shadow-lg flex flex-col gap-0", className)}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
           transition={{ duration: 0.3 }}
         >
-          {/* PRIMERA LÍNEA: Video Actual o Aviso de Noticia */}
+          {/* PRIMERA LÍNEA: Video Actual o Noticia */}
           {currentVideoTitle && (
             <div className="flex items-center justify-end gap-2">
-              <p className="font-semibold text-black dark:text-white truncate uppercase text-[10px] drop-shadow-sm">
+              <p className="font-semibold text-black dark:text-white truncate uppercase text-[10px] drop-shadow-sm leading-tight">
                 {isSlideActive ? (
-                   "ESTÁS VIENDO: NOTICIAS EN SALADILLO VIVO"
+                   <>
+                     <span className="text-[#3399ff]">ESTÁS VIENDO:</span> NOTICIAS EN SALADILLO VIVO
+                   </>
                 ) : (
-                   <>ESTÁS VIENDO: {displayCurrentCategory && `${displayCurrentCategory.toUpperCase()}, `}{currentVideoTitle}</>
+                   <>
+                     <span className="text-[#3399ff]">ESTÁS VIENDO:</span> {displayCurrentCategory && `${displayCurrentCategory.toUpperCase()}, `}{currentVideoTitle}
+                   </>
                 )}
               </p>
               
-              {/* Botón X: Solo visible si NO es slide, para saltar al siguiente video de la cola */}
               {!isSlideActive && (
                 <button onClick={playNextVideoInQueue} className="text-red-500 hover:text-red-700 transition-colors">
-                  <X size={16} />
+                  <X size={14} />
                 </button>
               )}
             </div>
@@ -63,20 +64,23 @@ const VideoTitleBar: React.FC<VideoTitleBarProps> = ({ className }) => {
           {/* SEGUNDA LÍNEA: Próximo Video o Video Interrumpido */}
           {showSecondLine && (
             <div className="flex items-center justify-end gap-2">
-              <p className="font-semibold text-black dark:text-white truncate uppercase text-[10px] drop-shadow-sm">
+              <p className="font-semibold text-black dark:text-white truncate uppercase text-[10px] drop-shadow-sm leading-tight">
                 {isSlideActive ? (
-                  /* Muestra qué video se retomará al terminar la noticia */
-                  <>CONTINUAR VIENDO: {currentVideoTitle}</>
+                  <>
+                    <span className="text-[#3399ff]">CONTINUAR VIENDO:</span> {currentVideoTitle}
+                  </>
                 ) : (
-                  /* Muestra el próximo video precargado */
-                  nextVideoTitle && <>PRÓXIMO VIDEO: {displayNextCategory && `${displayNextCategory.toUpperCase()}, `}{nextVideoTitle}</>
+                  nextVideoTitle && (
+                    <>
+                      <span className="text-[#3399ff]">PRÓXIMO VIDEO:</span> {displayNextCategory && `${displayNextCategory.toUpperCase()}, `}{nextVideoTitle}
+                    </>
+                  )
                 )}
               </p>
               
-              {/* Botón X: Solo visible si NO es slide y hay un video próximo para quitar */}
               {!isSlideActive && nextVideoTitle && (
                 <button onClick={removeNextVideoFromQueue} className="text-red-500 hover:text-red-700 transition-colors">
-                  <X size={16} />
+                  <X size={14} />
                 </button>
               )}
             </div>
