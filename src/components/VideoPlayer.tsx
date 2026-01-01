@@ -10,20 +10,20 @@ const ReactPlayer = dynamic(() => import('react-player'), {
   loading: () => <div className="w-full h-full bg-black flex items-center justify-center"></div>
 });
 
-// Interfaz flexible para evitar errores de TypeScript en otros componentes
+// Interfaz flexible para evitar errores de TypeScript en otros componentes durante el build
 export interface VideoPlayerProps {
   mainVideoUrl?: string | null; // Nuevo estándar
   videoUrl?: string | null;     // Viejo estándar (compatibilidad)
-  imageUrl?: string | null;     // Legacy (se ignora pero se permite)
-  audioUrl?: string | null;     // Legacy (se ignora pero se permite)
+  imageUrl?: string | null;     // Legacy (se permite pero se ignora)
+  audioUrl?: string | null;     // Legacy (se permite pero se ignora)
   onClose?: () => void;
-  autoplay?: boolean;           // Legacy (se ignora)
+  autoplay?: boolean;           // Legacy (se permite pero se ignora)
 }
 
 const VideoPlayer: React.FC<VideoPlayerProps> = ({ 
   mainVideoUrl, 
   videoUrl 
-  // No desestructuramos imageUrl, audioUrl, ni autoplay para evitar error de "unused variable"
+  // No desestructuramos el resto para evitar errores de "unused variable"
 }) => {
     // --- 1. REFS Y ESTADOS ---
     const playerRef = useRef<any>(null);
@@ -51,6 +51,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     // --- 3. LÓGICA DE INTERRUPCIÓN ---
     useEffect(() => {
       if (activeSlide) {
+        // A) Entra un Slide: Guardar tiempo y pausar
         if (playerRef.current) {
           try {
             const t = playerRef.current.getCurrentTime();
@@ -61,6 +62,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         }
         setIsPlayingMain(false); 
       } else {
+        // B) Se va el Slide: Reanudar
         setIsPlayingMain(true);
         if (playerRef.current && resumeTimeRef.current > 0) {
           setTimeout(() => {
