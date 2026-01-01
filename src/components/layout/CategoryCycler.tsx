@@ -60,7 +60,7 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
             onClick={onPrev}
             className="carousel-nav-button-title p-0.5 rounded-md border-[1.5px] text-white border-white shadow-lg shadow-black/50 backdrop-blur-md"
             animate={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
-            whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
+            whileHover={{ backgroundColor: '#012078' }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
           >
             <ChevronLeft size="20" />
@@ -74,7 +74,7 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
             onClick={onNext}
             className="carousel-nav-button-title p-0.5 rounded-md border-[1.5px] text-white border-white shadow-lg shadow-black/50 backdrop-blur-md"
             animate={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
-            whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
+            whileHover={{ backgroundColor: '#012078' }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
           >
             <ChevronRight size="20" />
@@ -83,13 +83,16 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
       </div>
 
       {/* Video Carousel */}
-      <ExclusiveVideoCarousel
-        key={activeCategory.display} // Use key to force re-mount
-        videos={filteredVideos}
-        isLoading={false}
-        carouselId={`category-cycler-${instanceId}`}
-        isMobile={isMobile}
-      />
+      {/* MODIFICACIÓN: Contenedor con margen negativo para subir el carrusel 5px */}
+      <div className="-mt-[5px] w-full relative z-0">
+        <ExclusiveVideoCarousel
+          key={activeCategory.display} // Use key to force re-mount
+          videos={filteredVideos}
+          isLoading={false}
+          carouselId={`category-cycler-${instanceId}`}
+          isMobile={isMobile}
+        />
+      </div>
     </div>
   );
 };

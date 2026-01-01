@@ -47,21 +47,20 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
     }
   };
 
-  // 2. REPRODUCIR (Multimedia) - Lógica Inteligente
+  // 2. REPRODUCIR (Multimedia)
   const handlePlaySlide = (e: React.MouseEvent) => {
     e.stopPropagation(); 
     e.preventDefault();
 
-    // CASO A: Slide HTML (Requiere Iframe del NewsPlayer)
+    // CASO A: Slide HTML
     if (isHtmlSlide) {
         console.log("▶ Reproduciendo Slide HTML en Overlay:", title);
         
         if (playSlide) {
-            // CORRECCIÓN FINAL: Agregamos 'duration' y 'type' requeridos por la definición estricta
             playSlide({
                 url: urlSlide,
-                type: 'html',      // Requerido
-                duration: duration // Requerido
+                type: 'html',
+                duration: duration
             });
         } else {
             console.error("NewsPlayer no disponible para reproducir HTML");
@@ -69,11 +68,10 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
         return;
     }
 
-    // CASO B: Video o Imagen+Audio (Manejado por MediaPlayer)
+    // CASO B: Video o Imagen+Audio
     let mediaData: SlideMedia | null = null;
 
     if (hasSlide && !isHtmlSlide) {
-        // Videos MP4, WebM, JSON
         mediaData = {
             id: newsItem.id.toString(),
             type: 'video', 
@@ -86,7 +84,6 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
             duration: duration
         };
     } else if (hasAudioImage) {
-        // Imagen Estática + Audio
         mediaData = {
             id: newsItem.id.toString(),
             type: 'image',
@@ -121,7 +118,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
       {/* CONTENEDOR BASE */}
       <div className="relative w-full h-full aspect-video overflow-hidden bg-black">
         
-        {/* CAPA 1: FONDO INTERACTIVO (Abre la noticia) */}
+        {/* CAPA 1: FONDO INTERACTIVO */}
         <div 
           className="absolute inset-0 z-10 cursor-pointer"
           onClick={handleOpenNews}
@@ -135,7 +132,6 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
               priority={priority}
               onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
             />
-            {/* Degradado para texto */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-90" />
 
             {/* FECHA */}
@@ -160,7 +156,8 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
           <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
             <motion.button
               onClick={handlePlaySlide}
-              className="pointer-events-auto flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full bg-white/20 backdrop-blur-md border border-white/50 text-white shadow-[0_0_15px_rgba(0,0,0,0.5)] opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-red-600 hover:border-red-600 hover:scale-110 cursor-pointer"
+              // AQUI EL CAMBIO DE COLOR: hover:bg-[#012078] y hover:border-[#012078]
+              className="pointer-events-auto flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full bg-white/20 backdrop-blur-md border border-white/50 text-white shadow-[0_0_15px_rgba(0,0,0,0.5)] opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-[#012078] hover:border-[#012078] hover:scale-110 cursor-pointer"
               whileTap={{ scale: 0.95 }}
               title="Reproducir Slide en Multimedia"
             >

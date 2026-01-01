@@ -2,14 +2,23 @@
 
 import React from 'react';
 import NewsCard from '../NewsCard';
+import BannerSection from './BannerSection';
 import type { Article } from '@/lib/types';
+
+// Copied from BannerSection.tsx
+interface Banner {
+  imageUrl: string;
+  linkUrl?: string;
+  nombre?: string;
+}
 
 interface NewsColumnProps {
   news: Article[];
   onCardClick: (article: Article) => void;
+  banners: Banner[];
 }
 
-const NewsColumn: React.FC<NewsColumnProps> = ({ news, onCardClick }) => {
+const NewsColumn: React.FC<NewsColumnProps> = ({ news, onCardClick, banners }) => {
   if (!news || news.length === 0) {
     return null;
   }
@@ -40,6 +49,9 @@ const NewsColumn: React.FC<NewsColumnProps> = ({ news, onCardClick }) => {
                         onCardClick={onCardClick}
                       />
                     ))}      </div>
+
+      {/* Banner Section */}
+      <BannerSection activeBanners={banners} isLoadingBanners={false} />
 
       {/* 3. Noticias Terciarias (sin jerarquía) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

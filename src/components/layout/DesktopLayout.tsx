@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import BannerSection from './BannerSection';
 import AdsSection from './AdsSection';
-import NewsTicker from '../NewsTicker';
+
 import dynamic from 'next/dynamic';
 
 const VideoSection = dynamic(() => import('./VideoSection'), { ssr: false });
@@ -69,17 +69,25 @@ const DesktopLayout = ({ data, onCardClick }: { data: PageData, onCardClick: (ar
 
   return (
     <>
-      <div className="bg-background/80 backdrop-blur-sm mb-0 md:mb-3 fixed top-[calc(var(--desktop-header-height)-18px)] w-full z-40">
-        <NewsTicker tickerTexts={tickerTexts} />
-      </div>
-      <main className="w-full px-2 py-0 md:pb-4 pt-[calc(var(--desktop-header-height)+var(--ticker-height)-70px)]">
+
+      <main className="w-full px-2 py-0 md:pb-4 pt-[calc(var(--desktop-header-height)-70px)]">
         <div className="container mx-auto px-2">
           {/* Main 3-Column Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-8 mb-8">
             
             {/* Left Column (News) */}
             <div className="col-span-1 lg:col-span-5 flex flex-col gap-6">
-              <NewsColumn news={topNews} onCardClick={onCardClick} />
+              <NewsColumn news={topNews} onCardClick={onCardClick} banners={banners} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {moreNews.map((noticia, index) => (
+                  <NewsCard
+                    key={noticia.id}
+                    newsItem={noticia}
+                    index={index}
+                    onCardClick={onCardClick}
+                  />
+                ))}
+              </div>
             </div>
 
             {/* Middle Column (Video) */}
@@ -120,34 +128,9 @@ const DesktopLayout = ({ data, onCardClick }: { data: PageData, onCardClick: (ar
             </div>
           </div>
 
-          {/* Banners Section */}
-          <section className="my-6 -mx-2 md:mx-0" aria-label="Banners publicitarios">
-             <BannerSection activeBanners={banners} isLoadingBanners={false} className="w-full" />
-          </section>
 
-          {/* More News & Ads Section */}
-          <section className="mt-8" aria-label="Más noticias y publicidad">
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-              {/* News Grid (4 columns) */}
-              <div className="lg:col-span-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                  {moreNews.map((noticia, index) => (
-                    <NewsCard
-                      key={noticia.id}
-                      newsItem={noticia}
-                      index={index}
-                      onCardClick={onCardClick}
-                    />
-                  ))}
-                </div>
-              </div>
 
-              {/* Ads Column (1 column) */}
-              <div className="lg:col-span-1">
-                <AdsSection activeAds={[]} isLoading={false} />
-              </div>
-            </div>
-          </section>
+
 
         </div>
       </main>
