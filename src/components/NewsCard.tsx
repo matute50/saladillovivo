@@ -57,9 +57,11 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
         console.log("▶ Reproduciendo Slide HTML en Overlay:", title);
         
         if (playSlide) {
-            // CORRECCIÓN: Solo pasamos 'url' para cumplir con el tipo SlideData estricto
+            // CORRECCIÓN FINAL: Agregamos 'duration' y 'type' requeridos por la definición estricta
             playSlide({
-                url: urlSlide
+                url: urlSlide,
+                type: 'html',      // Requerido
+                duration: duration // Requerido
             });
         } else {
             console.error("NewsPlayer no disponible para reproducir HTML");
