@@ -1,8 +1,10 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, useMemo } from 'react'; 
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react'; 
 import { getVideosForHome, getNewRandomVideo } from '@/lib/data';
 import { SlideMedia } from '@/lib/types';
+// Importamos el contexto de volumen para controlar el nivel de audio
+import { useVolume } from '@/context/VolumeContext';
 
 export interface ProgressState {
   played: number;
@@ -30,7 +32,6 @@ interface MediaPlayerContextType {
   setSeekToFraction: (fraction: number | null) => void;
   loadInitialPlaylist: (videoUrlToPlay: string | null) => Promise<void>;
   handleOnEnded: () => void;
-  // Simplificamos la firma de la función (ya no requiere IDs manuales)
   handleOnProgress: (progress: ProgressState) => void;
   playNextVideoInQueue: () => void;
   removeNextVideoFromQueue: () => void;
@@ -49,6 +50,9 @@ export const useMediaPlayer = () => {
 };
 
 export const MediaPlayerProvider = ({ children }: { children: React.ReactNode }) => {
+  // Obtenemos el control de volumen del contexto global
+  const { setVolume } = useVolume();
+
   const [viewMode, _setViewMode] = useState<'diario' | 'tv'>('diario');
   
   const setViewMode = useCallback((mode: 'diario' | 'tv') => {
@@ -150,19 +154,16 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
   }, [playMedia, loadInitialPlaylist]);
 
   const handleOnEnded = useCallback(() => {
-      // 1. Si estábamos viendo una noticia (video interrumpido), volvemos al video principal
       if (interruptedVideo) {
         setCurrentVideo(interruptedVideo);
         setInterruptedVideo(null);
         setIsPlaying(true);
         return;
       }
-      // 2. Si no, seguimos con la programación habitual
       if (viewMode === 'tv') {
           playNextRandomVideo(currentVideo?.id, currentVideo?.categoria);
       } else {
           if (isUserSelected) setIsUserSelected(false);
-          // Si tenemos uno precargado, úsalo. Si no, busca uno nuevo ahora.
           if (nextVideo) {
               playMedia(nextVideo, false);
               setNextVideo(null);
@@ -172,13 +173,10 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
       }
   }, [viewMode, isUserSelected, nextVideo, playMedia, playNextRandomVideo, currentVideo, interruptedVideo]);
 
-  // --- NUEVA LÓGICA DE PRECARGA ---
   const handleOnProgress = useCallback(async (progress: ProgressState) => {
-      // No precargar si estamos en modo TV o si estamos viendo una noticia (interruptedVideo)
       if (viewMode === 'tv' || interruptedVideo) return;
       if (!currentVideo) return;
 
-      // Si llevamos más de 5 segundos de video Y aún no tenemos el próximo en cola...
       if (!nextVideo && !randomVideoQueued && progress.playedSeconds > 5) {
           setRandomVideoQueued(true); 
           console.log("📥 Precargando siguiente video aleatorio...");
@@ -188,7 +186,7 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
               setNextVideo(newRandomVideo);
               console.log("✅ Video precargado:", newRandomVideo.nombre);
           } else {
-              setRandomVideoQueued(false); // Reintentar luego si falló
+              setRandomVideoQueued(false);
           }
       }
   }, [viewMode, nextVideo, randomVideoQueued, currentVideo, interruptedVideo]);
@@ -205,6 +203,34 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
   }, [nextVideo, playMedia, playNextRandomVideo, currentVideo]);
 
   const removeNextVideoFromQueue = useCallback(() => setNextVideo(null), []);
+
+  // --- TRAMPA DE AUDIO INVISIBLE ---
+  // Detecta el primer clic/toque en cualquier parte del sitio para activar el sonido
+  useEffect(() => {
+    const unlockAudio = () => {
+      console.log("🔊 Primer interacción detectada: Estableciendo volumen al 50%");
+      
+      // Establecemos el volumen al 50%
+      if (setVolume) {
+        setVolume(0.5);
+      }
+
+      // Removemos los listeners para que no se repita
+      window.removeEventListener('click', unlockAudio);
+      window.removeEventListener('keydown', unlockAudio);
+      window.removeEventListener('touchstart', unlockAudio);
+    };
+
+    window.addEventListener('click', unlockAudio);
+    window.addEventListener('keydown', unlockAudio);
+    window.addEventListener('touchstart', unlockAudio);
+
+    return () => {
+      window.removeEventListener('click', unlockAudio);
+      window.removeEventListener('keydown', unlockAudio);
+      window.removeEventListener('touchstart', unlockAudio);
+    };
+  }, [setVolume]); // Agregamos setVolume a las dependencias
 
   const value = useMemo(() => ({
       currentVideo, nextVideo, isPlaying, seekToFraction, isFirstMedia, randomVideoQueued, streamStatus, viewMode,
