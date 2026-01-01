@@ -27,10 +27,6 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
   const imageUrl = newsItem.imageUrl || newsItem.image_url;
   const createdAt = newsItem.created_at || newsItem.fecha;
   
-  // --- CORRECCIÓN DE DURACIÓN ---
-  // 1. Leemos exactamente la columna de la base de datos: animation_duration
-  // 2. Convertimos a Number() por si viene como string "45.5"
-  // 3. Si no existe o es 0, usamos 30 segundos como fallback razonable
   const dbDuration = newsItem.animation_duration;
   const duration = (dbDuration && !isNaN(Number(dbDuration))) ? Number(dbDuration) : 30;
 
@@ -41,8 +37,8 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
     e.preventDefault();
 
     if (hasSlide) {
-      console.log(`🎬 Play Slide: "${title}" | Duración DB: ${dbDuration} | Duración Final: ${duration}s`);
-
+      console.log(`🎬 Play Slide: "${title}" | Duración: ${duration}s`);
+      
       let type: 'html' | 'json' | 'video' | 'image' = 'html'; 
       const url = newsItem.url_slide || '';
 
@@ -50,15 +46,12 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
       else if (url.endsWith('.mp4') || url.endsWith('.webm')) type = 'video';
       else if (!url && newsItem.image_url) type = 'image';
 
-      playSlide({
-        url: url,
-        duration: duration, // Enviamos la duración limpia
-        type: type
-      });
+      playSlide({ url, duration, type });
     }
   };
 
-  const handleImageClick = (e: React.MouseEvent) => {
+  // CORRECCIÓN: Quitamos el argumento 'e' que no se usaba
+  const handleImageClick = () => {
     if (onCardClick) {
       onCardClick(newsItem);
     }
@@ -95,7 +88,6 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
           </span>
         )}
         
-        {/* BOTÓN PLAY */}
         {hasSlide && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <motion.button
