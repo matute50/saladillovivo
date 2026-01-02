@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-// CORRECCIÓN AQUÍ: Importamos desde la carpeta 'modals'
-import CreatorModal from './modals/CreatorModal'; 
+import CreatorModal from './modals/CreatorModal';
 import ImageModal from './ImageModal';
 
 const Footer = () => {
@@ -16,9 +15,9 @@ const Footer = () => {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const observer = new MutationObserver(() => {
-        setIsDarkTheme(document.documentElement.classList.contains('dark'));
-      });
+      const checkTheme = () => setIsDarkTheme(document.documentElement.classList.contains('dark'));
+      checkTheme();
+      const observer = new MutationObserver(checkTheme);
       observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
       return () => observer.disconnect();
     }
@@ -32,23 +31,26 @@ const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-center items-center text-center gap-2 md:gap-4 w-full">
           
-          {/* 1. LOGO */}
+          {/* 1. LOGO REDUCIDO AL 50% */}
           <div className="flex-shrink-0">
             <Image
-              loading="lazy"
               src={isDarkTheme ? banerClaro : banerOscuro}
               alt="Logo Saladillo Vivo"
-              width={80} 
+              // Reducimos width de 140 a 70
+              width={70} 
+              // Reducimos height de 40 a 20
               height={20}
-              className="object-contain"
+              // Ajustamos la altura máxima visual
+              className="object-contain h-auto w-auto max-h-[20px]"
+              priority 
             />
           </div>
 
           {/* Separador visual (solo desktop) */}
-          <span className="hidden md:block text-gray-500 text-[10px]">|</span>
+          <span className="hidden md:block text-gray-400 dark:text-gray-600 text-[10px]">|</span>
 
           {/* 2. TEXTO DECRETO */}
-          <p className="text-[9px] m-0 leading-none">
+          <p className="text-[9px] m-0 leading-none text-gray-600 dark:text-gray-300">
             Declarado de interés cultural{' '}
             <span
               onClick={() => setDecretoModalOpen(true)}
@@ -59,10 +61,10 @@ const Footer = () => {
           </p>
 
           {/* Separador visual (solo desktop) */}
-          <span className="hidden md:block text-gray-500 text-[10px]">|</span>
+          <span className="hidden md:block text-gray-400 dark:text-gray-600 text-[10px]">|</span>
 
           {/* 3. COPYRIGHT Y CRÉDITOS */}
-          <p className="text-[9px] m-0 leading-none">
+          <p className="text-[9px] m-0 leading-none text-gray-600 dark:text-gray-300">
             © {currentYear} Saladillo Vivo. Desarrollado por:{' '}
             <span
               onClick={() => setCreatorModalOpen(true)}
