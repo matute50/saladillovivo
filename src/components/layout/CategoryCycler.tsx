@@ -5,8 +5,6 @@ import ExclusiveVideoCarousel from './ExclusiveVideoCarousel';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { Video } from '@/lib/types';
-// Se puede quitar 'cn' si ya no se usa para unir clases complejas, 
-// pero lo dejaremos por si en el futuro agregas más estilos condicionales.
 import { cn } from '@/lib/utils'; 
 
 export interface CategoryMapping {
@@ -69,7 +67,7 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
             <ChevronLeft size="20" />
           </motion.button>
         )}
-        <h2 className="text-3xl font-bold tracking-tight text-[#003399] dark:text-white truncate text-center mx-2">
+        <h2 className="text-3xl font-bold tracking-tight text-[#003399] dark:text-white truncate text-center mx-2 drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)]">
           {activeCategory.display}
         </h2>
         {!isSearchResult && onNext && (
@@ -85,8 +83,7 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
         )}
       </div>
 
-      {/* Video Carousel */}
-      {/* MODIFICACIÓN: Se eliminaron las sombras (shadow-[...]) */}
+      {/* Video Carousel - SIN SOMBRAS */}
       <div className="-mt-[5px] w-full relative z-0 rounded-xl overflow-hidden">
         <ExclusiveVideoCarousel
           key={activeCategory.display}
