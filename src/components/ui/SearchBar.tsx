@@ -33,7 +33,7 @@ const SearchBar = () => {
         type="text"
         placeholder="Buscar..."
         className={cn(
-          "w-full h-9 pl-3 pr-10 text-sm rounded-full border-[1.1px] border-black dark:border-white",
+          "w-full h-9 pl-3 pr-10 text-sm rounded-full border-[2px] border-black dark:border-white",
           "bg-white/90 dark:bg-neutral-800/90 text-black dark:text-white",
           "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent",
           "transition-all duration-200 placeholder:text-gray-400"
