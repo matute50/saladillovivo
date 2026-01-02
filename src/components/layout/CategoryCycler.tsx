@@ -5,7 +5,9 @@ import ExclusiveVideoCarousel from './ExclusiveVideoCarousel';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { Video } from '@/lib/types';
-import { cn } from '@/lib/utils'; // Importamos cn para mayor seguridad
+// Se puede quitar 'cn' si ya no se usa para unir clases complejas, 
+// pero lo dejaremos por si en el futuro agregas más estilos condicionales.
+import { cn } from '@/lib/utils'; 
 
 export interface CategoryMapping {
   display: string;
@@ -84,11 +86,8 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
       </div>
 
       {/* Video Carousel */}
-      {/* MODIFICACIÓN: Agregamos la clase de sombra al contenedor del carrusel */}
-      <div className={cn(
-        "-mt-[5px] w-full relative z-0 rounded-xl overflow-hidden", // Agregamos overflow-hidden y rounded para que la sombra se vea bien en los bordes
-        "shadow-[0_4px_20px_rgba(0,0,0,0.5)] dark:shadow-[0_0_20px_rgba(255,255,255,0.3)]"
-      )}>
+      {/* MODIFICACIÓN: Se eliminaron las sombras (shadow-[...]) */}
+      <div className="-mt-[5px] w-full relative z-0 rounded-xl overflow-hidden">
         <ExclusiveVideoCarousel
           key={activeCategory.display}
           videos={filteredVideos}
