@@ -31,18 +31,18 @@ const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-center items-center text-center gap-2 md:gap-4 w-full">
           
-          {/* 1. LOGO REDUCIDO AL 50% */}
+          {/* 1. LOGO */}
           <div className="flex-shrink-0">
             <Image
               src={isDarkTheme ? banerClaro : banerOscuro}
               alt="Logo Saladillo Vivo"
-              // Reducimos width de 140 a 70
               width={70} 
-              // Reducimos height de 40 a 20
               height={20}
-              // Ajustamos la altura máxima visual
               className="object-contain h-auto w-auto max-h-[20px]"
               priority 
+              // AGREGAMOS ESTA PROPIEDAD:
+              // Evita que Vercel intente procesar la imagen externa, mostrándola directamente.
+              unoptimized 
             />
           </div>
 
