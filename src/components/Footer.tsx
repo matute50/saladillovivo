@@ -27,9 +27,9 @@ const Footer = () => {
   const banerOscuro = "https://storage.googleapis.com/hostinger-horizons-assets-prod/77d159f1-0d45-4b01-ba42-c8ca9cbd0d70/47acc550fd7b520146be23b59835d549.png";
 
   return (
-    <footer className={`bg-gradient-to-b from-[hsl(var(--footer-bg-start))] to-[hsl(var(--footer-bg-end))] dark:bg-[hsl(var(--footer-bg-color))] text-foreground py-2 shadow-footer border-t border-white/10`}>
+    // Se eliminó 'border-t border-white/10' de las clases
+    <footer className={`bg-gradient-to-b from-[hsl(var(--footer-bg-start))] to-[hsl(var(--footer-bg-end))] dark:bg-[hsl(var(--footer-bg-color))] text-foreground py-2 shadow-footer`}>
       <div className="container mx-auto px-4">
-        {/* FLEX-ROW activado para desktop (md:flex-row) y centrado */}
         <div className="flex flex-col md:flex-row justify-center items-center text-center gap-2 md:gap-4 w-full">
           
           {/* 1. LOGO */}
@@ -63,7 +63,7 @@ const Footer = () => {
 
           {/* 3. COPYRIGHT Y CRÉDITOS */}
           <p className="text-[9px] m-0 leading-none">
-            © {currentYear} Saladillo Vivo. Dev:{' '}
+            © {currentYear} Saladillo Vivo. Desarrollado por:{' '}
             <span
               onClick={() => setCreatorModalOpen(true)}
               className="font-bold underline cursor-pointer text-[#003399] dark:text-[#6699ff] hover:text-blue-400 transition-colors"
