@@ -1,6 +1,5 @@
 'use client';
 
-// --- ARREGLO 1: Importar 'useEffect' ---
 import React, { useCallback, useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import VideoPlayer from '@/components/VideoPlayer';
@@ -12,36 +11,29 @@ import CustomControls from '@/components/CustomControls';
 import useCast from '@/hooks/useCast';
 import VideoTitleBar from '@/components/VideoTitleBar';
 import type { Video } from '@/lib/types';
+import { cn } from '@/lib/utils'; // Importamos cn
 
 interface VideoSectionProps {
   isMobileFixed?: boolean;
   isMobile: boolean;
 }
 
-
-
 const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMobile }) => {
   const [isMobileFullscreen, setIsMobileFullscreen] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const playerContainerRef = useRef<HTMLDivElement>(null);
   
-  // 'progress' y 'duration' ya NO vienen del contexto
   const {
     currentVideo,
     isPlaying,
     handleOnEnded, 
   } = useMediaPlayer();
   
-
-
-
-
   const { isCastAvailable, handleCast } = useCast(currentVideo);
 
   const [showControls, setShowControls] = useState(false);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // (Lógica de showControls, fullScreen, getThumbnailUrl - sin cambios)
   const handleShowControls = useCallback(() => {
     setShowControls(true);
     if (controlsTimeoutRef.current) {
@@ -102,6 +94,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
       window.removeEventListener('orientationchange', handleOrientationChange);
     };
   }, [isMobile]);
+  
   const getThumbnailUrl = (media: Video | null) => {
     if (!media?.url) return '/placeholder.png';
     const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})?/;
@@ -113,12 +106,14 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
     return media.url;
   };
 
-
-
   const playerCore = (
     <div 
       ref={playerContainerRef}
-      className="relative w-full h-full aspect-video bg-black overflow-hidden border-0 md:border md:rounded-xl shadow-pop card-blur-player"
+      className={cn(
+        "relative w-full h-full aspect-video bg-black overflow-hidden border-0 md:border md:rounded-xl card-blur-player",
+        // MODIFICACIÓN: Sombra dual aplicada aquí
+        "shadow-[0_4px_20px_rgba(0,0,0,0.5)] dark:shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+      )}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={isMobile ? handleTouchShowControls : undefined}
@@ -126,14 +121,13 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
       <div className="absolute inset-0 w-full h-full md:rounded-xl overflow-hidden">
         {currentVideo && (
           <VideoPlayer
-            key={currentVideo.id || currentVideo.url} // El 'key' es crucial
+            key={currentVideo.id || currentVideo.url}
             videoUrl={currentVideo.url}
             autoplay={true}
             onClose={handleOnEnded}
           />
         )}
 
-        {/* (Lógica de 'Image', 'AnimatePresence', 'Cast', 'Play' - sin cambios) */}
         {!isPlaying && currentVideo?.type === 'video' && currentVideo?.url && (
           <Image
             src={getThumbnailUrl(currentVideo)}
@@ -184,8 +178,6 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
               </motion.div>
           )}
         </AnimatePresence>
-        {/* --- Fin Lógica sin cambios --- */}
-
 
         <AnimatePresence>
           {showControls && currentVideo?.type !== 'image' && (
@@ -196,12 +188,10 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
                 transition={{ duration: 0.2 }}
                 className="absolute bottom-0 left-0 right-0 w-full z-30"
              >
-                {/* --- ARREGLO 7: Pasar los estados locales al slider --- */}
                 <CustomControls 
                   onToggleFullScreen={toggleFullScreen} 
                   isFullScreen={isFullScreen} 
                 />
-                {/* --- Fin Arreglo 7 --- */}
              </motion.div>
           )}
         </AnimatePresence>
@@ -209,7 +199,6 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
     </div>
   );
   
-  // (Lógica del portal y wrapper - sin cambios)
   if (isMobileFixed && isMobileFullscreen) {
      return ReactDOM.createPortal(
        <div className="fullscreen-portal fixed inset-0 w-full h-full bg-black z-[9999]">

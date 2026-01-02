@@ -118,9 +118,8 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
             >
               <div
                 onClick={() => handleVideoClick(video)}
-                className="relative cursor-pointer group rounded-xl overflow-hidden hover:shadow-orange-500/50"
-              >
-                <div className="relative w-56 aspect-video flex items-center justify-center bg-black">
+                className="relative cursor-pointer group rounded-xl overflow-hidden shadow-lg dark:shadow-none hover:shadow-orange-500/50"
+              >                <div className="relative w-56 aspect-video flex items-center justify-center bg-black">
                   <Image
                     src={getYoutubeThumbnail(video)}
                     alt={video.nombre || "Miniatura de video"}

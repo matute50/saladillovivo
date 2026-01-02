@@ -5,6 +5,7 @@ import ExclusiveVideoCarousel from './ExclusiveVideoCarousel';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { Video } from '@/lib/types';
+import { cn } from '@/lib/utils'; // Importamos cn para mayor seguridad
 
 export interface CategoryMapping {
   display: string;
@@ -17,7 +18,7 @@ interface CategoryCyclerProps {
   onNext?: () => void;
   onPrev?: () => void;
   isMobile: boolean;
-  instanceId: string; // Unique ID for the carousel
+  instanceId: string;
   isSearchResult?: boolean;
 }
 
@@ -66,7 +67,7 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
             <ChevronLeft size="20" />
           </motion.button>
         )}
-        <h2 className="text-3xl font-bold tracking-tight text-white truncate text-center mx-2 drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)]">
+        <h2 className="text-3xl font-bold tracking-tight text-[#003399] dark:text-white truncate text-center mx-2 drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)]">
           {activeCategory.display}
         </h2>
         {!isSearchResult && onNext && (
@@ -83,10 +84,13 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
       </div>
 
       {/* Video Carousel */}
-      {/* MODIFICACIÓN: Contenedor con margen negativo para subir el carrusel 5px */}
-      <div className="-mt-[5px] w-full relative z-0">
+      {/* MODIFICACIÓN: Agregamos la clase de sombra al contenedor del carrusel */}
+      <div className={cn(
+        "-mt-[5px] w-full relative z-0 rounded-xl overflow-hidden", // Agregamos overflow-hidden y rounded para que la sombra se vea bien en los bordes
+        "shadow-[0_4px_20px_rgba(0,0,0,0.5)] dark:shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+      )}>
         <ExclusiveVideoCarousel
-          key={activeCategory.display} // Use key to force re-mount
+          key={activeCategory.display}
           videos={filteredVideos}
           isLoading={false}
           carouselId={`category-cycler-${instanceId}`}

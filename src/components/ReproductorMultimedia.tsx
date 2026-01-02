@@ -37,11 +37,10 @@ export default function ReproductorMultimedia({ onComplete, videoToPlay }: Repro
   };
 
   return (
-    <div 
-      className="relative w-full max-w-4xl aspect-video bg-black/20 backdrop-blur-sm overflow-hidden rounded-xl shadow-2xl mx-auto"
+    <div
+      className="relative w-full max-w-4xl aspect-video bg-black/20 backdrop-blur-sm overflow-hidden rounded-xl shadow-2xl dark:shadow-none mx-auto"
       aria-live="polite"
-    >
-        {videoToPlay ? (
+    >        {videoToPlay ? (
           <VideoPlayer
             videoUrl={videoToPlay?.url || ""}
             imageUrl={

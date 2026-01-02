@@ -29,38 +29,32 @@ const VideoTitleBar: React.FC<VideoTitleBarProps> = ({ className }) => {
 
   return (
     <>
-      {/* SOLUCIÓN CSS PURA Y FORZADA:
-        Inyectamos estilos que escuchan directamente la clase "dark" en el tag <html>.
-        Usamos !important para anular cualquier estilo heredado o de Tailwind.
-      */}
+      {/* ESTILOS FORZADOS PARA LEYENDAS */}
       <style dangerouslySetInnerHTML={{ __html: `
-        /* Modo Claro (Por defecto) */
-        .force-legend-color {
-          color: #003399 !important;
-        }
-        
-        /* Modo Oscuro (Cuando <html> tiene la clase .dark) */
-        html.dark .force-legend-color {
-          color: #6699ff !important;
-        }
+        .force-legend-color { color: #003399 !important; }
+        html.dark .force-legend-color { color: #6699ff !important; }
       `}} />
 
       <AnimatePresence>
         {showMainBar && (
           <motion.div
-            className={cn("w-full py-0.5 px-2 card text-right shadow-lg flex flex-col gap-0", className)}
+            className={cn(
+              "w-full py-0.5 px-2 card text-right flex flex-col gap-0",
+              // AQUI ESTÁ LA NUEVA SOMBRA: Negra en claro / Blanca en oscuro
+              "shadow-[0_4px_20px_rgba(0,0,0,0.5)] dark:shadow-[0_0_20px_rgba(255,255,255,0.3)]", 
+              className
+            )}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.3 }}
           >
-            {/* PRIMERA LÍNEA: Video Actual o Noticia */}
+            {/* LÍNEA 1 */}
             {currentVideoTitle && (
               <div className="flex items-center justify-end gap-2">
                 <p className="font-semibold text-black dark:text-white truncate uppercase text-[10px] drop-shadow-sm leading-tight">
                   {isSlideActive ? (
                      <>
-                       {/* Se eliminaron clases de color de Tailwind, usamos solo la clase CSS personalizada */}
                        <span className="force-legend-color font-bold">ESTÁS VIENDO:</span> NOTICIAS EN SALADILLO VIVO
                      </>
                   ) : (
@@ -69,16 +63,13 @@ const VideoTitleBar: React.FC<VideoTitleBarProps> = ({ className }) => {
                      </>
                   )}
                 </p>
-                
                 {!isSlideActive && (
-                  <button onClick={playNextVideoInQueue} className="text-red-500 hover:text-red-700 transition-colors">
-                    <X size={14} />
-                  </button>
+                  <button onClick={playNextVideoInQueue} className="text-red-500 hover:text-red-700 transition-colors"><X size={14} /></button>
                 )}
               </div>
             )}
 
-            {/* SEGUNDA LÍNEA: Próximo Video o Video Interrumpido */}
+            {/* LÍNEA 2 */}
             {showSecondLine && (
               <div className="flex items-center justify-end gap-2">
                 <p className="font-semibold text-black dark:text-white truncate uppercase text-[10px] drop-shadow-sm leading-tight">
@@ -94,11 +85,8 @@ const VideoTitleBar: React.FC<VideoTitleBarProps> = ({ className }) => {
                     )
                   )}
                 </p>
-                
                 {!isSlideActive && nextVideoTitle && (
-                  <button onClick={removeNextVideoFromQueue} className="text-red-500 hover:text-red-700 transition-colors">
-                    <X size={14} />
-                  </button>
+                  <button onClick={removeNextVideoFromQueue} className="text-red-500 hover:text-red-700 transition-colors"><X size={14} /></button>
                 )}
               </div>
             )}

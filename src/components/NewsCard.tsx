@@ -8,6 +8,7 @@ import { Article, SlideMedia } from '@/lib/types';
 import { format } from 'date-fns';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
 import { useNewsPlayer } from '@/context/NewsPlayerContext';
+import { cn } from '@/lib/utils'; // Importamos cn
 
 interface NewsCardProps {
   newsItem: any;
@@ -23,7 +24,6 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
 
   if (!newsItem) return null;
 
-  // --- Normalización de Datos ---
   const title = newsItem.title || newsItem.titulo;
   const imageUrl = newsItem.imageUrl || newsItem.image_url || '/placeholder.png';
   const createdAt = newsItem.created_at || newsItem.fecha;
@@ -31,15 +31,11 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
   const urlSlide = newsItem.url_slide || newsItem.urlSlide;
   const duration = newsItem.animation_duration || 15;
 
-  // Detección de tipo
   const hasSlide = !!urlSlide;
   const isHtmlSlide = hasSlide && urlSlide.endsWith('.html');
   const hasAudioImage = !!imageUrl && !!audioUrl;
   const isPlayable = hasSlide || hasAudioImage;
 
-  // --- Manejadores ---
-  
-  // 1. ABRIR NOTICIA (Lectura)
   const handleOpenNews = (e: React.MouseEvent) => {
     e.preventDefault();
     if (onCardClick) {
@@ -47,12 +43,10 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
     }
   };
 
-  // 2. REPRODUCIR (Multimedia)
   const handlePlaySlide = (e: React.MouseEvent) => {
     e.stopPropagation(); 
     e.preventDefault();
 
-    // CASO A: Slide HTML
     if (isHtmlSlide) {
         console.log("▶ Reproduciendo Slide HTML en Overlay:", title);
         
@@ -68,7 +62,6 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
         return;
     }
 
-    // CASO B: Video o Imagen+Audio
     let mediaData: SlideMedia | null = null;
 
     if (hasSlide && !isHtmlSlide) {
@@ -113,7 +106,13 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
-      className={`group relative flex flex-col rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 h-full ${className || ''}`}
+      // MODIFICACIÓN: Aplicamos la sombra dual aquí
+      className={cn(
+        "group relative flex flex-col rounded-xl overflow-hidden transition-all duration-300 h-full",
+        "shadow-[0_4px_20px_rgba(0,0,0,0.5)] dark:shadow-[0_0_20px_rgba(255,255,255,0.3)]",
+        "hover:scale-[1.02] hover:shadow-[0_8px_30px_rgba(0,0,0,0.6)] dark:hover:shadow-[0_0_30px_rgba(255,255,255,0.4)]", // Efecto hover opcional para realzar la sombra
+        className
+      )}
     >
       {/* CONTENEDOR BASE */}
       <div className="relative w-full h-full aspect-video overflow-hidden bg-black">
@@ -156,7 +155,6 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
           <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
             <motion.button
               onClick={handlePlaySlide}
-              // AQUI EL CAMBIO DE COLOR: hover:bg-[#012078] y hover:border-[#012078]
               className="pointer-events-auto flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full bg-white/20 backdrop-blur-md border border-white/50 text-white shadow-[0_0_15px_rgba(0,0,0,0.5)] opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-[#012078] hover:border-[#012078] hover:scale-110 cursor-pointer"
               whileTap={{ scale: 0.95 }}
               title="Reproducir Slide en Multimedia"
