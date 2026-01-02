@@ -5,7 +5,7 @@ import ExclusiveVideoCarousel from './ExclusiveVideoCarousel';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { Video } from '@/lib/types';
-import { cn } from '@/lib/utils'; 
+// SE ELIMINÓ EL IMPORT DE 'cn' QUE CAUSABA EL ERROR
 
 export interface CategoryMapping {
   display: string;
