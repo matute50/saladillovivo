@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import CreatorModal from './CreatorModal';
+// CORRECCIÓN AQUÍ: Importamos desde la carpeta 'modals'
+import CreatorModal from './modals/CreatorModal'; 
 import ImageModal from './ImageModal';
 
 const Footer = () => {
@@ -27,7 +28,6 @@ const Footer = () => {
   const banerOscuro = "https://storage.googleapis.com/hostinger-horizons-assets-prod/77d159f1-0d45-4b01-ba42-c8ca9cbd0d70/47acc550fd7b520146be23b59835d549.png";
 
   return (
-    // Se eliminó 'border-t border-white/10' de las clases
     <footer className={`bg-gradient-to-b from-[hsl(var(--footer-bg-start))] to-[hsl(var(--footer-bg-end))] dark:bg-[hsl(var(--footer-bg-color))] text-foreground py-2 shadow-footer`}>
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-center items-center text-center gap-2 md:gap-4 w-full">
