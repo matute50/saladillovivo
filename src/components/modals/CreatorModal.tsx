@@ -2,7 +2,8 @@
 
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Heart, Activity, Code, MapPin } from 'lucide-react';
+// SE ELIMINÓ 'MapPin' DE LOS IMPORTS PORQUE NO SE USABA
+import { X, Heart, Activity, Code } from 'lucide-react';
 
 interface CreatorModalProps {
   isOpen: boolean;
@@ -73,8 +74,9 @@ const CreatorModal: React.FC<CreatorModalProps> = ({ isOpen, onClose }) => {
                   Desde las apps para TV, web y móviles hasta el sistema de noticias, todo lo programé yo. No contraté a nadie, no tercericé tareas: el código, el acopio de contenidos, la cámara, la edición y hasta el streaming, salen de mis propias ideas.
                 </p>
 
+                {/* AQUÍ ESTABA EL ERROR DE LAS COMILLAS. SE CAMBIARON " POR &quot; */}
                 <div className="bg-gray-50 dark:bg-neutral-800/50 p-4 rounded-lg border-l-4 border-[#003399] dark:border-[#6699ff] italic text-gray-600 dark:text-gray-400 my-4 text-center">
-                  "Nunca fue mi intención poner a funcionar una plataforma más, sino crear identidad."
+                  &quot;Nunca fue mi intención poner a funcionar una plataforma más, sino crear identidad.&quot;
                 </div>
 
                 <p>
