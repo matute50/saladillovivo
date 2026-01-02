@@ -1,67 +1,68 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useNews } from '@/context/NewsContext';
 import { Search, X } from 'lucide-react';
-import { useDebounce } from '@/hooks/useDebounce';
+import { useNews } from '@/context/NewsContext'; // Importante: Conexión con el contexto
+import { cn } from '@/lib/utils';
 
 const SearchBar = () => {
-  const { handleSearch, searchQuery } = useNews();
-  const [localQuery, setLocalQuery] = useState(searchQuery);
+  const { handleSearch, searchQuery, isSearching } = useNews();
+  const [inputValue, setInputValue] = useState(searchQuery);
 
-  const debouncedQuery = useDebounce(localQuery, 400);
-
+  // Sincroniza el input si se limpia la búsqueda desde otro lado
   useEffect(() => {
-    if (searchQuery !== localQuery) {
-      setLocalQuery(searchQuery);
-    }
-  }, [searchQuery, localQuery]);
+    setInputValue(searchQuery);
+  }, [searchQuery]);
 
-  useEffect(() => {
-    // Ejecutar la búsqueda cuando el valor debounced cambia
-    handleSearch(debouncedQuery);
-  }, [debouncedQuery, handleSearch]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setLocalQuery(e.target.value);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault(); // Evita recargar la página
+    handleSearch(inputValue); // Ejecuta la búsqueda en el contexto
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleSearch(localQuery);
-    }
-  };
-
-  const clearSearch = () => {
-    setLocalQuery('');
-    handleSearch(''); // Limpiar la búsqueda inmediatamente
+  const handleClear = () => {
+    setInputValue('');
+    handleSearch(''); // Limpia los resultados y vuelve al modo normal
   };
 
   return (
-    <div className="relative flex items-center w-full max-w-[16rem] ml-4">
+    <form 
+      onSubmit={handleSubmit} 
+      className="relative flex items-center w-full max-w-[200px] sm:max-w-[300px]"
+    >
       <input
         type="text"
-        value={localQuery}
-        onChange={handleInputChange}
-        onKeyDown={handleKeyDown}
-        maxLength={20}
-        aria-label="Buscar videos"
-        className="search-box w-full h-7 pl-10 pr-10 text-xs rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+        placeholder="Buscar..."
+        className={cn(
+          "w-full h-9 pl-3 pr-10 text-sm rounded-full border border-gray-300 dark:border-gray-600",
+          "bg-white/90 dark:bg-neutral-800/90 text-black dark:text-white",
+          "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+          "transition-all duration-200 placeholder:text-gray-400"
+        )}
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
       />
-      <div className="absolute left-3 flex items-center pointer-events-none">
-        <Search className="search-box-icon h-5 w-5" />
-      </div>
-      {localQuery && (
-        <button
-          onClick={clearSearch}
-          className="absolute right-3 flex items-center justify-center text-gray-500 hover:text-white"
-          aria-label="Limpiar búsqueda"
+      
+      <div className="absolute right-2 flex items-center gap-1">
+        {/* Botón X para limpiar */}
+        {(inputValue || isSearching) && (
+          <button
+            type="button"
+            onClick={handleClear}
+            className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+          >
+            <X size={14} />
+          </button>
+        )}
+        
+        {/* Botón Lupa para buscar */}
+        <button 
+          type="submit" 
+          className="p-1 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors"
         >
-          <X className="h-5 w-5" />
+          <Search size={16} />
         </button>
-      )}
-    </div>
+      </div>
+    </form>
   );
 };
 
