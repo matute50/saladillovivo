@@ -27,7 +27,7 @@ const Footer = () => {
   const banerOscuro = "https://storage.googleapis.com/hostinger-horizons-assets-prod/77d159f1-0d45-4b01-ba42-c8ca9cbd0d70/47acc550fd7b520146be23b59835d549.png";
 
   return (
-    <footer className={`bg-gradient-to-b from-[hsl(var(--footer-bg-start))] to-[hsl(var(--footer-bg-end))] dark:bg-[hsl(var(--footer-bg-color))] text-foreground py-2 shadow-footer`}>
+    <footer className={`bg-gradient-to-b from-[hsl(var(--background-start))] to-[hsl(var(--background-end))] dark:bg-[hsl(var(--footer-bg-color))] text-foreground py-1.5 shadow-footer`}>
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-center items-center text-center gap-2 md:gap-4 w-full">
           
@@ -50,7 +50,7 @@ const Footer = () => {
           <span className="hidden md:block text-gray-400 dark:text-gray-600 text-[10px]">|</span>
 
           {/* 2. TEXTO DECRETO */}
-          <p className="text-[9px] m-0 leading-none text-gray-600 dark:text-gray-300">
+          <p className="text-[10px] m-0 leading-none text-gray-600 dark:text-gray-300">
             Declarado de interés cultural{' '}
             <span
               onClick={() => setDecretoModalOpen(true)}
@@ -64,7 +64,7 @@ const Footer = () => {
           <span className="hidden md:block text-gray-400 dark:text-gray-600 text-[10px]">|</span>
 
           {/* 3. COPYRIGHT Y CRÉDITOS */}
-          <p className="text-[9px] m-0 leading-none text-gray-600 dark:text-gray-300">
+          <p className="text-[10px] m-0 leading-none text-gray-600 dark:text-gray-300">
             © {currentYear} Saladillo Vivo. Desarrollado por:{' '}
             <span
               onClick={() => setCreatorModalOpen(true)}

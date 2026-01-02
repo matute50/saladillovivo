@@ -33,7 +33,7 @@ const SearchBar = () => {
         type="text"
         placeholder="Buscar..."
         className={cn(
-          "w-full h-9 pl-3 pr-10 text-sm rounded-full border border-gray-300 dark:border-gray-600",
+          "w-full h-9 pl-3 pr-10 text-sm rounded-full border-[1.1px] border-black dark:border-white",
           "bg-white/90 dark:bg-neutral-800/90 text-black dark:text-white",
           "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent",
           "transition-all duration-200 placeholder:text-gray-400"
@@ -57,7 +57,7 @@ const SearchBar = () => {
         {/* Botón Lupa para buscar */}
         <button 
           type="submit" 
-          className="p-1 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors"
+          className="p-1 text-foreground hover:text-primary transition-colors"
         >
           <Search size={16} />
         </button>

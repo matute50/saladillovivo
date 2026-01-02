@@ -65,14 +65,14 @@ const DesktopLayout = ({ data, onCardClick }: { data: PageData, onCardClick: (ar
   return (
     <>
       {/* MAIN CONTAINER */}
-      <main className="w-full h-screen overflow-hidden bg-gray-100 dark:bg-neutral-950 pt-[calc(var(--desktop-header-height)-65px)]">
+      <main className="w-full h-screen overflow-y-auto bg-gray-100 dark:bg-neutral-950 pt-[calc(var(--desktop-header-height)-65px)] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
         
-        <div className="container mx-auto px-2 h-full">
+        <div className="container mx-auto px-2">
           
-          <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-4 h-full relative">
+          <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-4 relative">
             
             {/* === COLUMNA IZQUIERDA: NOTICIAS === */}
-            <div className="col-span-1 lg:col-span-5 h-full overflow-y-auto pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
+            <div className="col-span-1 lg:col-span-5">
               <div className="flex flex-col gap-4"> 
                 <NewsColumn news={topNews} onCardClick={onCardClick} banners={banners} />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-8">
@@ -89,7 +89,7 @@ const DesktopLayout = ({ data, onCardClick }: { data: PageData, onCardClick: (ar
             </div>
 
             {/* === COLUMNA CENTRAL: VIDEO + CARRUSEL (FIJA) === */}
-            <div className="hidden lg:block col-span-5 h-full overflow-hidden relative">
+            <div className="hidden lg:block col-span-5 sticky top-0 h-screen">
                 <div className="flex flex-col h-full gap-2 pt-0">
                     <div className="flex-shrink-0">
                       <VideoSection isMobile={false} />
@@ -125,7 +125,7 @@ const DesktopLayout = ({ data, onCardClick }: { data: PageData, onCardClick: (ar
             </div>
 
             {/* === COLUMNA DERECHA: ANUNCIOS === */}
-            <div className="hidden lg:block col-span-2 h-full overflow-y-auto pb-10 pt-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
+            <div className="hidden lg:block col-span-2">
                <AdsSection activeAds={ads} isLoading={false} />
             </div>
 
