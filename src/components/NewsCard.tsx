@@ -28,25 +28,26 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
 
   const title = newsItem.title || newsItem.titulo;
   
-  const getProcessedImageUrl = (item: any): string => {
-      // 1. Try newsItem.image_url from DB (raw value)
-      if (item.image_url) {
-          if (item.image_url.startsWith('http://') || item.image_url.startsWith('https://')) {
-              return item.image_url;
-          } else {
-              // It's a relative path, prepend base URL
-              return `${process.env.NEXT_PUBLIC_MEDIA_URL || ''}${item.image_url}`;
-          }
+  const getProcessedImageUrl = (inputUrl: string | undefined | null): string => {
+      if (!inputUrl) {
+          return '/placeholder.png';
       }
-      // 2. Fallback to newsItem.imageUrl (which is already processed in data.ts to be absolute or a placeholder)
-      if (item.imageUrl) {
-          return item.imageUrl;
+      
+      // Check for YouTube URLs first
+      if (inputUrl.includes('youtube.com') || inputUrl.includes('youtu.be')) {
+          return inputUrl; // Use as is
       }
-      // 3. Final fallback
-      return '/placeholder.png';
+
+      // Then check for absolute HTTP/HTTPS
+      if (inputUrl.startsWith('http://') || inputUrl.startsWith('https://')) {
+          return inputUrl; // Use as is
+      }
+
+      // Otherwise, it's a relative path, prepend base URL
+      return `${process.env.NEXT_PUBLIC_MEDIA_URL || ''}${inputUrl.startsWith('/') ? inputUrl : `/${inputUrl}`}`;
   };
 
-  const finalImageUrl = getProcessedImageUrl(newsItem);
+  const finalImageUrl = getProcessedImageUrl(newsItem.image_url || newsItem.imageUrl);
   
   const createdAt = newsItem.created_at || newsItem.fecha;
   const audioUrl = newsItem.audio_url || newsItem.audioUrl;

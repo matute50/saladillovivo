@@ -24,7 +24,7 @@ export const useVolume = () => {
 };
 
 export const VolumeProvider = ({ children }: { children: React.ReactNode }) => {
-  const { volume, setVolume: setFaderVolume } = useFader(0.5); 
+  const { volume, setVolume: setFaderVolume } = useFader(0); 
   const userVolume = useRef<number>(0.5); 
   const [isAutoplayBlocked, setIsAutoplayBlocked] = useState(false); // Nuevo estado
 

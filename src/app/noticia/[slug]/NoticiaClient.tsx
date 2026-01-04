@@ -34,7 +34,17 @@ export default function NoticiaClient({ article }: { article: Article }) {
   };
 
   // Helper para procesar la URL de la imagen
-  const getSafeImageUrl = (url: string): string => {
+  const getSafeImageUrl = (url: string | undefined | null): string => {
+    if (!url) {
+        return '/placeholder.png';
+    }
+
+    // Check for YouTube URLs first
+    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+        return url; // Use as is
+    }
+
+    // Then check for absolute HTTP/HTTPS
     if (url.startsWith('http://') || url.startsWith('https://')) {
       return url;
     }

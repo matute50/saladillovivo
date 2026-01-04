@@ -29,11 +29,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     const playerRef = useRef<any>(null);
     const resumeTimeRef = useRef<number>(0);
     
-    // Removido: const [origin, setOrigin] = useState(''); // No longer needed
-    
     const urlToPlay = mainVideoUrl || videoUrl || "";
 
-    const { volume: globalVolume, isMuted, unmute, setMuted, isAutoplayBlocked, setIsAutoplayBlocked } = useVolume(); 
+    const { volume: globalVolume, isMuted, unmute, setMuted } = useVolume(); 
     const { activeSlide } = useNewsPlayer(); 
     // Get global state and controls from the media player context
     const { isPlaying, play, pause, togglePlayPause, handleOnProgress, handleOnEnded } = useMediaPlayer();
@@ -42,9 +40,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     const [showIntro, setShowIntro] = useState(false);
     
     const introVideos = React.useMemo(() => ['/azul.mp4', '/cuadros.mp4', '/cuadros2.mp4', '/lineal.mp4', '/RUIDO.mp4'], []);
-
-    // Removido: useEffect to set origin
-    // useEffect(() => { setOrigin(window.location.origin); }, []);
 
     // Silencia el reproductor principal si un slide de noticias (iframe) está activo.
     // Al salir del slide, se reactiva el sonido.
@@ -91,25 +86,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           return () => clearTimeout(timer);
         }
       }
-    }, [urlToPlay, introVideos, activeSlide]); // Removed 'origin' from dependency
-
-    /**
-     * Comprueba si el navegador ha bloqueado la reproducción automática con sonido.
-     * Se ejecuta en `onStart`. Espera un breve momento y luego comprueba si el reproductor
-     * fue forzado a 'muted'. Si es así, activa el "Plan B": mostrar el botón para que el
-     * usuario active el sonido manualmente.
-     */
-    const handleAutoplayCheck = () => {
-      setTimeout(() => {
-        if (playerRef.current) {
-          const internalPlayer = playerRef.current.getInternalPlayer();
-          if (internalPlayer && internalPlayer.muted) {
-            setIsAutoplayBlocked(true);
-            setMuted(true);
-          }
-        }
-      }, 500);
-    };
+    }, [urlToPlay, introVideos, activeSlide]);
 
     const playerConfig = {
       youtube: {
@@ -150,7 +127,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
               controls={false}
               volume={globalVolume}
               muted={isMuted}
-              onStart={handleAutoplayCheck}
               onProgress={handleOnProgress}
               onEnded={onClose || handleOnEnded} 
               config={playerConfig}
@@ -166,10 +142,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         )}
 
         <AnimatePresence>
-          {isAutoplayBlocked && (
+          {isMuted && ( // Condicional ahora es isMuted
             <motion.button
               onClick={() => {
-                setIsAutoplayBlocked(false);
                 unmute();
               }}
               className="absolute top-5 left-5 z-40 text-red-500 bg-black bg-opacity-40 rounded-full p-2 backdrop-blur-sm border border-red-500 shadow-[0_0_15px_rgba(0,0,0,0.7)] flex items-center"
