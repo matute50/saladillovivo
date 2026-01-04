@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
 import { VolumeX } from 'lucide-react'; 
@@ -9,7 +9,7 @@ import { useMediaPlayer } from '@/context/MediaPlayerContext';
 
 const ReactPlayer = dynamic(() => import('react-player'), { 
   ssr: false,
-  loading: () => <div className="w-full h-full bg-black flex items-center justify-center"></div>
+  loading: () => <div className="w-full h-full bg-black animate-pulse"></div>
 });
 
 export interface VideoPlayerProps {
@@ -29,7 +29,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     const playerRef = useRef<any>(null);
     const resumeTimeRef = useRef<number>(0);
     
-    const [isClientMounted, setIsClientMounted] = useState(false); // Nuevo estado
+    // Estado para asegurar renderizado solo en cliente
+    const [isClientMounted, setIsClientMounted] = useState(false);
     
     useEffect(() => {
         setIsClientMounted(true);
@@ -39,25 +40,47 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     const { volume: globalVolume, isMuted, unmute, setMuted } = useVolume(); 
     const { activeSlide } = useNewsPlayer(); 
-    // Get global state and controls from the media player context
     const { isPlaying, play, pause, togglePlayPause, handleOnProgress, handleOnEnded } = useMediaPlayer();
 
     const [introVideo, setIntroVideo] = useState('');
     const [showIntro, setShowIntro] = useState(false);
     
-    const introVideos = React.useMemo(() => ['/azul.mp4', '/cuadros.mp4', '/cuadros2.mp4', '/lineal.mp4', '/RUIDO.mp4'], []);
+    const introVideos = useMemo(() => ['/azul.mp4', '/cuadros.mp4', '/cuadros2.mp4', '/lineal.mp4', '/RUIDO.mp4'], []);
 
-    // Silencia el reproductor principal si un slide de noticias (iframe) está activo.
-    // Al salir del slide, se reactiva el sonido.
+    // Configuración del reproductor de YouTube segura para el cliente
+    const playerConfig = useMemo(() => {
+        if (!isClientMounted) return null;
+        
+        return {
+          youtube: {
+            playerVars: { 
+              autoplay: 1,
+              controls: 0, 
+              modestbranding: 1, 
+              rel: 0, 
+              showinfo: 0, 
+              iv_load_policy: 3, 
+              disablekb: 1,
+              // Aquí solucionamos el error de origen usando window.location.origin real
+              origin: window.location.origin, 
+              muted: 1, 
+              playsinline: 1, 
+            }
+          }
+        };
+    }, [isClientMounted]);
+
+    // Silencia el reproductor principal si un slide de noticias está activo
     useEffect(() => {
         if (activeSlide) {
             setMuted(true);
         } else {
-            unmute();
+             // Opcional: unmute() si deseas que el sonido vuelva solo al cerrar la noticia
+             // unmute(); 
         }
-    }, [activeSlide, setMuted, unmute]);
+    }, [activeSlide, setMuted]);
 
-    // Gestiona la pausa y reanudación del video principal cuando un slide de noticias se superpone.
+    // Gestiona pausa/reanudación al abrir noticias
     useEffect(() => {
       if (activeSlide) {
         if (playerRef.current) {
@@ -68,10 +91,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             }
           } catch(e) { console.warn(e); }
         }
-        pause(); // Use global pause
+        pause(); 
       } else {
-        play(); // Use global play
+        play(); 
         if (playerRef.current && resumeTimeRef.current > 0) {
+          // Pequeño delay para asegurar que el player esté listo antes de buscar
           setTimeout(() => {
              playerRef.current?.seekTo(resumeTimeRef.current, 'seconds');
           }, 100);
@@ -79,9 +103,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       }
     }, [activeSlide, play, pause]);
 
-    // Muestra un video de introducción corto y aleatorio sobre los videos de YouTube.
+    // Intro aleatoria
     useEffect(() => {
-      if (isClientMounted && urlToPlay && !activeSlide) { // Check isClientMounted
+      if (isClientMounted && urlToPlay && !activeSlide) { 
         const isYt = urlToPlay.includes('youtube') || urlToPlay.includes('youtu.be');
         if (isYt) {
           const randomIntro = introVideos[Math.floor(Math.random() * introVideos.length)];
@@ -91,24 +115,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           return () => clearTimeout(timer);
         }
       }
-    }, [urlToPlay, introVideos, isClientMounted, activeSlide]); // Added isClientMounted to dependencies
-
-    const playerConfig = {
-      youtube: {
-        playerVars: { 
-          autoplay: 1,
-          controls: 0, 
-          modestbranding: 1, 
-          rel: 0, 
-          showinfo: 0, 
-          iv_load_policy: 3, 
-          disablekb: 1,
-          origin: typeof window !== 'undefined' ? window.location.origin : 'https://saladillovivo.com.ar', // Fallback a la URL de producción
-          muted: 1, // Explícitamente muteado para autoplay
-          playsinline: 1, // Reproducción inline
-        }
-      }
-    };
+    }, [urlToPlay, introVideos, isClientMounted, activeSlide]);
 
     const slideOverlay = activeSlide ? (
         <div className="absolute inset-0 z-50 bg-black animate-in fade-in duration-300">
@@ -121,12 +128,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         </div>
     ) : null;
 
+    // Renderizado condicional estricto: Si no estamos en el cliente, no renderizamos nada (o un placeholder)
+    if (!isClientMounted) {
+        return <div className="w-full h-full bg-black" />;
+    }
+
     return (
       <div className="relative w-full h-full bg-black overflow-hidden group">
         
         <div className="w-full h-full absolute inset-0 z-0 pointer-events-none">
             <ReactPlayer
-              key={isClientMounted ? 'client-player' : 'server-player'} // Force re-render on client mount
               ref={playerRef}
               url={urlToPlay}
               width="100%"
@@ -134,10 +145,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
               playing={isPlaying && !showIntro}
               controls={false}
               volume={globalVolume}
-              muted={true} // Forced muted for autoplay
+              // Usamos el estado del contexto. Asegúrate que VolumeContext inicie en true.
+              muted={isMuted} 
               onProgress={handleOnProgress}
               onEnded={onClose || handleOnEnded} 
-              config={playerConfig}
+              // Configuración segura generada con useMemo
+              config={playerConfig || undefined} 
             />
         </div>
 
@@ -150,12 +163,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         )}
 
         <AnimatePresence>
-          {isMuted && ( // Condicional ahora es isMuted
+          {isMuted && (
             <motion.button
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation(); // Evita pausar el video al hacer click en unmute
                 unmute();
               }}
-              className="absolute top-5 left-5 z-40 text-red-500 bg-black bg-opacity-40 rounded-full p-2 backdrop-blur-sm border border-red-500 shadow-[0_0_15px_rgba(0,0,0,0.7)] flex items-center"
+              className="absolute top-5 left-5 z-40 text-red-500 bg-black bg-opacity-40 rounded-full p-2 backdrop-blur-sm border border-red-500 shadow-[0_0_15px_rgba(0,0,0,0.7)] flex items-center cursor-pointer hover:bg-black/60 transition-colors"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
