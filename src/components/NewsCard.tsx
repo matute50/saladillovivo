@@ -53,7 +53,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
 
   const hasSlide = !!urlSlide;
   const isHtmlSlide = hasSlide && urlSlide.endsWith('.html');
-  const hasAudioImage = !!imageUrl && !!audioUrl;
+  const hasAudioImage = !!finalImageUrl && !!audioUrl;
   const isPlayable = hasSlide || hasAudioImage;
 
   const handleOpenNews = (e: React.MouseEvent) => {
@@ -69,21 +69,17 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
     
     // Si la noticia tiene un slide HTML, lo reproducimos como antes.
     if (isHtmlSlide) {
-        console.log("▶ Reproduciendo Slide HTML en Overlay:", title);
         if (playSlide) {
             playSlide({
                 url: urlSlide,
                 type: 'html',
                 duration: duration
             });
-        } else {
-            console.error("NewsPlayer no disponible para reproducir HTML");
         }
         return;
     }
 
     // Para cualquier otro tipo de slide, controlamos el mute.
-    console.log(`🔊 Clic para alternar mute. Estado actual: ${isMuted ? 'Muted' : 'Unmuted'}`);
     toggleMute();
   };
 
