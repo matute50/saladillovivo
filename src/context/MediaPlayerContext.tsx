@@ -74,11 +74,18 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
 
   const playMedia = useCallback((media: SlideMedia, isFirst = false) => {
       setCurrentVideo(media);
-      setIsPlaying(true);
+      // setIsPlaying is now handled by an effect
       setIsFirstMedia(isFirst);
       setNextVideo(null);
       setRandomVideoQueued(false);
   }, []);
+
+  // Effect to start playback when a new video is set.
+  useEffect(() => {
+    if (currentVideo) {
+      setIsPlaying(true);
+    }
+  }, [currentVideo]);
 
   const playTemporaryVideo = useCallback(async (media: SlideMedia) => {
       if (interruptedVideo) return;
@@ -104,15 +111,15 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
           return;
         }
         if (currentVideo) setInterruptedVideo(currentVideo);
-        setCurrentVideo(finalMediaData);
-        setIsPlaying(true);
-        setIsFirstMedia(false);
-        setRandomVideoQueued(false);
+        
+        // Use playMedia to set the temporary video
+        playMedia(finalMediaData, false);
+
       } catch (error) {
         console.error("Error al reproducir video temporal:", error);
         if (wasPlaying) play();
       }
-  }, [currentVideo, interruptedVideo, isPlaying, pause, play]);
+  }, [currentVideo, interruptedVideo, isPlaying, pause, play, playMedia]);
 
   const playSpecificVideo = useCallback((media: SlideMedia) => {
       playMedia(media, false);
@@ -138,9 +145,9 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
               videoToPlay = fetchedVideos[randomIndex];
           }
           playMedia(videoToPlay, true);
-          setIsPlaying(true);
+          // Redundant setIsPlaying(true) removed
       }
-  }, [playMedia, setIsPlaying]);
+  }, [playMedia]);
 
   const playNextRandomVideo = useCallback(async (currentVideoId?: string, currentVideoCategory?: string) => {
       const nextVideo: SlideMedia | null = await getNewRandomVideo(currentVideoId, currentVideoCategory);
