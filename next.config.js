@@ -44,11 +44,10 @@ const nextConfig = {
       },
     ],
   },
-  // Optimización para videos locales en Vercel
+  // Optimización de headers para videos (Cache)
   async headers() {
     return [
       {
-        // Aplica a todos los archivos .mp4 y .webm en tu carpeta public
         source: '/:all*(.mp4|.webm)',
         headers: [
           {
