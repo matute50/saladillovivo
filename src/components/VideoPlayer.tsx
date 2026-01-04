@@ -91,14 +91,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     const playerConfig = {
       youtube: {
         playerVars: { 
-          autoplay: 1, 
+          autoplay: 1,
           controls: 0, 
           modestbranding: 1, 
           rel: 0, 
           showinfo: 0, 
           iv_load_policy: 3, 
           disablekb: 1,
-          origin: typeof window !== 'undefined' ? window.location.origin : '', // Direct usage of window.location.origin
+          origin: typeof window !== 'undefined' ? window.location.origin : 'https://saladillovivo.com.ar', // Fallback a la URL de producción
+          muted: 1, // Explícitamente muteado para autoplay
+          playsinline: 1, // Reproducción inline
         }
       }
     };
