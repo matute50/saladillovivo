@@ -26,32 +26,27 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
 
   const title = newsItem.title || newsItem.titulo;
   
-  // --- FUNCIÓN CORREGIDA ---
   const getProcessedImageUrl = (inputUrl: string | undefined | null): string => {
       if (!inputUrl) {
           return '/placeholder.png';
       }
       
-      const cleanUrl = inputUrl.trim(); // Limpiamos espacios invisibles
+      const cleanUrl = inputUrl.trim();
       
-      // 1. DETECCIÓN DE YOUTUBE:
-      // Si la URL es un video de YouTube, extraemos el ID para mostrar la miniatura.
-      // Next/Image no puede mostrar un video en 'src', necesita una imagen (.jpg).
-      const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+      // FIX ESLINT: Se eliminaron los escapes innecesarios (\) dentro de [^/]
+      const youtubeRegex = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/;
       const ytMatch = cleanUrl.match(youtubeRegex);
       
       if (ytMatch && ytMatch[1]) {
-          // Retornamos la miniatura de alta calidad
           return `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
       }
 
-      // 2. Si ya es una URL absoluta (HTTP/HTTPS) y no es YouTube, la usamos tal cual
-      // (Esto cubre tus imágenes de R2 que ya vienen completas)
+      // Si ya es absoluta (http/https), úsala tal cual
       if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) {
           return cleanUrl;
       }
 
-      // 3. Si es una ruta relativa, le pegamos el dominio de medios
+      // Si es relativa, concatena el dominio de medios
       return `${process.env.NEXT_PUBLIC_MEDIA_URL || ''}${cleanUrl.startsWith('/') ? cleanUrl : `/${cleanUrl}`}`;
   };
 
@@ -151,9 +146,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
               fill
               className="object-cover transition-transform duration-700 group-hover:scale-110"
               priority={priority}
-              // Fallback visual si falla la miniatura
               onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
-              // IMPORTANTE: Asegúrate de que img.youtube.com esté en tu next.config.js
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-90" />
 
@@ -166,27 +159,4 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
             )}
 
             <div className="absolute bottom-0 left-0 w-full p-4">
-                <h3 className={`font-bold ${titleSizeClass} text-white leading-tight drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] group-hover:text-blue-200 transition-colors line-clamp-3`}>
-                  {title}
-                </h3>
-            </div>
-        </div>
-
-        {isPlayable && (
-          <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
-            <motion.button
-              onClick={handlePlaySlide} 
-              className="pointer-events-auto flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full bg-white/20 backdrop-blur-md border border-white/50 text-white shadow-[0_0_15px_rgba(0,0,0,0.5)] opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-[#012078] hover:border-[#012078] hover:scale-110 cursor-pointer"
-              whileTap={{ scale: 0.95 }}
-              title="Reproducir Slide en Multimedia"
-            >
-              <Play size={32} fill="currentColor" className="ml-1" />
-            </motion.button>
-          </div>
-        )}
-      </div>
-    </motion.article>
-  );
-};
-
-export default NewsCard;
+                <h3 className={`font-bold ${titleSizeClass} text-white leading-tight drop-shadow-[0_2px_2px_rgba(
