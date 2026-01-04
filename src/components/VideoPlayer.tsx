@@ -141,7 +141,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       <>
         {origin && (
           <div className="relative w-full h-full bg-black overflow-hidden group">
-            {console.log('VideoPlayer Render: urlToPlay', urlToPlay, 'isPlaying', isPlaying, 'isMuted', isMuted, 'isAutoplayBlocked', isAutoplayBlocked)}
             <div className="w-full h-full absolute inset-0 z-0 pointer-events-none">
                 <ReactPlayer
                   ref={playerRef}
