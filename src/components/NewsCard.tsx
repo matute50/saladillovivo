@@ -19,7 +19,6 @@ interface NewsCardProps {
 }
 
 // DEFINICIÓN SEGURA DEL REGEX (Fuera del componente):
-// Hemos eliminado los escapes "\" innecesarios dentro de [^/] para satisfacer a ESLint.
 const YOUTUBE_REGEX = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/;
 
 const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = '', onCardClick, isFeatured = false }) => {
@@ -55,6 +54,9 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
 
   const finalImageUrl = getProcessedImageUrl(newsItem.image_url || newsItem.imageUrl);
   
+  // DETECCIÓN INTELIGENTE: Si es YouTube, no la optimizamos (evita error 400 en Vercel)
+  const isYouTubeImage = finalImageUrl.includes('youtube.com') || finalImageUrl.includes('ytimg.com');
+
   const createdAt = newsItem.created_at || newsItem.fecha;
   const audioUrl = newsItem.audio_url || newsItem.audioUrl;
   const urlSlide = newsItem.url_slide || newsItem.urlSlide;
@@ -149,6 +151,8 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
               fill
               className="object-cover transition-transform duration-700 group-hover:scale-110"
               priority={priority}
+              // FIX CRÍTICO: Si es YouTube, saltamos la optimización de Vercel
+              unoptimized={isYouTubeImage}
               onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-90" />
