@@ -20,32 +20,41 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
   const { buttonColor, buttonBorderColor } = useThemeButtonColors();
 
 
-  const getYoutubeThumbnail = (video: Video) => {
+  const getYoutubeThumbnail = (video: Video): string => {
     if (!video) return 'https://via.placeholder.com/320x180.png?text=No+disponible';
 
-    const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([\w-]{11})/;
+    const youTubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
 
-    // Priorizar la URL del video para extraer la miniatura de YouTube
-    if (video.url && (video.url.includes('youtube.com') || video.url.includes('youtu.be'))) {
-      const videoIdMatch = video.url.match(youtubeRegex);
-      if (videoIdMatch) {
-        return `https://img.youtube.com/vi/${videoIdMatch[1]}/hqdefault.jpg`;
-      }
+    // Prioritize extracting from video.url if it's a YouTube link
+    if (video.url) {
+        const videoIdMatch = video.url.match(youTubeRegex);
+        if (videoIdMatch) {
+            return `https://img.youtube.com/vi/${videoIdMatch[1]}/hqdefault.jpg`;
+        }
     }
 
-    // Si la URL del video no es de YouTube o no se pudo extraer el ID, intentar con la URL de la imagen
-    if (video.imagen && (video.imagen.includes('youtube.com') || video.imagen.includes('youtu.be'))) {
-      const videoIdMatch = video.imagen.match(youtubeRegex);
-      if (videoIdMatch) {
-        return `https://img.youtube.com/vi/${videoIdMatch[1]}/mqdefault.jpg`;
-      }
+    // Apply robust URL processing logic to video.imagen
+    const cleanImageUrl = (video.imagen || '').trim();
+    
+    if (!cleanImageUrl) {
+        return 'https://via.placeholder.com/320x180.png?text=Miniatura';
     }
 
-    // Si ninguna de las anteriores es una URL de YouTube o no se pudo extraer el ID,
-    // o si es un video en vivo/evento, usar video.imagen directamente.
-    // Esto cubre los casos donde video.imagen ya es una URL de miniatura válida
-    // o una imagen personalizada.
-    return video.imagen || 'https://via.placeholder.com/320x180.png?text=Miniatura';
+    // If video.imagen is a YouTube URL, extract thumbnail from it
+    if (cleanImageUrl.includes('youtube.com') || cleanImageUrl.includes('youtu.be')) {
+        const videoIdMatch = cleanImageUrl.match(youTubeRegex);
+        if (videoIdMatch) {
+            return `https://img.youtube.com/vi/${videoIdMatch[1]}/mqdefault.jpg`; // Using mqdefault as fallback, as per original logic
+        }
+    }
+
+    // If it's an absolute HTTP/HTTPS URL, use it
+    if (cleanImageUrl.match(/^(http|https):\/\//)) {
+        return cleanImageUrl;
+    }
+
+    // Otherwise, it's a relative path, prepend base URL
+    return `${process.env.NEXT_PUBLIC_MEDIA_URL || ''}${cleanImageUrl.startsWith('/') ? '' : '/'}${cleanUrl}`;
   };
 
   const handleVideoClick = (video: Video) => {

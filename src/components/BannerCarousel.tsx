@@ -38,6 +38,8 @@ const BannerCarousel: React.FC<BannerCarouselProps> = ({ banners }) => {
           sizes: "(max-width: 768px) 100vw, 400px",
           priority: isFirstBanner,
           loading: isFirstBanner ? undefined : 'lazy' as const,
+          // AGREGA ESTO SIEMPRE MIENTRAS TENGAS EL ERROR 402:
+          unoptimized: true, 
         };
 
         return (

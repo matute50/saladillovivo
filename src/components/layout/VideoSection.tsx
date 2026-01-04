@@ -95,15 +95,26 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
     };
   }, [isMobile]);
   
-  const getThumbnailUrl = (media: Video | null) => {
+  const getThumbnailUrl = (media: Video | null): string => {
     if (!media?.url) return '/placeholder.png';
+
+    const cleanUrl = media.url.trim();
+    
+    // Check for YouTube URLs first and extract thumbnail
     const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})?/;
-    const videoIdMatch = media.url.match(youtubeRegex);
+    const videoIdMatch = cleanUrl.match(youtubeRegex);
     if (videoIdMatch) {
-      const videoId = videoIdMatch[1];
-      return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+        const videoId = videoIdMatch[1];
+        return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
     }
-    return media.url;
+
+    // If it's an absolute HTTP/HTTPS URL (but not YouTube), use it
+    if (cleanUrl.match(/^(http|https):\/\//)) {
+        return cleanUrl;
+    }
+
+    // Otherwise, it's a relative path, prepend base URL
+    return `${process.env.NEXT_PUBLIC_MEDIA_URL || ''}${cleanUrl.startsWith('/') ? '' : '/'}${cleanUrl}`;
   };
 
   const playerCore = (
