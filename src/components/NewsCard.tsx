@@ -18,6 +18,10 @@ interface NewsCardProps {
   isFeatured?: boolean;
 }
 
+// DEFINICIÓN SEGURA DEL REGEX (Fuera del componente):
+// Hemos eliminado los escapes "\" innecesarios dentro de [^/] para satisfacer a ESLint.
+const YOUTUBE_REGEX = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/;
+
 const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = '', onCardClick, isFeatured = false }) => {
   const { playSlide } = useNewsPlayer();
   const { playTemporaryVideo } = useMediaPlayer();
@@ -33,21 +37,19 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
       
       const cleanUrl = inputUrl.trim();
       
-      // FIX FINAL: Usamos 'new RegExp' directamente, sin try/catch innecesario.
-      // Esto evita el error de "unused variable 'e'" y los problemas de escape.
-      const youtubeRegex = new RegExp('(?:youtube\\.com\\/(?:[^/]+\\/.+\\/|(?:v|e(?:mbed)?)\\/|.*[?&]v=)|youtu\\.be\\/)([^"&?/\\s]{11})');
-      const ytMatch = cleanUrl.match(youtubeRegex);
+      // 1. Usamos la constante definida arriba
+      const ytMatch = cleanUrl.match(YOUTUBE_REGEX);
       
       if (ytMatch && ytMatch[1]) {
           return `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
       }
 
-      // Si ya es absoluta (http/https), úsala tal cual
+      // 2. Si ya es absoluta (http/https), úsala tal cual
       if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) {
           return cleanUrl;
       }
 
-      // Si es relativa, concatena el dominio de medios
+      // 3. Si es relativa, concatena el dominio de medios
       return `${process.env.NEXT_PUBLIC_MEDIA_URL || ''}${cleanUrl.startsWith('/') ? cleanUrl : `/${cleanUrl}`}`;
   };
 
@@ -142,3 +144,45 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
           title="Leer noticia"
         >
             <Image
+              src={finalImageUrl}
+              alt={title || 'Noticia'}
+              fill
+              className="object-cover transition-transform duration-700 group-hover:scale-110"
+              priority={priority}
+              onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-90" />
+
+            {createdAt && (
+              <div className="absolute top-3 left-3">
+                <span className="bg-black/60 backdrop-blur-md text-white text-[9px] md:text-[11px] font-medium px-2 py-1 rounded border border-white/10 shadow-sm">
+                    {format(new Date(createdAt), "dd/MM/yyyy")}
+                </span>
+              </div>
+            )}
+
+            <div className="absolute bottom-0 left-0 w-full p-4">
+                <h3 className={`font-bold ${titleSizeClass} text-white leading-tight drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] group-hover:text-blue-200 transition-colors line-clamp-3`}>
+                  {title}
+                </h3>
+            </div>
+        </div>
+
+        {isPlayable && (
+          <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
+            <motion.button
+              onClick={handlePlaySlide} 
+              className="pointer-events-auto flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full bg-white/20 backdrop-blur-md border border-white/50 text-white shadow-[0_0_15px_rgba(0,0,0,0.5)] opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-[#012078] hover:border-[#012078] hover:scale-110 cursor-pointer"
+              whileTap={{ scale: 0.95 }}
+              title="Reproducir Slide en Multimedia"
+            >
+              <Play size={32} fill="currentColor" className="ml-1" />
+            </motion.button>
+          </div>
+        )}
+      </div>
+    </motion.article>
+  );
+};
+
+export default NewsCard;
