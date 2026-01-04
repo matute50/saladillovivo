@@ -206,6 +206,5 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       </div>
     );
 };
-};
 
 export default VideoPlayer;
