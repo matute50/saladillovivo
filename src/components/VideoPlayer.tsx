@@ -29,6 +29,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     const playerRef = useRef<any>(null);
     const resumeTimeRef = useRef<number>(0);
     
+    const [isClientMounted, setIsClientMounted] = useState(false); // Nuevo estado
+    
+    useEffect(() => {
+        setIsClientMounted(true);
+    }, []);
+    
     const urlToPlay = mainVideoUrl || videoUrl || "";
 
     const { volume: globalVolume, isMuted, unmute, setMuted } = useVolume(); 
@@ -75,8 +81,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     // Muestra un video de introducción corto y aleatorio sobre los videos de YouTube.
     useEffect(() => {
-      // isMounted not needed here, and 'origin' is no longer a state
-      if (urlToPlay && !activeSlide) { 
+      if (isClientMounted && urlToPlay && !activeSlide) { // Check isClientMounted
         const isYt = urlToPlay.includes('youtube') || urlToPlay.includes('youtu.be');
         if (isYt) {
           const randomIntro = introVideos[Math.floor(Math.random() * introVideos.length)];
@@ -86,7 +91,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           return () => clearTimeout(timer);
         }
       }
-    }, [urlToPlay, introVideos, activeSlide]);
+    }, [urlToPlay, introVideos, isClientMounted, activeSlide]); // Added isClientMounted to dependencies
 
     const playerConfig = {
       youtube: {
@@ -121,6 +126,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         
         <div className="w-full h-full absolute inset-0 z-0 pointer-events-none">
             <ReactPlayer
+              key={isClientMounted ? 'client-player' : 'server-player'} // Force re-render on client mount
               ref={playerRef}
               url={urlToPlay}
               width="100%"
@@ -128,7 +134,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
               playing={isPlaying && !showIntro}
               controls={false}
               volume={globalVolume}
-              muted={isMuted}
+              muted={true} // Forced muted for autoplay
               onProgress={handleOnProgress}
               onEnded={onClose || handleOnEnded} 
               config={playerConfig}

@@ -34,22 +34,25 @@ export default function NoticiaClient({ article }: { article: Article }) {
   };
 
   // Helper para procesar la URL de la imagen
-  const getSafeImageUrl = (url: string | undefined | null): string => {
-    if (!url) {
+  const getSafeImageUrl = (inputUrl: string | undefined | null): string => {
+    const cleanUrl = (inputUrl || '').trim();
+    
+    if (!cleanUrl) { // Check after trimming
         return '/placeholder.png';
     }
 
     // Check for YouTube URLs first
-    if (url.includes('youtube.com') || url.includes('youtu.be')) {
-        return url; // Use as is
+    if (cleanUrl.includes('youtube.com') || cleanUrl.includes('youtu.be')) {
+        return cleanUrl; // Use as is
     }
 
-    // Then check for absolute HTTP/HTTPS
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      return url;
+    // Use regex for http/https check
+    if (cleanUrl.match(/^(http|https):\/\//)) {
+        return cleanUrl;
     }
-    // Si no es absoluta, añade la base URL. Asegura que no haya doble barra.
-    return `${process.env.NEXT_PUBLIC_MEDIA_URL || ''}${url.startsWith('/') ? url : `/${url}`}`;
+
+    // Otherwise, it's a relative path, prepend base URL
+    return `${process.env.NEXT_PUBLIC_MEDIA_URL || ''}${cleanUrl.startsWith('/') ? '' : '/'}${cleanUrl}`;
   };
 
   const finalImageUrl = getSafeImageUrl(article.imageUrl);
