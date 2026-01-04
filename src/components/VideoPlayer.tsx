@@ -29,7 +29,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     const playerRef = useRef<any>(null);
     const resumeTimeRef = useRef<number>(0);
     
-    const [isMounted, setIsMounted] = useState(false);
     const [isPlayingMain, setIsPlayingMain] = useState(true);
     const [origin, setOrigin] = useState('');
     
@@ -37,7 +36,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     const { volume: globalVolume, isMuted, unmute, setMuted, isAutoplayBlocked, setIsAutoplayBlocked } = useVolume(); 
     const { activeSlide } = useNewsPlayer(); 
-    const { handleOnProgress, handleOnEnded, togglePlayPause } = useMediaPlayer();
+    const { handleOnProgress, handleOnEnded } = useMediaPlayer();
 
     const [introVideo, setIntroVideo] = useState('');
     const [showIntro, setShowIntro] = useState(false);
@@ -45,7 +44,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     const introVideos = React.useMemo(() => ['/azul.mp4', '/cuadros.mp4', '/cuadros2.mp4', '/lineal.mp4', '/RUIDO.mp4'], []);
 
     useEffect(() => { 
-      setIsMounted(true);
       setOrigin(window.location.origin);
     }, []);
 
@@ -83,7 +81,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     // Muestra un video de introducción corto y aleatorio sobre los videos de YouTube.
     useEffect(() => {
-      if (isMounted && urlToPlay && !activeSlide) {
+      if (origin && urlToPlay && !activeSlide) {
         const isYt = urlToPlay.includes('youtube') || urlToPlay.includes('youtu.be');
         if (isYt) {
           const randomIntro = introVideos[Math.floor(Math.random() * introVideos.length)];
@@ -93,7 +91,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           return () => clearTimeout(timer);
         }
       }
-    }, [urlToPlay, introVideos, isMounted, activeSlide]);
+    }, [urlToPlay, introVideos, origin, activeSlide]);
 
     /**
      * Comprueba si el navegador ha bloqueado la reproducción automática con sonido.
@@ -128,8 +126,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       }
     };
 
-    if (!isMounted) return <div className="w-full h-full bg-black" />;
-
     const slideOverlay = activeSlide ? (
         <div className="absolute inset-0 z-50 bg-black animate-in fade-in duration-300">
             <iframe 
@@ -142,72 +138,74 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     ) : null;
 
     return (
-      <div className="relative w-full h-full bg-black overflow-hidden group">
-        
-        <div className="w-full h-full absolute inset-0 z-0 pointer-events-none">
-            <ReactPlayer
-              ref={playerRef}
-              url={urlToPlay}
-              width="100%"
-              height="100%"
-              playing={isPlayingMain && !showIntro}
-              controls={false}
-              volume={globalVolume}
-              muted={isMuted}
-              onStart={handleAutoplayCheck}
-              onProgress={handleOnProgress}
-              onEnded={onClose || handleOnEnded} 
-              config={playerConfig}
-            />
-        </div>
+      <>
+        {origin && (
+          <div className="relative w-full h-full bg-black overflow-hidden group">
+            
+            <div className="w-full h-full absolute inset-0 z-0 pointer-events-none">
+                <ReactPlayer
+                  ref={playerRef}
+                  url={urlToPlay}
+                  width="100%"
+                  height="100%"
+                  playing={isPlayingMain && !showIntro}
+                  controls={false}
+                  volume={globalVolume}
+                  muted={isMuted}
+                  onStart={handleAutoplayCheck}
+                  onProgress={handleOnProgress}
+                  onEnded={onClose || handleOnEnded} 
+                  config={playerConfig}
+                />
+            </div>
 
-        {!activeSlide && (
-          <div 
-            className="absolute inset-0 z-10 cursor-pointer" 
-            onClick={togglePlayPause}
-            title="Click para Pausar/Reproducir"
-          />
+            {!activeSlide && (
+              <div 
+                className="absolute inset-0 z-10" 
+              />
+            )}
+
+            <AnimatePresence>
+              {isAutoplayBlocked && (
+                <motion.button
+                  onClick={() => {
+                    setIsAutoplayBlocked(false);
+                    unmute();
+                  }}
+                  className="absolute top-5 left-5 z-40 text-red-500 bg-black bg-opacity-40 rounded-full p-2 backdrop-blur-sm border border-red-500 shadow-[0_0_15px_rgba(0,0,0,0.7)] flex items-center"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  title="Activar sonido"
+                >
+                  <VolumeX size={38} strokeWidth={1.5} />
+                  <span className="ml-2 mr-3 text-sm font-semibold text-white">SONIDO DESACTIVADO</span>
+                </motion.button>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {showIntro && !activeSlide && (
+                <motion.video
+                  key="intro-video"
+                  className="absolute inset-0 w-full h-full object-cover z-20 pointer-events-none"
+                  src={introVideo}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="auto"
+                  initial={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.8, delay: 3.2 }}
+                />
+              )}
+            </AnimatePresence>
+
+            {slideOverlay}
+          </div>
         )}
-
-        <AnimatePresence>
-          {isAutoplayBlocked && (
-            <motion.button
-              onClick={() => {
-                setIsAutoplayBlocked(false);
-                unmute();
-              }}
-              className="absolute top-5 left-5 z-40 text-red-500 bg-black bg-opacity-40 rounded-full p-2 backdrop-blur-sm border border-red-500 shadow-[0_0_15px_rgba(0,0,0,0.7)] flex items-center"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              title="Activar sonido"
-            >
-              <VolumeX size={38} strokeWidth={1.5} />
-              <span className="ml-2 mr-3 text-sm font-semibold text-white">SONIDO DESACTIVADO</span>
-            </motion.button>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {showIntro && !activeSlide && (
-            <motion.video
-              key="intro-video"
-              className="absolute inset-0 w-full h-full object-cover z-20 pointer-events-none"
-              src={introVideo}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="auto"
-              initial={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.8, delay: 3.2 }}
-            />
-          )}
-        </AnimatePresence>
-
-        {slideOverlay}
-      </div>
+      </>
     );
 };
 
