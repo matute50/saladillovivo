@@ -25,7 +25,27 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
   if (!newsItem) return null;
 
   const title = newsItem.title || newsItem.titulo;
-  const imageUrl = newsItem.imageUrl || newsItem.image_url || '/placeholder.png';
+  
+  const getProcessedImageUrl = (item: any): string => {
+      // 1. Try newsItem.image_url from DB (raw value)
+      if (item.image_url) {
+          if (item.image_url.startsWith('http://') || item.image_url.startsWith('https://')) {
+              return item.image_url;
+          } else {
+              // It's a relative path, prepend base URL
+              return `${process.env.NEXT_PUBLIC_MEDIA_URL || ''}${item.image_url}`;
+          }
+      }
+      // 2. Fallback to newsItem.imageUrl (which is already processed in data.ts to be absolute or a placeholder)
+      if (item.imageUrl) {
+          return item.imageUrl;
+      }
+      // 3. Final fallback
+      return '/placeholder.png';
+  };
+
+  const finalImageUrl = getProcessedImageUrl(newsItem);
+  
   const createdAt = newsItem.created_at || newsItem.fecha;
   const audioUrl = newsItem.audio_url || newsItem.audioUrl;
   const urlSlide = newsItem.url_slide || newsItem.urlSlide;
@@ -89,7 +109,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
           title="Leer noticia"
         >
             <Image
-              src={imageUrl}
+              src={finalImageUrl}
               alt={title || 'Noticia'}
               fill
               className="object-cover transition-transform duration-700 group-hover:scale-110"

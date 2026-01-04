@@ -33,6 +33,17 @@ export default function NoticiaClient({ article }: { article: Article }) {
     }
   };
 
+  // Helper para procesar la URL de la imagen
+  const getSafeImageUrl = (url: string): string => {
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    // Si no es absoluta, añade la base URL. Asegura que no haya doble barra.
+    return `${process.env.NEXT_PUBLIC_MEDIA_URL || ''}${url.startsWith('/') ? url : `/${url}`}`;
+  };
+
+  const finalImageUrl = getSafeImageUrl(article.imageUrl);
+
   // 3. RENDERIZAMOS EL HTML
   return (
     <main className="container mx-auto max-w-4xl px-4 py-8">
@@ -42,14 +53,14 @@ export default function NoticiaClient({ article }: { article: Article }) {
         </h1>
         
         {/* --- INICIO DE CAMBIOS (IMAGEN Y BOTÓN) --- */}
-        {article.imageUrl && (
+        {article.imageUrl && ( // Mantenemos el chequeo de article.imageUrl para asegurar que la propiedad exista
           <div 
             // 1. IMAGEN MÁS PEQUEÑA: Cambiado max-w-4xl (del contenedor padre) a max-w-2xl y centrado
             className="max-w-2xl mx-auto rounded-lg shadow-lg mb-6 relative" 
             style={{ aspectRatio: '16 / 9' }}
           >
             <Image
-              src={article.imageUrl}
+              src={finalImageUrl} // THIS IS THE LINE I WANT TO CHANGE TO finalImageUrl
               alt={article.titulo}
               fill
               className="w-full h-full object-cover rounded-lg"

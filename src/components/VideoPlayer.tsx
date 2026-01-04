@@ -31,6 +31,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     
     const [isMounted, setIsMounted] = useState(false);
     const [isPlayingMain, setIsPlayingMain] = useState(true);
+    const [origin, setOrigin] = useState('');
     
     const urlToPlay = mainVideoUrl || videoUrl || "";
 
@@ -43,7 +44,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     
     const introVideos = React.useMemo(() => ['/azul.mp4', '/cuadros.mp4', '/cuadros2.mp4', '/lineal.mp4', '/RUIDO.mp4'], []);
 
-    useEffect(() => { setIsMounted(true); }, []);
+    useEffect(() => { 
+      setIsMounted(true);
+      setOrigin(window.location.origin);
+    }, []);
 
     // Silencia el reproductor principal si un slide de noticias (iframe) está activo.
     // Al salir del slide, se reactiva el sonido.
@@ -109,6 +113,21 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       }, 500);
     };
 
+    const playerConfig = {
+      youtube: {
+        playerVars: { 
+          autoplay: 1, 
+          controls: 0, 
+          modestbranding: 1, 
+          rel: 0, 
+          showinfo: 0, 
+          iv_load_policy: 3, 
+          disablekb: 1,
+          origin: origin,
+        }
+      }
+    };
+
     if (!isMounted) return <div className="w-full h-full bg-black" />;
 
     const slideOverlay = activeSlide ? (
@@ -138,14 +157,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
               onStart={handleAutoplayCheck}
               onProgress={handleOnProgress}
               onEnded={onClose || handleOnEnded} 
-              
-              config={{
-                youtube: {
-                  playerVars: { 
-                    autoplay: 1, controls: 0, modestbranding: 1, rel: 0, showinfo: 0, iv_load_policy: 3, disablekb: 1
-                  }
-                }
-              }}
+              config={playerConfig}
             />
         </div>
 
