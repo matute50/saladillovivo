@@ -4,12 +4,11 @@ import React from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Play } from 'lucide-react'; 
-import { Article, SlideMedia } from '@/lib/types'; // Import SlideMedia
+import { Article, SlideMedia } from '@/lib/types';
 import { format } from 'date-fns';
 import { useNewsPlayer } from '@/context/NewsPlayerContext';
-// Removido: import { useVolume } from '@/context/VolumeContext';
 import { cn } from '@/lib/utils';
-import { useMediaPlayer } from '@/context/MediaPlayerContext'; // Importar useMediaPlayer
+import { useMediaPlayer } from '@/context/MediaPlayerContext';
 
 interface NewsCardProps {
   newsItem: any;
@@ -21,30 +20,39 @@ interface NewsCardProps {
 
 const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = '', onCardClick, isFeatured = false }) => {
   const { playSlide } = useNewsPlayer();
-  // Removido: const { isMuted, toggleMute } = useVolume();
-  const { playTemporaryVideo } = useMediaPlayer(); // Reintroducido
+  const { playTemporaryVideo } = useMediaPlayer();
 
   if (!newsItem) return null;
 
   const title = newsItem.title || newsItem.titulo;
   
+  // --- FUNCIÓN CORREGIDA ---
   const getProcessedImageUrl = (inputUrl: string | undefined | null): string => {
       if (!inputUrl) {
           return '/placeholder.png';
       }
       
-      // Check for YouTube URLs first
-      if (inputUrl.includes('youtube.com') || inputUrl.includes('youtu.be')) {
-          return inputUrl; // Use as is
+      const cleanUrl = inputUrl.trim(); // Limpiamos espacios invisibles
+      
+      // 1. DETECCIÓN DE YOUTUBE:
+      // Si la URL es un video de YouTube, extraemos el ID para mostrar la miniatura.
+      // Next/Image no puede mostrar un video en 'src', necesita una imagen (.jpg).
+      const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+      const ytMatch = cleanUrl.match(youtubeRegex);
+      
+      if (ytMatch && ytMatch[1]) {
+          // Retornamos la miniatura de alta calidad
+          return `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
       }
 
-      // Then check for absolute HTTP/HTTPS
-      if (inputUrl.startsWith('http://') || inputUrl.startsWith('https://')) {
-          return inputUrl; // Use as is
+      // 2. Si ya es una URL absoluta (HTTP/HTTPS) y no es YouTube, la usamos tal cual
+      // (Esto cubre tus imágenes de R2 que ya vienen completas)
+      if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) {
+          return cleanUrl;
       }
 
-      // Otherwise, it's a relative path, prepend base URL
-      return `${process.env.NEXT_PUBLIC_MEDIA_URL || ''}${inputUrl.startsWith('/') ? inputUrl : `/${inputUrl}`}`;
+      // 3. Si es una ruta relativa, le pegamos el dominio de medios
+      return `${process.env.NEXT_PUBLIC_MEDIA_URL || ''}${cleanUrl.startsWith('/') ? cleanUrl : `/${cleanUrl}`}`;
   };
 
   const finalImageUrl = getProcessedImageUrl(newsItem.image_url || newsItem.imageUrl);
@@ -66,7 +74,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
     }
   };
 
-  const handlePlaySlide = (e: React.MouseEvent) => { // Renombrado de handleToggleMuteClick
+  const handlePlaySlide = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
     
@@ -143,7 +151,9 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
               fill
               className="object-cover transition-transform duration-700 group-hover:scale-110"
               priority={priority}
+              // Fallback visual si falla la miniatura
               onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
+              // IMPORTANTE: Asegúrate de que img.youtube.com esté en tu next.config.js
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-90" />
 
@@ -165,12 +175,11 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
         {isPlayable && (
           <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
             <motion.button
-              onClick={handlePlaySlide} // Ahora llama a handlePlaySlide
+              onClick={handlePlaySlide} 
               className="pointer-events-auto flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full bg-white/20 backdrop-blur-md border border-white/50 text-white shadow-[0_0_15px_rgba(0,0,0,0.5)] opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-[#012078] hover:border-[#012078] hover:scale-110 cursor-pointer"
               whileTap={{ scale: 0.95 }}
               title="Reproducir Slide en Multimedia"
             >
-              {/* Ícono Play */}
               <Play size={32} fill="currentColor" className="ml-1" />
             </motion.button>
           </div>
