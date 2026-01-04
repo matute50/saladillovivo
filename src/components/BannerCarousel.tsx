@@ -15,8 +15,6 @@ interface BannerCarouselProps {
 }
 
 const BannerCarousel: React.FC<BannerCarouselProps> = ({ banners }) => {
-  // 1. FILTRADO DE SEGURIDAD: Eliminamos banners sin URL de imagen válida
-  // Esto evita el error "Image is missing required src property"
   const validBanners = Array.isArray(banners) 
     ? banners.filter(b => b.image_url && b.image_url.trim() !== '') 
     : [];
@@ -31,37 +29,38 @@ const BannerCarousel: React.FC<BannerCarouselProps> = ({ banners }) => {
 
   return (
     <div className="flex flex-col gap-4 w-full">
-      {validBanners.map((banner, index) => (
-        <div 
-          key={banner.id || index} 
-          className="relative w-full aspect-[4/3] rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow group border border-gray-100 dark:border-gray-700"
-        >
-          {banner.link ? (
-            <a 
-              href={banner.link} 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="block w-full h-full"
-            >
-              <Image
-                src={banner.image_url}
-                alt={banner.title || 'Publicidad'}
-                fill
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
-                sizes="(max-width: 768px) 100vw, 400px"
-              />
-            </a>
-          ) : (
-            <Image
-              src={banner.image_url}
-              alt={banner.title || 'Publicidad'}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 400px"
-            />
-          )}
-        </div>
-      ))}
+      {validBanners.map((banner, index) => {
+        const isFirstBanner = index === 0;
+        const imageProps = {
+          src: banner.image_url,
+          alt: banner.title || 'Publicidad',
+          fill: true,
+          className: `object-cover ${banner.link ? 'transition-transform duration-500 group-hover:scale-105' : ''}`,
+          sizes: "(max-width: 768px) 100vw, 400px",
+          priority: isFirstBanner,
+          loading: isFirstBanner ? undefined : 'lazy' as const,
+        };
+
+        return (
+          <div 
+            key={banner.id || index} 
+            className="relative w-full aspect-[4/3] rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow group border border-gray-100 dark:border-gray-700"
+          >
+            {banner.link ? (
+              <a 
+                href={banner.link} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="block w-full h-full"
+              >
+                <Image {...imageProps} />
+              </a>
+            ) : (
+              <Image {...imageProps} />
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 };

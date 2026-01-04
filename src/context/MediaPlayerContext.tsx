@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react'; 
+import React, { createContext, useContext, useState, useCallback, useMemo } from 'react'; 
 import { getVideosForHome, getNewRandomVideo } from '@/lib/data';
 import { SlideMedia } from '@/lib/types';
 // Importamos el contexto de volumen para controlar el nivel de audio
@@ -50,13 +50,11 @@ export const useMediaPlayer = () => {
 };
 
 export const MediaPlayerProvider = ({ children }: { children: React.ReactNode }) => {
-  // Obtenemos el control de volumen del contexto global
-  const { setVolume } = useVolume();
+  const { unmute } = useVolume();
 
   const [viewMode, _setViewMode] = useState<'diario' | 'tv'>('diario');
   
   const setViewMode = useCallback((mode: 'diario' | 'tv') => {
-      console.log(`[MediaPlayerContext] Cambiando viewMode a: ${mode}`);
       _setViewMode(mode);
   }, []);
 
@@ -158,33 +156,34 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
         setCurrentVideo(interruptedVideo);
         setInterruptedVideo(null);
         setIsPlaying(true);
+        unmute(); // Forzamos que el volumen vuelva a estar activo
         return;
       }
       if (viewMode === 'tv') {
+          unmute(); // Aseguramos el volumen activo en modo TV
           playNextRandomVideo(currentVideo?.id, currentVideo?.categoria);
       } else {
           if (isUserSelected) setIsUserSelected(false);
           if (nextVideo) {
+              unmute(); // Aseguramos el volumen activo para el siguiente video
               playMedia(nextVideo, false);
               setNextVideo(null);
           } else {
+              unmute(); // Aseguramos el volumen activo para un video aleatorio
               playNextRandomVideo(currentVideo?.id, currentVideo?.categoria);
           }
       }
-  }, [viewMode, isUserSelected, nextVideo, playMedia, playNextRandomVideo, currentVideo, interruptedVideo]);
+  }, [viewMode, isUserSelected, nextVideo, playMedia, playNextRandomVideo, currentVideo, interruptedVideo, unmute]);
 
   const handleOnProgress = useCallback(async (progress: ProgressState) => {
       if (viewMode === 'tv' || interruptedVideo) return;
       if (!currentVideo) return;
 
       if (!nextVideo && !randomVideoQueued && progress.playedSeconds > 5) {
-          setRandomVideoQueued(true); 
-          console.log("📥 Precargando siguiente video aleatorio...");
-          
+          setRandomVideoQueued(true);
           const newRandomVideo = await getNewRandomVideo(currentVideo.id, currentVideo.categoria);
           if (newRandomVideo) {
               setNextVideo(newRandomVideo);
-              console.log("✅ Video precargado:", newRandomVideo.nombre);
           } else {
               setRandomVideoQueued(false);
           }
@@ -203,34 +202,6 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
   }, [nextVideo, playMedia, playNextRandomVideo, currentVideo]);
 
   const removeNextVideoFromQueue = useCallback(() => setNextVideo(null), []);
-
-  // --- TRAMPA DE AUDIO INVISIBLE ---
-  // Detecta el primer clic/toque en cualquier parte del sitio para activar el sonido
-  useEffect(() => {
-    const unlockAudio = () => {
-      console.log("🔊 Primer interacción detectada: Estableciendo volumen al 50%");
-      
-      // Establecemos el volumen al 50%
-      if (setVolume) {
-        setVolume(0.5);
-      }
-
-      // Removemos los listeners para que no se repita
-      window.removeEventListener('click', unlockAudio);
-      window.removeEventListener('keydown', unlockAudio);
-      window.removeEventListener('touchstart', unlockAudio);
-    };
-
-    window.addEventListener('click', unlockAudio);
-    window.addEventListener('keydown', unlockAudio);
-    window.addEventListener('touchstart', unlockAudio);
-
-    return () => {
-      window.removeEventListener('click', unlockAudio);
-      window.removeEventListener('keydown', unlockAudio);
-      window.removeEventListener('touchstart', unlockAudio);
-    };
-  }, [setVolume]); // Agregamos setVolume a las dependencias
 
   const value = useMemo(() => ({
       currentVideo, nextVideo, isPlaying, seekToFraction, isFirstMedia, randomVideoQueued, streamStatus, viewMode,

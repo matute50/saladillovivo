@@ -2,6 +2,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
+import { VolumeX } from 'lucide-react'; 
 import { useVolume } from '@/context/VolumeContext';
 import { useNewsPlayer } from '@/context/NewsPlayerContext';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
@@ -20,25 +21,21 @@ export interface VideoPlayerProps {
   autoplay?: boolean;
 }
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ 
+const VideoPlayer: React.FC<VideoPlayerProps> = ({
   mainVideoUrl, 
   videoUrl,
   onClose 
 }) => {
-    // --- 1. Refs y Estados ---
     const playerRef = useRef<any>(null);
     const resumeTimeRef = useRef<number>(0);
     
     const [isMounted, setIsMounted] = useState(false);
     const [isPlayingMain, setIsPlayingMain] = useState(true);
     
-    // Compatibilidad de URL
     const urlToPlay = mainVideoUrl || videoUrl || "";
 
-    const { volume: globalVolume } = useVolume(); 
+    const { volume: globalVolume, isMuted, unmute, setMuted, isAutoplayBlocked, setIsAutoplayBlocked } = useVolume(); 
     const { activeSlide } = useNewsPlayer(); 
-    
-    // Importamos togglePlayPause para permitir pausar al hacer clic en la pantalla
     const { handleOnProgress, handleOnEnded, togglePlayPause } = useMediaPlayer();
 
     const [introVideo, setIntroVideo] = useState('');
@@ -48,7 +45,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     useEffect(() => { setIsMounted(true); }, []);
 
-    // --- 2. Lógica de Interrupción (Slides / Noticias) ---
+    // Silencia el reproductor principal si un slide de noticias (iframe) está activo.
+    // Al salir del slide, se reactiva el sonido.
+    useEffect(() => {
+        if (activeSlide) {
+            setMuted(true);
+        } else {
+            unmute();
+        }
+    }, [activeSlide, setMuted, unmute]);
+
+    // Gestiona la pausa y reanudación del video principal cuando un slide de noticias se superpone.
     useEffect(() => {
       if (activeSlide) {
         if (playerRef.current) {
@@ -70,7 +77,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       }
     }, [activeSlide]);
 
-    // --- 3. Lógica de Intro (Branding) ---
+    // Muestra un video de introducción corto y aleatorio sobre los videos de YouTube.
     useEffect(() => {
       if (isMounted && urlToPlay && !activeSlide) {
         const isYt = urlToPlay.includes('youtube') || urlToPlay.includes('youtu.be');
@@ -84,9 +91,26 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       }
     }, [urlToPlay, introVideos, isMounted, activeSlide]);
 
+    /**
+     * Comprueba si el navegador ha bloqueado la reproducción automática con sonido.
+     * Se ejecuta en `onStart`. Espera un breve momento y luego comprueba si el reproductor
+     * fue forzado a 'muted'. Si es así, activa el "Plan B": mostrar el botón para que el
+     * usuario active el sonido manualmente.
+     */
+    const handleAutoplayCheck = () => {
+      setTimeout(() => {
+        if (playerRef.current) {
+          const internalPlayer = playerRef.current.getInternalPlayer();
+          if (internalPlayer && internalPlayer.muted) {
+            setIsAutoplayBlocked(true);
+            setMuted(true);
+          }
+        }
+      }, 500);
+    };
+
     if (!isMounted) return <div className="w-full h-full bg-black" />;
 
-    // --- 4. Overlay del Slide (SIN BOTÓN DE CIERRE) ---
     const slideOverlay = activeSlide ? (
         <div className="absolute inset-0 z-50 bg-black animate-in fade-in duration-300">
             <iframe 
@@ -98,15 +122,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         </div>
     ) : null;
 
-    const effectiveVolume = activeSlide ? 0 : (globalVolume > 0 ? globalVolume : 0);
-
     return (
       <div className="relative w-full h-full bg-black overflow-hidden group">
         
-        {/* CAPA DE VIDEO (FONDO)
-            Aplicamos 'pointer-events-none' para que el mouse "atraviese" el video.
-            Así, YouTube nunca detecta el hover y nunca muestra sus títulos ni botones.
-        */}
         <div className="w-full h-full absolute inset-0 z-0 pointer-events-none">
             <ReactPlayer
               ref={playerRef}
@@ -115,16 +133,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
               height="100%"
               playing={isPlayingMain && !showIntro}
               controls={false}
-              volume={effectiveVolume}
-              muted={effectiveVolume === 0}
-              
+              volume={globalVolume}
+              muted={isMuted}
+              onStart={handleAutoplayCheck}
               onProgress={handleOnProgress}
               onEnded={onClose || handleOnEnded} 
               
               config={{
                 youtube: {
                   playerVars: { 
-                    // Ocultamos controles explícitamente, aunque el pointer-events-none hace el trabajo pesado
                     autoplay: 1, controls: 0, modestbranding: 1, rel: 0, showinfo: 0, iv_load_policy: 3, disablekb: 1
                   }
                 }
@@ -132,10 +149,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             />
         </div>
 
-        {/* CAPA DE CONTROL TRANSPARENTE (INTERACCIÓN BÁSICA)
-            Esta capa invisible captura los clics para Pausar/Reproducir,
-            ya que desactivamos los clics directos sobre YouTube.
-        */}
         {!activeSlide && (
           <div 
             className="absolute inset-0 z-10 cursor-pointer" 
@@ -145,14 +158,35 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         )}
 
         <AnimatePresence>
+          {isAutoplayBlocked && (
+            <motion.button
+              onClick={() => {
+                setIsAutoplayBlocked(false);
+                unmute();
+              }}
+              className="absolute top-5 left-5 z-40 text-red-500 bg-black bg-opacity-40 rounded-full p-2 backdrop-blur-sm border border-red-500 shadow-[0_0_15px_rgba(0,0,0,0.7)] flex items-center"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              title="Activar sonido"
+            >
+              <VolumeX size={38} strokeWidth={1.5} />
+              <span className="ml-2 mr-3 text-sm font-semibold text-white">SONIDO DESACTIVADO</span>
+            </motion.button>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
           {showIntro && !activeSlide && (
             <motion.video
               key="intro-video"
               className="absolute inset-0 w-full h-full object-cover z-20 pointer-events-none"
               src={introVideo}
               autoPlay
-              muted={true}
+              muted
+              loop
               playsInline
+              preload="auto"
               initial={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.8, delay: 3.2 }}

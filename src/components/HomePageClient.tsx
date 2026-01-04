@@ -10,17 +10,26 @@ import { useMediaPlayer } from '@/context/MediaPlayerContext';
 import useIsMobile from '@/hooks/useIsMobile';
 import NewsModal from './NewsModal'; // Importar el modal
 
+// A simple loading spinner component
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center h-screen w-screen bg-black">
+    <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+  </div>
+);
 
 const HomePageClient = ({ initialData }: { initialData: PageData }) => {
   const isMobile = useIsMobile();
   const { loadInitialPlaylist, viewMode } = useMediaPlayer();
   
-  // --- Estados para el modal de noticias ---
+  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedNews, setSelectedNews] = useState<Article | null>(null);
 
   useEffect(() => {
+    // Load the initial playlist
     loadInitialPlaylist(null);
+    // Set loading to false after the component has mounted and hydrated
+    setIsLoading(false);
   }, [loadInitialPlaylist]);
 
   const handleOpenModal = (newsItem: Article) => {
@@ -32,7 +41,10 @@ const HomePageClient = ({ initialData }: { initialData: PageData }) => {
     setIsModalOpen(false);
   };
   
-
+  // Show a loading spinner until the client-side is ready
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
 
   if (viewMode === 'tv') {
     return <TvModeLayout />;

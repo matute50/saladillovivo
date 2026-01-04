@@ -37,7 +37,27 @@ const nextConfig = {
         hostname: 'saladillovivo.vercel.app',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'media.saladillovivo.com.ar',
+        pathname: '/**',
+      },
     ],
+  },
+  // Optimización para videos locales en Vercel
+  async headers() {
+    return [
+      {
+        // Aplica a todos los archivos .mp4 y .webm en tu carpeta public
+        source: '/:all*(.mp4|.webm)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ];
   },
 };
 

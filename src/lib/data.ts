@@ -97,7 +97,8 @@ export async function getArticlesForHome(limitSecondary: number = 5) {
 export async function getVideosForHome(limitRecent: number = 4) {
   const { data, error } = await supabase
     .from('videos')
-    .select('id, nombre, url, createdAt, categoria, imagen, novedad, forzar_video') 
+    .select('id, nombre, url, createdAt, categoria, imagen, novedad, forzar_video')
+    .neq('categoria', 'HCD DE SALADILLO - Período 2025')
     .order('createdAt', { ascending: false });
 
   if (error) {
@@ -174,7 +175,8 @@ export async function getRandomVideo(): Promise<Video | null> {
 export async function getNewRandomVideo(currentId?: string, currentCategory?: string): Promise<Video | null> {
   const { data, error } = await supabase
     .from('videos')
-    .select('id, nombre, url, createdAt, categoria, imagen, novedad, forzar_video');
+    .select('id, nombre, url, createdAt, categoria, imagen, novedad, forzar_video')
+    .neq('categoria', 'HCD DE SALADILLO - Período 2025');
 
   if (error) {
     console.error('Error fetching videos for random selection:', error);
