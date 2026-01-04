@@ -29,14 +29,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     const playerRef = useRef<any>(null);
     const resumeTimeRef = useRef<number>(0);
     
-    const [isPlayingMain, setIsPlayingMain] = useState(true);
     const [origin, setOrigin] = useState('');
     
     const urlToPlay = mainVideoUrl || videoUrl || "";
 
     const { volume: globalVolume, isMuted, unmute, setMuted, isAutoplayBlocked, setIsAutoplayBlocked } = useVolume(); 
     const { activeSlide } = useNewsPlayer(); 
-    const { handleOnProgress, handleOnEnded } = useMediaPlayer();
+    // Get global state and controls from the media player context
+    const { isPlaying, play, pause, togglePlayPause, handleOnProgress, handleOnEnded } = useMediaPlayer();
 
     const [introVideo, setIntroVideo] = useState('');
     const [showIntro, setShowIntro] = useState(false);
@@ -68,16 +68,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             }
           } catch(e) { console.warn(e); }
         }
-        setIsPlayingMain(false); 
+        pause(); // Use global pause
       } else {
-        setIsPlayingMain(true);
+        play(); // Use global play
         if (playerRef.current && resumeTimeRef.current > 0) {
           setTimeout(() => {
              playerRef.current?.seekTo(resumeTimeRef.current, 'seconds');
           }, 100);
         }
       }
-    }, [activeSlide]);
+    }, [activeSlide, play, pause]);
 
     // Muestra un video de introducción corto y aleatorio sobre los videos de YouTube.
     useEffect(() => {
@@ -148,7 +148,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                   url={urlToPlay}
                   width="100%"
                   height="100%"
-                  playing={isPlayingMain && !showIntro}
+                  playing={isPlaying && !showIntro}
                   controls={false}
                   volume={globalVolume}
                   muted={isMuted}
@@ -161,7 +161,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
             {!activeSlide && (
               <div 
-                className="absolute inset-0 z-10" 
+                className="absolute inset-0 z-10 cursor-pointer"
+                onClick={togglePlayPause}
+                title="Click para Pausar/Reproducir"
               />
             )}
 
