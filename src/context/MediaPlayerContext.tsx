@@ -50,6 +50,7 @@ export const useMediaPlayer = () => {
 };
 
 export const MediaPlayerProvider = ({ children }: { children: React.ReactNode }) => {
+  console.log('MediaPlayerProvider: Initializing');
   const { unmute } = useVolume();
 
   const [viewMode, _setViewMode] = useState<'diario' | 'tv'>('diario');
@@ -69,10 +70,17 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
   
   const [streamStatus] = useState<{ liveStreamUrl: string; isLive: boolean; } | null>({ liveStreamUrl: 'https://www.youtube.com/watch?v=pand8Im1jag', isLive: true });
 
-  const pause = useCallback(() => setIsPlaying(false), []);
-  const play = useCallback(() => setIsPlaying(true), []);
+  const pause = useCallback(() => {
+    console.log('MediaPlayerProvider: pause() called');
+    setIsPlaying(false);
+  }, []);
+  const play = useCallback(() => {
+    console.log('MediaPlayerProvider: play() called');
+    setIsPlaying(true);
+  }, []);
 
   const playMedia = useCallback((media: SlideMedia, isFirst = false) => {
+      console.log('MediaPlayerProvider: playMedia() called with', media);
       setCurrentVideo(media);
       // setIsPlaying is now handled by an effect
       setIsFirstMedia(isFirst);
@@ -83,6 +91,7 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
   // Effect to start playback when a new video is set.
   useEffect(() => {
     if (currentVideo) {
+      console.log('MediaPlayerProvider: useEffect [currentVideo] triggered, setting isPlaying(true)');
       setIsPlaying(true);
     }
   }, [currentVideo]);
@@ -134,6 +143,7 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
   }, [playMedia]);
 
   const loadInitialPlaylist = useCallback(async (videoUrlToPlay: string | null) => {
+      console.log('MediaPlayerProvider: loadInitialPlaylist() called');
       const { allVideos: fetchedVideos } = await getVideosForHome(100);
       if (fetchedVideos && fetchedVideos.length > 0) {
           let videoToPlay: SlideMedia;
@@ -145,7 +155,8 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
               videoToPlay = fetchedVideos[randomIndex];
           }
           playMedia(videoToPlay, true);
-          // Redundant setIsPlaying(true) removed
+      } else {
+        console.log('MediaPlayerProvider: No videos fetched for initial playlist.');
       }
   }, [playMedia]);
 
@@ -159,6 +170,7 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
   }, [playMedia, loadInitialPlaylist]);
 
   const handleOnEnded = useCallback(() => {
+      console.log('MediaPlayerProvider: handleOnEnded() called');
       if (interruptedVideo) {
         setCurrentVideo(interruptedVideo);
         setInterruptedVideo(null);
@@ -183,6 +195,7 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
   }, [viewMode, isUserSelected, nextVideo, playMedia, playNextRandomVideo, currentVideo, interruptedVideo, unmute]);
 
   const handleOnProgress = useCallback(async (progress: ProgressState) => {
+      // console.log('MediaPlayerProvider: handleOnProgress() called', progress);
       if (viewMode === 'tv' || interruptedVideo) return;
       if (!currentVideo) return;
 
