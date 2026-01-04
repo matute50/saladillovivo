@@ -3,12 +3,13 @@
 import React from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Play } from 'lucide-react'; // Eliminamos Volume2 y VolumeX
-import { Article } from '@/lib/types';
+import { Play } from 'lucide-react'; 
+import { Article, SlideMedia } from '@/lib/types'; // Import SlideMedia
 import { format } from 'date-fns';
 import { useNewsPlayer } from '@/context/NewsPlayerContext';
-import { useVolume } from '@/context/VolumeContext'; // Mantenemos el hook de volumen
+// Removido: import { useVolume } from '@/context/VolumeContext';
 import { cn } from '@/lib/utils';
+import { useMediaPlayer } from '@/context/MediaPlayerContext'; // Importar useMediaPlayer
 
 interface NewsCardProps {
   newsItem: any;
@@ -20,7 +21,8 @@ interface NewsCardProps {
 
 const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = '', onCardClick, isFeatured = false }) => {
   const { playSlide } = useNewsPlayer();
-  const { isMuted, toggleMute } = useVolume(); // Mantenemos el uso del hook de volumen
+  // Removido: const { isMuted, toggleMute } = useVolume();
+  const { playTemporaryVideo } = useMediaPlayer(); // Reintroducido
 
   if (!newsItem) return null;
 
@@ -63,11 +65,10 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
     }
   };
 
-  const handleToggleMuteClick = (e: React.MouseEvent) => {
+  const handlePlaySlide = (e: React.MouseEvent) => { // Renombrado de handleToggleMuteClick
     e.stopPropagation();
     e.preventDefault();
     
-    // Si la noticia tiene un slide HTML, lo reproducimos como antes.
     if (isHtmlSlide) {
         if (playSlide) {
             playSlide({
@@ -79,8 +80,39 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
         return;
     }
 
-    // Para cualquier otro tipo de slide, controlamos el mute.
-    toggleMute();
+    let mediaData: SlideMedia | null = null;
+
+    if (hasSlide && !isHtmlSlide) {
+        mediaData = {
+            id: newsItem.id.toString(),
+            type: 'video', 
+            url: urlSlide,
+            nombre: title,
+            createdAt: createdAt,
+            categoria: 'Noticias',
+            imagen: finalImageUrl,
+            novedad: true,
+            duration: duration
+        };
+    } else if (hasAudioImage) {
+        mediaData = {
+            id: newsItem.id.toString(),
+            type: 'image',
+            url: "", 
+            imageSourceUrl: finalImageUrl,
+            audioSourceUrl: audioUrl,
+            nombre: title,
+            createdAt: createdAt,
+            categoria: 'Noticias',
+            imagen: finalImageUrl,
+            novedad: true,
+            duration: duration
+        };
+    }
+
+    if (mediaData) {
+        playTemporaryVideo(mediaData);
+    }
   };
 
   const priority = index < 4;
@@ -132,12 +164,12 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
         {isPlayable && (
           <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
             <motion.button
-              onClick={handleToggleMuteClick} // Mantenemos la nueva función
+              onClick={handlePlaySlide} // Ahora llama a handlePlaySlide
               className="pointer-events-auto flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full bg-white/20 backdrop-blur-md border border-white/50 text-white shadow-[0_0_15px_rgba(0,0,0,0.5)] opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-[#012078] hover:border-[#012078] hover:scale-110 cursor-pointer"
               whileTap={{ scale: 0.95 }}
-              title="Reproducir Slide en Multimedia" // Título restaurado
+              title="Reproducir Slide en Multimedia"
             >
-              {/* Ícono Play restaurado */}
+              {/* Ícono Play */}
               <Play size={32} fill="currentColor" className="ml-1" />
             </motion.button>
           </div>
