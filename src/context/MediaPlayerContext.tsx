@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, useMemo } from 'react'; 
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react'; 
 import { getVideosForHome, getNewRandomVideo } from '@/lib/data';
 import { SlideMedia } from '@/lib/types';
 // Importamos el contexto de volumen para controlar el nivel de audio
