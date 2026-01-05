@@ -36,7 +36,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
       
       const cleanUrl = inputUrl.trim();
       
-      // 1. Usamos la constante definida arriba
+      // 1. Usamos la constante definida arriba para YouTube
       const ytMatch = cleanUrl.match(YOUTUBE_REGEX);
       
       if (ytMatch && ytMatch[1]) {
@@ -54,9 +54,6 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
 
   const finalImageUrl = getProcessedImageUrl(newsItem.image_url || newsItem.imageUrl);
   
-  // DETECCIÓN INTELIGENTE: Si es YouTube, no la optimizamos (evita error 400 en Vercel)
-  const isYouTubeImage = finalImageUrl.includes('youtube.com') || finalImageUrl.includes('ytimg.com');
-
   const createdAt = newsItem.created_at || newsItem.fecha;
   const audioUrl = newsItem.audio_url || newsItem.audioUrl;
   const urlSlide = newsItem.url_slide || newsItem.urlSlide;
@@ -143,6 +140,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
         <div 
           className="absolute inset-0 z-10 cursor-pointer"
           onClick={handleOpenNews}
+          title="Leer noticia"
         >
             <Image
               src={finalImageUrl}
@@ -150,41 +148,6 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
               fill
               className="object-cover transition-transform duration-700 group-hover:scale-110"
               priority={priority}
-              // FIX CRÍTICO: Si es YouTube, saltamos la optimización de Vercel
-              unoptimized={isYouTubeImage}
-              onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-90" />
-
-            {createdAt && (
-              <div className="absolute top-3 left-3">
-                <span className="bg-black/40 backdrop-blur-md text-white text-[9px] md:text-[11px] font-medium px-2 py-1 rounded border border-white/10 shadow-sm">
-                    {format(new Date(createdAt), "dd/MM/yyyy")}
-                </span>
-              </div>
-            )}
-
-            <div className="absolute bottom-0 left-0 w-full p-4">
-                <h3 className={`font-bold ${titleSizeClass} text-white leading-tight drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] group-hover:text-blue-200 transition-colors line-clamp-3`}>
-                  {title}
-                </h3>
-            </div>
-        </div>
-
-        {isPlayable && (
-          <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
-            <motion.button
-              onClick={handlePlaySlide} 
-              className="pointer-events-auto flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full bg-white/20 backdrop-blur-md border border-white/50 text-white shadow-[0_0_15px_rgba(0,0,0,0.5)] opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-[#012078] hover:border-[#012078] hover:scale-110 cursor-pointer"
-              whileTap={{ scale: 0.95 }}
-            >
-              <Play size={32} fill="currentColor" className="ml-1" />
-            </motion.button>
-          </div>
-        )}
-      </div>
-    </motion.article>
-  );
-};
-
-export default NewsCard;
+              // FIX: 'true' para TODAS las imágenes mientras tengas el error 402 de Vercel
+              unoptimized={true} 
+              onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.
