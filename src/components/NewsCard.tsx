@@ -159,7 +159,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
 
             {createdAt && (
               <div className="absolute top-3 left-3">
-                <span className="bg-black/60 backdrop-blur-md text-white text-[9px] md:text-[11px] font-medium px-2 py-1 rounded border border-white/10 shadow-sm">
+                <span className="bg-black/40 backdrop-blur-md text-white text-[9px] md:text-[11px] font-medium px-2 py-1 rounded border border-white/10 shadow-sm">
                     {format(new Date(createdAt), "dd/MM/yyyy")}
                 </span>
               </div>
