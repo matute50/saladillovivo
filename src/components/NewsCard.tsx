@@ -134,54 +134,54 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
         "group relative flex flex-col rounded-xl overflow-hidden transition-all duration-300 h-full",
         "shadow-[0_4px_20px_rgba(0,0,0,0.5)] dark:shadow-[0_0_20px_rgba(255,255,255,0.3)]",
         "hover:scale-[1.02] hover:shadow-[0_8px_30px_rgba(0,0,0,0.6)] dark:hover:shadow-[0_0_30px_rgba(255,255,255,0.4)]",
+        "cursor-pointer", // Aseguramos cursor de mano
         className
       )}
+      onClick={handlePlaySlide} // AQUI ES DONDE QUIERO LA ACCIÓN PRINCIPAL
     >
       <div className="relative w-full h-full aspect-video overflow-hidden bg-black">
-        <div 
-          className="absolute inset-0 z-10 cursor-pointer"
-          onClick={handleOpenNews}
-          title="Leer noticia"
-        >
-            <Image
-              src={finalImageUrl}
-              alt={title || 'Noticia'}
-              fill
-              className="object-cover transition-transform duration-700 group-hover:scale-110"
-              priority={priority}
-              // IMPORTANTÍSIMO: Mantenemos unoptimized={true} para evitar el error 402 de Vercel
-              unoptimized={true} 
-              onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-90" />
+        {/* La imagen ya no necesita onClick separado, es parte del contenedor */}
+        <Image
+          src={finalImageUrl}
+          alt={title || 'Noticia'}
+          fill
+          className="object-cover transition-transform duration-700 group-hover:scale-110"
+          priority={priority}
+          unoptimized={isYouTubeImage} 
+          onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-90" />
 
-            {createdAt && (
-              <div className="absolute top-3 left-3">
-                <span className="bg-black/60 backdrop-blur-md text-white text-[9px] md:text-[11px] font-medium px-2 py-1 rounded border border-white/10 shadow-sm">
-                    {format(new Date(createdAt), "dd/MM/yyyy")}
-                </span>
-              </div>
-            )}
-
-            <div className="absolute bottom-0 left-0 w-full p-4">
-                <h3 className={`font-bold ${titleSizeClass} text-white leading-tight drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] group-hover:text-blue-200 transition-colors line-clamp-3`}>
-                  {title}
-                </h3>
-            </div>
-        </div>
-
-        {isPlayable && (
-          <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
-            <motion.button
-              onClick={handlePlaySlide} 
-              className="pointer-events-auto flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full bg-white/20 backdrop-blur-md border border-white/50 text-white shadow-[0_0_15px_rgba(0,0,0,0.5)] opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-[#012078] hover:border-[#012078] hover:scale-110 cursor-pointer"
-              whileTap={{ scale: 0.95 }}
-              title="Reproducir Slide en Multimedia"
-            >
-              <Play size={32} fill="currentColor" className="ml-1" />
-            </motion.button>
+        {createdAt && (
+          <div className="absolute top-3 left-3">
+            <span className="bg-black/40 backdrop-blur-md text-white text-[9px] md:text-[11px] font-medium px-2 py-1 rounded border border-white/10 shadow-sm">
+                {format(new Date(createdAt), "dd/MM/yyyy")}
+            </span>
           </div>
         )}
+
+        <div className="absolute bottom-0 left-0 w-full p-4">
+            <h3 className={`font-bold ${titleSizeClass} text-white leading-tight drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] group-hover:text-blue-200 transition-colors line-clamp-3`}>
+              {title}
+            </h3>
+        </div>
+
+        {/* Indicador visual de Play (Opcional, pero recomendado para UX) */}
+        {isPlayable && (
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                 <Play size={48} className="text-white/80 drop-shadow-lg" />
+            </div>
+        )}
+      </div>
+      
+      {/* Botón secundario para Leer Texto */}
+      <div className="absolute top-3 right-3 z-20">
+        <button 
+            onClick={handleOpenNews}
+            className="p-2 bg-black/50 hover:bg-black/70 rounded-full text-white backdrop-blur-sm transition-colors"
+        >
+            <span className="text-xs font-bold">LEER</span>
+        </button>
       </div>
     </motion.article>
   );
