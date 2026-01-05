@@ -183,7 +183,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
                 transition={{ duration: 0.2 }}
                 className="absolute inset-0 bg-black/20 flex items-center justify-center z-10 pointer-events-none"
               >
-                <div className="p-4 bg-black/40 rounded-full">
+                <div className="p-4 bg-black/40 rounded-full border border-white">
                     <Play size={38} className="text-white/80" fill="white" />
                 </div>
               </motion.div>

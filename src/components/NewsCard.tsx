@@ -152,8 +152,8 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
 
         {/* Indicador de Play sutil en esquina inferior derecha */}
         {isPlayable && (
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300
-            rounded-md p-1 border shadow-lg shadow-black/50 backdrop-blur-md bg-black/40">
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300
+            rounded-md p-1 border border-white shadow-lg shadow-black/50 backdrop-blur-md bg-black/40">
                  <Play size={38} className="text-white/80 drop-shadow-lg" />
             </div>
         )}
