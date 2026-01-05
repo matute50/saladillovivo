@@ -6,8 +6,8 @@ import dynamic from 'next/dynamic';
 
 const VideoSection = dynamic(() => import('./VideoSection'), { ssr: false });
 import NewsColumn from './NewsColumn';
-// 1. RE-IMPORTAMOS Article PORQUE AHORA LO USAREMOS EN EL TIPO
-import type { PageData, Article } from '@/lib/types';
+// CORRECCIÓN: Eliminamos 'Article' de aquí porque ya no se usa en los props
+import type { PageData } from '@/lib/types';
 import CategoryCycler from './CategoryCycler';
 import { categoryMappings, type CategoryMapping } from '@/lib/categoryMappings';
 
@@ -15,11 +15,12 @@ import { useNews } from '@/context/NewsContext';
 import NoResultsCard from './NoResultsCard';
 import NewsCard from '../NewsCard';
 
+// CORRECCIÓN: Simplificamos los props (ya no necesitamos onCardClick ni Article)
 interface DesktopLayoutProps {
   data: PageData;
+  // onCardClick eliminado porque ya no existe la vista de texto
 }
 
-// 3. RECIBIMOS onCardClick EN LOS ARGUMENTOS
 const DesktopLayout = ({ data }: DesktopLayoutProps) => {
   const {
     articles = { allNews: [] },
@@ -78,7 +79,6 @@ const DesktopLayout = ({ data }: DesktopLayoutProps) => {
             {/* === COLUMNA IZQUIERDA: NOTICIAS === */}
             <div className="col-span-1 lg:col-span-5">
               <div className="flex flex-col gap-4"> 
-                {/* Nota: Si NewsColumn también soporta clic, deberías pasárselo aquí también: onCardClick={onCardClick} */}
                 <NewsColumn news={topNews} banners={banners} />
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-8">
@@ -87,7 +87,7 @@ const DesktopLayout = ({ data }: DesktopLayoutProps) => {
                       key={noticia.id}
                       newsItem={noticia}
                       index={index}
-                      // 4. PASAMOS LA PROPIEDAD HACIA ABAJO
+                      // CORRECCIÓN: Ya no pasamos onCardClick
                     />
                   ))}
                 </div>
