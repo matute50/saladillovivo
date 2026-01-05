@@ -14,11 +14,10 @@ interface Banner {
 
 interface NewsColumnProps {
   news: Article[];
-  onCardClick: (article: Article) => void;
   banners: Banner[];
 }
 
-const NewsColumn: React.FC<NewsColumnProps> = ({ news, onCardClick, banners }) => {
+const NewsColumn: React.FC<NewsColumnProps> = ({ news, banners }) => {
   if (!news || news.length === 0) {
     return null;
   }
@@ -35,7 +34,6 @@ const NewsColumn: React.FC<NewsColumnProps> = ({ news, onCardClick, banners }) =
                   <NewsCard
                     newsItem={featuredNews}
                     className="col-span-1 md:col-span-2"
-                    onCardClick={onCardClick}
                     isFeatured={true}
                   />
                 )}
@@ -46,7 +44,6 @@ const NewsColumn: React.FC<NewsColumnProps> = ({ news, onCardClick, banners }) =
                         key={noticia.id}
                         newsItem={noticia}
                         index={index}
-                        onCardClick={onCardClick}
                       />
                     ))}      </div>
 
@@ -60,7 +57,6 @@ const NewsColumn: React.FC<NewsColumnProps> = ({ news, onCardClick, banners }) =
                         key={noticia.id}
                         newsItem={noticia}
                         index={index + 2} // Continuamos el delay de la animación
-                        onCardClick={onCardClick}
                       />
                     ))}      </div>
     </div>

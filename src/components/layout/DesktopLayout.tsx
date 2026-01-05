@@ -15,7 +15,7 @@ import NoResultsCard from './NoResultsCard';
 import NewsCard from '../NewsCard';
 // Footer eliminado de aquí porque ya está en el global
 
-const DesktopLayout = ({ data, onCardClick }: { data: PageData, onCardClick: (article: Article) => void }) => {
+const DesktopLayout = ({ data }: { data: PageData }) => {
   const {
     articles = { allNews: [] },
     videos = { allVideos: [] },
@@ -74,14 +74,13 @@ const DesktopLayout = ({ data, onCardClick }: { data: PageData, onCardClick: (ar
             {/* === COLUMNA IZQUIERDA: NOTICIAS === */}
             <div className="col-span-1 lg:col-span-5">
               <div className="flex flex-col gap-4"> 
-                <NewsColumn news={topNews} onCardClick={onCardClick} banners={banners} />
+                <NewsColumn news={topNews} banners={banners} />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-8">
                   {moreNews.map((noticia, index) => (
                     <NewsCard
                       key={noticia.id}
                       newsItem={noticia}
                       index={index}
-                      onCardClick={onCardClick}
                     />
                   ))}
                 </div>
