@@ -154,32 +154,29 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             />
         </div>
 
-        {!activeSlide && (
-          <div 
-            className="absolute inset-0 z-10 cursor-pointer"
-            onClick={togglePlayPause}
-            title="Click para Pausar/Reproducir"
-          />
-        )}
-
-        <AnimatePresence>
-          {isMuted && (
-            <motion.button
-              onClick={(e) => {
-                e.stopPropagation(); // Evita pausar el video al hacer click en unmute
-                unmute();
-              }}
-              className="absolute top-5 left-5 z-40 text-red-500 bg-black bg-opacity-40 rounded-full p-2 backdrop-blur-sm border border-red-500 shadow-[0_0_15px_rgba(0,0,0,0.7)] flex items-center cursor-pointer hover:bg-black/60 transition-colors"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              title="Activar sonido"
-            >
-              <VolumeX size={38} strokeWidth={1.5} />
-            </motion.button>
-          )}
-        </AnimatePresence>
-
+                    {!activeSlide && (
+                      <div 
+                        className="absolute inset-0 z-10 cursor-pointer"
+                        onClick={togglePlayPause}
+                      />
+                    )}
+        
+                    <AnimatePresence>
+                      {isMuted && (
+                        <motion.button
+                          onClick={(e) => {
+                            e.stopPropagation(); // Evita pausar el video al hacer click en unmute
+                            unmute();
+                          }}
+                          className="absolute top-5 left-5 z-40 text-red-500 bg-black bg-opacity-40 rounded-full p-2 backdrop-blur-sm border border-red-500 shadow-[0_0_15px_rgba(0,0,0,0.7)] flex items-center cursor-pointer hover:bg-black/60 transition-colors"
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                        >
+                          <VolumeX size={38} strokeWidth={1.5} />
+                        </motion.button>
+                      )}
+                    </AnimatePresence>
         <AnimatePresence>
           {showIntro && !activeSlide && (
             <motion.video

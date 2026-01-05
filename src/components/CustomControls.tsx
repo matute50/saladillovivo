@@ -52,7 +52,7 @@ const CustomControls: React.FC<CustomControlsProps> = ({
       
       <div className="flex w-full items-center justify-between pt-1 pb-2">
         <div className="flex items-center gap-4">
-          <button onClick={togglePlayPause} className="p-2 text-white rounded-md border border-white/10 shadow-lg shadow-black/50 backdrop-blur-md bg-black/40 hover:bg-black/60 focus:outline-none transition-colors duration-300" aria-label={isPlaying ? "Pausar" : "Reproducir"} >
+          <button onClick={togglePlayPause} className="p-2 text-white rounded-md border border-white/10 shadow-lg shadow-black/50 backdrop-blur-md bg-black/40 hover:bg-black/60 focus:outline-none transition-colors duration-300">
             {isPlaying ? <PauseIcon /> : <PlayIcon />}
           </button>
         </div>
@@ -61,8 +61,7 @@ const CustomControls: React.FC<CustomControlsProps> = ({
           
           <button
             onClick={handleToggleMute}
-            className="text-white focus:outline-none" // <-- Se quitó 'text-2xl'
-            aria-label={isMuted ? "Activar sonido" : "Desactivar sonido"}
+            className="text-white focus:outline-none"
           >
             {isMuted ? <VolumeMuteIcon /> : <VolumeOnIcon />}
           </button>
@@ -81,7 +80,6 @@ const CustomControls: React.FC<CustomControlsProps> = ({
           <button
             onClick={onToggleFullScreen}
             className="text-white focus:outline-none"
-            aria-label={isFullScreen ? "Salir de pantalla completa" : "Pantalla completa"}
           >
             {isFullScreen ? <ExitFullScreenIcon /> : <FullScreenIcon />}
           </button>

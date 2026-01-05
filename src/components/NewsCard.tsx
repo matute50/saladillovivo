@@ -143,7 +143,6 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
         <div 
           className="absolute inset-0 z-10 cursor-pointer"
           onClick={handleOpenNews}
-          title="Leer noticia"
         >
             <Image
               src={finalImageUrl}
@@ -178,7 +177,6 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
               onClick={handlePlaySlide} 
               className="pointer-events-auto flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full bg-white/20 backdrop-blur-md border border-white/50 text-white shadow-[0_0_15px_rgba(0,0,0,0.5)] opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-[#012078] hover:border-[#012078] hover:scale-110 cursor-pointer"
               whileTap={{ scale: 0.95 }}
-              title="Reproducir Slide en Multimedia"
             >
               <Play size={32} fill="currentColor" className="ml-1" />
             </motion.button>

@@ -91,7 +91,6 @@ export default function NoticiaClient({ article }: { article: Article }) {
                            ring-offset-background focus-visible:outline-none focus-visible:ring-2 
                            focus-visible:ring-ring focus-visible:ring-offset-2
                            border border-white drop-shadow-[0_0_15px_black]"
-                aria-label={state.isPlaying ? "Pausar audio" : "Reproducir audio"}
               >
                 {/* Íconos huecos y de tamaño 20px */}
                 {state.isPlaying && <Pause size={20} />}
