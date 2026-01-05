@@ -80,7 +80,7 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
     return <div className="relative w-full flex items-center justify-center min-h-[126px] text-muted-foreground rounded-lg bg-muted/20">No hay contenido disponible.</div>;
   }
 
-  const showNavButtons = videos.length > (isMobile ? 1 : 3) && !isLive;
+
 
   return (
     <div className="relative w-full flex items-center justify-center rounded-xl p-4">
@@ -154,7 +154,6 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
           );
         })}
       </Swiper>
-      {showNavButtons && (
         <>
           <motion.button
             id={`prev-${carouselId}`}
@@ -168,14 +167,13 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
           <motion.button
             id={`next-${carouselId}`}
             className="carousel-nav-button absolute top-1/2 -translate-y-1/2 right-0 z-20 rounded-md p-1 cursor-pointer border shadow-lg shadow-black/50 backdrop-blur-md"
-            animate={{ color: buttonColor, borderColor: buttonBorderColor, backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
+            animate={{ color: buttonColor, borderColor: buttonColor, backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
             whileHover={{ backgroundColor: '#012078' }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
           >
             <ChevronRight size={30} />
           </motion.button>
         </>
-      )}
     </div>
   );
 };
