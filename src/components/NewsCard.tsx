@@ -4,7 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Play } from 'lucide-react'; 
-import { Article, SlideMedia } from '@/lib/types';
+import { SlideMedia } from '@/lib/types';
 import { format } from 'date-fns';
 import { useNewsPlayer } from '@/context/NewsPlayerContext';
 import { cn } from '@/lib/utils';
