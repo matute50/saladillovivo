@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useNews } from '@/context/NewsContext';
-import type { PageData, Article } from '@/lib/types';
+import type { PageData } from '@/lib/types';
 import { categoryMappings, type CategoryMapping } from '@/lib/categoryMappings';
 
 import NewsTicker from '../NewsTicker';
