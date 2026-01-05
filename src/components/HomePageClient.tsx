@@ -1,14 +1,13 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { AnimatePresence } from 'framer-motion';
+// Se eliminó AnimatePresence y NewsModal porque ya no se usan
 import DesktopLayout from './layout/DesktopLayout';
 import MobileLayout from './layout/MobileLayout';
 import TvModeLayout from './layout/TvModeLayout';
-import type { PageData, Article, SlideMedia } from '@/lib/types';
+import type { PageData } from '@/lib/types'; // Se eliminaron tipos Article/SlideMedia no usados aquí
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
 import useIsMobile from '@/hooks/useIsMobile';
-import NewsModal from './NewsModal'; // Importar el modal
 
 // A simple loading spinner component
 const LoadingSpinner = () => (
@@ -22,8 +21,7 @@ const HomePageClient = ({ initialData }: { initialData: PageData }) => {
   const { loadInitialPlaylist, viewMode } = useMediaPlayer();
   
   const [isLoading, setIsLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedNews, setSelectedNews] = useState<Article | null>(null);
+  // Se eliminaron los estados del Modal (isModalOpen, selectedNews)
 
   useEffect(() => {
     // Load the initial playlist
@@ -32,14 +30,7 @@ const HomePageClient = ({ initialData }: { initialData: PageData }) => {
     setIsLoading(false);
   }, [loadInitialPlaylist]);
 
-  const handleOpenModal = (newsItem: Article) => {
-    setSelectedNews(newsItem);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-  };
+  // Se eliminaron handlers (handleOpenModal, handleCloseModal)
   
   // Show a loading spinner until the client-side is ready
   if (isLoading) {
@@ -63,54 +54,14 @@ const HomePageClient = ({ initialData }: { initialData: PageData }) => {
   return (
     <>
       {isMobile ? (
-        <MobileLayout data={data} isMobile={isMobile} onCardClick={handleOpenModal} />
+        // Se eliminó onCardClick
+        <MobileLayout data={data} isMobile={isMobile} />
       ) : (
-        <DesktopLayout data={data} onCardClick={handleOpenModal} />
+        // Se eliminó onCardClick (Corrección del error de build)
+        <DesktopLayout data={data} />
       )}
       
-      
-      
-      <AnimatePresence onExitComplete={() => setSelectedNews(null)}>
-        {isModalOpen && selectedNews && (
-          <NewsModal
-            onClose={handleCloseModal}
-            videoToPlay={(() => {
-                let slideMedia: SlideMedia | null = null;
-                const hasAnySlideUrl = !!selectedNews.url_slide;
-                const isWebmVideoSlide = hasAnySlideUrl && selectedNews.url_slide?.endsWith('.webm');
-                const isMp4VideoSlide = hasAnySlideUrl && selectedNews.url_slide?.endsWith('.mp4');
-                const hasImageAudioForSlide = !!selectedNews.imageUrl && !!selectedNews.audio_url;
-
-                if (isWebmVideoSlide || isMp4VideoSlide) {
-                    slideMedia = {
-                        id: selectedNews.id,
-                        nombre: selectedNews.titulo,
-                        url: selectedNews.url_slide!,
-                        createdAt: selectedNews.created_at,
-                        categoria: selectedNews.categoria || 'Noticias',
-                        imagen: selectedNews.imageUrl,
-                        novedad: false,
-                        type: 'video',
-                    };
-                } else if (hasImageAudioForSlide) {
-                    slideMedia = {
-                        id: selectedNews.id,
-                        nombre: selectedNews.titulo,
-                        url: "", // Placeholder
-                        imageSourceUrl: selectedNews.imageUrl!,
-                        audioSourceUrl: selectedNews.audio_url!,
-                        createdAt: selectedNews.created_at,
-                        categoria: selectedNews.categoria || 'Noticias',
-                        imagen: selectedNews.imageUrl,
-                        novedad: false,
-                        type: 'image',
-                    };
-                }
-                return slideMedia;
-            })()}
-          />
-        )}
-      </AnimatePresence>
+      {/* Se eliminó todo el bloque de AnimatePresence/NewsModal */}
     </>
   );
 };
