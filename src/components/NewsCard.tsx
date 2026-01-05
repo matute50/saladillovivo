@@ -55,6 +55,9 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
 
   const finalImageUrl = getProcessedImageUrl(newsItem.image_url || newsItem.imageUrl);
   
+  // DETECCIÓN INTELIGENTE: Si es YouTube, no la optimizamos (evita error 400 en Vercel)
+  const isYouTubeImage = finalImageUrl.includes('youtube.com') || finalImageUrl.includes('ytimg.com');
+
   const createdAt = newsItem.created_at || newsItem.fecha;
   const audioUrl = newsItem.audio_url || newsItem.audioUrl;
   const urlSlide = newsItem.url_slide || newsItem.urlSlide;
