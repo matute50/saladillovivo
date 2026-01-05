@@ -6,7 +6,8 @@ import dynamic from 'next/dynamic';
 
 const VideoSection = dynamic(() => import('./VideoSection'), { ssr: false });
 import NewsColumn from './NewsColumn';
-import type { PageData, Article } from '@/lib/types';
+// CORRECCIÓN: Se eliminó 'Article' de los imports porque no se usaba
+import type { PageData } from '@/lib/types';
 import CategoryCycler from './CategoryCycler';
 import { categoryMappings, type CategoryMapping } from '@/lib/categoryMappings';
 
