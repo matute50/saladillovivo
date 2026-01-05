@@ -6,17 +6,23 @@ import dynamic from 'next/dynamic';
 
 const VideoSection = dynamic(() => import('./VideoSection'), { ssr: false });
 import NewsColumn from './NewsColumn';
-// CORRECCIÓN: Se eliminó 'Article' de los imports porque no se usaba
-import type { PageData } from '@/lib/types';
+// 1. RE-IMPORTAMOS Article PORQUE AHORA LO USAREMOS EN EL TIPO
+import type { PageData, Article } from '@/lib/types';
 import CategoryCycler from './CategoryCycler';
 import { categoryMappings, type CategoryMapping } from '@/lib/categoryMappings';
 
 import { useNews } from '@/context/NewsContext';
 import NoResultsCard from './NoResultsCard';
 import NewsCard from '../NewsCard';
-// Footer eliminado de aquí porque ya está en el global
 
-const DesktopLayout = ({ data }: { data: PageData }) => {
+// 2. DEFINIMOS LA INTERFAZ DE PROPS PARA INCLUIR onCardClick
+interface DesktopLayoutProps {
+  data: PageData;
+  onCardClick?: (article: Article) => void;
+}
+
+// 3. RECIBIMOS onCardClick EN LOS ARGUMENTOS
+const DesktopLayout = ({ data, onCardClick }: DesktopLayoutProps) => {
   const {
     articles = { allNews: [] },
     videos = { allVideos: [] },
@@ -65,7 +71,6 @@ const DesktopLayout = ({ data }: { data: PageData }) => {
 
   return (
     <>
-      {/* MAIN CONTAINER */}
       <main className="w-full h-screen overflow-y-auto bg-gray-100 dark:bg-neutral-950 pt-[calc(var(--desktop-header-height)-65px)] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
         
         <div className="container mx-auto px-2">
@@ -75,13 +80,17 @@ const DesktopLayout = ({ data }: { data: PageData }) => {
             {/* === COLUMNA IZQUIERDA: NOTICIAS === */}
             <div className="col-span-1 lg:col-span-5">
               <div className="flex flex-col gap-4"> 
+                {/* Nota: Si NewsColumn también soporta clic, deberías pasárselo aquí también: onCardClick={onCardClick} */}
                 <NewsColumn news={topNews} banners={banners} />
+                
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-8">
                   {moreNews.map((noticia, index) => (
                     <NewsCard
                       key={noticia.id}
                       newsItem={noticia}
                       index={index}
+                      // 4. PASAMOS LA PROPIEDAD HACIA ABAJO
+                      onCardClick={onCardClick}
                     />
                   ))}
                 </div>
