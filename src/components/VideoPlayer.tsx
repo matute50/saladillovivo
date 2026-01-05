@@ -176,7 +176,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
               title="Activar sonido"
             >
               <VolumeX size={38} strokeWidth={1.5} />
-              <span className="ml-2 mr-3 text-sm font-semibold text-white">SONIDO DESACTIVADO</span>
             </motion.button>
           )}
         </AnimatePresence>
