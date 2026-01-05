@@ -68,15 +68,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
   const hasAudioImage = !!finalImageUrl && !!audioUrl;
   const isPlayable = hasSlide || hasAudioImage;
 
-  const handleOpenNews = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (onCardClick) {
-      onCardClick(newsItem);
-    }
-  };
-
   const handlePlaySlide = (e: React.MouseEvent) => {
-    e.stopPropagation();
     e.preventDefault();
     
     if (isHtmlSlide) {
@@ -175,16 +167,6 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
                  <Play size={48} className="text-white/80 drop-shadow-lg" />
             </div>
         )}
-      </div>
-      
-      {/* Botón secundario para Leer Texto */}
-      <div className="absolute top-3 right-3 z-20">
-        <button 
-            onClick={handleOpenNews}
-            className="p-2 bg-black/50 hover:bg-black/70 rounded-full text-white backdrop-blur-sm transition-colors"
-        >
-            <span className="text-xs font-bold">LEER</span>
-        </button>
       </div>
     </motion.article>
   );
