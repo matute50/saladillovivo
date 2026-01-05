@@ -15,14 +15,12 @@ import { useNews } from '@/context/NewsContext';
 import NoResultsCard from './NoResultsCard';
 import NewsCard from '../NewsCard';
 
-// 2. DEFINIMOS LA INTERFAZ DE PROPS PARA INCLUIR onCardClick
 interface DesktopLayoutProps {
   data: PageData;
-  onCardClick?: (article: Article) => void;
 }
 
 // 3. RECIBIMOS onCardClick EN LOS ARGUMENTOS
-const DesktopLayout = ({ data, onCardClick }: DesktopLayoutProps) => {
+const DesktopLayout = ({ data }: DesktopLayoutProps) => {
   const {
     articles = { allNews: [] },
     videos = { allVideos: [] },
@@ -90,7 +88,6 @@ const DesktopLayout = ({ data, onCardClick }: DesktopLayoutProps) => {
                       newsItem={noticia}
                       index={index}
                       // 4. PASAMOS LA PROPIEDAD HACIA ABAJO
-                      onCardClick={onCardClick}
                     />
                   ))}
                 </div>
