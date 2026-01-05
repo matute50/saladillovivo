@@ -14,7 +14,6 @@ interface NewsCardProps {
   newsItem: any;
   index?: number;
   className?: string;
-  onCardClick?: (article: Article) => void;
   isFeatured?: boolean;
 }
 
@@ -22,7 +21,7 @@ interface NewsCardProps {
 // Esto evita cualquier error de sintaxis con las barras '/' en Vercel.
 const YOUTUBE_REGEX = new RegExp('(?:youtube\\.com\\/(?:[^/]+\\/.+\\/|(?:v|e(?:mbed)?)\\/|.*[?&]v=)|youtu\\.be\\/)([^"&?/\\s]{11})');
 
-const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = '', onCardClick, isFeatured = false }) => {
+const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = '', isFeatured = false }) => {
   const { playSlide } = useNewsPlayer();
   const { playTemporaryVideo } = useMediaPlayer();
 
