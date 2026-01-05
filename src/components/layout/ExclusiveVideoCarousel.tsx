@@ -25,7 +25,7 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
 
     const youTubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
 
-    // Prioritize extracting from video.url if it's a YouTube link
+    // Prioridad: Extraer del video.url si es link de YouTube
     if (video.url) {
         const videoIdMatch = video.url.match(youTubeRegex);
         if (videoIdMatch) {
@@ -33,28 +33,28 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
         }
     }
 
-    // Apply robust URL processing logic to video.imagen
+    // Procesar video.imagen
     const cleanImageUrl = (video.imagen || '').trim();
     
     if (!cleanImageUrl) {
         return 'https://via.placeholder.com/320x180.png?text=Miniatura';
     }
 
-    // If video.imagen is a YouTube URL, extract thumbnail from it
+    // Si video.imagen es URL de YouTube, extraer miniatura
     if (cleanImageUrl.includes('youtube.com') || cleanImageUrl.includes('youtu.be')) {
         const videoIdMatch = cleanImageUrl.match(youTubeRegex);
         if (videoIdMatch) {
-            return `https://img.youtube.com/vi/${videoIdMatch[1]}/mqdefault.jpg`; // Using mqdefault as fallback, as per original logic
+            return `https://img.youtube.com/vi/${videoIdMatch[1]}/mqdefault.jpg`;
         }
     }
 
-    // If it's an absolute HTTP/HTTPS URL, use it
+    // Si es absoluta, usarla tal cual
     if (cleanImageUrl.match(/^(http|https):\/\//)) {
         return cleanImageUrl;
     }
 
-    // Otherwise, it's a relative path, prepend base URL
-    return `${process.env.NEXT_PUBLIC_MEDIA_URL || ''}${cleanImageUrl.startsWith('/') ? '' : '/'}${cleanUrl}`;
+    // CORRECCIÓN DE BUG: 'cleanUrl' no existía, debía ser 'cleanImageUrl'
+    return `${process.env.NEXT_PUBLIC_MEDIA_URL || ''}${cleanImageUrl.startsWith('/') ? '' : '/'}${cleanImageUrl}`;
   };
 
   const handleVideoClick = (video: Video) => {
@@ -117,6 +117,10 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
             titleOverlayClasses += " [.swiper-slide-active_&]:opacity-100";
           }
 
+          const thumbUrl = getYoutubeThumbnail(video);
+          // DETECCIÓN DE YOUTUBE PARA EVITAR ERROR 402
+          const isYouTube = thumbUrl.includes('youtube.com') || thumbUrl.includes('ytimg.com');
+
           return (
             <SwiperSlide
               key={video.id || video.url}
@@ -128,14 +132,17 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
               <div
                 onClick={() => handleVideoClick(video)}
                 className="relative cursor-pointer group rounded-xl overflow-hidden shadow-lg dark:shadow-none hover:shadow-orange-500/50"
-              >                <div className="relative w-56 aspect-video flex items-center justify-center bg-black">
+              >
+                <div className="relative w-56 aspect-video flex items-center justify-center bg-black">
                   <Image
-                    src={getYoutubeThumbnail(video)}
+                    src={thumbUrl}
                     alt={video.nombre || "Miniatura de video"}
                     fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" // Añadido para mejor rendimiento
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     priority={index === 0}
                     className={`${isLiveOrEvent ? 'object-contain' : 'object-cover'} transition-transform duration-300 group-hover:scale-105`}
+                    // LA SOLUCIÓN MÁGICA:
+                    unoptimized={isYouTube}
                     onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
                   />
                 </div>
