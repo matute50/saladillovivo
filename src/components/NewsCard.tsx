@@ -3,8 +3,8 @@
 import React from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Play, FileText } from 'lucide-react'; 
-import { Article, SlideMedia } from '@/lib/types';
+import { Play } from 'lucide-react'; 
+import { SlideMedia } from '@/lib/types';
 import { format } from 'date-fns';
 import { useNewsPlayer } from '@/context/NewsPlayerContext';
 import { cn } from '@/lib/utils';
@@ -15,13 +15,12 @@ interface NewsCardProps {
   newsItem: any;
   index?: number;
   className?: string;
-  onCardClick?: (article: Article) => void; // Esto es lo que faltaba o estaba mal definido
   isFeatured?: boolean;
 }
 
 const YOUTUBE_REGEX = new RegExp('(?:youtube\\.com\\/(?:[^/]+\\/.+\\/|(?:v|e(?:mbed)?)\\/|.*[?&]v=)|youtu\\.be\\/)([^"&?/\\s]{11})');
 
-const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = '', onCardClick, isFeatured = false }) => {
+const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = '', isFeatured = false }) => {
   const { playSlide } = useNewsPlayer();
   const { playTemporaryVideo } = useMediaPlayer();
 
@@ -56,14 +55,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
   const hasAudioImage = !!finalImageUrl && !!audioUrl;
   const isPlayable = hasSlide || hasAudioImage;
 
-  // Lógica para LEER (Botón pequeño)
-  const handleOpenNews = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation(); // Evita que se dispare el reproductor
-    if (onCardClick) {
-      onCardClick(newsItem);
-    }
-  };
+
 
   // Lógica para REPRODUCIR (Clic en toda la tarjeta)
   const handlePlaySlide = (e: React.MouseEvent) => {
@@ -168,16 +160,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
         )}
       </div>
 
-      {/* 3. BOTÓN PARA LEER (Mantiene viva la función onCardClick) */}
-      <div className="absolute top-3 right-3 z-20">
-        <button 
-            onClick={handleOpenNews}
-            className="p-2 bg-black/40 hover:bg-black/70 rounded-full text-white backdrop-blur-sm transition-colors border border-white/10"
-            title="Leer artículo completo"
-        >
-            <FileText size={16} />
-        </button>
-      </div>
+
 
     </motion.article>
   );
