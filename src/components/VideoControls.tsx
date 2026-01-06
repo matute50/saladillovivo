@@ -90,7 +90,7 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onToggleFul
 
             <div className="flex items-center gap-2">
               <button onClick={toggleMute} className="text-white transition-colors">
-                <VolumeIcon size={24} />
+                {isMuted ? <VolumeX size={24} fill="red" /> : (volume <= 0.5 ? <Volume1 size={24} /> : <Volume2 size={24} />)}
               </button>
               <Slider
                 value={[volume]}
