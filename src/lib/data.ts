@@ -18,13 +18,12 @@ function checkSupabaseCredentials() {
  * - featuredNews: The most recent article with featureStatus = 'featured'.
  * - secondaryNews: All other articles, sorted by creation date.
  */
-export async function getArticlesForHome(limitSecondary: number = 5) {
+export async function getArticlesForHome(limitTotal: number = 25) {
   const { supabaseUrl, supabaseAnonKey } = checkSupabaseCredentials();
   const now = new Date().toISOString();
 
-  const limit = limitSecondary + 5; 
-  // CORRECCIÓN: Agregado 'animation_duration' a la lista de campos seleccionados
-  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,image_url,featureStatus,updatedAt,created_at,slug,description,meta_title,meta_description,meta_keywords,published_at,audio_url,url_slide,animation_duration&or=(published_at.is.null,published_at.lte.${now})&order=created_at.desc&limit=${limit}`;
+  // Aumentamos el límite para asegurar suficientes artículos para todas las categorías
+  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,image_url,featureStatus,updatedAt,created_at,slug,description,meta_title,meta_description,meta_keywords,published_at,audio_url,url_slide,animation_duration&or=(published_at.is.null,published_at.lte.${now})&order=created_at.desc&limit=${limitTotal}`;
 
   try {
     const response = await fetch(apiUrl, {
@@ -34,14 +33,15 @@ export async function getArticlesForHome(limitSecondary: number = 5) {
       },
       next: { revalidate: 60 } 
     });
+
     if (!response.ok) {
       console.error('Supabase fetch failed in getArticlesForHome. Status:', response.status, 'Text:', await response.text());
-      return { featuredNews: null, secondaryNews: [], allNews: [] };
+      return { featuredNews: null, secondaryNews: [], tertiaryNews: [], otherNews: [], allNews: [] };
     }
     const rawArticles = await response.json();
     if (!Array.isArray(rawArticles)) {
       console.error('Supabase response is not an array in getArticlesForHome:', rawArticles);
-      return { featuredNews: null, secondaryNews: [], allNews: [] };
+      return { featuredNews: null, secondaryNews: [], tertiaryNews: [], otherNews: [], allNews: [] };
     }
     const articles: SupabaseArticle[] = rawArticles as SupabaseArticle[];
 
@@ -64,33 +64,53 @@ export async function getArticlesForHome(limitSecondary: number = 5) {
       meta_keywords: item.meta_keywords,
       audio_url: item.audio_url,
       url_slide: item.url_slide,
-      // Mapeamos el campo nuevo. Si no existe en el tipo SupabaseArticle, TS podría quejarse, 
-      // pero al ser runtime funcionará. Lo forzamos a any si es necesario.
       animation_duration: (item as any).animation_duration,
     }));
 
+    // Clasificar noticias
+    const featuredCandidates = processedNews.filter(news => news.featureStatus === 'featured');
+    const secondaryNews = processedNews.filter(news => news.featureStatus === 'secondary');
+    const tertiaryNews = processedNews.filter(news => news.featureStatus === 'tertiary');
+    const otherNews = processedNews.filter(news => !news.featureStatus);
+
     let featuredNews: Article | null = null;
-    const secondaryNews: Article[] = [];
 
-    const featuredIndex = processedNews.findIndex(news => news.featureStatus === 'featured');
-
-    if (featuredIndex !== -1) {
-      featuredNews = processedNews.splice(featuredIndex, 1)[0];
+    // Asegurar que solo haya una noticia destacada
+    if (featuredCandidates.length > 0) {
+      // Ya vienen ordenadas por created_at.desc, así que la primera es la más nueva.
+      featuredNews = featuredCandidates.shift()!;
+      // Las demás 'featured' se convierten en 'secondary'
+      secondaryNews.unshift(...featuredCandidates);
     } else if (processedNews.length > 0) {
-      featuredNews = processedNews.shift()!;
+      // Si no hay 'featured', la más reciente de todas es la destacada
+      const oldestNonFeatured = processedNews.find(p => p.id !== featuredNews?.id);
+      if(oldestNonFeatured){
+        featuredNews = oldestNonFeatured;
+      }
     }
+    
+    // Re-ordenar las secundarias y terciarias por fecha de creación descendente
+    secondaryNews.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    tertiaryNews.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    
+    // Ordenar las "otras" noticias de derecha a izquierda (más viejas primero)
+    otherNews.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    
+    // Filtrar la noticia destacada de las otras listas para evitar duplicados
+    const allButFeatured = [ ...secondaryNews, ...tertiaryNews, ...otherNews].filter(n => n.id !== featuredNews?.id);
 
-    secondaryNews.push(...processedNews);
 
     return {
       featuredNews,
-      secondaryNews: secondaryNews.slice(0, limitSecondary),
-      allNews: [featuredNews, ...secondaryNews].filter((n): n is Article => n !== null),
+      secondaryNews: allButFeatured.filter(n => n.featureStatus === 'secondary' || featuredCandidates.some(fc => fc.id === n.id)),
+      tertiaryNews: allButFeatured.filter(n => n.featureStatus === 'tertiary'),
+      otherNews: allButFeatured.filter(n => !n.featureStatus),
+      allNews: [featuredNews, ...allButFeatured].filter((n): n is Article => n !== null),
     };
 
   } catch (error) {
     console.error('Error in getArticlesForHome:', error);
-    return { featuredNews: null, secondaryNews: [], allNews: [] };
+    return { featuredNews: null, secondaryNews: [], tertiaryNews: [], otherNews: [], allNews: [] };
   }
 }
 

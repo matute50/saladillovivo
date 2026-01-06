@@ -5,8 +5,6 @@ import AdsSection from './AdsSection';
 import dynamic from 'next/dynamic';
 
 const VideoSection = dynamic(() => import('./VideoSection'), { ssr: false });
-import NewsColumn from './NewsColumn';
-// CORRECCIÓN: Eliminamos 'Article' de aquí porque ya no se usa en los props
 import type { PageData } from '@/lib/types';
 import CategoryCycler from './CategoryCycler';
 import { categoryMappings, type CategoryMapping } from '@/lib/categoryMappings';
@@ -23,18 +21,13 @@ interface DesktopLayoutProps {
 
 const DesktopLayout = ({ data }: DesktopLayoutProps) => {
   const {
-    articles = { allNews: [] },
+    articles,
     videos = { allVideos: [] },
-    banners,
     ads,
   } = data || {};
 
   const { isSearching, searchResults, searchLoading, handleSearch } = useNews();
-  const { allNews } = articles;
   const { allVideos } = videos;
-
-  const topNews = allNews.slice(0, 7);
-  const moreNews = allNews.slice(7);
 
   const availableCategoryMappings = categoryMappings.filter(category => {
     if (category.dbCategory === '__NOVEDADES__') {
@@ -78,19 +71,45 @@ const DesktopLayout = ({ data }: DesktopLayoutProps) => {
             
             {/* === COLUMNA IZQUIERDA: NOTICIAS === */}
             <div className="col-span-1 lg:col-span-5">
-              <div className="flex flex-col gap-4"> 
-                <NewsColumn news={topNews} banners={banners} />
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-8">
-                  {moreNews.map((noticia, index) => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-8">
+                {/* Noticia Destacada */}
+                {articles.featuredNews && (
+                  <div className="sm:col-span-2">
                     <NewsCard
-                      key={noticia.id}
-                      newsItem={noticia}
-                      index={index}
-                      // CORRECCIÓN: Ya no pasamos onCardClick
+                      key={articles.featuredNews.id}
+                      newsItem={articles.featuredNews}
+                      index={0}
+                      isFeatured={true}
                     />
-                  ))}
-                </div>
+                  </div>
+                )}
+
+                {/* Noticias Secundarias */}
+                {articles.secondaryNews.map((noticia, index) => (
+                  <NewsCard
+                    key={noticia.id}
+                    newsItem={noticia}
+                    index={index}
+                  />
+                ))}
+
+                {/* Noticias Terciarias */}
+                {articles.tertiaryNews.map((noticia, index) => (
+                  <NewsCard
+                    key={noticia.id}
+                    newsItem={noticia}
+                    index={index}
+                  />
+                ))}
+
+                {/* Otras Noticias */}
+                {articles.otherNews.map((noticia, index) => (
+                  <NewsCard
+                    key={noticia.id}
+                    newsItem={noticia}
+                    index={index}
+                  />
+                ))}
               </div>
             </div>
 

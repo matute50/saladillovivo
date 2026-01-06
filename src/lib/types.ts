@@ -108,6 +108,8 @@ export interface PageData {
   articles: {
     featuredNews: Article | null;
     secondaryNews: Article[];
+    tertiaryNews: Article[];
+    otherNews: Article[];
     allNews: Article[];
   };
   videos: {

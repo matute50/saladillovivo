@@ -16,7 +16,6 @@ import AdsSection from './AdsSection';
 const MobileLayout = ({ data, isMobile }: { data: PageData; isMobile: boolean }) => {
   const { articles, videos, banners, ads, tickerTexts } = data;
   const { isSearching, searchResults, searchLoading, handleSearch } = useNews();
-  const { featuredNews, secondaryNews } = articles;
   const { allVideos } = videos;
 
   // Importar y filtrar las categorías en lugar de tenerlas hardcodeadas
@@ -86,10 +85,16 @@ const MobileLayout = ({ data, isMobile }: { data: PageData; isMobile: boolean })
           <section aria-labelledby="news-section-title">
             <h2 id="news-section-title" className="text-2xl font-bold tracking-tight text-foreground/90 mb-4">Noticias</h2>
             <div className="flex flex-col gap-4">
-              {featuredNews && (
-                <NewsCard newsItem={featuredNews} />
+              {articles.featuredNews && (
+                <NewsCard newsItem={articles.featuredNews} isFeatured={true} />
               )}
-              {secondaryNews.map((noticia) => (
+              {articles.secondaryNews.map((noticia) => (
+                <NewsCard key={noticia.id} newsItem={noticia} />
+              ))}
+              {articles.tertiaryNews.map((noticia) => (
+                <NewsCard key={noticia.id} newsItem={noticia} />
+              ))}
+              {articles.otherNews.map((noticia) => (
                 <NewsCard key={noticia.id} newsItem={noticia} />
               ))}
             </div>
