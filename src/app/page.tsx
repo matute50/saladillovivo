@@ -54,7 +54,10 @@ export default async function Page() {
   };
 
   // Pass the server-fetched data to the client component.
+  // CORRECCIÓN: Envolvemos en <main> para estructura semántica correcta
   return (
-    <HomePageClient initialData={pageData} />
+    <main>
+      <HomePageClient initialData={pageData} />
+    </main>
   );
 }

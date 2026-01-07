@@ -18,7 +18,7 @@ const Header = () => {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('theme');
-      const initialTheme = savedTheme === 'dark'; // Si savedTheme es 'dark', es true; de lo contrario, es false.
+      const initialTheme = savedTheme === 'dark';
       setIsDarkTheme(initialTheme);
       if (initialTheme) {
         document.documentElement.classList.add('dark');
@@ -54,7 +54,7 @@ const Header = () => {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ type: 'spring', stiffness: 120, damping: 20 }}
-      className={`bg-main-gradient shadow-header sticky top-0 left-0 right-0 z-50 border-b h-[3.6rem]`}
+      className={`bg-main-gradient sticky top-0 left-0 right-0 z-50 h-[3.6rem] border-b-0`}
     >
       <div className="container mx-auto px-4 h-full flex justify-between items-center relative">
         <div className="flex items-center h-full">
@@ -65,6 +65,8 @@ const Header = () => {
               alt="Saladillo Vivo"
               width={216}
               height={58}
+              // SOLUCIÓN: style={{ width: 'auto', height: 'auto' }}
+              style={{ width: 'auto', height: 'auto' }}
               className='object-contain'
             />
           </Link>

@@ -1,89 +1,90 @@
 'use client';
 
 import React from 'react';
-import { useVolume } from '@/context/VolumeContext';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
+import { useVolume } from '@/context/VolumeContext';
+import { Maximize, Minimize, Play, Pause, Volume2, VolumeX, Volume1 } from 'lucide-react';
 
-const PlayIcon = () => ( <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"> <path d="M8 5V19L19 12L8 5Z" /> </svg> );
-const PauseIcon = () => ( <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"> <path d="M6 19H10V5H6V19ZM14 5V19H18V5H14Z" /> </svg> );
-const FullScreenIcon = () => ( <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"> <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" /> </svg> );
-const ExitFullScreenIcon = () => ( <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"> <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" /> </svg> );
+interface CustomControlsProps {
+  onToggleFullScreen: () => void;
+  isFullScreen: boolean;
+}
 
-const VolumeOnIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-  </svg>
-);
-
-// Icono para Mute (Silencio)
-const VolumeMuteIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="red"></polygon>
-    <line x1="23" y1="9" x2="17" y2="15"></line>
-    <line x1="17" y1="9" x2="23" y2="15"></line>
-  </svg>
-);
-
-
-
-interface CustomControlsProps { onToggleFullScreen: () => void; isFullScreen: boolean; }
-
-
-
-const CustomControls: React.FC<CustomControlsProps> = ({ 
-  onToggleFullScreen, 
-  isFullScreen,
-}) => {
-  
+const CustomControls: React.FC<CustomControlsProps> = ({ onToggleFullScreen, isFullScreen }) => {
   const { isPlaying, togglePlayPause } = useMediaPlayer();
-  const { isMuted, volume, setVolume, toggleMute } = useVolume();
+  const { volume, setVolume, isMuted, toggleMute } = useVolume();
 
-  const handleToggleMute = () => { if (toggleMute) toggleMute(); };
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVolume = parseFloat(e.target.value);
-    if (setVolume) {
-      setVolume(newVolume);
-    }
+    // Aseguramos que sea un número flotante
+    const newVol = parseFloat(e.target.value);
+    setVolume(newVol);
+  };
+
+  // Determinar icono de volumen
+  const getVolumeIcon = () => {
+    if (isMuted || volume === 0) return <VolumeX size={24} />;
+    if (volume < 0.5) return <Volume1 size={24} />;
+    return <Volume2 size={24} />;
   };
 
   return (
-    <div className="flex w-full flex-col bg-black bg-opacity-60 px-4 pt-1 text-white">
+    <div 
+      className="w-full bg-gradient-to-t from-black/90 via-black/50 to-transparent px-4 pb-3 pt-10 flex items-center justify-between transition-opacity duration-300"
+      onClick={(e) => e.stopPropagation()} // Regla de Oro: Bloqueamos clicks al fondo
+    >
       
-      <div className="flex w-full items-center justify-between pt-1 pb-2">
-        <div className="flex items-center gap-4">
-          <button onClick={togglePlayPause} className="p-2 text-white rounded-md border border-white/10 shadow-lg shadow-black/50 backdrop-blur-md bg-black/40 hover:bg-black/60 focus:outline-none transition-colors duration-300">
-            {isPlaying ? <PauseIcon /> : <PlayIcon />}
-          </button>
-        </div>
+      {/* IZQUIERDA: Play/Pause */}
+      <button 
+        onClick={(e) => { e.stopPropagation(); togglePlayPause(); }}
+        className="text-white hover:text-[#6699ff] transition-colors p-1"
+        title={isPlaying ? "Pausar" : "Reproducir"}
+      >
+        {isPlaying ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" />}
+      </button>
 
-        <div className="flex items-center gap-3">
-          
-          <button
-            onClick={handleToggleMute}
-            className="text-white focus:outline-none"
+      {/* DERECHA: Grupo Controles (Volumen + Fullscreen) */}
+      <div className="flex items-center gap-4 bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10">
+        
+        {/* GRUPO VOLUMEN (Horizontal) */}
+        <div className="flex items-center gap-2">
+          {/* Botón Mute */}
+          <button 
+            onClick={(e) => { e.stopPropagation(); toggleMute(); }}
+            className="text-white hover:text-[#6699ff] transition-colors"
+            title={isMuted ? "Activar sonido" : "Silenciar"}
           >
-            {isMuted ? <VolumeMuteIcon /> : <VolumeOnIcon />}
+            {getVolumeIcon()}
           </button>
-          
+
+          {/* Slider Horizontal Funcional */}
           <input
             type="range"
-            min="0"
-            max="1"
-            step="0.01"
-            value={volume || 0} 
-            onChange={handleVolumeChange} 
-            className="w-24 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer"
-            style={{ accentColor: 'white' }} 
+            min={0}
+            max={1}
+            step={0.01}
+            value={isMuted ? 0 : volume}
+            onChange={handleVolumeChange}
+            onInput={handleVolumeChange} // Para respuesta inmediata en algunos navegadores
+            onClick={(e) => e.stopPropagation()} // Vital para no pausar el video al arrastrar
+            className="
+              w-20 h-1 
+              appearance-none bg-white/30 rounded-full cursor-pointer 
+              accent-[#6699ff] hover:accent-[#4d88ff]
+            "
           />
-          
-          <button
-            onClick={onToggleFullScreen}
-            className="text-white focus:outline-none"
-          >
-            {isFullScreen ? <ExitFullScreenIcon /> : <FullScreenIcon />}
-          </button>
         </div>
+
+        {/* Separador Vertical */}
+        <div className="h-5 w-px bg-white/20"></div>
+
+        {/* Pantalla Completa */}
+        <button 
+          onClick={(e) => { e.stopPropagation(); onToggleFullScreen(); }}
+          className="text-white hover:text-[#6699ff] transition-colors"
+          title={isFullScreen ? "Salir de pantalla completa" : "Pantalla completa"}
+        >
+          {isFullScreen ? <Minimize size={24} /> : <Maximize size={24} />}
+        </button>
       </div>
     </div>
   );

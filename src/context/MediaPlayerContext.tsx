@@ -1,237 +1,233 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react'; 
+import React, { createContext, useContext, useState, useCallback, useMemo, useRef, useEffect } from 'react'; 
 import { getVideosForHome, getNewRandomVideo } from '@/lib/data';
 import { SlideMedia } from '@/lib/types';
-// Importamos el contexto de volumen para controlar el nivel de audio
 import { useVolume } from '@/context/VolumeContext';
 
-export interface ProgressState {
-  played: number;
-  playedSeconds: number;
-  loaded: number;
-  loadedSeconds: number;
-}
+// LISTA ACTUALIZADA DE INTROS (Ubicación: /public/videos_intro/)
+const INTRO_VIDEOS = [
+  '/videos_intro/intro1.mp4',
+  '/videos_intro/intro2.mp4',
+  '/videos_intro/intro3.mp4',
+  '/videos_intro/intro4.mp4',
+  '/videos_intro/intro5.mp4',
+];
+
+type PlaybackSource = 'INTRO' | 'DB_RANDOM' | 'USER_SELECTED' | 'RESUMING';
 
 interface MediaPlayerContextType {
   currentVideo: SlideMedia | null;
   nextVideo: SlideMedia | null;
+  playlist: SlideMedia[]; 
   isPlaying: boolean;
-  seekToFraction: number | null;
-  isFirstMedia: boolean;
-  randomVideoQueued: boolean;
-  streamStatus: { liveStreamUrl: string; isLive: boolean; } | null; 
   viewMode: 'diario' | 'tv';
   setViewMode: (mode: 'diario' | 'tv') => void;
-  playMedia: (media: SlideMedia, isFirst?: boolean) => void;
+  playMedia: (media: SlideMedia) => void;
   playSpecificVideo: (media: SlideMedia) => void;
   playTemporaryVideo: (media: SlideMedia) => void;
-  playLiveStream: (status: { liveStreamUrl: string; isLive: boolean; }) => void; 
+  resumeAfterSlide: () => void;
+  saveCurrentProgress: (seconds: number) => void;
   setIsPlaying: (isPlaying: boolean) => void;
   togglePlayPause: () => void;
-  setSeekToFraction: (fraction: number | null) => void;
   loadInitialPlaylist: (videoUrlToPlay: string | null) => Promise<void>;
   handleOnEnded: () => void;
-  handleOnProgress: (progress: ProgressState) => void;
-  playNextVideoInQueue: () => void;
-  removeNextVideoFromQueue: () => void;
-  pause: () => void;
-  play: () => void;
+  playNextVideoInQueue: () => void; 
 }
 
 const MediaPlayerContext = createContext<MediaPlayerContextType | undefined>(undefined);
 
 export const useMediaPlayer = () => {
   const context = useContext(MediaPlayerContext);
-  if (!context) {
-    throw new Error('useMediaPlayer must be used within a MediaPlayerProvider');
-  }
+  if (!context) throw new Error('useMediaPlayer must be used within a MediaPlayerProvider');
   return context;
 };
 
 export const MediaPlayerProvider = ({ children }: { children: React.ReactNode }) => {
-  console.log('MediaPlayerProvider: Initializing');
-  const { unmute } = useVolume();
-
-  const [viewMode, _setViewMode] = useState<'diario' | 'tv'>('diario');
+  const { setVolume, volume: currentVolume } = useVolume();
   
-  const setViewMode = useCallback((mode: 'diario' | 'tv') => {
-      _setViewMode(mode);
-  }, []);
-
   const [currentVideo, setCurrentVideo] = useState<SlideMedia | null>(null);
-  const [interruptedVideo, setInterruptedVideo] = useState<SlideMedia | null>(null);
   const [nextVideo, setNextVideo] = useState<SlideMedia | null>(null);
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [seekToFraction, setSeekToFraction] = useState<number | null>(null);
-  const [isFirstMedia, setIsFirstMedia] = useState(true);
-  const [isUserSelected, setIsUserSelected] = useState(false);
-  const [randomVideoQueued, setRandomVideoQueued] = useState(false);
+  const [playlist, setPlaylist] = useState<SlideMedia[]>([]); 
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [viewMode, setViewMode] = useState<'diario' | 'tv'>('diario');
   
-  const [streamStatus] = useState<{ liveStreamUrl: string; isLive: boolean; } | null>({ liveStreamUrl: 'https://www.youtube.com/watch?v=pand8Im1jag', isLive: true });
+  const isInitialized = useRef(false);
+  const playbackState = useRef<PlaybackSource>('INTRO');
+  const savedProgress = useRef<number>(0);
+  const savedVideo = useRef<SlideMedia | null>(null);
+  const savedVolume = useRef<number>(1);
+  const nextDataVideoRef = useRef<SlideMedia | null>(null); 
+  const preloadGuard = useRef<string>(""); 
 
-  const pause = useCallback(() => {
-    console.log('MediaPlayerProvider: pause() called');
-    setIsPlaying(false);
-  }, []);
-  const play = useCallback(() => {
-    console.log('MediaPlayerProvider: play() called');
-    setIsPlaying(true);
-  }, []);
+  // --- HELPERS ---
 
-  const playMedia = useCallback((media: SlideMedia, isFirst = false) => {
-      console.log('MediaPlayerProvider: playMedia() called with', media);
-      setCurrentVideo(media);
-      // setIsPlaying is now handled by an effect
-      setIsFirstMedia(isFirst);
-      setNextVideo(null);
-      setRandomVideoQueued(false);
-  }, []);
-
-  // Effect to start playback when a new video is set.
-  useEffect(() => {
-    if (currentVideo) {
-      console.log('MediaPlayerProvider: useEffect [currentVideo] triggered, setting isPlaying(true)');
-      setIsPlaying(true);
+  const getRandomIntro = useCallback((): SlideMedia => {
+    // Protección por si la lista está vacía
+    if (INTRO_VIDEOS.length === 0) {
+        console.warn("No hay videos de intro definidos");
+        return { id: 'fallback', nombre: 'Intro', url: '', categoria: 'Inst', type: 'video', createdAt: '' };
     }
-  }, [currentVideo]);
 
-  const playTemporaryVideo = useCallback(async (media: SlideMedia) => {
-      if (interruptedVideo) return;
-      const wasPlaying = isPlaying;
-      pause();
-      try {
-        let finalMediaData = { ...media };
-        if (media.url && media.url.endsWith('.json')) {
-          const response = await fetch(media.url);
-          const slideData = await response.json();
-          finalMediaData = {
-            ...finalMediaData,
-            type: 'image',
-            url: "",
-            imageSourceUrl: slideData.image_url || slideData.imageUrl || slideData.imagen,
-            audioSourceUrl: slideData.audio_url || slideData.audioUrl || slideData.audioSourceUrl,
-            duration: slideData.duration || 15
-          };
-        }
-        const isValidMediaSource = finalMediaData.url || (finalMediaData.imageSourceUrl && finalMediaData.audioSourceUrl);
-        if (!isValidMediaSource) {
-          if (wasPlaying) play();
-          return;
-        }
-        if (currentVideo) setInterruptedVideo(currentVideo);
-        
-        // Use playMedia to set the temporary video
-        playMedia(finalMediaData, false);
+    const randomIndex = Math.floor(Math.random() * INTRO_VIDEOS.length);
+    const url = INTRO_VIDEOS[randomIndex];
+    // encodeURI asegura que caracteres especiales se manejen bien, aunque con guiones bajos es seguro
+    const safeUrl = encodeURI(url); 
+    
+    return {
+      id: `intro-${Date.now()}-${Math.random()}`,
+      nombre: 'ESPACIO PUBLICITARIO',
+      url: safeUrl, 
+      categoria: 'Institucional',
+      createdAt: new Date().toISOString(),
+      type: 'video'
+    };
+  }, []);
 
-      } catch (error) {
-        console.error("Error al reproducir video temporal:", error);
-        if (wasPlaying) play();
-      }
-  }, [currentVideo, interruptedVideo, isPlaying, pause, play, playMedia]);
+  const fetchRandomDbVideo = useCallback(async (excludeId?: string): Promise<SlideMedia | null> => {
+    try {
+      const video = await getNewRandomVideo(excludeId);
+      return video;
+    } catch (error) {
+      console.error("Error fetching DB video:", error);
+      return null;
+    }
+  }, []);
+
+  // --- FUNCIONES ---
+
+  const playMedia = useCallback((media: SlideMedia) => {
+      setCurrentVideo(media);
+      setIsPlaying(true);
+  }, []);
 
   const playSpecificVideo = useCallback((media: SlideMedia) => {
-      playMedia(media, false);
-      setIsUserSelected(true);
-  }, [playMedia]);
+      savedVolume.current = currentVolume;
+      setVolume(0.2); 
+      playbackState.current = 'USER_SELECTED';
+      setCurrentVideo(media);
+      setIsPlaying(true);
+  }, [currentVolume, setVolume]);
 
-  const playLiveStream = useCallback((status: { liveStreamUrl: string; isLive: boolean; }) => {
-      if (status && status.isLive) {
-          const liveVideo: SlideMedia = { id: 'live-stream', nombre: 'TRANSMISIÓN EN VIVO', url: status.liveStreamUrl, createdAt: new Date().toISOString(), categoria: 'En Vivo', imagen: '/PARCHE.png', novedad: true, type: 'stream', };
-          playMedia(liveVideo, false);
+  const playTemporaryVideo = useCallback((media: SlideMedia) => {
+      if (currentVideo && playbackState.current !== 'INTRO') {
+          savedVideo.current = currentVideo;
       }
-  }, [playMedia]);
+      playMedia(media); 
+  }, [currentVideo, playMedia]);
+
+  const togglePlayPause = useCallback(() => setIsPlaying(p => !p), []);
+
+  const saveCurrentProgress = useCallback((seconds: number) => {
+      savedProgress.current = seconds;
+  }, []);
 
   const loadInitialPlaylist = useCallback(async (videoUrlToPlay: string | null) => {
-      console.log('MediaPlayerProvider: loadInitialPlaylist() called');
-      const { allVideos: fetchedVideos } = await getVideosForHome(100);
-      if (fetchedVideos && fetchedVideos.length > 0) {
-          let videoToPlay: SlideMedia;
-          if (videoUrlToPlay) {
-              const specificVideo = fetchedVideos.find(v => v.url === videoUrlToPlay);
-              videoToPlay = specificVideo || fetchedVideos[0];
-          } else {
-              const randomIndex = Math.floor(Math.random() * fetchedVideos.length);
-              videoToPlay = fetchedVideos[randomIndex];
+      if (isInitialized.current) return;
+      isInitialized.current = true;
+
+      console.log('MediaPlayer: Iniciando secuencia...');
+      
+      if (videoUrlToPlay) {
+         const { allVideos } = await getVideosForHome(10);
+         const requested = allVideos.find(v => v.url === videoUrlToPlay);
+         if (requested) {
+           playSpecificVideo(requested);
+           return;
+         }
+      }
+
+      const intro = getRandomIntro();
+      playbackState.current = 'INTRO';
+      setCurrentVideo(intro);
+      setIsPlaying(true);
+  }, [getRandomIntro, playSpecificVideo]); 
+
+  const handleOnEnded = useCallback(async () => {
+      console.log('Video Ended. State:', playbackState.current);
+
+      if (playbackState.current === 'INTRO') {
+          let nextV = nextDataVideoRef.current;
+          
+          if (!nextV) {
+              console.log("Fallback: Buscando video ahora...");
+              nextV = await fetchRandomDbVideo(currentVideo?.id);
           }
-          playMedia(videoToPlay, true);
-      } else {
-        console.log('MediaPlayerProvider: No videos fetched for initial playlist.');
-      }
-  }, [playMedia]);
 
-  const playNextRandomVideo = useCallback(async (currentVideoId?: string, currentVideoCategory?: string) => {
-      const nextVideo: SlideMedia | null = await getNewRandomVideo(currentVideoId, currentVideoCategory);
-      if (nextVideo) {
-        playMedia(nextVideo, false);
-      } else {
-        await loadInitialPlaylist(null);
-      }
-  }, [playMedia, loadInitialPlaylist]);
-
-  const handleOnEnded = useCallback(() => {
-      console.log('MediaPlayerProvider: handleOnEnded() called');
-      if (interruptedVideo) {
-        setCurrentVideo(interruptedVideo);
-        setInterruptedVideo(null);
-        setIsPlaying(true);
-        unmute(); // Forzamos que el volumen vuelva a estar activo
-        return;
-      }
-      if (viewMode === 'tv') {
-          unmute(); // Aseguramos el volumen activo en modo TV
-          playNextRandomVideo(currentVideo?.id, currentVideo?.categoria);
-      } else {
-          if (isUserSelected) setIsUserSelected(false);
-          if (nextVideo) {
-              unmute(); // Aseguramos el volumen activo para el siguiente video
-              playMedia(nextVideo, false);
-              setNextVideo(null);
+          if (nextV) {
+              playbackState.current = 'DB_RANDOM';
+              setCurrentVideo(nextV);
+              setIsPlaying(true);
           } else {
-              unmute(); // Aseguramos el volumen activo para un video aleatorio
-              playNextRandomVideo(currentVideo?.id, currentVideo?.categoria);
+              setCurrentVideo(getRandomIntro());
+              setIsPlaying(true);
           }
+      } 
+      else {
+          if (playbackState.current === 'USER_SELECTED') setVolume(savedVolume.current); 
+          
+          playbackState.current = 'INTRO';
+          setCurrentVideo(getRandomIntro());
+          setIsPlaying(true);
       }
-  }, [viewMode, isUserSelected, nextVideo, playMedia, playNextRandomVideo, currentVideo, interruptedVideo, unmute]);
-
-  const handleOnProgress = useCallback(async (progress: ProgressState) => {
-      // console.log('MediaPlayerProvider: handleOnProgress() called', progress);
-      if (viewMode === 'tv' || interruptedVideo) return;
-      if (!currentVideo) return;
-
-      if (!nextVideo && !randomVideoQueued && progress.playedSeconds > 5) {
-          setRandomVideoQueued(true);
-          const newRandomVideo = await getNewRandomVideo(currentVideo.id, currentVideo.categoria);
-          if (newRandomVideo) {
-              setNextVideo(newRandomVideo);
-          } else {
-              setRandomVideoQueued(false);
-          }
-      }
-  }, [viewMode, nextVideo, randomVideoQueued, currentVideo, interruptedVideo]);
-
-  const togglePlayPause = useCallback(() => setIsPlaying(prev => !prev), []);
+  }, [setVolume, getRandomIntro, fetchRandomDbVideo, currentVideo]);
 
   const playNextVideoInQueue = useCallback(() => {
-      if (nextVideo) {
-        playMedia(nextVideo, false);
-        setNextVideo(null);
-      } else {
-        playNextRandomVideo(currentVideo?.id, currentVideo?.categoria);
-      }
-  }, [nextVideo, playMedia, playNextRandomVideo, currentVideo]);
+      handleOnEnded();
+  }, [handleOnEnded]);
 
-  const removeNextVideoFromQueue = useCallback(() => setNextVideo(null), []);
+  const resumeAfterSlide = useCallback(() => {
+      if (savedVideo.current) {
+          const videoToResume = { ...savedVideo.current, startAt: savedProgress.current };
+          playbackState.current = 'RESUMING';
+          setCurrentVideo(videoToResume);
+          setIsPlaying(true);
+      } else {
+          handleOnEnded();
+      }
+  }, [handleOnEnded]);
+
+  // --- PRECARGA ---
+  useEffect(() => {
+    if (!currentVideo) return;
+
+    if (preloadGuard.current === currentVideo.id) return;
+    preloadGuard.current = currentVideo.id;
+
+    if (playbackState.current === 'INTRO') {
+        if (!nextDataVideoRef.current) {
+             setNextVideo({ id: 'loading', nombre: 'Cargando...', categoria: 'Youtube', url: '', createdAt: '', type: 'video' });
+             fetchRandomDbVideo(currentVideo.id).then((video) => {
+                if (video) {
+                    nextDataVideoRef.current = video;
+                    setNextVideo(video); 
+                }
+            });
+        } else {
+            setNextVideo(nextDataVideoRef.current);
+        }
+    } 
+    else {
+        nextDataVideoRef.current = null;
+        fetchRandomDbVideo(currentVideo.id).then((video) => {
+             if (video) {
+                 nextDataVideoRef.current = video;
+                 setNextVideo(video); 
+             }
+        });
+    }
+  }, [currentVideo, getRandomIntro, fetchRandomDbVideo]);
 
   const value = useMemo(() => ({
-      currentVideo, nextVideo, isPlaying, seekToFraction, isFirstMedia, randomVideoQueued, streamStatus, viewMode,
-      setViewMode, playMedia, playSpecificVideo, playTemporaryVideo, playLiveStream, setIsPlaying, togglePlayPause,
-      setSeekToFraction, loadInitialPlaylist, handleOnEnded, handleOnProgress, playNextVideoInQueue, removeNextVideoFromQueue,
-      pause, play,
+      currentVideo, nextVideo, playlist, isPlaying, viewMode,
+      setViewMode, playMedia, playSpecificVideo, playTemporaryVideo, 
+      setIsPlaying, togglePlayPause, loadInitialPlaylist, handleOnEnded, playNextVideoInQueue,
+      saveCurrentProgress, resumeAfterSlide
   }), [
-      currentVideo, nextVideo, isPlaying, seekToFraction, isFirstMedia, randomVideoQueued, streamStatus, viewMode,
-      setViewMode, playMedia, playSpecificVideo, playTemporaryVideo, playLiveStream, togglePlayPause, setSeekToFraction,
-      loadInitialPlaylist, handleOnEnded, handleOnProgress, playNextVideoInQueue, removeNextVideoFromQueue, pause, play,
+      currentVideo, nextVideo, playlist, isPlaying, viewMode,
+      setViewMode, playMedia, playSpecificVideo, playTemporaryVideo, 
+      togglePlayPause, loadInitialPlaylist, handleOnEnded, playNextVideoInQueue,
+      saveCurrentProgress, resumeAfterSlide
   ]);
 
   return (

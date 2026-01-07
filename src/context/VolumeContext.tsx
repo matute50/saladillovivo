@@ -1,85 +1,56 @@
 'use client';
 
-import React, { createContext, useContext, useState, useRef, useCallback, useMemo } from 'react';
-import useFader from '@/hooks/useFader';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 
 interface VolumeContextType {
   volume: number;
-  isMuted: boolean;
-  isAutoplayBlocked: boolean; // Nuevo estado
-  setIsAutoplayBlocked: (blocked: boolean) => void; // Nuevo setter
   setVolume: (volume: number) => void;
-  setMuted: (muted: boolean) => void;
+  isMuted: boolean;
   toggleMute: () => void;
-  unmute: () => void;
-  ramp: (targetVolume: number, duration: number) => void;
+  unmute: () => void; // <--- AGREGADO
 }
 
 const VolumeContext = createContext<VolumeContextType | undefined>(undefined);
 
-export const useVolume = () => {
-  const context = useContext(VolumeContext);
-  if (!context) throw new Error('useVolume must be used within a VolumeProvider');
-  return context;
-};
+export const VolumeProvider = ({ children }: { children: ReactNode }) => {
+  const [volume, setVolumeState] = useState(1);
+  const [isMuted, setIsMuted] = useState(true);
 
-export const VolumeProvider = ({ children }: { children: React.ReactNode }) => {
-  const { volume, setVolume: setFaderVolume } = useFader(0); 
-  const userVolume = useRef<number>(0.5); 
-  const [isAutoplayBlocked, setIsAutoplayBlocked] = useState(false); // Nuevo estado
-
-  const isMuted = volume === 0;
-
-  const toggleMute = useCallback(() => {
-    if (volume === 0) {
-      setFaderVolume(userVolume.current);
-    } else {
-      setFaderVolume(0);
+  useEffect(() => {
+    const savedVolume = localStorage.getItem('playerVolume');
+    if (savedVolume) {
+      setVolumeState(parseFloat(savedVolume));
+      setIsMuted(false); 
     }
-  }, [volume, setFaderVolume]);
+  }, []);
 
   const setVolume = useCallback((newVolume: number) => {
-    if (newVolume > 0) {
-      userVolume.current = newVolume;
-    }
-    setFaderVolume(newVolume);
-  }, [setFaderVolume]);
+    const clamped = Math.max(0, Math.min(1, newVolume));
+    setVolumeState(clamped);
+    localStorage.setItem('playerVolume', clamped.toString());
+    if (clamped > 0 && isMuted) setIsMuted(false);
+  }, [isMuted]);
 
+  const toggleMute = useCallback(() => {
+    setIsMuted(prev => !prev);
+  }, []);
+
+  // ESTA ES LA FUNCIÓN QUE FALTABA Y CAUSABA EL ERROR:
   const unmute = useCallback(() => {
-    if (volume === 0) {
-      setFaderVolume(userVolume.current);
-    }
-  }, [volume, setFaderVolume]);
-
-  const setMuted = useCallback((muted: boolean) => {
-    if (muted) {
-      if (volume !== 0) {
-        setFaderVolume(0);
-      }
-    } else {
-      if (volume === 0) {
-        setFaderVolume(userVolume.current);
-      }
-    }
-  }, [volume, setFaderVolume]);
-
-  const dummyRamp = useCallback(() => {}, []);
-
-  const value = useMemo(() => ({
-    volume,
-    isMuted,
-    isAutoplayBlocked, // Exponer nuevo estado
-    setIsAutoplayBlocked, // Exponer nuevo setter
-    setVolume,
-    setMuted,
-    toggleMute,
-    unmute,
-    ramp: dummyRamp,
-  }), [volume, isMuted, isAutoplayBlocked, setVolume, setMuted, toggleMute, unmute, dummyRamp]);
+    setIsMuted(false);
+  }, []);
 
   return (
-    <VolumeContext.Provider value={value}>
+    <VolumeContext.Provider value={{ volume, setVolume, isMuted, toggleMute, unmute }}>
       {children}
     </VolumeContext.Provider>
   );
+};
+
+export const useVolume = () => {
+  const context = useContext(VolumeContext);
+  if (context === undefined) {
+    throw new Error('useVolume must be used within a VolumeProvider');
+  }
+  return context;
 };

@@ -12,7 +12,7 @@ import { useThemeButtonColors } from '@/hooks/useThemeButtonColors';
 import { useToast } from '@/components/ui/use-toast';
 import { Video, ExclusiveVideoCarouselProps } from '@/lib/types';
 
-const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos, isLoading, carouselId, isMobile = false, isLive = false }) => {
+const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos, isLoading, carouselId, isMobile = false, isLive = false, onVideoClick }) => {
   const { playSpecificVideo, playLiveStream, streamStatus } = useMediaPlayer();
   const { toast } = useToast();
   const swiperRef = useRef(null);
@@ -58,6 +58,11 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
   };
 
   const handleVideoClick = (video: Video) => {
+    if (onVideoClick) {
+      onVideoClick(video);
+      return;
+    }
+    
     if (isLive || video.isLiveThumbnail) {
       if (streamStatus) {
         playLiveStream(streamStatus);

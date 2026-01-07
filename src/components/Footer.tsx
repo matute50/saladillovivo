@@ -2,22 +2,24 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import CreatorModal from './modals/CreatorModal';
+import CreatorModal from './modals/CreatorModal'; 
 import ImageModal from './ImageModal';
+import useIsMobile from '@/hooks/useIsMobile'; // Importar useIsMobile
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
   const [isDarkTheme, setIsDarkTheme] = useState(true);
   const [isCreatorModalOpen, setCreatorModalOpen] = useState(false);
   const [isDecretoModalOpen, setDecretoModalOpen] = useState(false);
+  const isMobile = useIsMobile(); // Usar el hook
 
   const decretoImageUrl = "https://otwvfihzaznyjvjtkvvd.supabase.co/storage/v1/object/public/imagenvideos//decreto.png";
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const checkTheme = () => setIsDarkTheme(document.documentElement.classList.contains('dark'));
-      checkTheme();
-      const observer = new MutationObserver(checkTheme);
+      const observer = new MutationObserver(() => {
+        setIsDarkTheme(document.documentElement.classList.contains('dark'));
+      });
       observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
       return () => observer.disconnect();
     }
@@ -27,30 +29,27 @@ const Footer = () => {
   const banerOscuro = "https://storage.googleapis.com/hostinger-horizons-assets-prod/77d159f1-0d45-4b01-ba42-c8ca9cbd0d70/47acc550fd7b520146be23b59835d549.png";
 
   return (
-    <footer className={`bg-gradient-to-b from-[hsl(var(--background-start))] to-[hsl(var(--background-end))] dark:bg-[hsl(var(--footer-bg-color))] text-foreground py-1.5 shadow-footer`}>
-      <div className="container mx-auto px-4">
+    <footer className={`bg-gradient-to-b from-[hsl(var(--footer-bg-start))] to-[hsl(var(--footer-bg-end))] dark:bg-[hsl(var(--footer-bg-color))] text-foreground ${isMobile ? 'h-[var(--footer-height-mobile)]' : 'h-[var(--footer-height)]'}`}>
+      <div className="container mx-auto px-4 h-full flex justify-center items-center">
         <div className="flex flex-col md:flex-row justify-center items-center text-center gap-2 md:gap-4 w-full">
           
           {/* 1. LOGO */}
           <div className="flex-shrink-0">
             <Image
+              loading="lazy"
               src={isDarkTheme ? banerClaro : banerOscuro}
               alt="Logo Saladillo Vivo"
-              width={70} 
-              height={20}
-              className="object-contain h-auto w-auto max-h-[20px]"
-              priority 
-              // AGREGAMOS ESTA PROPIEDAD:
-              // Evita que Vercel intente procesar la imagen externa, mostrándola directamente.
-              unoptimized 
+              width={105} 
+              height={30}
+              className="object-contain"
+              unoptimized // Evita errores 403 en Vercel con imágenes externas
             />
           </div>
 
-          {/* Separador visual (solo desktop) */}
-          <span className="hidden md:block text-gray-400 dark:text-gray-600 text-[10px]">|</span>
+          <span className="hidden md:block text-gray-500 text-[10px]">|</span>
 
           {/* 2. TEXTO DECRETO */}
-          <p className="text-[10px] m-0 leading-none text-gray-600 dark:text-gray-300">
+          <p className="text-[9px] m-0 leading-none">
             Declarado de interés cultural{' '}
             <span
               onClick={() => setDecretoModalOpen(true)}
@@ -60,11 +59,10 @@ const Footer = () => {
             </span>
           </p>
 
-          {/* Separador visual (solo desktop) */}
-          <span className="hidden md:block text-gray-400 dark:text-gray-600 text-[10px]">|</span>
+          <span className="hidden md:block text-gray-500 text-[10px]">|</span>
 
           {/* 3. COPYRIGHT Y CRÉDITOS */}
-          <p className="text-[10px] m-0 leading-none text-gray-600 dark:text-gray-300">
+          <p className="text-[9px] m-0 leading-none">
             © {currentYear} Saladillo Vivo. Desarrollado por:{' '}
             <span
               onClick={() => setCreatorModalOpen(true)}

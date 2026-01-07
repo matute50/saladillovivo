@@ -6,12 +6,12 @@ import VideoPlayer from '@/components/VideoPlayer';
 import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
-import { Play, Cast } from 'lucide-react';
+import { useNewsPlayer } from '@/context/NewsPlayerContext';
 import CustomControls from '@/components/CustomControls';
 import useCast from '@/hooks/useCast';
 import VideoTitleBar from '@/components/VideoTitleBar';
-import type { Video } from '@/lib/types';
-import { cn } from '@/lib/utils'; // Importamos cn
+import { cn } from '@/lib/utils';
+import { Play, Cast } from 'lucide-react';
 
 interface VideoSectionProps {
   isMobileFixed?: boolean;
@@ -23,187 +23,181 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
   const [isFullScreen, setIsFullScreen] = useState(false);
   const playerContainerRef = useRef<HTMLDivElement>(null);
   
-  const {
-    currentVideo,
-    isPlaying,
-    handleOnEnded, 
-  } = useMediaPlayer();
-  
-  const { isCastAvailable, handleCast } = useCast(currentVideo);
+  const { currentVideo, nextVideo, isPlaying, handleOnEnded, saveCurrentProgress, resumeAfterSlide, setIsPlaying } = useMediaPlayer();
+  const { currentSlide, isPlaying: isSlidePlaying, stopSlide } = useNewsPlayer();
 
+  const { isCastAvailable, handleCast } = useCast(currentVideo);
   const [showControls, setShowControls] = useState(false);
-  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [thumbnailSrc, setThumbnailSrc] = useState<string>('/placeholder.png');
+
+  const [playBackgroundEarly, setPlayBackgroundEarly] = useState(false);
+  const transitionTriggeredRef = useRef(false);
+
+  const isHtmlSlideActive = isSlidePlaying && currentSlide && currentSlide.type === 'html';
+  
+  // Detección actualizada para la nueva carpeta
+  const isLocalIntro = currentVideo?.url && (
+      currentVideo.url.startsWith('/') || 
+      currentVideo.url.includes('videos_intro')
+  );
+
+  const backgroundVideoUrl = isLocalIntro ? nextVideo?.url : currentVideo?.url;
+  const isBackgroundPlaying = isLocalIntro ? playBackgroundEarly : isPlaying;
+
+  useEffect(() => {
+    setPlayBackgroundEarly(false);
+    transitionTriggeredRef.current = false;
+  }, [currentVideo?.id]);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isHtmlSlideActive && currentSlide) {
+        setIsPlaying(false);
+        const duration = (currentSlide.duration || 15) * 1000;
+        timer = setTimeout(() => {
+            stopSlide(); 
+            resumeAfterSlide(); 
+        }, duration);
+    }
+    return () => clearTimeout(timer);
+  }, [isHtmlSlideActive, currentSlide, stopSlide, resumeAfterSlide, setIsPlaying]);
+
+  useEffect(() => {
+    if (!currentVideo?.url || isLocalIntro) {
+        setThumbnailSrc('/placeholder.png');
+        return;
+    }
+    const cleanUrl = currentVideo.url.trim();
+    const match = cleanUrl.match(/(?:youtu\.be\/|youtube\.com\/.*v=)([^&]+)/);
+    if (match && match[1]) {
+        setThumbnailSrc(`https://img.youtube.com/vi/${match[1]}/maxresdefault.jpg`);
+    } else {
+        setThumbnailSrc('/placeholder.png');
+    }
+  }, [currentVideo, isLocalIntro]);
 
   const handleShowControls = useCallback(() => {
     setShowControls(true);
-    if (controlsTimeoutRef.current) {
-      clearTimeout(controlsTimeoutRef.current);
-    }
-    controlsTimeoutRef.current = setTimeout(() => {
-      setShowControls(false);
-    }, 3000);
+    setTimeout(() => setShowControls(false), 3000);
   }, []);
-  const handleTouchShowControls = () => {
-    setShowControls(prev => {
-      const newShowControls = !prev;
-      if (newShowControls && controlsTimeoutRef.current) {
-         clearTimeout(controlsTimeoutRef.current);
-      }
-      if (newShowControls) {
-         controlsTimeoutRef.current = setTimeout(() => {
-           setShowControls(false);
-         }, 3000);
-      }
-      return newShowControls;
-    });
-  };
-  const handleMouseEnter = () => {
-    if (!isMobile) {
-      handleShowControls();
-    }
-  };
-  const handleMouseLeave = () => {
-    if (!isMobile) {
-      setShowControls(false);
-    }
-  };
+
   const toggleFullScreen = () => {
     if (!playerContainerRef.current) return;
-    if (!document.fullscreenElement) {
-      playerContainerRef.current.requestFullscreen();
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      }
-    }
+    if (!document.fullscreenElement) playerContainerRef.current.requestFullscreen();
+    else document.exitFullscreen?.();
   };
+
   useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullScreen(!!document.fullscreenElement);
-      if (isMobile) {
-        setIsMobileFullscreen(!!document.fullscreenElement);
-      }
+    const handleFs = () => {
+        setIsFullScreen(!!document.fullscreenElement);
+        if(isMobile) setIsMobileFullscreen(!!document.fullscreenElement);
     };
-    const handleOrientationChange = () => {
-        setIsMobileFullscreen(!!document.fullscreenElement);
-    };
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    window.addEventListener('orientationchange', handleOrientationChange);
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      window.removeEventListener('orientationchange', handleOrientationChange);
-    };
+    document.addEventListener('fullscreenchange', handleFs);
+    return () => document.removeEventListener('fullscreenchange', handleFs);
   }, [isMobile]);
-  
-  const getThumbnailUrl = (media: Video | null): string => {
-    if (!media?.url) return '/placeholder.png';
 
-    const cleanUrl = media.url.trim();
-    
-    // Check for YouTube URLs first and extract thumbnail
-    const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})?/;
-    const videoIdMatch = cleanUrl.match(youtubeRegex);
-    if (videoIdMatch) {
-        const videoId = videoIdMatch[1];
-        return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+  const handleProgress = ({ playedSeconds }: { playedSeconds: number }) => {
+      if (!isLocalIntro) saveCurrentProgress(playedSeconds);
+  };
+
+  const handleIntroTimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    const video = e.currentTarget;
+    if (!video.duration) return;
+
+    const timeLeft = video.duration - video.currentTime;
+
+    // Cuando faltan 5 segundos (y no lo hemos activado aún)
+    if (timeLeft <= 5 && !transitionTriggeredRef.current) {
+        console.log("Intro: Activando video de fondo (5s antes del final)");
+        transitionTriggeredRef.current = true;
+        setPlayBackgroundEarly(true);
     }
-
-    // If it's an absolute HTTP/HTTPS URL (but not YouTube), use it
-    if (cleanUrl.match(/^(http|https):\/\//)) {
-        return cleanUrl;
-    }
-
-    // Otherwise, it's a relative path, prepend base URL
-    return `${process.env.NEXT_PUBLIC_MEDIA_URL || ''}${cleanUrl.startsWith('/') ? '' : '/'}${cleanUrl}`;
   };
 
   const playerCore = (
     <div 
       ref={playerContainerRef}
       className={cn(
-        "relative w-full h-full aspect-video bg-black overflow-hidden border-0 md:border md:rounded-xl card-blur-player",
-        // MODIFICACIÓN: Sombra dual aplicada aquí
-        "shadow-[0_4px_20px_rgba(0,0,0,0.5)] dark:shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+        "relative w-full h-full aspect-video bg-black overflow-hidden border-0 md:border md:rounded-xl card-blur-player shadow-lg",
       )}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      onClick={isMobile ? handleTouchShowControls : undefined}
+      onMouseEnter={() => !isMobile && handleShowControls()}
+      onMouseLeave={() => !isMobile && setShowControls(false)}
+      onClick={handleShowControls}
     >
-      <div className="absolute inset-0 w-full h-full md:rounded-xl overflow-hidden">
-        {currentVideo && (
-          <VideoPlayer
-            key={currentVideo.id || currentVideo.url}
-            videoUrl={currentVideo.url}
-            autoplay={true}
-            onClose={handleOnEnded}
+      <div className="absolute inset-0 w-full h-full md:rounded-xl overflow-hidden bg-black">
+        
+        {isHtmlSlideActive && (
+           <div className="absolute inset-0 z-40 bg-black">
+             <iframe
+                src={currentSlide.url}
+                className="w-full h-full border-none pointer-events-none"
+                title="Slide"
+                allow="autoplay"
+             />
+           </div>
+        )}
+
+        {isLocalIntro && (
+           <div className="absolute inset-0 z-30 bg-black">
+             <video
+                key={currentVideo.id}
+                src={currentVideo.url}
+                autoPlay
+                playsInline
+                className="w-full h-full object-cover"
+                onEnded={handleOnEnded}
+                onTimeUpdate={handleIntroTimeUpdate}
+                onError={(e) => {
+                  console.error("ERROR INTRO:", currentVideo.url, e);
+                  handleOnEnded(); 
+                }}
+             />
+           </div>
+        )}
+
+        {backgroundVideoUrl && !isHtmlSlideActive && (
+          <div className="absolute inset-0 z-20">
+             <VideoPlayer
+                key={backgroundVideoUrl} 
+                videoUrl={backgroundVideoUrl}
+                autoplay={isBackgroundPlaying}
+                onClose={handleOnEnded}
+                onProgress={handleProgress} 
+                startAt={!isLocalIntro ? (currentVideo as any).startAt : 0} 
+             />
+          </div>
+        )}
+
+        {!isHtmlSlideActive && !isPlaying && !isLocalIntro && !playBackgroundEarly && (
+          <Image
+            src={thumbnailSrc}
+            alt="Fondo"
+            fill
+            className="absolute inset-0 z-10 object-cover opacity-60"
+            priority
+            onError={() => setThumbnailSrc('/placeholder.png')}
           />
         )}
 
-        {!isPlaying && currentVideo?.type === 'video' && currentVideo?.url && (
-          <Image
-            src={getThumbnailUrl(currentVideo)}
-            alt={`Miniatura de ${currentVideo?.title}`}
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="absolute inset-0 z-0 object-cover"
-            priority
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              if (target.src.includes('maxresdefault.jpg')) {
-                target.src = getThumbnailUrl(currentVideo).replace('maxresdefault.jpg', 'hqdefault.jpg');
-              } else if (target.src.includes('hqdefault.jpg')) {
-                target.src = getThumbnailUrl(currentVideo).replace('hqdefault.jpg', 'mqdefault.jpg');
-              } else {
-                target.src = '/placeholder.png';
-              }
-            }}
-          />
-        )}
         <AnimatePresence>
-          {showControls && isCastAvailable && (
-            <motion.div
-              className="absolute top-4 right-4 z-30"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.2 }}
-            >
+          {showControls && !isHtmlSlideActive && !isLocalIntro && (
+             <motion.div key="controls" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute bottom-0 left-0 right-0 w-full z-[51]">
+                <CustomControls onToggleFullScreen={toggleFullScreen} isFullScreen={isFullScreen} />
+             </motion.div>
+          )}
+          
+          {showControls && isCastAvailable && !isHtmlSlideActive && (
+            <motion.div key="cast" className="absolute top-4 right-4 z-[52]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <button onClick={handleCast} className="text-white hover:text-orange-500 transition-colors">
                 <Cast size={24} />
               </button>
             </motion.div>
           )}
-        </AnimatePresence>
-        <AnimatePresence>
-          {!isPlaying && currentVideo?.url && (currentVideo.type === 'video' || currentVideo.type === 'stream') && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="absolute inset-0 bg-black/20 flex items-center justify-center z-10 pointer-events-none"
-              >
-                <div className="p-4 bg-black/40 rounded-full border border-white">
-                    <Play size={38} className="text-white/80" fill="white" strokeWidth={1.35} />
-                </div>
-              </motion.div>
-          )}
-        </AnimatePresence>
 
-        <AnimatePresence>
-          {showControls && currentVideo?.type !== 'image' && (
-             <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.2 }}
-                className="absolute bottom-0 left-0 right-0 w-full z-30"
-             >
-                <CustomControls 
-                  onToggleFullScreen={toggleFullScreen} 
-                  isFullScreen={isFullScreen} 
-                />
-             </motion.div>
+          {!isPlaying && !isHtmlSlideActive && !isLocalIntro && !playBackgroundEarly && currentVideo && (
+              <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/20 flex items-center justify-center z-50 pointer-events-none">
+                <div className="p-4 bg-black/40 rounded-full border border-white"><Play size={38} className="text-white/80" fill="white" strokeWidth={1.35} /></div>
+              </motion.div>
           )}
         </AnimatePresence>
       </div>
@@ -211,21 +205,11 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
   );
   
   if (isMobileFixed && isMobileFullscreen) {
-     return ReactDOM.createPortal(
-       <div className="fullscreen-portal fixed inset-0 w-full h-full bg-black z-[9999]">
-         {playerCore}
-       </div>,
-       document.body
-     );
+     return ReactDOM.createPortal(<div className="fixed inset-0 z-[9999] bg-black">{playerCore}</div>, document.body);
   }
-  const wrapperClasses = isMobileFixed
-    ? "fixed top-[var(--header-height)] left-0 w-full flex flex-col bg-background z-40"
-    : "w-full flex flex-col";
   return (
-    <div className={wrapperClasses}>
-       <div className="relative">
-         {playerCore}
-       </div>
+    <div className={isMobileFixed ? "fixed top-[var(--header-height)] left-0 w-full z-40" : "w-full"}>
+       <div className="relative">{playerCore}</div>
        <VideoTitleBar className="mt-0" />
     </div>
   );

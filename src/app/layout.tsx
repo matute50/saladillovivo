@@ -4,7 +4,6 @@ import type { Metadata, Viewport } from "next";
 import "@/app/globals.css";
 import Script from 'next/script';
 import ClientLayoutWrapper from "./ClientLayoutWrapper";
-import { Providers } from "./providers"; // Importamos los contextos unificados
 
 export const metadata: Metadata = {
   title: {
@@ -29,7 +28,6 @@ export const viewport: Viewport = {
   maximumScale: 1,
 };
 
-// ESTA ES LA DEFINICIÓN QUE FALTABA
 interface RootLayoutProps {
   children: React.ReactNode;
 }
@@ -43,12 +41,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
       </head>
       
       <body className="bg-main-gradient antialiased overflow-x-hidden min-h-screen">
-        {/* Los Providers envuelven todo para evitar reinicios */}
-        <Providers>
-            <ClientLayoutWrapper>
-              {children}
-            </ClientLayoutWrapper>
-        </Providers>
+        {/* Usamos SOLO ClientLayoutWrapper que ya contiene los contextos */}
+        <ClientLayoutWrapper>
+          {children}
+        </ClientLayoutWrapper>
 
         <Script
           src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"

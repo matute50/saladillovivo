@@ -4,6 +4,7 @@ export interface CategoryMapping {
 }
 
 export const categoryMappings: CategoryMapping[] = [
+  { display: 'Noticias (Slides)', dbCategory: '__NOTICIAS__' },
   { display: 'Novedades', dbCategory: '__NOVEDADES__' }, // Nueva categoría
   { display: 'HCD de Saladillo', dbCategory: 'HCD DE SALADILLO  - Período 2025' },
   { display: 'ITEC ¨Augusto Cicaré¨', dbCategory: 'ITEC ¨AUGUSTO CICARE¨ SALADILLO' },

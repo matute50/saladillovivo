@@ -30,8 +30,8 @@
 @layer base {
   :root {
     /* Light Mode */
-    --background-start: 223 44% 95%; /* lighter */
-    --background-end: 0 0% 65%; /* darker */
+    --background-start: 0 0% 65%; /* darker */
+    --background-end: 223 44% 95%; /* lighter */
     --background: hsl(var(--background-start)); /* Fallback */
     --foreground: 0 0% 0%; /* black */
     --card-start: 223 44% 95%; /* lighter */
@@ -55,11 +55,13 @@
     --ring: 225 100% 30%;
     --radius: 0.5rem;
 
+    --footer-bg-start: 0 0% 90%; /* claro */
+    --footer-bg-end: 0 0% 65%; /* oscuro */
     --footer-bg-color: #aaaaaa;
     --shadow-color: rgba(0, 0, 0, 0.5);
 
-    --footer-height: 49px;
-    --footer-height-mobile: 60px;
+    --footer-height: 25.0047px;
+    --footer-height-mobile: 30.618px;
     --player-height-mobile: calc((100vw * 9 / 16));
     --player-info-bar-height: 24px;
 
@@ -73,8 +75,8 @@
 
   .dark {
     /* Dark Mode */
-    --background-start: 0 0% 8%; /* darker */
-    --background-end: 0 0% 28%; /* lighter */
+    --background-start: 0 0% 28%; /* lighter */
+    --background-end: 0 0% 8%; /* darker */
     --background: hsl(var(--background-start)); /* Fallback */
     --foreground: 0 0% 100%; /* #FFFFFF */
     --card-start: 0 0% 8%; /* darker */

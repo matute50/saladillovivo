@@ -101,6 +101,7 @@ export interface ExclusiveVideoCarouselProps {
   carouselId: string;
   isMobile?: boolean;
   isLive?: boolean;
+  onVideoClick?: (video: Video) => void;
 }
 
 // Main data structure for the home page
