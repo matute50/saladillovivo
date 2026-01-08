@@ -1,28 +1,47 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
 import VideoPlayer from '@/components/VideoPlayer';
-import VideoIntro from '@/components/VideoIntro';
 import Image from 'next/image';
 
 const TvBackgroundPlayer = () => {
   const { 
     currentVideo, 
+    nextVideo,
     handleOnEnded, 
-    videoPlayerRef, 
-    reactPlayerRef, 
-    reactPlayerOpacity, 
-    reactPlayerVolume,
-    fadeState,
-    showIntroOverlay, 
-    introOverlayVideoSrc,
-    nextVideo, // NUEVO: para preloading
-    preloadPlayerRef // NUEVO: para el preloader
+    isPlaying,
   } = useMediaPlayer();
 
-  // Ref para el video de introducción superpuesto
-  const introOverlayRef = useRef<HTMLVideoElement>(null); 
+  const [playBackgroundEarly, setPlayBackgroundEarly] = useState(false);
+  const transitionTriggeredRef = useRef(false);
+
+  // Determina si el video actual es una intro local
+  const isLocalIntro = currentVideo?.url?.includes('videos_intro');
+
+  // El video de fondo es el siguiente en la cola si estamos en una intro
+  const backgroundVideoUrl = isLocalIntro ? nextVideo?.url : currentVideo?.url;
+  const isBackgroundPlaying = isLocalIntro ? playBackgroundEarly : isPlaying;
+
+  // Resetea el estado de la transición cuando cambia el video
+  useEffect(() => {
+    setPlayBackgroundEarly(false);
+    transitionTriggeredRef.current = false;
+  }, [currentVideo?.id]);
+
+  // Maneja el evento onTimeUpdate del video de la intro
+  const handleIntroTimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    const video = e.currentTarget;
+    if (!video.duration || transitionTriggeredRef.current) return;
+
+    const timeLeft = video.duration - video.currentTime;
+    
+    if (timeLeft <= 5) {
+      console.log("TV Intro: Activando video de fondo (5s antes del final)");
+      transitionTriggeredRef.current = true;
+      setPlayBackgroundEarly(true);
+    }
+  };
 
   if (!currentVideo) {
     return (
@@ -39,60 +58,42 @@ const TvBackgroundPlayer = () => {
     );
   }
 
-  const isNativeVideo = currentVideo.type === 'video';
-  const isNextVideoYoutube = nextVideo?.url.includes('youtube.com') || nextVideo?.url.includes('youtu.be');
-
   return (
     <div className="absolute inset-0 z-0 bg-black">
-      {/* Reproductor de Video Principal (inferior) */}
-      {isNativeVideo ? (
-        <VideoIntro
-          videoSrc={currentVideo.url}
-          onEnd={handleOnEnded}
-          videoRef={videoPlayerRef}
-          style={{ 
-            opacity: showIntroOverlay ? 0 : (fadeState === 'fadingIn' ? 0 : 1), 
-            transition: showIntroOverlay ? 'none' : 'opacity 1s ease-in-out',
-            zIndex: 10 
-          }} 
-        />
-      ) : (
-        <VideoPlayer
-          videoUrl={currentVideo.url}
-          autoplay={true}
-          onClose={handleOnEnded}
-          playerRef={reactPlayerRef}
-          playerOpacity={showIntroOverlay ? 0.01 : reactPlayerOpacity} 
-          playerVolume={showIntroOverlay ? 0 : reactPlayerVolume} 
-        />
-      )}
-
-      {/* Video de Introducción Superpuesto (superior) */}
-      {showIntroOverlay && introOverlayVideoSrc && (
-        <VideoIntro
-          videoSrc={introOverlayVideoSrc}
-          onEnd={() => { /* No hacemos nada especial al finalizar el overlay, se quita por timer */ }}
-          videoRef={introOverlayRef} 
-          muted 
-          style={{ opacity: 1, zIndex: 20 }} 
-        />
-      )}
-
-      {/* Reproductor Oculto para Precarga del Próximo Video de YouTube */}
-      {nextVideo && isNextVideoYoutube && (
-        <div style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', overflow: 'hidden', opacity: 0, zIndex: -1 }}>
-          <VideoPlayer
-            videoUrl={nextVideo.url}
-            autoplay={false}
-            playing={false}
-            playerRef={preloadPlayerRef}
-            playerOpacity={0}
-            playerVolume={0}
-            onClose={() => { /* No hacer nada al "terminar" el video precargado */ }}
+      
+      {/* CAPA SUPERIOR: Intro local */}
+      {isLocalIntro && currentVideo?.url && (
+        <div className="absolute inset-0 z-30 bg-black">
+          <video
+            key={currentVideo.id}
+            src={currentVideo.url}
+            autoPlay
+            playsInline
+            muted // Las intros siempre deben estar silenciadas para el autoplay
+            className="w-full h-full object-cover"
+            onEnded={handleOnEnded}
+            onTimeUpdate={handleIntroTimeUpdate}
+            onError={() => handleOnEnded()} // Si la intro falla, pasa al siguiente
           />
         </div>
       )}
-      <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+
+      {/* CAPA INFERIOR: Video principal (de DB o YouTube) */}
+      {backgroundVideoUrl && (
+        <div className="absolute inset-0 z-20">
+          <VideoPlayer
+            key={backgroundVideoUrl} 
+            videoUrl={backgroundVideoUrl}
+            // El autoplay se activa cuando isPlaying es true, o cuando se dispara la reproducción temprana
+            autoplay={isBackgroundPlaying} 
+            onClose={handleOnEnded}
+            // El volumen es 0 si es una intro que se está reproduciendo por encima
+            playerVolume={isLocalIntro && !playBackgroundEarly ? 0 : 1}
+          />
+        </div>
+      )}
+      
+      <div className="absolute inset-0 bg-black/20 pointer-events-none z-40" />
     </div>
   );
 };

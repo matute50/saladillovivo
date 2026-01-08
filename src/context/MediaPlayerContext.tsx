@@ -33,6 +33,8 @@ interface MediaPlayerContextType {
   loadInitialPlaylist: (videoUrlToPlay: string | null) => Promise<void>;
   handleOnEnded: () => void;
   playNextVideoInQueue: () => void; 
+  videoPlayerRef: React.RefObject<HTMLVideoElement>; 
+  reactPlayerRef: React.RefObject<any>; 
 }
 
 const MediaPlayerContext = createContext<MediaPlayerContextType | undefined>(undefined);
@@ -52,6 +54,9 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
   const [isPlaying, setIsPlaying] = useState(false);
   const [viewMode, setViewMode] = useState<'diario' | 'tv'>('diario');
   
+  const videoPlayerRef = useRef<HTMLVideoElement>(null);
+  const reactPlayerRef = useRef<any>(null);
+
   const isInitialized = useRef(false);
   const playbackState = useRef<PlaybackSource>('INTRO');
   const savedProgress = useRef<number>(0);
@@ -63,7 +68,6 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
   // --- HELPERS ---
 
   const getRandomIntro = useCallback((): SlideMedia => {
-    // Protección por si la lista está vacía
     if (INTRO_VIDEOS.length === 0) {
         console.warn("No hay videos de intro definidos");
         return { id: 'fallback', nombre: 'Intro', url: '', categoria: 'Inst', type: 'video', createdAt: '' };
@@ -71,7 +75,6 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
 
     const randomIndex = Math.floor(Math.random() * INTRO_VIDEOS.length);
     const url = INTRO_VIDEOS[randomIndex];
-    // encodeURI asegura que caracteres especiales se manejen bien, aunque con guiones bajos es seguro
     const safeUrl = encodeURI(url); 
     
     return {
@@ -222,12 +225,16 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
       currentVideo, nextVideo, playlist, isPlaying, viewMode,
       setViewMode, playMedia, playSpecificVideo, playTemporaryVideo, 
       setIsPlaying, togglePlayPause, loadInitialPlaylist, handleOnEnded, playNextVideoInQueue,
-      saveCurrentProgress, resumeAfterSlide
+      saveCurrentProgress, resumeAfterSlide,
+      videoPlayerRef,
+      reactPlayerRef,
   }), [
       currentVideo, nextVideo, playlist, isPlaying, viewMode,
       setViewMode, playMedia, playSpecificVideo, playTemporaryVideo, 
       togglePlayPause, loadInitialPlaylist, handleOnEnded, playNextVideoInQueue,
-      saveCurrentProgress, resumeAfterSlide
+      saveCurrentProgress, resumeAfterSlide,
+      videoPlayerRef,
+      reactPlayerRef,
   ]);
 
   return (

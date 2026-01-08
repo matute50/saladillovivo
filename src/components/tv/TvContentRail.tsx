@@ -25,6 +25,9 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
     if (isLoadingNews) return [];
     
     return categoryMappings.filter(category => {
+      // Excluir explícitamente la categoría "Noticias (Slides)" del modo TV
+      if (category.display === 'Noticias (Slides)') return false;
+      
       if (category.dbCategory === '__NOTICIAS__') return allNews.length > 0;
       if (category.dbCategory === '__NOVEDADES__') return galleryVideos.some(video => video.novedad === true);
       

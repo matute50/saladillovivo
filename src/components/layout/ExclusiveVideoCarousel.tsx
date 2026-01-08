@@ -105,21 +105,21 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
         {videos.map((video, index) => {
           const isLiveOrEvent = isLive || video.isLiveThumbnail || video.isEvent;
           
-          let slideClasses = "transition-all duration-300 ease-in-out";
-          let titleOverlayClasses = "absolute inset-0 p-2 bg-gradient-to-t from-black/80 to-transparent flex justify-center items-end text-center opacity-0 transition-opacity duration-300 ease-in-out";
+          let slideClasses = "transition-all duration-300 ease-in-out opacity-100 blur-none";
+          let titleOverlayClasses = "absolute inset-0 p-2 bg-gradient-to-t from-black/80 to-transparent flex justify-center items-end text-center opacity-100 z-20 transition-opacity duration-300 ease-in-out"; // Título siempre visible
 
+          // La lógica de clase para slideClasses y titleOverlayClasses se ha simplificado
+          // para que siempre estén visibles y sin blur/opacidad dinámica para el fondo y título.
+          // El z-index ya se gestiona en titleOverlayClasses.
           if (videos.length === 2) {
             const isActiveByHover = (hoveredIndex === null && index === 0) || hoveredIndex === index;
             if (isActiveByHover) {
-              slideClasses += " opacity-100 blur-none z-20";
-              titleOverlayClasses += " opacity-100";
+              // No es necesario añadir z-20 aquí si ya está en titleOverlayClasses
             } else {
-              slideClasses += " opacity-70 blur-sm";
-              titleOverlayClasses += " opacity-0";
+              // No es necesario opacity-0 aquí
             }
           } else {
-            slideClasses += " opacity-70 blur-sm [&.swiper-slide-active]:opacity-100 [&.swiper-slide-active]:blur-none [&.swiper-slide-active]:z-20";
-            titleOverlayClasses += " [.swiper-slide-active_&]:opacity-100";
+            // No es necesario opacity-0 o z-20 aquí
           }
 
           const thumbUrl = getYoutubeThumbnail(video);

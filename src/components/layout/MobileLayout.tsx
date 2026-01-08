@@ -71,15 +71,13 @@ const MobileLayout = ({ data, isMobile }: { data: PageData; isMobile: boolean })
 
   return (
     <>
-      <div className="bg-background/80 backdrop-blur-sm fixed top-[calc(var(--header-height)-18px)] w-full z-40">
-        <NewsTicker tickerTexts={tickerTexts} isMobile={isMobile} />
-      </div>
+      
       
       <div className="fixed top-[calc(var(--header-height)+var(--ticker-height)-18px)] left-0 w-full z-30">
          <VideoSection isMobileFixed={false} isMobile={isMobile} />
       </div>
       
-      <main className="w-full pt-[calc(var(--header-height)+var(--ticker-height)+var(--player-height-mobile)-18px)]">
+      <main className="w-full pt-[calc(var(--header-height)+var(--player-height-mobile)-18px)]">
         <div className="flex flex-col gap-8 p-2">
 
           <section aria-labelledby="news-section-title">

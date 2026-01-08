@@ -63,7 +63,7 @@ const DesktopLayout = ({ data }: DesktopLayoutProps) => {
 
   return (
     <>
-      <main className="w-full h-screen overflow-y-auto bg-gray-100 dark:bg-neutral-950 pt-[calc(var(--desktop-header-height)-65px)] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
+      <main className="w-full bg-gray-100 dark:bg-neutral-950 pt-[calc(var(--desktop-header-height)-65px)]">
         
         <div className="container mx-auto px-2">
           

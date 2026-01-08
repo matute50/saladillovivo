@@ -54,7 +54,7 @@ const Header = () => {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ type: 'spring', stiffness: 120, damping: 20 }}
-      className={`bg-main-gradient sticky top-0 left-0 right-0 z-50 h-[3.6rem] border-b-0`}
+      className={`bg-main-gradient sticky top-0 left-0 right-0 z-50 h-[3.3174rem] border-b-0`}
     >
       <div className="container mx-auto px-4 h-full flex justify-between items-center relative">
         <div className="flex items-center h-full">

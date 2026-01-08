@@ -9,13 +9,16 @@ interface VideoIntroProps {
 
 const VideoIntro: React.FC<VideoIntroProps> = ({ videoSrc, onEnd, videoRef, style }) => {
   useEffect(() => {
-    if (videoSrc && videoRef.current) {
+    // Este efecto se ejecuta cuando el videoSrc cambia o la ref se asigna.
+    if (videoRef && videoRef.current && videoSrc) {
+      // Si tenemos todo lo necesario, cargamos y reproducimos el video.
       videoRef.current.load();
       videoRef.current.play().catch((error) => {
-        console.warn("Autoplay bloqueado por el navegador:", error);
+        // La reproducción automática puede ser bloqueada por el navegador si el usuario no ha interactuado con la página.
+        console.warn("La reproducción automática del video de intro fue bloqueada:", error);
       });
     }
-  }, [videoSrc]);
+  }, [videoSrc, videoRef]); // Dependemos de videoSrc y videoRef para re-evaluar.
 
   if (!videoSrc) return null;
 
