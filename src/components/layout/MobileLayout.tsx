@@ -7,7 +7,7 @@ import { useNews } from '@/context/NewsContext';
 import MediaPlayerWrapper from '../MediaPlayerWrapper';
 import CategoryList from '../CategoryList';
 import NewsCard from '../NewsCard';
-import { Card } from '@/components/ui/card'; // Asumiendo que esta es la ruta para el componente Card
+// import { Card } from '@/components/ui/card'; // Importación de Card eliminada
 import { useOrientation } from '@/hooks/useOrientation'; // Importar el hook de orientación
 import { Article } from '@/lib/types';
 
@@ -133,12 +133,12 @@ const MobileLayout = () => {
                                     <NewsCard article={item.data as Article} isMobile={true} />
                                 ) : (
                                     <a href={(item.data as AdData).linkUrl} target="_blank" rel="noopener noreferrer" className="block h-full w-full">
-                                        <Card className="flex flex-col items-center justify-center h-full w-full bg-blue-700 text-white rounded-lg shadow-lg p-4">
+                                    <div className="flex flex-col items-center justify-center h-full w-full bg-blue-700 text-white rounded-lg shadow-lg p-4">
                                             <h3 className="text-lg font-bold">{(item.data as AdData).title}</h3>
                                             <p className="text-sm">Publicidad</p>
                                             {/* Si quieres mostrar la imagen de la publicidad */}
                                             {/* <img src={(item.data as AdData).imageUrl} alt={(item.data as AdData).title} className="mt-2 max-h-24 object-contain" /> */}
-                                        </Card>
+                                        </div>
                                     </a>
                                 )}
                             </div>
