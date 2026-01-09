@@ -304,23 +304,21 @@ const TvModeLayout = () => {
 
                                 >
 
-                                  <Image
+                                                                    <Image
 
-                                    src="/FONDO OSCURO.PNG"
+                                                                      src="/FONDO OSCURO.PNG"
 
-                                    alt="Saladillo Vivo Logo" 
+                                                                      alt="Saladillo Vivo Logo" 
 
-                      width={192} 
+                                                        width={192} 
 
-                      height={48} 
+                                                        height={48} 
 
-                      className="h-auto w-48 object-contain"
+                                                        className="h-auto w-48 object-contain"
 
-                      style={{ width: 'auto', height: 'auto' }}
+                                                        priority
 
-                      priority
-
-                    />
+                                                      />
 
                   </div>
 
@@ -344,7 +342,7 @@ const TvModeLayout = () => {
 
                         onMouseEnter={() => { cancelHideCarouselTimer(); setIsCarouselVisible(true); setIsMouseOverTvContentRail(true); }}
 
-                        onMouseLeave={() => { setIsMouseOverTvContentRail(false); handleMouseActivity(); }}
+                        onMouseLeave={() => { setIsMouseOverTvContentRail(false); }}
 
                       >
 
