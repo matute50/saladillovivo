@@ -10,7 +10,7 @@ import Footer from './Footer';
 
 import type { PageData } from '@/lib/types';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
-import useIsMobile from '@/hooks/useIsMobile';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center h-screen w-screen bg-black">
@@ -55,7 +55,7 @@ const HomePageClient = ({ initialData }: { initialData: PageData }) => {
       {/* Contenido Scrollable */}
       <div className="flex-1 w-full overflow-y-auto relative">
         {isMobile ? (
-          <MobileLayout data={data} isMobile={isMobile} />
+          <MobileLayout data={data} />
         ) : (
           <DesktopLayout data={data} />
         )}

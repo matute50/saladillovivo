@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { Sun, Moon, Share2, Tv, Newspaper } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import SearchBar from '@/components/ui/SearchBar';
-import useIsMobile from '@/hooks/useIsMobile';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
 
 const Header = () => {

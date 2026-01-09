@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import CreatorModal from './modals/CreatorModal'; 
 import ImageModal from './ImageModal';
-import useIsMobile from '@/hooks/useIsMobile'; // Importar useIsMobile
+import { useIsMobile } from '@/hooks/useIsMobile'; // Importar useIsMobile con destructuring
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();

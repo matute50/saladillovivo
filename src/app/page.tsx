@@ -1,5 +1,6 @@
 import HomePageClient from "@/components/HomePageClient";
 import type { Metadata } from "next";
+import dynamic from "next/dynamic"; // NUEVO IMPORT
 import {
   getArticlesForHome,
   getVideosForHome,
@@ -30,6 +31,9 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+// Dynamic import for HomePageClient to prevent SSR issues with its dependencies
+const DynamicHomePageClient = dynamic(() => import("@/components/HomePageClient"), { ssr: false }); // MODIFICADO
+
 // This is the main page component, rendered on the server.
 export default async function Page() {
   // Fetch all data concurrently for performance.
@@ -57,7 +61,7 @@ export default async function Page() {
   // CORRECCIÓN: Envolvemos en <main> para estructura semántica correcta
   return (
     <main>
-      <HomePageClient initialData={pageData} />
+      <DynamicHomePageClient initialData={pageData} /> {/* MODIFICADO */}
     </main>
   );
 }

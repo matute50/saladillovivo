@@ -223,7 +223,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
     </div>
   );
   
-  if (isMobileFixed && isMobileFullscreen) {
+  if (isMobileFixed && isMobileFullscreen && typeof document !== 'undefined') {
      return ReactDOM.createPortal(<div className="fixed inset-0 z-[9999] bg-black">{playerCore}</div>, document.body);
   }
   return (
