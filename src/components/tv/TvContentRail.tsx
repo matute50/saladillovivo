@@ -12,9 +12,10 @@ interface TvContentRailProps {
   searchResults: Video[];
   isSearching: boolean;
   searchLoading: boolean;
+  initialCategory?: CategoryMapping; // Nuevo prop para la categoría inicial
 }
 
-const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearching, searchLoading }) => {
+const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearching, searchLoading, initialCategory }) => {
   const { galleryVideos, allNews, isLoading: isLoadingNews } = useNews();
   const { playSpecificVideo, playTemporaryVideo, setIsPlaying } = useMediaPlayer();
   const { playSlide } = useNewsPlayer();
@@ -38,21 +39,27 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
 
   useEffect(() => {
     if (availableCategoryMappings.length > 0) {
-      const newsIndex = availableCategoryMappings.findIndex(c => c.dbCategory === '__NOTICIAS__');
-      setCategoryIndex(newsIndex !== -1 ? newsIndex : 0);
+      if (initialCategory) {
+        const initialIndex = availableCategoryMappings.findIndex(
+          (cat) =>
+            cat.display === initialCategory.display &&
+            JSON.stringify(cat.dbCategory) === JSON.stringify(initialCategory.dbCategory)
+        );
+        if (initialIndex !== -1) {
+          setCategoryIndex(initialIndex);
+        } else {
+          // Fallback if initialCategory is not found in available mappings
+          const newsIndex = availableCategoryMappings.findIndex(c => c.dbCategory === '__NOTICIAS__');
+          setCategoryIndex(newsIndex !== -1 ? newsIndex : 0);
+        }
+      } else {
+        const newsIndex = availableCategoryMappings.findIndex(c => c.dbCategory === '__NOTICIAS__');
+        setCategoryIndex(newsIndex !== -1 ? newsIndex : 0);
+      }
     }
-  }, [availableCategoryMappings]);
+  }, [availableCategoryMappings, initialCategory]); // Add initialCategory to dependencies
 
   const handleNextCategory = useCallback(() => {
-    setCategoryIndex(prev => (prev + 1) % availableCategoryMappings.length);
-  }, [availableCategoryMappings.length]);
-
-  const handlePrevCategory = useCallback(() => {
-    setCategoryIndex(prev => (prev - 1 + availableCategoryMappings.length) % availableCategoryMappings.length);
-  }, [availableCategoryMappings.length]);
-
-  // Manejo de Clics
-  const handleCardClick = useCallback((item: Video | Article) => {
     const isArticle = 'slug' in item || 'titulo' in item || 'url_slide' in item;
 
     if (isArticle) {

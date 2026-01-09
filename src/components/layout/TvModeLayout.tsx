@@ -9,12 +9,27 @@ import Image from 'next/image';
 import { useNewsPlayer } from '@/context/NewsPlayerContext';
 import { motion } from 'framer-motion';
 import { useMediaPlayer } from '@/context/MediaPlayerContext'; // Importar el hook del reproductor
+import { CategoryMapping, categoryMappings } from '@/lib/categoryMappings'; // Importar categoryMappings
+
+// Definir las categorías elegibles para el inicio aleatorio
+const INITIAL_TV_CATEGORIES: CategoryMapping[] = [
+  { display: 'Saladillo Canta', dbCategory: 'clips' },
+  { display: 'Gente de Acá', dbCategory: 'export' },
+  { display: 'Sembrando Futuro', dbCategory: 'SEMBRANDO FUTURO' },
+];
 
 const TvModeLayout = () => {
   const { handleSearch, searchResults, isSearching, searchLoading } = useNews(); 
   const { currentSlide, isPlaying: isSlidePlaying } = useNewsPlayer(); 
   const { currentVideo, isPlaying } = useMediaPlayer(); // Obtener el video actual y el estado de reproducción
   const [showBlackRectangle, setShowBlackRectangle] = useState(false);
+  const [initialTvCategory, setInitialTvCategory] = useState<CategoryMapping | undefined>(undefined); // Nuevo estado
+
+  useEffect(() => {
+    // Seleccionar una categoría aleatoria al montar
+    const randomIndex = Math.floor(Math.random() * INITIAL_TV_CATEGORIES.length);
+    setInitialTvCategory(INITIAL_TV_CATEGORIES[randomIndex]);
+  }, []); // El array vacío asegura que se ejecute solo una vez al montar
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -266,13 +281,10 @@ const TvModeLayout = () => {
               <div className="flex justify-between items-end">
 
                 <TvContentRail
-
                     searchResults={searchResults}
-
                     isSearching={isSearching}
-
                     searchLoading={searchLoading}
-
+                    initialCategory={initialTvCategory} // Pasa la categoría inicial aleatoria
                 />
 
               </div>
