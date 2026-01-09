@@ -1,239 +1,235 @@
 'use client';
 
-import React, { useCallback, useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import VideoPlayer from '@/components/VideoPlayer';
-import VideoControls from '@/components/VideoControls';
-import VideoTitleBar from '@/components/VideoTitleBar';
 import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
-import { Play, Cast, VolumeX } from 'lucide-react';
+import { useNewsPlayer } from '@/context/NewsPlayerContext';
+import CustomControls from '@/components/CustomControls';
+import useCast from '@/hooks/useCast';
+import VideoTitleBar from '@/components/VideoTitleBar';
+import { cn } from '@/lib/utils';
+import { Play, Cast } from 'lucide-react';
 
-const VideoSection = ({ 
-  isMobileFixed = false, 
-  isMobile
-}) => {
+interface VideoSectionProps {
+  isMobileFixed?: boolean;
+  isMobile: boolean;
+}
+
+const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMobile }) => {
   const [isMobileFullscreen, setIsMobileFullscreen] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const playerContainerRef = useRef<HTMLDivElement>(null);
   
-  const {
-    playerRef,
-    currentMedia,
-    playerStatus,
-    isPlaying,
-    volume,
-    isMuted,
-    unmute,
-    showControls,
-    progress,
-    duration,
-    videoOpacity,
-    isCastAvailable,
-    handlePlayerReady,
-    handleError,
-    togglePlayPause,
-    toggleMute,
-    handleVolumeChange,
-    handleMouseEnterControls,
-    handleMouseLeaveControls,
-    handleTouchShowControls,
-    handleProgress,
-    handleDuration,
-    handleSeek,
-    handleCast,
-    handlePlay,
-    handlePause,
-    handleEnded,
-    playingMedia
-  } = useMediaPlayer();
+  const { currentVideo, nextVideo, isPlaying, handleOnEnded, saveCurrentProgress, resumeAfterSlide, setIsPlaying } = useMediaPlayer();
+  const { currentSlide, isPlaying: isSlidePlaying, stopSlide } = useNewsPlayer();
 
-  const customHandleMouseLeaveControls = useCallback(() => {
-    handleMouseLeaveControls(true); // pass true for faster fade
-  }, [handleMouseLeaveControls]);
+  const { isCastAvailable, handleCast } = useCast(currentVideo);
+  const [showControls, setShowControls] = useState(false);
+  const [thumbnailSrc, setThumbnailSrc] = useState<string>('/placeholder.png');
 
+  const [playBackgroundEarly, setPlayBackgroundEarly] = useState(false);
+  const transitionTriggeredRef = useRef(false);
 
-  const toggleFullScreen = useCallback(async () => {
-    const playerElement = playerRef.current?.wrapper;
-    if (!playerElement) return;
+  const isHtmlSlideActive = isSlidePlaying && currentSlide && currentSlide.type === 'html';
+  
+  // Detección actualizada para la nueva carpeta
+  const isLocalIntro = currentVideo?.url && (
+      currentVideo.url.startsWith('/') || 
+      currentVideo.url.includes('videos_intro')
+  );
 
-    if (!document.fullscreenElement) {
-      if (playerElement.requestFullscreen) {
-        await playerElement.requestFullscreen({ navigationUI: "hide" }).catch(err => console.error(err));
-      }
-      if (isMobile) {
-        try {
-          if (window.screen.orientation && typeof window.screen.orientation.lock === 'function') {
-            await window.screen.orientation.lock('landscape');
-          }
-        } catch(err) {
-          console.error("No se pudo bloquear la orientación:", err)
-        }
-      }
-    } else {
-      if (document.exitFullscreen) {
-        await document.exitFullscreen().catch(err => console.error(err));
-      }
-      if (isMobile) {
-        if (window.screen.orientation && typeof window.screen.orientation.unlock === 'function') {
-          window.screen.orientation.unlock();
-        }
-      }
-    }
-  }, [playerRef, isMobile]);
+  const backgroundVideoUrl = isLocalIntro ? nextVideo?.url : currentVideo?.url;
+  const isBackgroundPlaying = isLocalIntro ? playBackgroundEarly : isPlaying;
 
   useEffect(() => {
-    const handleFullscreenChange = () => {
-      if (isMobile) {
-        setIsMobileFullscreen(!!document.fullscreenElement);
-      }
-    };
+    setPlayBackgroundEarly(false);
+    transitionTriggeredRef.current = false;
+  }, [currentVideo?.id]);
 
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    
-    const handleOrientationChange = () => {
-       setIsMobileFullscreen(!!document.fullscreenElement);
-    };
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isHtmlSlideActive && currentSlide) {
+        setIsPlaying(false);
+        const duration = (currentSlide.duration || 15) * 1000;
+        timer = setTimeout(() => {
+            stopSlide(); 
+            resumeAfterSlide(); 
+        }, duration);
+    }
+    return () => clearTimeout(timer);
+  }, [isHtmlSlideActive, currentSlide, stopSlide, resumeAfterSlide, setIsPlaying]);
 
-    window.addEventListener('orientationchange', handleOrientationChange);
+  useEffect(() => {
+    if (!currentVideo?.url || isLocalIntro) {
+        setThumbnailSrc('/placeholder.png');
+        return;
+    }
+    const cleanUrl = currentVideo.url.trim();
+    const match = cleanUrl.match(/(?:youtu\.be\/|youtube\.com\/.*v=)([^&]+)/);
+    if (match && match[1]) {
+        setThumbnailSrc(`https://img.youtube.com/vi/${match[1]}/maxresdefault.jpg`);
+    } else {
+        setThumbnailSrc('/placeholder.png');
+    }
+  }, [currentVideo, isLocalIntro]);
 
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      window.removeEventListener('orientationchange', handleOrientationChange);
+
+
+  const toggleFullScreen = () => {
+    if (!playerContainerRef.current) return;
+    if (!document.fullscreenElement) playerContainerRef.current.requestFullscreen();
+    else document.exitFullscreen?.();
+  };
+
+  useEffect(() => {
+    const handleFs = () => {
+        setIsFullScreen(!!document.fullscreenElement);
+        if(isMobile) setIsMobileFullscreen(!!document.fullscreenElement);
     };
+    document.addEventListener('fullscreenchange', handleFs);
+    return () => document.removeEventListener('fullscreenchange', handleFs);
   }, [isMobile]);
 
-  const renderPlayerState = () => {
-    const baseClasses = "absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-70 z-10 text-white text-center p-4 md:rounded-xl";
-    
-    switch (playerStatus) {
-      case 'loading':
-        return (
-          <div className={baseClasses}>
-            <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-            <p className="mt-4 text-lg">Cargando...</p>
-          </div>
-        );
-      // Other cases would go here
-      default:
-        return null;
+  const handleProgress = ({ playedSeconds }: { playedSeconds: number }) => {
+      if (!isLocalIntro) saveCurrentProgress(playedSeconds);
+  };
+
+  const handleIntroTimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    const video = e.currentTarget;
+    if (!video.duration) return;
+
+    const timeLeft = video.duration - video.currentTime;
+
+    // Cuando faltan 4 segundos (y no lo hemos activado aún)
+    if (timeLeft <= 4 && !transitionTriggeredRef.current) {
+        console.log("Intro: Activando video de fondo (4s antes del final)");
+        transitionTriggeredRef.current = true;
+        setPlayBackgroundEarly(true);
     }
   };
 
   const playerCore = (
     <div 
-      className="relative w-full h-full aspect-video bg-black overflow-hidden border-0 md:border md:rounded-xl shadow-player card-blur-player"
-      onMouseEnter={handleMouseEnterControls}
-      onMouseLeave={customHandleMouseLeaveControls}
-      onTouchStart={handleTouchShowControls}
+      ref={playerContainerRef}
+      className={cn(
+        "relative w-full h-full aspect-video bg-black overflow-hidden border-0 md:border md:rounded-xl card-blur-player shadow-lg",
+      )}
+      onMouseEnter={() => !isMobile && setShowControls(true)}
+      onMouseLeave={() => !isMobile && setShowControls(false)}
+      // onClick ya no es necesario para la visibilidad de controles con este comportamiento
     >
-      <div className="absolute inset-0 w-full h-full md:rounded-xl overflow-hidden">
-        {renderPlayerState()}
+      <div className="absolute inset-0 w-full h-full md:rounded-xl overflow-hidden bg-black">
         
-        {currentMedia?.type !== 'image' && (
-          <motion.div
-            className="w-full h-full"
-            animate={{ opacity: videoOpacity }}
-            transition={{ duration: 2, ease: 'linear' }}
-          >
-            <VideoPlayer
-              key={`${currentMedia?.url}-${isMobileFullscreen}`}
-              playerRef={playerRef}
-              src={currentMedia?.url}
-              playing={isPlaying}
-              volume={volume}
-              muted={isMuted}
-              onReady={handlePlayerReady}
-              onPlay={() => handlePlay(currentMedia)}
-              onPause={handlePause}
-              onEnded={handleEnded}
-              onError={handleError}
-              onProgress={handleProgress}
-              onDuration={handleDuration}
-              isMobile={isMobile}
-            />
-          </motion.div>
+        {isHtmlSlideActive && (
+           <div className="absolute inset-0 z-40 bg-black">
+             <iframe
+                src={currentSlide.url}
+                className="w-full h-full border-none pointer-events-none"
+                title="Slide"
+                allow="autoplay"
+             />
+           </div>
         )}
 
-        {/* Custom Image overlay for LCP optimization */}
-        {!isPlaying && currentMedia?.type === 'video' && currentMedia?.url && (
+        {isLocalIntro && (
+           <div className="absolute inset-0 z-30 bg-black">
+             <video
+                key={currentVideo.id}
+                src={currentVideo.url}
+                autoPlay
+                playsInline
+                className="w-full h-full object-cover"
+                onEnded={handleOnEnded}
+                onTimeUpdate={handleIntroTimeUpdate}
+                onError={(e) => {
+                  console.error("ERROR INTRO:", currentVideo.url, e);
+                  handleOnEnded(); 
+                }}
+             />
+           </div>
+        )}
+
+        {backgroundVideoUrl && !isHtmlSlideActive && (
+          <div className="absolute inset-0 z-20">
+             <VideoPlayer
+                key={backgroundVideoUrl} 
+                videoUrl={backgroundVideoUrl}
+                autoplay={isBackgroundPlaying}
+                onClose={handleOnEnded}
+                onProgress={handleProgress} 
+                startAt={!isLocalIntro ? (currentVideo as any).startAt : 0} 
+             />
+          </div>
+        )}
+
+        {!isHtmlSlideActive && !isPlaying && !isLocalIntro && !playBackgroundEarly && (
           <Image
-            src={currentMedia.url.includes('v=') 
-              ? `https://img.youtube.com/vi/${currentMedia.url.split('v=')[1].split('&')[0]}/maxresdefault.jpg`
-              : currentMedia.url // Fallback if not a YouTube video, or handle other types
-            } // Extract YouTube video ID
-            alt={`Miniatura de ${currentMedia.title}`}
-            layout="fill"
-            objectFit="cover"
+            src={thumbnailSrc}
+            alt="Fondo"
+            fill
+            className="absolute inset-0 z-10 object-cover opacity-60"
             priority
-            className="absolute inset-0 z-0"
+            onError={() => setThumbnailSrc('/placeholder.png')}
           />
         )}
+
         <AnimatePresence>
-          {!isPlaying && currentMedia?.url && (currentMedia.type === 'video' || currentMedia.type === 'stream') && (
+          {/* Barras de formato cine cuando está en pausa */}
+          {!isPlaying && !isLocalIntro && !isHtmlSlideActive && (
+            <>
               <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="absolute inset-0 bg-black/20 flex items-center justify-center z-10 pointer-events-none"
-              >
-                  <div className="p-4 bg-black/40 rounded-full">
-                      <Play size={48} className="text-white/80" fill="white" />
-                  </div>
+                key="top-cinematic-bar"
+                className="absolute top-0 left-0 right-0 h-14 bg-black z-50 pointer-events-none"
+                initial={{ opacity: 1 }} // Aparece instantáneamente
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              />
+              <motion.div
+                key="bottom-cinematic-bar"
+                className="absolute bottom-0 left-0 right-0 h-14 bg-black z-50 pointer-events-none"
+                initial={{ opacity: 1 }} // Aparece instantáneamente
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              />
+            </>
+          )}
+
+          {showControls && !isHtmlSlideActive && !isLocalIntro && (
+             <motion.div key="controls" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute bottom-0 left-0 right-0 w-full z-[51]">
+                <CustomControls onToggleFullScreen={toggleFullScreen} isFullScreen={isFullScreen} />
+             </motion.div>
+          )}
+          
+          {showControls && isCastAvailable && !isHtmlSlideActive && (
+            <motion.div key="cast" className="absolute top-4 right-4 z-[52]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <button onClick={handleCast} className="text-white hover:text-orange-500 transition-colors">
+                <Cast size={24} />
+              </button>
+            </motion.div>
+          )}
+
+          {!isPlaying && !isHtmlSlideActive && !isLocalIntro && !playBackgroundEarly && currentVideo && (
+              <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/20 flex items-center justify-center z-50 pointer-events-none">
+                <div className="p-4 bg-black/40 rounded-full border border-white"><Play size={38} className="text-white/80" fill="white" strokeWidth={1.35} /></div>
               </motion.div>
           )}
-        </AnimatePresence>
-        <AnimatePresence>
-        {showControls && currentMedia?.type !== 'image' && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute bottom-0 left-0 right-0 z-30"
-          >
-          <VideoControls
-            isPlaying={isPlaying}
-            isMuted={isMuted}
-            progress={progress}
-            duration={duration}
-            volume={volume}
-            togglePlayPause={togglePlayPause}
-            toggleMute={toggleMute}
-            onSeek={handleSeek}
-            onVolumeChange={handleVolumeChange}
-            toggleFullScreen={toggleFullScreen}
-            isFullscreen={isMobileFullscreen || !!document.fullscreenElement}
-            isMobileFixed={isMobileFixed}
-            isCastAvailable={isCastAvailable}
-            handleCast={handleCast}
-            isLive={currentMedia?.type === 'stream'}
-          />
-          </motion.div>
-        )}
         </AnimatePresence>
       </div>
     </div>
   );
   
   if (isMobileFixed && isMobileFullscreen) {
-     return ReactDOM.createPortal(
-      <div className="fullscreen-portal fixed inset-0 w-full h-full bg-black z-[9999]">
-        {playerCore}
-      </div>,
-      document.body
-    );
+     return ReactDOM.createPortal(<div className="fixed inset-0 z-[9999] bg-black">{playerCore}</div>, document.body);
   }
-
-  const wrapperClasses = isMobileFixed
-    ? "fixed top-[var(--header-height)] left-0 w-full flex flex-col bg-background z-40"
-    : "w-full flex flex-col";
-
   return (
-    <div className={wrapperClasses}>
-       <div className="relative">
-          {playerCore}
-       </div>
-      <VideoTitleBar playingMedia={playingMedia} isMobile={isMobile} />
+    <div className={isMobileFixed ? "fixed top-[var(--header-height)] left-0 w-full z-40" : "w-full"}>
+       <div className="relative">{playerCore}</div>
+       <VideoTitleBar className="mt-0" />
     </div>
   );
 };

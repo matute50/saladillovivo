@@ -1,4 +1,3 @@
-
 // Inspired by react-hot-toast library
 import * as React from "react";
 
@@ -18,6 +17,8 @@ type ToastProps = {
   duration?: number;
   onDismiss?: (toast: ToasterToast) => void;
   onAutoClose?: (toast: ToasterToast) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
 interface State {
@@ -39,7 +40,13 @@ const addToRemoveQueue = (toastId: string) => {
   toastTimeouts.set(toastId, timeout);
 };
 
-export const reducer = (state: State, action: any): State => {
+type Action =
+  | { type: "ADD_TOAST"; toast: ToasterToast }
+  | { type: "UPDATE_TOAST"; toast: Partial<ToasterToast> & { id: string } }
+  | { type: "DISMISS_TOAST"; toastId?: string }
+  | { type: "REMOVE_TOAST"; toastId?: string };
+
+export const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case "ADD_TOAST":
       return {
@@ -55,8 +62,9 @@ export const reducer = (state: State, action: any): State => {
         ),
       };
 
-    case "DISMISS_TOAST":
-      const { toastId } = action;
+    // --- ARREGLO 1: Añadido bloque de llaves {} ---
+    case "DISMISS_TOAST": {
+      const { toastId } = action; // <-- Esta era la línea 67
       if (toastId) {
         addToRemoveQueue(toastId);
       } else {
@@ -76,6 +84,8 @@ export const reducer = (state: State, action: any): State => {
             : t
         ),
       };
+    } // --- FIN ARREGLO 1 ---
+
     case "REMOVE_TOAST":
       if (action.toastId === undefined) {
         return {
@@ -87,6 +97,12 @@ export const reducer = (state: State, action: any): State => {
         ...state,
         toasts: state.toasts.filter((t) => t.id !== action.toastId),
       };
+    
+    // --- ARREGLO 2: Añadido bloque de llaves {} ---
+    default: {
+      const exhaustiveCheck: never = action; // <-- Esta era la línea 99
+      throw new Error(`Unhandled action type: ${exhaustiveCheck}`);
+    } // --- FIN ARREGLO 2 ---
   }
   return state;
 };
@@ -95,7 +111,7 @@ const listeners: Array<(state: State) => void> = [];
 
 let memoryState: State = { toasts: [] };
 
-function dispatch(action: any) {
+function dispatch(action: Action) {
   memoryState = reducer(memoryState, action);
   listeners.forEach((listener) => {
     listener(memoryState);
@@ -145,7 +161,7 @@ function useToast() {
   return {
     ...state,
     toast,
-    dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
+    dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId: toastId }),
   };
 }
 

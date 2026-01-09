@@ -1,71 +1,127 @@
-
-// Fichero: src/lib/types.ts
-
-// Define la estructura de un solo artículo de noticia
 export interface Article {
-  id: string | number;
+  id: string;
+  titulo: string;
   slug: string;
-  title: string;
   description: string;
   resumen: string;
   contenido: string;
   fecha: string;
-  createdAt: string;
+  created_at: string;
   updatedAt: string;
   autor: string;
-  categoria: string; // O un tipo más específico si tienes categorías predefinidas
+  categoria: string | null;
   imageUrl: string;
-  featureStatus: 'destacada' | 'noticia2' | 'noticia3' | string; // Ajusta según los estados que uses
+  featureStatus: 'featured' | 'secondary' | 'tertiary' | null;
+  meta_title?: string;
+  meta_description?: string;
+  meta_keywords?: string;
+  audio_url?: string | null;
+  url_slide?: string | null;
+  animation_duration?: number; // <--- Agregado para corregir el error de build
 }
 
-// Define la estructura de un video
+export interface SupabaseArticle {
+  id: string;
+  title: string;
+  text: string;
+  image_url: string;
+  featureStatus: 'featured' | 'secondary' | 'tertiary' | null;
+  created_at: string;
+  updatedAt: string;
+  slug: string;
+  description: string;
+  meta_title?: string;
+  meta_description?: string;
+  meta_keywords?: string;
+  audio_url?: string;
+  url_slide?: string;
+  animation_duration?: number; // <--- Agregado para consistencia
+}
+
 export interface Video {
-  id: string | number;
+  id: string;
   nombre: string;
   url: string;
   createdAt: string;
   categoria: string;
-  imagen?: string; // La imagen puede ser opcional
+  imagen: string;
+  novedad: boolean;
+  isLiveThumbnail?: boolean;
+  isEvent?: boolean;
+  forzar_video?: boolean;
+  type?: 'video' | 'stream' | 'image';
+  title?: string;
+  duration?: number;
 }
 
-// Define la estructura de una entrevista, que es similar a un video
-export interface Interview extends Video {}
+export interface SlideMedia extends Video {
+  imageSourceUrl?: string;
+  audioSourceUrl?: string;
+}
 
-// Define la estructura de los datos del medio que se está reproduciendo en el player
-export interface MediaData {
+export interface Interview {
+  id: string;
+  nombre: string;
   url: string;
-  title: string;
-  type: 'video' | 'stream' | 'image';
-  isUserSelected: boolean;
-  category: string;
+  createdAt: string;
+  updatedAt: string;
+  categoria: string;
+  imagen: string;
 }
 
-// Define la estructura para los banners publicitarios
 export interface Banner {
-  id: string | number;
+  id: string;
   imageUrl: string;
   nombre: string;
   isActive: boolean;
 }
 
-// Define la estructura para los anuncios (ads)
 export interface Ad {
-  id: string | number;
+  id: string;
   imageUrl: string;
   name: string;
   isActive: boolean;
-  linkUrl?: string; // El enlace puede ser opcional
+  linkUrl?: string;
 }
 
-// Define la estructura para los eventos del calendario
 export interface CalendarEvent {
   nombre: string;
   fecha: string;
   hora: string;
 }
 
-// Define la estructura para los textos del ticker
 export interface TickerText {
   text: string;
   isActive: boolean;
+}
+
+export interface ExclusiveVideoCarouselProps {
+  videos: Video[];
+  isLoading: boolean;
+  carouselId: string;
+  isMobile?: boolean;
+  isLive?: boolean;
+  onVideoClick?: (video: Video) => void;
+}
+
+// Main data structure for the home page
+export interface PageData {
+  articles: {
+    featuredNews: Article | null;
+    secondaryNews: Article[];
+    tertiaryNews: Article[];
+    otherNews: Article[];
+    allNews: Article[];
+  };
+  videos: {
+    featuredVideo: Video | null;
+    recentVideos: Video[];
+    allVideos: Video[];
+    videoCategories: string[];
+  };
+  tickerTexts: string[];
+  interviews: Interview[];
+  banners: Banner[];
+  ads: Ad[];
+  events: CalendarEvent[];
 }

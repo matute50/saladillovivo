@@ -2,75 +2,82 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import CreatorModal from './CreatorModal';
+import CreatorModal from './modals/CreatorModal'; 
 import ImageModal from './ImageModal';
+import useIsMobile from '@/hooks/useIsMobile'; // Importar useIsMobile
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
   const [isDarkTheme, setIsDarkTheme] = useState(true);
   const [isCreatorModalOpen, setCreatorModalOpen] = useState(false);
   const [isDecretoModalOpen, setDecretoModalOpen] = useState(false);
+  const isMobile = useIsMobile(); // Usar el hook
 
   const decretoImageUrl = "https://otwvfihzaznyjvjtkvvd.supabase.co/storage/v1/object/public/imagenvideos//decreto.png";
 
   useEffect(() => {
-    const observer = new MutationObserver(() => {
-      setIsDarkTheme(document.documentElement.classList.contains('dark'));
-    });
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    return () => observer.disconnect();
+    if (typeof window !== 'undefined') {
+      const observer = new MutationObserver(() => {
+        setIsDarkTheme(document.documentElement.classList.contains('dark'));
+      });
+      observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+      return () => observer.disconnect();
+    }
   }, []);
 
-  const banerClaroOriginal = "https://storage.googleapis.com/hostinger-horizons-assets-prod/77d159f1-0d45-4b01-ba42-c8ca9cbd0d70/e9eb6580b7ad5742826daaa5df2b592d.png";
-  const banerOscuroOriginal = "https://storage.googleapis.com/hostinger-horizons-assets-prod/77d159f1-0d45-4b01-ba42-c8ca9cbd0d70/47acc550fd7b520146be23b59835d549.png";
-
-  const banerParaModoClaro = banerOscuroOriginal;
-  const banerParaModoOscuro = banerClaroOriginal;
-
-  const footerClasses = isDarkTheme 
-    ? "bg-gradient-to-b from-[hsl(var(--footer-bg-start))] to-[hsl(var(--footer-bg-end))]"
-    : "bg-[hsl(var(--footer-bg-color))]";
+  const banerClaro = "https://storage.googleapis.com/hostinger-horizons-assets-prod/77d159f1-0d45-4b01-ba42-c8ca9cbd0d70/e9eb6580b7ad5742826daaa5df2b592d.png";
+  const banerOscuro = "https://storage.googleapis.com/hostinger-horizons-assets-prod/77d159f1-0d45-4b01-ba42-c8ca9cbd0d70/47acc550fd7b520146be23b59835d549.png";
 
   return (
-    <>
-      <footer className={`${footerClasses} text-foreground py-3 shadow-footer`}>
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center text-center md:text-left">
-            <div className="mb-4 md:mb-0 flex flex-col items-center w-full">
-              <Image
-                loading="lazy"
-                src={isDarkTheme ? banerParaModoOscuro : banerParaModoClaro}
-                alt="Logo de Saladillo Vivo en el pie de página"
-                width={100}
-                height={24} // h-6
-                className="h-6 object-contain mb-2"
-              />
-              <p className="text-[9px] mb-1">
-                Saladillo Vivo declarado de interés cultural y municipal {' '}
-                <span
-                  onClick={() => setDecretoModalOpen(true)}
-                  className="font-bold underline cursor-pointer text-[#003399] dark:text-[#6699ff]"
-                >
-                  DECRETO H.C.D. Nro. 37/2022
-                </span>
-              </p>
-              <p className={`text-[9px]`}>
-                © {currentYear} Saladillo Vivo. Desarrollo de software y contenidos por{' '}
-                <span
-                  onClick={() => setCreatorModalOpen(true)}
-                  className="font-bold underline cursor-pointer text-[#003399] dark:text-[#6699ff]"
-                >
-                  Matías Vidal
-                </span>
-                . Todos los derechos reservados.
-              </p>
-            </div>
+    <footer className={`bg-gradient-to-b from-[hsl(var(--footer-bg-start))] to-[hsl(var(--footer-bg-end))] dark:bg-[hsl(var(--footer-bg-color))] text-foreground ${isMobile ? 'h-[var(--footer-height-mobile)]' : 'h-[var(--footer-height)]'}`}>
+      <div className="container mx-auto px-4 h-full flex justify-center items-center">
+        <div className="flex flex-col md:flex-row justify-center items-center text-center gap-2 md:gap-4 w-full">
+          
+          {/* 1. LOGO */}
+          <div className="flex-shrink-0">
+            <Image
+              loading="lazy"
+              src={isDarkTheme ? banerClaro : banerOscuro}
+              alt="Logo Saladillo Vivo"
+              width={105} 
+              height={30}
+              className="object-contain"
+              unoptimized // Evita errores 403 en Vercel con imágenes externas
+            />
           </div>
+
+          <span className="hidden md:block text-gray-500 text-[10px]">|</span>
+
+          {/* 2. TEXTO DECRETO */}
+          <p className="text-[9px] m-0 leading-none">
+            Declarado de interés cultural{' '}
+            <span
+              onClick={() => setDecretoModalOpen(true)}
+              className="font-bold underline cursor-pointer text-[#003399] dark:text-[#6699ff] hover:text-blue-400 transition-colors"
+            >
+              DECRETO H.C.D. Nro. 37/2022
+            </span>
+          </p>
+
+          <span className="hidden md:block text-gray-500 text-[10px]">|</span>
+
+          {/* 3. COPYRIGHT Y CRÉDITOS */}
+          <p className="text-[9px] m-0 leading-none">
+            © {currentYear} Saladillo Vivo. Desarrollado por:{' '}
+            <span
+              onClick={() => setCreatorModalOpen(true)}
+              className="font-bold underline cursor-pointer text-[#003399] dark:text-[#6699ff] hover:text-blue-400 transition-colors"
+            >
+              Matías Vidal
+            </span>
+          </p>
+
         </div>
-      </footer>
+      </div>
+
       <CreatorModal isOpen={isCreatorModalOpen} onClose={() => setCreatorModalOpen(false)} />
-      <ImageModal isOpen={isDecretoModalOpen} onClose={() => setDecretoModalOpen(false)} imageUrl={decretoImageUrl} />
-    </>
+      <ImageModal isOpen={isDecretoModalOpen} onClose={() => setDecretoModalOpen(false)} imageUrl={decretoImageUrl} imageAlt="Decreto H.C.D. Nro. 37/2022" />
+    </footer>
   );
 };
 

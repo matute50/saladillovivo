@@ -1,9 +1,9 @@
 
 import { NextResponse } from 'next/server';
 import RSS from 'rss';
-import { getArticles } from '@/lib/data';
+import { getArticlesForRss } from '@/lib/data';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.saladillovivo.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.saladillovivo.com.ar';
 
 export async function GET() {
   const feed = new RSS({
@@ -14,21 +14,57 @@ export async function GET() {
     language: 'es',
     pubDate: new Date(),
     ttl: 60,
+    custom_namespaces: {
+      'media': 'http://search.yahoo.com/mrss/'
+    }
   });
 
   try {
-    const { allNews } = await getArticles();
+    let allNews = await getArticlesForRss();
+    allNews = allNews.filter(article => article.imageUrl);
 
     allNews.forEach(article => {
-      feed.item({
-        title: article.titulo,
-        description: article.description,
-        url: `${SITE_URL}/noticia/${article.slug}`,
-        guid: article.slug,
-        date: article.createdAt,
-        author: article.autor,
-        enclosure: article.imageUrl ? { url: article.imageUrl, type: 'image/jpeg' } : undefined,
-      });
+      if (article.imageUrl && article.slug) {
+        const cleanThumbnailUrl = article.imageUrl.split('?')[0];
+        const articleUrl = `${SITE_URL}/noticia/${article.slug}`;
+
+        const facebookImageUrl = `${SITE_URL}/api/og?imageUrl=${encodeURIComponent(cleanThumbnailUrl)}&w=1200&h=630`;
+        const instagramImageUrl = `${SITE_URL}/api/og?imageUrl=${encodeURIComponent(cleanThumbnailUrl)}&w=1080&h=1350`;
+
+        feed.item({
+          title: article.titulo,
+          description: article.description || '',
+          url: articleUrl,
+          guid: article.id,
+          date: article.created_at,
+          custom_elements: [
+            {
+              'media:content': {
+                _attr: {
+                  url: facebookImageUrl,
+                  medium: 'image',
+                  type: 'image/png',
+                  width: '1200',
+                  height: '630',
+                  'media:role': 'facebook'
+                }
+              }
+            },
+            {
+              'media:content': {
+                _attr: {
+                  url: instagramImageUrl,
+                  medium: 'image',
+                  type: 'image/png',
+                  width: '1080',
+                  height: '1350',
+                  'media:role': 'instagram'
+                }
+              }
+            }
+          ]
+        });
+      }
     });
 
     const xml = feed.xml({ indent: true });

@@ -1,91 +1,100 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import ReactPlayer from 'react-player';
+import { useVolume } from '@/context/VolumeContext'; // <--- CONEXIÓN CLAVE
 
-const VideoPlayer = ({ 
-  playerRef,
-  src, 
-  onReady, 
-  onPlay, 
-  onPause, 
-  onEnded, 
-  onError,
+interface VideoPlayerProps {
+  videoUrl: string;
+  autoplay?: boolean;
+  onClose?: () => void;
+  onProgress?: (state: { playedSeconds: number }) => void;
+  startAt?: number;
+  imageUrl?: string; 
+  audioUrl?: string; 
+  playerVolume?: number; // Added to resolve type error and allow external volume control
+}
+
+export default function VideoPlayer({ 
+  videoUrl, 
+  autoplay = false, 
+  onClose, 
   onProgress,
-  onDuration,
-  playing = false, 
-  volume = 1,
-  muted = false,
-  isMobile = false,
-  width = "100%", 
-  height = "100%"
-}) => {
+  startAt,
+  playerVolume // Destructure playerVolume prop
+}: VideoPlayerProps) {
+  const [isMounted, setIsMounted] = useState(false);
+  const playerRef = useRef<ReactPlayer>(null);
+  const hasSeeked = useRef(false);
   
-  const [playerConfig, setPlayerConfig] = React.useState({});
+  // Consumimos el estado global del volumen
+  const { volume, isMuted } = useVolume(); 
 
-  React.useEffect(() => {
-    setPlayerConfig({
-      youtube: {
-        playerVars: {
-          showinfo: 0,
-          controls: 0,
-          modestbranding: 1,
-          rel: 0,
-          iv_load_policy: 3,
-          fs: 0,
-          disablekb: 1,
-          cc_load_policy: 0,
-          autohide: 1,
-          playsinline: 1,
-          origin: window.location.origin
-        },
-      },
-      file: {
-        forceHLS: true,
-        hlsVersion: '1.5.8',
-        attributes: {
-          poster: "", 
-          controlsList: 'nodownload noremoteplayback', 
-          disablePictureInPicture: true,
-          playsInline: true
-        }
-      }
-    });
+  useEffect(() => {
+    setIsMounted(true);
   }, []);
 
-  const playerStyle = { position: 'absolute', top: 0, left: 0 };
-  const wrapperClass = isMobile ? "w-full h-full relative bg-black" : "w-full h-full relative bg-black rounded-xl overflow-hidden";
+  const handleReady = () => {
+    if (startAt && startAt > 0 && !hasSeeked.current && playerRef.current) {
+        playerRef.current.seekTo(startAt, 'seconds');
+        hasSeeked.current = true;
+    }
+  };
+
+  useEffect(() => {
+    hasSeeked.current = false;
+  }, [videoUrl]);
+
+  const handleError = (e: any) => {
+    console.error("VideoPlayer Error:", videoUrl, e);
+    if (onClose) onClose();
+  };
+
+  if (!isMounted) return null;
+
+  // Determine the effective volume
+  const effectiveVolume = typeof playerVolume === 'number' ? playerVolume : volume;
 
   return (
-    <div className={wrapperClass}>
+    <div className="relative w-full h-full bg-black overflow-hidden">
+      {/* CAPA DE BLOQUEO (REGLA DE ORO) 
+          Evita cualquier interacción directa con el iframe de YouTube */}
+      <div className="absolute inset-0 z-10 bg-transparent" />
+
       <ReactPlayer
         ref={playerRef}
-        url={src || ""}
-        playing={playing}
-        controls={false} 
-        width={width}
-        height={height}
-        className="react-player"
-        playsInline={true}
-        volume={volume}
-        muted={muted}
-        onReady={() => onReady(playerRef.current)}
-        onPlay={onPlay}
-        onPause={onPause}
-        onEnded={onEnded}
-        onError={onError}
+        url={videoUrl}
+        playing={autoplay}
+        controls={false} // Desactivamos controles nativos
+        volume={effectiveVolume}  // <--- APLICAMOS VOLUMEN EFECTIVO
+        muted={isMuted}  // <--- APLICAMOS MUTE DEL CONTEXTO
+        width="100%"
+        height="100%"
+        onEnded={onClose}
         onProgress={onProgress}
-        onDuration={onDuration}
-        config={playerConfig}
-        style={playerStyle}
+        onReady={handleReady}
+        onError={handleError}
+        config={{
+          youtube: {
+            playerVars: { 
+              showinfo: 0, 
+              modestbranding: 1, 
+              rel: 0,
+              autoplay: autoplay ? 1 : 0,
+              controls: 0, 
+              disablekb: 1,
+              fs: 0,
+              iv_load_policy: 3
+            }
+          },
+          file: {
+            attributes: {
+              controlsList: 'nodownload',
+              style: { objectFit: 'cover', width: '100%', height: '100%' }
+            }
+          }
+        }}
       />
-      {/* Overlay to prevent clicks on the player itself */}
-      <div
-        className="absolute inset-0 z-10"
-        onClick={(e) => e.stopPropagation()}
-      ></div>
     </div>
   );
-};
-
-export default VideoPlayer;
+}

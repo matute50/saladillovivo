@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
-import { getArticles, getTickerTexts, getVideos, getInterviews, getActiveBanners, getActiveAds, getCalendarEvents } from '@/lib/data';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
+import { getArticlesForHome, getVideosForHome, getTickerTexts, getInterviews, getActiveBanners, getActiveAds, getCalendarEvents, fetchVideosBySearch } from '@/lib/data';
 import { Article, Video, Interview, Banner, Ad, CalendarEvent } from '@/lib/types';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -29,9 +29,16 @@ interface NewsContextType {
   eventsLoading: boolean;
   isLoadingConfig: boolean;
   isDarkTheme: boolean;
+  // Nuevos estados y funciones para la búsqueda
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  searchResults: Video[];
+  isSearching: boolean;
+  searchLoading: boolean;
+  handleSearch: (query: string) => Promise<void>;
 }
 
-export const NewsContext = createContext<NewsContextType | undefined>(undefined);
+const NewsContext = createContext<NewsContextType | undefined>(undefined);
 
 export const useNews = () => {
   const context = useContext(NewsContext);
@@ -61,12 +68,62 @@ export const NewsProvider = ({ children }: { children: ReactNode }) => {
   const [isLoadingBanners, setIsLoadingBanners] = useState(true);
   const [adsLoading, setAdsLoading] = useState(true);
   const [eventsLoading, setEventsLoading] = useState(true);
-  const [isLoadingConfig, setIsLoadingConfig] = useState(false);
+  const [isLoadingConfig, setIsLoadingConfig] = useState(true);
   
   const [isDarkTheme, setIsDarkTheme] = useState(false);
   const { toast } = useToast();
 
+  // --- NUEVO ESTADO PARA BÚSQUEDA ---
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Video[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [articlesResult, videosResult, tickerTexts, interviews, banners, ads, events] = await Promise.all([
+          getArticlesForHome(),
+          getVideosForHome(),
+          getTickerTexts(),
+          getInterviews(),
+          getActiveBanners(),
+          getActiveAds(),
+          getCalendarEvents(),
+        ]);
+
+        const safeArticles = articlesResult || { allNews: [] };
+        const safeVideos = videosResult || { allVideos: [] };
+
+        setAllNews(safeArticles.allNews);
+        setFeaturedNews(safeArticles.allNews.filter(n => n.featureStatus === 'featured'));
+        setSecondaryNews(safeArticles.allNews.filter(n => n.featureStatus === 'secondary'));
+        setTertiaryNews(safeArticles.allNews.filter(n => n.featureStatus === 'tertiary'));
+        setOtherNews(safeArticles.allNews.filter(n => !['featured', 'secondary', 'tertiary'].includes(n.featureStatus || '')));
+
+        setAllTickerTexts(tickerTexts);
+        setGalleryVideos(safeVideos.allVideos);
+        setInterviews(interviews);
+        setActiveBanners(banners);
+        setActiveAds(ads);
+        setCalendarEvents(events);
+
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        toast({ title: "Error de Carga", description: "No se pudieron cargar los datos." });
+      } finally {
+        setIsLoading(false);
+        setIsLoadingVideos(false);
+        setIsLoadingInterviews(false);
+        setIsLoadingBanners(false);
+        setAdsLoading(false);
+        setEventsLoading(false);
+        setIsLoadingConfig(false);
+      }
+    };
+
+    fetchData();
+
     // Theme observer
     setIsDarkTheme(document.documentElement.classList.contains('dark'));
     const observer = new MutationObserver(() => {
@@ -74,45 +131,33 @@ export const NewsProvider = ({ children }: { children: ReactNode }) => {
     });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     return () => observer.disconnect();
-  }, []);
+  }, [toast]);
 
-  useEffect(() => {
-    const fetchAllData = async () => {
-      try {
-        setIsLoading(true);
-        
-        // Fetch and sort articles using the refactored function
-        const { allNews: sortedNews } = await getArticles();
-        setAllNews(sortedNews);
+  const handleSearch = useCallback(async (query: string) => {
+    setSearchQuery(query);
 
-        // Categorize news based on featureStatus
-        setFeaturedNews(sortedNews.filter(n => n.featureStatus === 'featured'));
-        setSecondaryNews(sortedNews.filter(n => n.featureStatus === 'secondary'));
-        setTertiaryNews(sortedNews.filter(n => n.featureStatus === 'tertiary'));
-        setOtherNews(sortedNews.filter(n => !['featured', 'secondary', 'tertiary'].includes(n.featureStatus || '')));
+    if (!query.trim()) {
+      setIsSearching(false);
+      setSearchResults([]);
+      return;
+    }
 
-      } catch (error: any) {
-        console.error("Error loading articles:", error);
-        toast({ title: "Error de Carga de Noticias", description: error.message });
-      } finally {
-        setIsLoading(false);
+    setIsSearching(true);
+    setSearchLoading(true);
+    try {
+      const results = await fetchVideosBySearch(query);
+      setSearchResults(results);
+    } catch (err: unknown) {
+      console.error("Error during search:", err);
+      let errorMessage = "Un error desconocido ocurrió.";
+      if (err instanceof Error) {
+        errorMessage = err.message;
       }
-
-      // Fetch other data in parallel
-      Promise.allSettled([
-        getTickerTexts().then(setAllTickerTexts),
-        getVideos().then(setGalleryVideos).finally(() => setIsLoadingVideos(false)),
-        getInterviews().then(setInterviews).finally(() => setIsLoadingInterviews(false)),
-        getActiveBanners().then(setActiveBanners).finally(() => setIsLoadingBanners(false)),
-        getActiveAds().then(setActiveAds).finally(() => setAdsLoading(false)),
-        getCalendarEvents().then(setCalendarEvents).finally(() => setEventsLoading(false)),
-      ]).catch(error => {
-        console.error("Error fetching auxiliary data:", error);
-        toast({ title: "Error de Carga", description: "No se pudieron cargar algunos datos auxiliares." });
-      });
-    };
-
-    fetchAllData();
+      toast({ title: "Error de Búsqueda", description: errorMessage });
+      setSearchResults([]);
+    } finally {
+      setSearchLoading(false);
+    }
   }, [toast]);
 
   const getNewsBySlug = (slug: string) => allNews.find(item => item.slug === slug);
@@ -123,7 +168,7 @@ export const NewsProvider = ({ children }: { children: ReactNode }) => {
   const value = {
     allNews,
     featuredNews,
-    secondaryNews,
+        secondaryNews,
     tertiaryNews,
     otherNews,
     allTickerTexts,
@@ -144,6 +189,13 @@ export const NewsProvider = ({ children }: { children: ReactNode }) => {
     eventsLoading,
     isLoadingConfig,
     isDarkTheme,
+    // Exportar nuevos estados y funciones
+    searchQuery,
+    setSearchQuery,
+    searchResults,
+    isSearching,
+    searchLoading,
+    handleSearch,
   };
 
   return <NewsContext.Provider value={value}>{children}</NewsContext.Provider>;

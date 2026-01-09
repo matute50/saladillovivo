@@ -1,67 +1,81 @@
 'use client';
 
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState } from 'react';
+import Image from 'next/image';
+import { motion } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
-import 'swiper/css';
-import 'swiper/css/navigation';
-import { useMediaPlayer } from '@/context/MediaPlayerContext';
-import { motion } from 'framer-motion';
-import { useToast } from '@/components/ui/use-toast';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import Image from 'next/image';
 
-const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = false, isLive = false, isEventCarousel = false, categoryName }) => {
-  const { playUserSelectedVideo, playLiveStream, streamStatus } = useMediaPlayer();
-  const { toast } = useToast(); // Assuming you have a Toaster component set up in your layout
+import { useMediaPlayer } from '@/context/MediaPlayerContext';
+import { useThemeButtonColors } from '@/hooks/useThemeButtonColors';
+import { useToast } from '@/components/ui/use-toast';
+import { Video, ExclusiveVideoCarouselProps } from '@/lib/types';
+
+const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos, isLoading, carouselId, isMobile = false, isLive = false, onVideoClick }) => {
+  const { playSpecificVideo, playLiveStream, streamStatus } = useMediaPlayer();
+  const { toast } = useToast();
   const swiperRef = useRef(null);
-  
-  const [activeVideoId, setActiveVideoId] = useState(null);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const { buttonColor, buttonBorderColor } = useThemeButtonColors();
 
-  useEffect(() => {
-    if (videos && videos.length > 0) {
-      const centerIndex = isMobile || isLive ? 0 : (videos.length > 1 ? 1 : 0);
-      setActiveVideoId(videos[centerIndex]?.id);
-    }
-  }, [videos, isMobile, isLive]);
 
-  const getYoutubeThumbnail = (video) => {
+  const getYoutubeThumbnail = (video: Video): string => {
     if (!video) return 'https://via.placeholder.com/320x180.png?text=No+disponible';
-    if (video.isLiveThumbnail || isEventCarousel) return video.imagen;
-    if (video.url && (video.url.includes('youtube.com') || video.url.includes('youtu.be'))) {
-      const videoIdMatch = video.url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-      return videoIdMatch ? `https://img.youtube.com/vi/${videoIdMatch[1]}/mqdefault.jpg` : (video.imagen || 'https://via.placeholder.com/320x180.png?text=Miniatura');
+
+    const youTubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+
+    // Prioridad: Extraer del video.url si es link de YouTube
+    if (video.url) {
+        const videoIdMatch = video.url.match(youTubeRegex);
+        if (videoIdMatch) {
+            return `https://img.youtube.com/vi/${videoIdMatch[1]}/hqdefault.jpg`;
+        }
     }
-    return video.imagen || 'https://via.placeholder.com/320x180.png?text=Miniatura';
+
+    // Procesar video.imagen
+    const cleanImageUrl = (video.imagen || '').trim();
+    
+    if (!cleanImageUrl) {
+        return 'https://via.placeholder.com/320x180.png?text=Miniatura';
+    }
+
+    // Si video.imagen es URL de YouTube, extraer miniatura
+    if (cleanImageUrl.includes('youtube.com') || cleanImageUrl.includes('youtu.be')) {
+        const videoIdMatch = cleanImageUrl.match(youTubeRegex);
+        if (videoIdMatch) {
+            return `https://img.youtube.com/vi/${videoIdMatch[1]}/mqdefault.jpg`;
+        }
+    }
+
+    // Si es absoluta, usarla tal cual
+    if (cleanImageUrl.match(/^(http|https):\/\//)) {
+        return cleanImageUrl;
+    }
+
+    // CORRECCIÓN DE BUG: 'cleanUrl' no existía, debía ser 'cleanImageUrl'
+    return `${process.env.NEXT_PUBLIC_MEDIA_URL || ''}${cleanImageUrl.startsWith('/') ? '' : '/'}${cleanImageUrl}`;
   };
 
-  const handleVideoClick = (video) => {
+  const handleVideoClick = (video: Video) => {
+    if (onVideoClick) {
+      onVideoClick(video);
+      return;
+    }
+    
     if (isLive || video.isLiveThumbnail) {
-      playLiveStream(streamStatus);
+      if (streamStatus) {
+        playLiveStream(streamStatus);
+      }
     } else if (video.isEvent) {
       toast({
         title: "Próximo Evento",
         description: "Este es un evento futuro. ¡Vuelve pronto para verlo en vivo!",
       });
     } else {
-      playUserSelectedVideo(video, categoryName);
+      playSpecificVideo(video);
     }
   };
-
-  const handleMouseEnter = useCallback((video) => {
-    if (isLive || video.isLiveThumbnail) return;
-    setActiveVideoId(video.id);
-  }, [isLive]);
-
-  const handleMouseLeave = useCallback(() => {
-    if (isLive || !swiperRef.current || !swiperRef.current.swiper) return;
-    if (!isMobile && videos.length > 2) {
-      const centerIndex = swiperRef.current.swiper.realIndex;
-      if(videos[centerIndex]) {
-        setActiveVideoId(videos[centerIndex].id);
-      }
-    }
-  }, [isLive, isMobile, videos]);
 
   if (isLoading) {
     return <div className="relative w-full flex items-center justify-center min-h-[126px] bg-muted/50 animate-pulse rounded-lg"></div>;
@@ -71,79 +85,100 @@ const ExclusiveVideoCarousel = ({ videos, isLoading, carouselId, isMobile = fals
     return <div className="relative w-full flex items-center justify-center min-h-[126px] text-muted-foreground rounded-lg bg-muted/20">No hay contenido disponible.</div>;
   }
 
-  const renderSlide = (video, forceActive = false) => {
-    const isActive = forceActive || video.id === activeVideoId;
-    const isLiveOrEvent = isLive || video.isLiveThumbnail || video.isEvent;
-    const isBlurred = !isLiveOrEvent && !isActive;
 
-    return (
-      <motion.div
-        onClick={() => handleVideoClick(video)}
-        onMouseEnter={() => handleMouseEnter(video)}
-        className="relative cursor-pointer group rounded-lg overflow-hidden shadow-thumbnail"
-        animate={{
-          scale: isActive ? 1.1 : 1,
-          zIndex: isActive ? 10 : 1,
-          filter: isBlurred ? 'blur(2px)' : 'blur(0px)',
-          opacity: isLiveOrEvent ? 1 : (isActive ? 1 : 0.7)
-        }}
-        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-      >
-        <div className="w-56 aspect-video flex items-center justify-center bg-black">
-          <Image
-            loading="lazy"
-            src={getYoutubeThumbnail(video)}
-            alt={video.nombre || "Miniatura de video"}
-            width={320}
-            height={180}
-            className={`w-full h-full ${isLiveOrEvent ? 'object-contain' : 'object-cover'}`}
-          />
-        </div>
-        <div className="absolute inset-0 transition-all group-hover:bg-black/20"></div>
-        {isActive && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="absolute inset-0 p-2 bg-gradient-to-t from-black/80 to-transparent flex justify-center items-end text-center"
-          >
-            <p className="text-white font-thin uppercase leading-tight text-xs">{video.nombre}</p>
-          </motion.div>
-        )}
-      </motion.div>
-    );
-  };
-
-  const showNavButtons = videos.length > (isMobile ? 1 : 3) && !isLive;
 
   return (
-    <div className="relative w-full flex items-center justify-center" onMouseLeave={!isMobile ? handleMouseLeave : undefined}>
+    <div className="relative w-full flex items-center justify-center rounded-xl p-4">
       <Swiper
         ref={swiperRef}
-        slidesPerView={'auto'}
-        centeredSlides={true}
-        initialSlide={isMobile ? 0 : (videos.length > 1 ? 1 : 0)}
+        slidesPerView={videos.length === 2 ? 2 : 'auto'}
+        centeredSlides={videos.length === 2 ? false : true}
+        initialSlide={videos.length === 2 ? 0 : (isMobile ? 0 : (videos.length > 1 ? 1 : 0))}
         spaceBetween={isMobile ? 10 : 12}
-        loop={videos.length > (isMobile ? 3 : 3)}
+        loop={videos.length === 2 ? false : (videos.length > (isMobile ? 3 : 3))}
         navigation={{
           prevEl: `#prev-${carouselId}`,
           nextEl: `#next-${carouselId}`,
         }}
         modules={[Navigation]}
-        onSlideChange={(swiper) => setActiveVideoId(videos[swiper.realIndex]?.id)}
-        onSwiper={(swiper) => setActiveVideoId(videos[swiper.realIndex]?.id)}
       >
-        {videos.map((video) => (
-          <SwiperSlide key={video.id || video.url} style={{ width: 'auto' }}>
-            {renderSlide(video)}
-          </SwiperSlide>
-        ))}
+        {videos.map((video, index) => {
+          const isLiveOrEvent = isLive || video.isLiveThumbnail || video.isEvent;
+          
+          const slideClasses = "transition-all duration-300 ease-in-out opacity-100 blur-none";
+          const titleOverlayClasses = "absolute inset-0 p-2 bg-gradient-to-t from-black/80 to-transparent flex justify-center items-end text-center opacity-100 z-20 transition-opacity duration-300 ease-in-out";
+
+          // La lógica de clase para slideClasses y titleOverlayClasses se ha simplificado
+          // para que siempre estén visibles y sin blur/opacidad dinámica para el fondo y título.
+          // El z-index ya se gestiona en titleOverlayClasses.
+          if (videos.length === 2) {
+            const isActiveByHover = (hoveredIndex === null && index === 0) || hoveredIndex === index;
+            if (isActiveByHover) {
+              // No es necesario añadir z-20 aquí si ya está en titleOverlayClasses
+            } else {
+              // No es necesario opacity-0 aquí
+            }
+          } else {
+            // No es necesario opacity-0 o z-20 aquí
+          }
+
+          const thumbUrl = getYoutubeThumbnail(video);
+          // DETECCIÓN DE YOUTUBE PARA EVITAR ERROR 402
+          const isYouTube = thumbUrl.includes('youtube.com') || thumbUrl.includes('ytimg.com');
+
+          return (
+            <SwiperSlide
+              key={video.id || video.url}
+              style={{ width: 'auto' }}
+              className={slideClasses}
+              onMouseEnter={() => videos.length === 2 && setHoveredIndex(index)}
+              onMouseLeave={() => videos.length === 2 && setHoveredIndex(null)}
+            >
+              <div
+                onClick={() => handleVideoClick(video)}
+                className="relative cursor-pointer group rounded-xl overflow-hidden shadow-lg dark:shadow-none hover:shadow-orange-500/50"
+              >
+                <div className="relative w-56 aspect-video flex items-center justify-center bg-black">
+                  <Image
+                    src={thumbUrl}
+                    alt={video.nombre || "Miniatura de video"}
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    priority={index === 0}
+                    className={`${isLiveOrEvent ? 'object-contain' : 'object-cover'} transition-transform duration-300 group-hover:scale-105`}
+                    // LA SOLUCIÓN MÁGICA:
+                    unoptimized={isYouTube}
+                    onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
+                  />
+                </div>
+                <div className={titleOverlayClasses}>
+                  <p className="text-white font-thin uppercase leading-tight text-xs">{video.nombre}</p>
+                </div>
+              </div>
+            </SwiperSlide>
+          );
+        })}
       </Swiper>
-      {showNavButtons && (
         <>
-          <button id={`prev-${carouselId}`} className="carousel-nav-button absolute top-1/2 -translate-y-1/2 left-0 z-20 transition-colors text-white rounded-full p-2 cursor-pointer"><ChevronLeft size={16} /></button>
-          <button id={`next-${carouselId}`} className="carousel-nav-button absolute top-1/2 -translate-y-1/2 right-0 z-20 transition-colors text-white rounded-full p-2 cursor-pointer"><ChevronRight size={16} /></button>
+          <motion.button
+            id={`prev-${carouselId}`}
+            className="carousel-nav-button absolute top-1/2 -translate-y-1/2 left-0 z-20 rounded-md p-1 cursor-pointer border shadow-lg shadow-black/50 backdrop-blur-md"
+            animate={{ color: buttonColor, borderColor: buttonBorderColor, backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
+            whileHover={{ backgroundColor: '#012078' }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+          >
+            <ChevronLeft size={30} />
+          </motion.button>
+          <motion.button
+            id={`next-${carouselId}`}
+            className="carousel-nav-button absolute top-1/2 -translate-y-1/2 right-0 z-20 rounded-md p-1 cursor-pointer border shadow-lg shadow-black/50 backdrop-blur-md"
+            animate={{ color: buttonColor, borderColor: buttonColor, backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
+            whileHover={{ backgroundColor: '#012078' }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+          >
+            <ChevronRight size={30} />
+          </motion.button>
         </>
-      )}
     </div>
   );
 };
