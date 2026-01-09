@@ -304,23 +304,21 @@ const TvModeLayout = () => {
 
                                 >
 
-                                                                                                                                                                          <Image
+                                                                                                                                                                                                            <Image
 
-                                                                                                                                                                            src="/FONDO OSCURO.PNG"
+                                                                                                                                                                                                              src="/FONDO OSCURO.PNG"
 
-                                                                                                                                                                            alt="Saladillo Vivo Logo" 
+                                                                                                                                                                                                              alt="Saladillo Vivo Logo" 
 
-                                                                                                                                                              width={192} 
+                                                                                                                                                                                                width={192} 
 
-                                                                                                                                                              height={48} 
+                                                                                                                                                                                                height={48} 
 
-                                                                                                                                                              className="h-auto w-48 object-contain"
+                                                                                                                                                                                                className="h-auto w-48 object-contain"
 
-                                                                                                                                                              priority
+                                                                                                                                                                                                priority
 
-                                                                                                                                                              unoptimized={true}
-
-                                                                                                                                                            />
+                                                                                                                                                                                              />
 
                   </div>
 
