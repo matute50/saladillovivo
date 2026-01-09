@@ -1,156 +1,153 @@
+// src/components/layout/MobileLayout.tsx
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { useMediaPlayer } from '@/context/MediaPlayerContext';
 import { useNews } from '@/context/NewsContext';
-import type { PageData } from '@/lib/types';
-import { categoryMappings, type CategoryMapping } from '@/lib/categoryMappings';
-
-
-import VideoSection from './VideoSection';
+import MediaPlayerWrapper from '../MediaPlayerWrapper';
+import CategoryList from '../CategoryList';
 import NewsCard from '../NewsCard';
-import CategoryCycler from './CategoryCycler';
-import NoResultsCard from './NoResultsCard';
-import BannerSection from './BannerSection';
-import AdsSection from './AdsSection';
+import { Card } from '@/components/ui/card'; // Asumiendo que esta es la ruta para el componente Card
+import { useOrientation } from '@/hooks/useOrientation'; // Importar el hook de orientación
+import { Article } from '@/lib/types';
 
-const MobileLayout = ({ data, isMobile }: { data: PageData; isMobile: boolean }) => {
-  const { articles, videos, banners, ads } = data;
-  const { isSearching, searchResults, searchLoading, handleSearch } = useNews();
-  const { allVideos } = videos;
+// Interfaz para el contenido mixto
+interface MixedContentItem {
+  type: 'article' | 'ad';
+  data: Article | AdData;
+}
 
-  // Importar y filtrar las categorías en lugar de tenerlas hardcodeadas
-  const availableCategoryMappings = categoryMappings.filter(category => {
-    // Lógica especial para la categoría "Novedades"
-    if (category.dbCategory === '__NOVEDADES__') {
-      return allVideos.some(video => video.novedad === true);
-    }
+// Interfaz para los datos de la publicidad
+interface AdData {
+    id: string;
+    imageUrl: string;
+    linkUrl: string;
+    title: string;
+    // Agrega otras propiedades que pueda tener una publicidad
+}
 
-    const dbCategories = Array.isArray(category.dbCategory) ? category.dbCategory : [category.dbCategory];
-    return allVideos.some(video => dbCategories.includes(video.categoria));
-  });
+// Mock de publicidades - Estas deberían venir de alguna fuente real en una implementación completa
+const MOCK_ADS: AdData[] = [
+    { id: 'ad1', imageUrl: 'https://via.placeholder.com/300x150?text=Publicidad+1', linkUrl: 'https://ejemplo.com/ad1', title: 'Anuncio Impactante' },
+    { id: 'ad2', imageUrl: 'https://via.placeholder.com/300x150?text=Publicidad+2', linkUrl: 'https://ejemplo.com/ad2', title: 'Oferta Especial' },
+    { id: 'ad3', imageUrl: 'https://via.placeholder.com/300x150?text=Publicidad+3', linkUrl: 'https://ejemplo.com/ad3', title: 'Descubre Más' },
+    { id: 'ad4', imageUrl: 'https://via.placeholder.com/300x150?text=Publicidad+4', linkUrl: 'https://ejemplo.com/ad4', title: 'Última Oportunidad' },
+];
 
-  const [cyclerIndex1, setCyclerIndex1] = useState(0);
-  const [cyclerIndex2, setCyclerIndex2] = useState(1);
+const MobileLayout = () => {
+    const { currentVideo, viewMode, setViewMode } = useMediaPlayer();
+    // Asumo que allNews contiene la lista de artículos/noticias
+    const { allNews, isLoading: isLoadingNews } = useNews(); 
+    const orientation = useOrientation(); // Obtener la orientación actual
 
-  useEffect(() => {
-    if (availableCategoryMappings.length > 1) {
-      const total = availableCategoryMappings.length;
-      const randomIndex1 = Math.floor(Math.random() * total);
-      const randomIndex2 = (randomIndex1 + 1 + Math.floor(Math.random() * (total - 1))) % total; // Asegura que no sea el mismo
-      setCyclerIndex1(randomIndex1);
-      setCyclerIndex2(randomIndex2);
-    }
-  }, [availableCategoryMappings.length]);
+    const playerRef = useRef<HTMLDivElement>(null); // Referencia al contenedor del reproductor
 
-  const handleCycle = useCallback((direction: 'next' | 'prev', currentIndex: number, otherIndex: number, setIndex: React.Dispatch<React.SetStateAction<number>>) => {
-    const total = availableCategoryMappings.length;
-    if (total < 2) return; // No ciclar si no hay suficientes categorías
+    // Efecto para manejar el Fullscreen en Landscape
+    useEffect(() => {
+        // Solo aplicar en modo 'mobile' (cuando MobileLayout está activo)
+        // y si hay un video reproduciéndose
+        if (orientation === 'landscape' && currentVideo && currentVideo.url) {
+            // Lógica para activar el fullscreen.
+            // La implementación real del fullscreen debe estar en MediaPlayerWrapper o en el reproductor.
+            // Aquí se asume que el MediaPlayerWrapper o el reproductor puede detectar o ser instruido
+            // para ir a Fullscreen.
+            // Por ejemplo, podríamos necesitar una función como playFullscreen() en MediaPlayerContext
+            // o que MediaPlayerWrapper responda a un estado global/contexto.
+            console.log("Orientación Landscape detectada, intentando Fullscreen para el video.");
+            // Si el reproductor tiene un método para activar el fullscreen:
+            // if (videoPlayerRef.current && videoPlayerRef.current.requestFullscreen) {
+            //     videoPlayerRef.current.requestFullscreen();
+            // }
+            // O si es un componente de React que maneja su propio fullscreen:
+            // setCurrentVideoFullscreen(true); // Ejemplo de un estado para controlar el fullscreen
+        } else if (orientation === 'portrait') {
+            console.log("Orientación Portrait detectada, saliendo de Fullscreen si estaba activo.");
+            // Si el reproductor tiene un método para salir del fullscreen:
+            // if (document.fullscreenElement) {
+            //     document.exitFullscreen();
+            // }
+            // setCurrentVideoFullscreen(false); // Ejemplo de un estado para controlar el fullscreen
+        }
+    }, [orientation, currentVideo]); // Dependencias: orientación y video actual
 
-    let nextIndex = direction === 'next' 
-      ? (currentIndex + 1) % total
-      : (currentIndex - 1 + total) % total;
-    
-    // Si el siguiente índice es igual al del otro carrusel, saltar uno más
-    if (nextIndex === otherIndex) {
-      nextIndex = direction === 'next'
-        ? (nextIndex + 1) % total
-        : (nextIndex - 1 + total) % total;
-    }
-    setIndex(nextIndex);
-  }, [availableCategoryMappings.length]);
+    // Lógica Zipper para mezclar noticias y publicidades
+    const getMixedContent = useCallback((articles: Article[], ads: AdData[], adInterval: number = 3): MixedContentItem[] => {
+        const result: MixedContentItem[] = [];
+        let adIndex = 0;
 
-  const handleNext1 = useCallback(() => handleCycle('next', cyclerIndex1, cyclerIndex2, setCyclerIndex1), [cyclerIndex1, cyclerIndex2, handleCycle]);
-  const handlePrev1 = useCallback(() => handleCycle('prev', cyclerIndex1, cyclerIndex2, setCyclerIndex1), [cyclerIndex1, cyclerIndex2, handleCycle]);
-  const handleNext2 = useCallback(() => handleCycle('next', cyclerIndex2, cyclerIndex1, setCyclerIndex2), [cyclerIndex1, cyclerIndex2, handleCycle]);
-  const handlePrev2 = useCallback(() => handleCycle('prev', cyclerIndex2, cyclerIndex1, setCyclerIndex2), [cyclerIndex1, cyclerIndex2, handleCycle]);
+        articles.forEach((article, index) => {
+            result.push({ type: 'article', data: article });
+            // Inyectar publicidad cada 'adInterval' artículos
+            if ((index + 1) % adInterval === 0 && ads.length > 0) {
+                result.push({ type: 'ad', data: ads[adIndex % ads.length] });
+                adIndex++;
+            }
+        });
+        return result;
+    }, []);
 
-  const searchCategoryMapping: CategoryMapping = {
-    display: "Tu Búsqueda", // Corregido de displayName a display
-    dbCategory: "search",
-  };
+    // Memoizar el contenido mixto para evitar recálculos innecesarios
+    const mixedContent = useMemo(() => {
+        if (isLoadingNews || !allNews || allNews.length === 0) {
+            return [];
+        }
+        return getMixedContent(allNews, MOCK_ADS);
+    }, [allNews, isLoadingNews, getMixedContent]);
 
-  return (
-    <>
-      
-      
-      <div className="fixed top-[calc(var(--header-height)+var(--ticker-height)-18px)] left-0 w-full z-30">
-         <VideoSection isMobileFixed={false} isMobile={isMobile} />
-      </div>
-      
-      <main className="w-full pt-[calc(var(--header-height)+var(--player-height-mobile)-18px)]">
-        <div className="flex flex-col gap-8 p-2">
 
-          <section aria-labelledby="news-section-title">
-            <h2 id="news-section-title" className="text-2xl font-bold tracking-tight text-foreground/90 mb-4">Noticias</h2>
-            <div className="flex flex-col gap-4">
-              {articles.featuredNews && (
-                <NewsCard newsItem={articles.featuredNews} isFeatured={true} />
-              )}
-              {articles.secondaryNews.map((noticia) => (
-                <NewsCard key={noticia.id} newsItem={noticia} />
-              ))}
-              {articles.tertiaryNews.map((noticia) => (
-                <NewsCard key={noticia.id} newsItem={noticia} />
-              ))}
-              {articles.otherNews.map((noticia) => (
-                <NewsCard key={noticia.id} newsItem={noticia} />
-              ))}
+    // Establecer el viewMode a 'diario' para móvil si aún no está.
+    // Esto es importante para asegurar que el MediaPlayerContext sepa que está en modo móvil.
+    useEffect(() => {
+        if (viewMode !== 'diario') { // 'diario' es el equivalente a móvil/desktop normal
+            setViewMode('diario');
+        }
+    }, [viewMode, setViewMode]);
+
+
+    return (
+        <div className="relative flex flex-col h-screen w-screen bg-gray-900 overflow-y-auto">
+            {/* Bloque Superior (Player) - Sticky/Fijo */}
+            <div ref={playerRef} className="sticky top-0 z-50 w-full bg-black">
+                <MediaPlayerWrapper />
             </div>
-          </section>
 
-          <section aria-labelledby="video-section-title">
-            <h2 id="video-section-title" className="text-2xl font-bold tracking-tight text-foreground/90">Saladillo VIVO TV</h2>
-            
-            {isSearching ? (
-              searchLoading ? (
-                <div className="text-center p-4">Buscando...</div>
-              ) : searchResults.length > 0 ? (
-                <CategoryCycler 
-                  allVideos={searchResults} 
-                  activeCategory={searchCategoryMapping}
-                  isSearchResult={true}
-                  isMobile={true} 
-                  instanceId="search"
-                />
-              ) : (
-                                    <NoResultsCard message="No se encontraron videos para tu búsqueda." onClearSearch={() => handleSearch('')} />              )
-            ) : (
-              availableCategoryMappings.length > 0 && (
-                <>
-                  <CategoryCycler 
-                    allVideos={allVideos} 
-                    activeCategory={availableCategoryMappings[cyclerIndex1]} 
-                    onNext={handleNext1}
-                    onPrev={handlePrev1}
-                    isMobile={true} 
-                    instanceId="1"
-                  />
-                  {availableCategoryMappings.length > 1 && (
-                    <CategoryCycler 
-                      allVideos={allVideos} 
-                      activeCategory={availableCategoryMappings[cyclerIndex2]} 
-                      onNext={handleNext2}
-                      onPrev={handlePrev2}
-                      isMobile={true} 
-                      instanceId="2"
-                    />
-                  )}
-                </>
-              )
-            )}
-          </section>
+            {/* Bloque Intermedio (Navegación de Categorías) */}
+            <div className="w-full py-2 bg-gray-800 shadow-md">
+                {/* CategoryList es un componente que renderiza las categorías.
+                    Asegúrate de que CategoryList pueda manejar la propiedad isMobile
+                    para ajustar su comportamiento (ej. scroll horizontal). */}
+                <CategoryList isMobile={true} /> 
+            </div>
 
-          <section className="my-4" aria-label="Banners publicitarios">
-             <BannerSection activeBanners={banners} isLoadingBanners={false} className="w-full" />
-          </section>
-
-          <section aria-label="Anuncios">
-            <AdsSection activeAds={ads} isLoading={false} />
-          </section>
+            {/* Bloque Inferior (Contenido Mixto) */}
+            <div className="flex-grow overflow-y-auto p-4 bg-gray-900">
+                <h2 className="text-xl font-bold text-white mb-4">Noticias y Publicidad</h2>
+                {isLoadingNews ? (
+                    <div className="text-white text-center">Cargando noticias...</div>
+                ) : (
+                    <div className="flex overflow-x-scroll snap-x snap-mandatory pb-4 scrollbar-hide space-x-4">
+                        {mixedContent.map((item, index) => (
+                            <div key={index} className="flex-shrink-0 w-[85vw] snap-center"> {/* w-[85vw] para que no ocupe todo el ancho y permita el snap */}
+                                {item.type === 'article' ? (
+                                    // Asegúrate de que NewsCard acepte y maneje la propiedad isMobile si es necesario
+                                    <NewsCard article={item.data as Article} isMobile={true} />
+                                ) : (
+                                    <a href={(item.data as AdData).linkUrl} target="_blank" rel="noopener noreferrer" className="block h-full w-full">
+                                        <Card className="flex flex-col items-center justify-center h-full w-full bg-blue-700 text-white rounded-lg shadow-lg p-4">
+                                            <h3 className="text-lg font-bold">{(item.data as AdData).title}</h3>
+                                            <p className="text-sm">Publicidad</p>
+                                            {/* Si quieres mostrar la imagen de la publicidad */}
+                                            {/* <img src={(item.data as AdData).imageUrl} alt={(item.data as AdData).title} className="mt-2 max-h-24 object-contain" /> */}
+                                        </Card>
+                                    </a>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
         </div>
-      </main>
-    </>
-  );
+    );
 };
 
 export default MobileLayout;
