@@ -16,9 +16,10 @@ interface TvContentRailProps {
   isSearching: boolean;
   searchLoading: boolean;
   initialCategory?: CategoryMapping; // Nuevo prop para la categoría inicial
+  isVisible?: boolean; // Nuevo prop para controlar la visibilidad
 }
 
-const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearching, searchLoading, initialCategory, isSearchResult }) => {
+const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearching, searchLoading, initialCategory, isVisible = true }) => {
   const { galleryVideos, allNews, isLoading: isLoadingNews } = useNews();
   const { playSpecificVideo, playTemporaryVideo, setIsPlaying } = useMediaPlayer();
   const { playSlide } = useNewsPlayer();
@@ -115,7 +116,7 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
       }
       return { ...item, imageUrl: thumb, imagen: thumb };
     });
-  }, []);
+  }, [galleryVideos]); // Added galleryVideos to dependencies
 
   if (isLoadingNews || availableCategoryMappings.length === 0) {
     return <div className="text-white p-4 bg-white/10 rounded-lg flex justify-center items-center h-[126px]">Cargando...</div>;
@@ -126,7 +127,13 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
     if (searchLoading) return <div className="text-white p-4">Buscando...</div>;
     const processed = processThumbnails(searchResults);
     return (
-      <div className="w-full max-w-screen-xl mx-auto px-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
+        transition={{ duration: 0.5 }}
+        style={{ pointerEvents: isVisible ? 'auto' : 'none' }}
+        className="w-full max-w-screen-xl mx-auto px-4"
+      >
         <CategoryCycler 
           allVideos={processed} 
           activeCategory={{ display: 'Tu Búsqueda', dbCategory: 'search_results' }} 
@@ -137,7 +144,7 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
           isSearchResult={true}
           instanceId="search-carousel"
         />
-      </div>
+      </motion.div>
     );
   }
   
@@ -146,7 +153,13 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
   const processedItems = processThumbnails(rawItems);
 
   return (
-    <div className="w-full max-w-screen-xl mx-auto px-4">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
+      transition={{ duration: 0.5 }}
+      style={{ pointerEvents: isVisible ? 'auto' : 'none' }}
+      className="w-full max-w-screen-xl mx-auto px-4"
+    >
             <div className="flex items-baseline justify-center w-full z-10 pt-5">
               {!isSearching && handlePrevCategory && (
                 <motion.button
@@ -185,7 +198,7 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
           instanceId="tv-carousel"
         />
       </div>
-    </div>
+    </motion.div>
   );
 };
 
