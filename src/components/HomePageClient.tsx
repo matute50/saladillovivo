@@ -27,7 +27,7 @@ const HomePageClient = ({ initialData }: { initialData: PageData }) => {
     // Cargar solo una vez
     loadInitialPlaylist(null);
     setIsLoading(false);
-  }, []); 
+  }, [loadInitialPlaylist]); 
 
   if (isLoading) return <LoadingSpinner />;
 

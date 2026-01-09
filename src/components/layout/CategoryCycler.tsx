@@ -94,7 +94,7 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
           isLoading={false}
           carouselId={`category-cycler-${instanceId}`}
           isMobile={isMobile}
-          onCardClick={onCardClick} 
+          onVideoClick={onCardClick} 
         />
       </div>
     </div>

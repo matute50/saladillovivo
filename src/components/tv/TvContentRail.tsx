@@ -78,7 +78,8 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
                 categoria: 'Noticias',
                 imagen: imageUrl,
                 duration: duration,
-                createdAt: new Date().toISOString()
+                createdAt: new Date().toISOString(),
+                novedad: false // Added to satisfy SlideMedia interface
              });
         }
     } else {

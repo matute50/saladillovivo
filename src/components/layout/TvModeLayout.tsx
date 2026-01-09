@@ -227,15 +227,15 @@ const TvModeLayout = () => {
 
               onMouseEnter={() => { cancelHideTimer(); setIsOverlayVisible(true); setIsMouseOverInteractiveElement(true); }}
 
-              onMouseLeave={() => { setIsMouseOverInteractiveElement(false); handleMouseActivity(); }}
+                            onMouseLeave={() => { setIsMouseOverInteractiveElement(false); }}
 
-            >
+                          >
 
-              <Image 
+                            <Image
 
-                src="/FONDO OSCURO.PNG" 
+                              src="/FONDO OSCURO.PNG"
 
-                alt="Saladillo Vivo Logo" 
+                              alt="Saladillo Vivo Logo" 
 
                 width={192} 
 
@@ -255,11 +255,11 @@ const TvModeLayout = () => {
 
             <div 
 
-              className="bg-gradient-to-t from-black/80 to-transparent p-8 pointer-events-auto"
+                            className="bg-gradient-to-t from-black/80 to-transparent p-8 pointer-events-auto"
 
-              onMouseEnter={() => { cancelHideTimer(); setIsOverlayVisible(true); setIsMouseOverInteractiveElement(true); }}
+                            onMouseEnter={() => { cancelHideTimer(); setIsOverlayVisible(true); setIsMouseOverInteractiveElement(true); }}
 
-              onMouseLeave={() => { setIsMouseOverInteractiveElement(false); handleMouseActivity(); }}
+                            onMouseLeave={() => { setIsMouseOverInteractiveElement(false); }}
 
             >
 
@@ -287,7 +287,7 @@ const TvModeLayout = () => {
 
               onMouseEnter={() => { cancelHideTimer(); setIsOverlayVisible(true); setIsMouseOverInteractiveElement(true); }}
 
-              onMouseLeave={() => { setIsMouseOverInteractiveElement(false); handleMouseActivity(); }}
+              onMouseLeave={() => { setIsMouseOverInteractiveElement(false); }}
 
             >
 
@@ -319,7 +319,7 @@ const TvModeLayout = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 50 }}
               transition={{ duration: 0.5 }}
-              className="absolute bottom-[-4px] right-4 w-36 h-24 bg-black/70 rounded-lg shadow-lg z-20"
+              className="absolute bottom-[-4px] right-4 w-36 h-24 bg-black rounded-lg shadow-lg z-20"
             >
               <div className="p-4 text-white">
               </div>

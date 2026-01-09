@@ -13,7 +13,7 @@ const FullScreenTvPlayer = () => {
       <MediaPlayerWrapper>
         {currentVideo && (
           <VideoPlayer
-            videoUrl={currentVideo.type === 'video' || currentVideo.type === 'stream' ? currentVideo.url : undefined}
+            videoUrl={currentVideo.type === 'video' || currentVideo.type === 'stream' ? currentVideo.url : ""}
             imageUrl={currentVideo.type === 'image' ? currentVideo.imageSourceUrl : undefined}
             audioUrl={currentVideo.type === 'image' ? currentVideo.audioSourceUrl : undefined}
             autoplay={isPlaying}

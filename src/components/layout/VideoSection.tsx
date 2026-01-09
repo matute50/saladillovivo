@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import VideoPlayer from '@/components/VideoPlayer';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -103,9 +103,9 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
 
     const timeLeft = video.duration - video.currentTime;
 
-    // Cuando faltan 5 segundos (y no lo hemos activado aún)
-    if (timeLeft <= 5 && !transitionTriggeredRef.current) {
-        console.log("Intro: Activando video de fondo (5s antes del final)");
+    // Cuando faltan 4 segundos (y no lo hemos activado aún)
+    if (timeLeft <= 4 && !transitionTriggeredRef.current) {
+        console.log("Intro: Activando video de fondo (4s antes del final)");
         transitionTriggeredRef.current = true;
         setPlayBackgroundEarly(true);
     }

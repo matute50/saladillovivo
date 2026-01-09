@@ -10,6 +10,9 @@ interface VideoPlayerProps {
   onClose?: () => void;
   onProgress?: (state: { playedSeconds: number }) => void;
   startAt?: number;
+  imageUrl?: string; 
+  audioUrl?: string; 
+  playerVolume?: number; // Added to resolve type error and allow external volume control
 }
 
 export default function VideoPlayer({ 
@@ -17,7 +20,8 @@ export default function VideoPlayer({
   autoplay = false, 
   onClose, 
   onProgress,
-  startAt 
+  startAt,
+  playerVolume // Destructure playerVolume prop
 }: VideoPlayerProps) {
   const [isMounted, setIsMounted] = useState(false);
   const playerRef = useRef<ReactPlayer>(null);
@@ -48,6 +52,9 @@ export default function VideoPlayer({
 
   if (!isMounted) return null;
 
+  // Determine the effective volume
+  const effectiveVolume = typeof playerVolume === 'number' ? playerVolume : volume;
+
   return (
     <div className="relative w-full h-full bg-black overflow-hidden">
       {/* CAPA DE BLOQUEO (REGLA DE ORO) 
@@ -59,7 +66,7 @@ export default function VideoPlayer({
         url={videoUrl}
         playing={autoplay}
         controls={false} // Desactivamos controles nativos
-        volume={volume}  // <--- APLICAMOS VOLUMEN DEL CONTEXTO
+        volume={effectiveVolume}  // <--- APLICAMOS VOLUMEN EFECTIVO
         muted={isMuted}  // <--- APLICAMOS MUTE DEL CONTEXTO
         width="100%"
         height="100%"

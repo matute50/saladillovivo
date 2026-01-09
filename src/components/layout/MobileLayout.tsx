@@ -5,7 +5,7 @@ import { useNews } from '@/context/NewsContext';
 import type { PageData } from '@/lib/types';
 import { categoryMappings, type CategoryMapping } from '@/lib/categoryMappings';
 
-import NewsTicker from '../NewsTicker';
+
 import VideoSection from './VideoSection';
 import NewsCard from '../NewsCard';
 import CategoryCycler from './CategoryCycler';
@@ -14,7 +14,7 @@ import BannerSection from './BannerSection';
 import AdsSection from './AdsSection';
 
 const MobileLayout = ({ data, isMobile }: { data: PageData; isMobile: boolean }) => {
-  const { articles, videos, banners, ads, tickerTexts } = data;
+  const { articles, videos, banners, ads } = data;
   const { isSearching, searchResults, searchLoading, handleSearch } = useNews();
   const { allVideos } = videos;
 

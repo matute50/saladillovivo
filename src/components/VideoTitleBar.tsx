@@ -33,7 +33,7 @@ const VideoTitleBar: React.FC<VideoTitleBarProps> = ({ className }) => {
   const nextDisplayCategory = nextCategoryDb ? getDisplayCategory(nextCategoryDb) : null;
 
   const nextVideoDisplay = nextVideoName ? `${nextDisplayCategory?.toUpperCase()}, ${nextVideoName}` : '';
-  const showNextVideoLine = !isSlideActive && preloadedNextVideo && preloadedNextVideo.type !== 'html'; // Asegurarse de que no sea un slide
+  const showNextVideoLine = !isSlideActive && preloadedNextVideo; // Asegurarse de que no sea un slide
 
   const showBar = !!(currentVideo || preloadedNextVideo || isSlideActive);
 

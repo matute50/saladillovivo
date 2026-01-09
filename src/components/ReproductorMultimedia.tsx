@@ -5,25 +5,12 @@ import { motion } from 'framer-motion';
 import VideoIntro from './VideoIntro';
 import VideoPlayer from './VideoPlayer'; 
 import { SlideMedia, Article } from '@/lib/types';
-
-
+import { useMediaPlayer } from '@/context/MediaPlayerContext'; // Import useMediaPlayer
 
 
 interface ReproductorMultimediaProps {
-
-
-
-
   onComplete: () => void;
-
-
-
-
   videoToPlay?: SlideMedia | null;
-
-
-
-
 }
 
 /**
@@ -31,6 +18,8 @@ interface ReproductorMultimediaProps {
  * Comienza con un video de intro y luego pasa a un slide de noticias.
  */
 export default function ReproductorMultimedia({ onComplete, videoToPlay }: ReproductorMultimediaProps) {
+  const { currentVideo, videoPlayerRef } = useMediaPlayer(); // Get currentVideo and videoPlayerRef from context
+
   const handleVideoEnd = () => {
     console.log('Video de introducción terminado. Finalizando secuencia.');
     onComplete();
@@ -68,7 +57,11 @@ export default function ReproductorMultimedia({ onComplete, videoToPlay }: Repro
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <VideoIntro onEnd={handleVideoEnd} />
+            <VideoIntro 
+                onEnd={handleVideoEnd} 
+                videoSrc={currentVideo?.url || ""} // Pass currentVideo.url as videoSrc
+                videoRef={videoPlayerRef} // Pass videoPlayerRef
+            />
           </motion.div>
         )}
     </div>

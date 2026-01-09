@@ -67,11 +67,7 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onToggleFul
     return null;
   }
 
-  const VolumeIcon = isMuted
-    ? VolumeX
-    : volume <= 0.5
-    ? Volume1
-    : Volume2;
+
 
   return (
     <AnimatePresence>
