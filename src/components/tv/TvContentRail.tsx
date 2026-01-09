@@ -134,17 +134,16 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
         style={{ pointerEvents: isVisible ? 'auto' : 'none' }}
         className="w-full max-w-screen-xl mx-auto px-4"
       >
-        <CategoryCycler 
-          allVideos={processed} 
-          activeCategory={{ display: 'Tu Búsqueda', dbCategory: 'search_results' }} 
-          onNext={() => {}} 
-          onPrev={() => {}} 
-          onCardClick={handleCardClick}
-          isMobile={false}
-          isSearchResult={true}
-          instanceId="search-carousel"
-        />
-      </motion.div>
+                  <CategoryCycler 
+                      allVideos={processed} 
+                      activeCategory={{ display: 'Tu Búsqueda', dbCategory: 'search_results' }} 
+                      onNext={() => {}} 
+                      onPrev={() => {}} 
+                      onCardClick={handleCardClick}
+                      isMobile={true} 
+                      isSearchResult={true}
+                      instanceId="search-carousel"
+                  />      </motion.div>
     );
   }
   
@@ -194,7 +193,7 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
           onNext={handleNextCategory}
           onPrev={handlePrevCategory}
           onCardClick={handleCardClick}
-          isMobile={false} 
+          isMobile={true} 
           instanceId="tv-carousel"
         />
       </div>
