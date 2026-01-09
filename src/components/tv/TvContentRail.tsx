@@ -60,6 +60,15 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
   }, [availableCategoryMappings, initialCategory]); // Add initialCategory to dependencies
 
   const handleNextCategory = useCallback(() => {
+    setCategoryIndex(prev => (prev + 1) % availableCategoryMappings.length);
+  }, [availableCategoryMappings.length]);
+
+  const handlePrevCategory = useCallback(() => {
+    setCategoryIndex(prev => (prev - 1 + availableCategoryMappings.length) % availableCategoryMappings.length);
+  }, [availableCategoryMappings.length]);
+
+  // Manejo de Clics
+  const handleCardClick = useCallback((item: Video | Article) => {
     const isArticle = 'slug' in item || 'titulo' in item || 'url_slide' in item;
 
     if (isArticle) {
@@ -135,15 +144,45 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
 
   return (
     <div className="w-full max-w-screen-xl mx-auto px-4">
-      <CategoryCycler 
-        allVideos={processedItems} 
-        activeCategory={activeCategory} 
-        onNext={handleNextCategory}
-        onPrev={handlePrevCategory}
-        onCardClick={handleCardClick}
-        isMobile={false} 
-        instanceId="tv-carousel"
-      />
+      <div className="flex items-center justify-center w-full z-10">
+        {!isSearchResult && onPrev && (
+          <motion.button 
+            onClick={onPrev}
+            className="carousel-nav-button-title p-0.5 rounded-md border-[1.5px] text-white border-white shadow-lg shadow-black/50 backdrop-blur-md"
+            animate={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
+            whileHover={{ backgroundColor: '#012078' }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+          >
+            <ChevronLeft size="20" />
+          </motion.button>
+        )}
+        <h2 className="text-3xl font-bold tracking-tight text-white truncate text-center mx-2 drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)]">
+          {activeCategory.display}
+        </h2>
+        {!isSearchResult && onNext && (
+          <motion.button 
+            onClick={onNext}
+            className="carousel-nav-button-title p-0.5 rounded-md border-[1.5px] text-white border-white shadow-lg shadow-black/50 backdrop-blur-md"
+            animate={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
+            whileHover={{ backgroundColor: '#012078' }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+          >
+            <ChevronRight size="20" />
+          </motion.button>
+        )}
+      </div>
+
+      <div className="-mt-[5px] w-full relative z-0">
+        <CategoryCycler 
+          allVideos={processedItems} 
+          activeCategory={activeCategory} 
+          onNext={handleNextCategory}
+          onPrev={handlePrevCategory}
+          onCardClick={handleCardClick}
+          isMobile={false} 
+          instanceId="tv-carousel"
+        />
+      </div>
     </div>
   );
 };
