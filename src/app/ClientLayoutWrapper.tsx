@@ -13,7 +13,7 @@ interface ClientLayoutWrapperProps {
 export default function ClientLayoutWrapper({ children }: ClientLayoutWrapperProps) {
   return (
     <NewsProvider>
-      <VolumeProvider> {/* <--- AGREGAR AQUÍ (Debe envolver a MediaPlayer) */}
+      <VolumeProvider> {/* AGREGAR AQUÍ (Debe envolver a MediaPlayer) */}
         <MediaPlayerProvider>
           <NewsPlayerProvider>
              {children}

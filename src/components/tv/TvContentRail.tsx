@@ -1,5 +1,8 @@
 'use client';
 
+import { motion } from "framer-motion";
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useNews } from '@/context/NewsContext';
 import CategoryCycler from '@/components/layout/CategoryCycler';
@@ -15,7 +18,7 @@ interface TvContentRailProps {
   initialCategory?: CategoryMapping; // Nuevo prop para la categoría inicial
 }
 
-const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearching, searchLoading, initialCategory }) => {
+const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearching, searchLoading, initialCategory, isSearchResult }) => {
   const { galleryVideos, allNews, isLoading: isLoadingNews } = useNews();
   const { playSpecificVideo, playTemporaryVideo, setIsPlaying } = useMediaPlayer();
   const { playSlide } = useNewsPlayer();
@@ -144,34 +147,33 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
 
   return (
     <div className="w-full max-w-screen-xl mx-auto px-4">
-      <div className="flex items-center justify-center w-full z-10">
-        {!isSearchResult && onPrev && (
-          <motion.button 
-            onClick={onPrev}
-            className="carousel-nav-button-title p-0.5 rounded-md border-[1.5px] text-white border-white shadow-lg shadow-black/50 backdrop-blur-md"
-            animate={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
-            whileHover={{ backgroundColor: '#012078' }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
-          >
-            <ChevronLeft size="20" />
-          </motion.button>
-        )}
-        <h2 className="text-3xl font-bold tracking-tight text-white truncate text-center mx-2 drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)]">
-          {activeCategory.display}
-        </h2>
-        {!isSearchResult && onNext && (
-          <motion.button 
-            onClick={onNext}
-            className="carousel-nav-button-title p-0.5 rounded-md border-[1.5px] text-white border-white shadow-lg shadow-black/50 backdrop-blur-md"
-            animate={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
-            whileHover={{ backgroundColor: '#012078' }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
-          >
-            <ChevronRight size="20" />
-          </motion.button>
-        )}
-      </div>
-
+            <div className="flex items-baseline justify-center w-full z-10 pt-5">
+              {!isSearching && handlePrevCategory && (
+                <motion.button
+                  onClick={handlePrevCategory}
+                  className="carousel-nav-button-title p-0.5 rounded-md border-[1.5px] text-white border-white shadow-lg shadow-black/50 backdrop-blur-md"
+                  animate={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
+                  whileHover={{ backgroundColor: '#012078' }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                >
+                  <ChevronLeft size="20" />
+                </motion.button>
+              )}
+              <h2 className="text-3xl font-bold tracking-tight text-white truncate text-center mx-2 drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)]">
+                {activeCategory.display}
+              </h2>
+              {!isSearching && handleNextCategory && (
+                <motion.button
+                  onClick={handleNextCategory}
+                  className="carousel-nav-button-title p-0.5 rounded-md border-[1.5px] text-white border-white shadow-lg shadow-black/50 backdrop-blur-md"
+                  animate={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
+                  whileHover={{ backgroundColor: '#012078' }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                >
+                  <ChevronRight size="20" />
+                </motion.button>
+              )}
+            </div>
       <div className="-mt-[5px] w-full relative z-0">
         <CategoryCycler 
           allVideos={processedItems} 

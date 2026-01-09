@@ -4,6 +4,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
 import VideoPlayer from '@/components/VideoPlayer';
 import Image from 'next/image';
+import { useVolume } from '@/context/VolumeContext';
 
 const TvBackgroundPlayer = () => {
   const { 
@@ -12,6 +13,7 @@ const TvBackgroundPlayer = () => {
     handleOnEnded, 
     isPlaying,
   } = useMediaPlayer();
+  const { volume, isMuted } = useVolume(); // Get volume and mute state
 
   const [playBackgroundEarly, setPlayBackgroundEarly] = useState(false);
   const transitionTriggeredRef = useRef(false);
@@ -88,7 +90,7 @@ const TvBackgroundPlayer = () => {
             autoplay={isBackgroundPlaying} 
             onClose={handleOnEnded}
             // El volumen es 0 si es una intro que se está reproduciendo por encima
-            playerVolume={isLocalIntro && !playBackgroundEarly ? 0 : 1}
+            playerVolume={isMuted ? 0 : volume}
           />
         </div>
       )}

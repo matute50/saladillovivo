@@ -88,12 +88,19 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onToggleFul
               <button onClick={toggleMute} className="text-white transition-colors">
                 {isMuted ? <VolumeX size={24} fill="red" /> : (volume <= 0.5 ? <Volume1 size={24} /> : <Volume2 size={24} />)}
               </button>
-              <Slider
-                value={[volume]}
+              <input
+                type="range"
+                min={0}
                 max={1}
                 step={0.01}
-                onValueChange={(val) => setVolume(val[0])}
-                className="w-[100px]" // Ajusta el ancho del slider
+                value={isMuted ? 0 : volume}
+                onChange={(e) => setVolume(parseFloat(e.target.value))}
+                onInput={(e) => setVolume(parseFloat((e.target as HTMLInputElement).value))} // Para respuesta inmediata
+                className="
+                  w-20 h-1
+                  appearance-none bg-white/30 rounded-full cursor-pointer
+                  accent-[#6699ff] hover:accent-[#4d88ff]
+                "
               />
             </div>
           </div>
