@@ -136,7 +136,7 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
             >
               <div
                 onClick={() => handleVideoClick(video)}
-                className="relative cursor-pointer group rounded-xl overflow-hidden shadow-lg dark:shadow-none hover:shadow-white/50 hover:shadow-xl transition-all duration-300 ease-in-out"
+                className="relative cursor-pointer group rounded-xl overflow-hidden shadow-lg dark:shadow-none hover:shadow-white/75 hover:shadow-2xl transition-all duration-300 ease-in-out"
               >
                 <div className="relative w-56 aspect-video flex items-center justify-center bg-black">
                   <Image
@@ -145,7 +145,7 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     priority={index === 0}
-                    className={`${isLiveOrEvent ? 'object-contain' : 'object-cover'} transition-transform duration-300 group-hover:scale-105`}
+                    className={`${isLiveOrEvent ? 'object-contain' : 'object-cover'} transition-transform duration-300 group-hover:scale-110`}
                     // LA SOLUCIÓN MÁGICA:
                     unoptimized={isYouTube}
                     onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
