@@ -5,14 +5,15 @@ import DesktopLayout from '@/components/layout/DesktopLayout';
 import MobileLayout from '@/components/layout/MobileLayout';
 import { PageData } from '@/lib/types';
 
-const HomePageClient = ({ data }: { data: PageData }) => {
+// CORRECCIÓN: El prop debe llamarse initialData para coincidir con page.tsx
+const HomePageClient = ({ initialData }: { initialData: PageData }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     const checkIsMobile = () => {
-      // Usamos 768px como punto de corte estándar
+      // Usamos 768px como punto de corte estándar para la detección en el cliente
       setIsMobile(window.innerWidth < 768);
     };
     
@@ -21,15 +22,26 @@ const HomePageClient = ({ data }: { data: PageData }) => {
     return () => window.removeEventListener('resize', checkIsMobile);
   }, []);
 
-  // Evitamos renderizar nada hasta saber dónde estamos para no dar "flickers"
-  if (!mounted) return null;
-
-  if (isMobile) {
-    return <MobileLayout data={data} isMobile={true} />;
+  // 1. Evitamos el "flicker" de hidratación
+  if (!mounted) {
+    return <div className="min-h-screen bg-black" />; // Pantalla de carga simple
   }
 
-  // ESTA LÍNEA GARANTIZA QUE EL ESCRITORIO SIGUE EXACTAMENTE IGUAL
-  return <DesktopLayout data={data} />;
+  // 2. Verificación de seguridad: si no hay datos, mostramos un error amigable o nada
+  if (!initialData || !initialData.articles) {
+    console.warn("Advertencia: initialData llegó incompleto a HomePageClient");
+    // Puedes retornar un componente de error aquí si lo prefieres
+  }
+
+  // 3. Renderizado Condicional
+  // Nota: Aunque el Middleware ya redirigió al subdominio 'm', 
+  // esto sirve para cuando cambias el tamaño de la ventana en PC.
+  if (isMobile) {
+    return <MobileLayout data={initialData} isMobile={true} />;
+  }
+
+  // Renderizado para Escritorio
+  return <DesktopLayout data={initialData} />;
 };
 
 export default HomePageClient;
