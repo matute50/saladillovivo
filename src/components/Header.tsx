@@ -10,7 +10,12 @@ import SearchBar from '@/components/ui/SearchBar';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
 
-const Header = () => {
+// Definimos los props para que TypeScript no de error en el Layout
+interface HeaderProps {
+  ticker?: string[];
+}
+
+const Header = ({ ticker = [] }: HeaderProps) => {
   const { viewMode, setViewMode } = useMediaPlayer();
   const [isDarkTheme, setIsDarkTheme] = useState(true);
   const isMobile = useIsMobile();
@@ -54,7 +59,7 @@ const Header = () => {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ type: 'spring', stiffness: 120, damping: 20 }}
-      className={`bg-main-gradient sticky top-0 left-0 right-0 z-50 h-[3.3174rem] border-b-0`}
+      className="bg-main-gradient sticky top-0 left-0 right-0 z-[100] h-[3.3174rem] border-b border-white/5"
     >
       <div className="container mx-auto px-4 h-full flex justify-between items-center relative">
         <div className="flex items-center h-full">
@@ -65,7 +70,6 @@ const Header = () => {
               alt="Saladillo Vivo"
               width={216}
               height={58}
-              // SOLUCIÓN: style={{ width: 'auto', height: 'auto' }}
               style={{ width: 'auto', height: 'auto' }}
               className='object-contain'
             />
@@ -74,32 +78,20 @@ const Header = () => {
 
         <nav className="flex-grow flex justify-end items-center space-x-2">
           <SearchBar />
-          {viewMode === 'diario' ? (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => setViewMode('tv')}  
-              aria-label="Cambiar a modo TV"
-              className="pointer-events-auto"
-            >
-              <Tv size={isMobile ? 18 : 20} className="text-foreground" />
-            </Button>
-          ) : (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => setViewMode('diario')}  
-              aria-label="Cambiar a modo Diario"
-              className="pointer-events-auto"
-            >
-              <Newspaper size={isMobile ? 18 : 20} className="text-foreground" />
-            </Button>
-          )}
-          <Button variant="ghost" size="icon" onClick={handleShare} aria-label="Compartir en WhatsApp">
-            <Share2 size={isMobile ? 18 : 20} className="text-foreground" />
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setViewMode(viewMode === 'diario' ? 'tv' : 'diario')}  
+            aria-label="Cambiar modo"
+            className="text-white"
+          >
+            {viewMode === 'diario' ? <Tv size={20} /> : <Newspaper size={20} />}
           </Button>
-          <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
-            {isDarkTheme ? <Sun size={isMobile ? 18 : 20} className="text-foreground" /> : <Moon size={isMobile ? 18 : 20} className="text-foreground" />}
+          <Button variant="ghost" size="icon" onClick={handleShare} className="text-white">
+            <Share2 size={20} />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-white">
+            {isDarkTheme ? <Sun size={20} /> : <Moon size={20} />}
           </Button>
         </nav>
       </div>
