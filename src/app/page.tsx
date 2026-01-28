@@ -1,6 +1,6 @@
 import HomePageClient from "@/components/HomePageClient";
 import type { Metadata } from "next";
-import dynamic from "next/dynamic"; // NUEVO IMPORT
+import dynamic from "next/dynamic";
 import {
   getArticlesForHome,
   getVideosForHome,
@@ -11,45 +11,73 @@ import {
   getTickerTexts
 } from "@/lib/data";
 
-export const revalidate = 60; // Revalidate this page every 60 seconds
+export const revalidate = 60; // Revalida cada minuto
 
-// This function generates metadata on the server.
+// Generación de Metadatos con manejo de errores
 export async function generateMetadata(): Promise<Metadata> {
-  const { featuredNews } = await getArticlesForHome();
- 
-  return {
-    title: featuredNews?.meta_title || 'Saladillo Vivo - Noticias, Eventos y Cultura',
-    description: featuredNews?.meta_description || 'Saladillo Vivo es el canal temático de noticias, eventos y cultura de Saladillo. Mirá streaming en vivo y contenido on demand las 24hs.',
-    keywords: featuredNews?.meta_keywords || 'Saladillo, noticias, actualidad, vivo, streaming, eventos, cultura, HCD',
-    openGraph: {
-      title: featuredNews?.meta_title || 'Saladillo Vivo - Noticias y Actualidad',
+  try {
+    const data = await getArticlesForHome();
+    const featuredNews = data?.featuredNews;
+   
+    return {
+      title: featuredNews?.meta_title || 'Saladillo Vivo - Noticias, Eventos y Cultura',
       description: featuredNews?.meta_description || 'Saladillo Vivo es el canal temático de noticias, eventos y cultura de Saladillo.',
-      images: [featuredNews?.imageUrl || 'https://saladillovivo.vercel.app/default-og-image.png'],
-      url: `https://saladillovivo.vercel.app${featuredNews?.slug ? '/noticia/' + featuredNews.slug : ''}`,
-      type: featuredNews ? 'article' : 'website',
-    },
-  };
+      keywords: featuredNews?.meta_keywords || 'Saladillo, noticias, actualidad, vivo, streaming, eventos, cultura',
+      openGraph: {
+        title: featuredNews?.meta_title || 'Saladillo Vivo - Noticias y Actualidad',
+        description: featuredNews?.meta_description || 'Saladillo Vivo es el canal temático de noticias, eventos y cultura de Saladillo.',
+        images: [featuredNews?.imageUrl || 'https://saladillovivo.vercel.app/default-og-image.png'],
+        url: `https://saladillovivo.vercel.app${featuredNews?.slug ? '/noticia/' + featuredNews.slug : ''}`,
+        type: featuredNews ? 'article' : 'website',
+      },
+    };
+  } catch (error) {
+    return { title: 'Saladillo Vivo' };
+  }
 }
 
-// Dynamic import for HomePageClient to prevent SSR issues with its dependencies
-const DynamicHomePageClient = dynamic(() => import("@/components/HomePageClient"), { ssr: false }); // MODIFICADO
+// Importación dinámica para evitar errores de hidratación en el cliente
+const DynamicHomePageClient = dynamic(() => import("@/components/HomePageClient"), { 
+  ssr: false,
+  loading: () => <div className="min-h-screen bg-black" /> // Placeholder mientras carga
+});
 
-// This is the main page component, rendered on the server.
 export default async function Page() {
-  // Fetch all data concurrently for performance.
-  const [articles, videos, tickerTexts, interviews, banners, ads, events] = await Promise.all([
-    getArticlesForHome(),
-    getVideosForHome(),
-    getTickerTexts(),
-    getInterviews(),
-    getActiveBanners(),
-    getActiveAds(),
-    getCalendarEvents(),
-  ]);
+  // Fetch seguro: si falla, devolvemos objetos vacíos en lugar de undefined
+  let articles = { featuredNews: null, secondaryNews: [] };
+  let videos = { featuredVideo: null, recentVideos: [] };
+  let tickerTexts = [];
+  let interviews = [];
+  let banners = [];
+  let ads = [];
+  let events = [];
+
+  try {
+    const [resArticles, resVideos, resTicker, resInterviews, resBanners, resAds, resEvents] = await Promise.all([
+      getArticlesForHome(),
+      getVideosForHome(),
+      getTickerTexts(),
+      getInterviews(),
+      getActiveBanners(),
+      getActiveAds(),
+      getCalendarEvents(),
+    ]);
+
+    // Asignamos solo si el resultado existe
+    articles = resArticles || articles;
+    videos = resVideos || videos;
+    tickerTexts = resTicker || [];
+    interviews = resInterviews || [];
+    banners = resBanners || [];
+    ads = resAds || [];
+    events = resEvents || [];
+  } catch (error) {
+    console.error("Error cargando datos en Page:", error);
+  }
 
   const pageData = {
-    articles, // Contains featuredNews and secondaryNews
-    videos,   // Contains featuredVideo and recentVideos
+    articles,
+    videos,
     tickerTexts,
     interviews,
     banners,
@@ -57,11 +85,9 @@ export default async function Page() {
     events,
   };
 
-  // Pass the server-fetched data to the client component.
-  // CORRECCIÓN: Envolvemos en <main> para estructura semántica correcta
   return (
     <main>
-      <DynamicHomePageClient initialData={pageData} /> {/* MODIFICADO */}
+      <DynamicHomePageClient initialData={pageData} />
     </main>
   );
 }
