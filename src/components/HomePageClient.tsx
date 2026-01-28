@@ -5,42 +5,60 @@ import DesktopLayout from '@/components/layout/DesktopLayout';
 import MobileLayout from '@/components/layout/MobileLayout';
 import { PageData } from '@/lib/types';
 
-// CORRECCIÓN: El prop debe llamarse initialData para coincidir con page.tsx
+/**
+ * HomePageClient - Componente principal del lado del cliente.
+ * Recibe 'initialData' desde page.tsx (Servidor).
+ */
 const HomePageClient = ({ initialData }: { initialData: PageData }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+
+    // 1. Detección de dispositivo para renderizado condicional en el cliente
     const checkIsMobile = () => {
-      // Usamos 768px como punto de corte estándar para la detección en el cliente
-      setIsMobile(window.innerWidth < 768);
+      // Usamos 1024px como límite para tablets/móviles en este componente
+      setIsMobile(window.innerWidth < 1024);
     };
     
     checkIsMobile();
     window.addEventListener('resize', checkIsMobile);
+
+    // 2. Debug de datos (Ayuda a detectar los "faltantes" en la consola del PC)
+    if (process.env.NODE_ENV === 'development' || true) {
+      console.log("Saladillo Vivo - Datos cargados:", {
+        articulos: initialData?.articles?.secondaryNews?.length || 0,
+        noticiaPrincipal: !!initialData?.articles?.featuredNews,
+        videos: initialData?.videos?.recentVideos?.length || 0,
+        eventos: initialData?.events?.length || 0
+      });
+    }
+
     return () => window.removeEventListener('resize', checkIsMobile);
-  }, []);
+  }, [initialData]);
 
-  // 1. Evitamos el "flicker" de hidratación
+  // Prevenir errores de hidratación: el servidor y el cliente deben coincidir en el primer render
   if (!mounted) {
-    return <div className="min-h-screen bg-black" />; // Pantalla de carga simple
+    return <div className="min-h-screen bg-black" />;
   }
 
-  // 2. Verificación de seguridad: si no hay datos, mostramos un error amigable o nada
-  if (!initialData || !initialData.articles) {
-    console.warn("Advertencia: initialData llegó incompleto a HomePageClient");
-    // Puedes retornar un componente de error aquí si lo prefieres
+  // Validación defensiva: Si no hay datos, evitamos que DesktopLayout/MobileLayout fallen
+  if (!initialData) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center text-white">
+        Cargando contenidos...
+      </div>
+    );
   }
 
-  // 3. Renderizado Condicional
-  // Nota: Aunque el Middleware ya redirigió al subdominio 'm', 
-  // esto sirve para cuando cambias el tamaño de la ventana en PC.
+  // El Middleware ya redirige al subdominio 'm.', pero este componente 
+  // asegura que si cambias el tamaño del navegador en PC, la UI se adapte.
   if (isMobile) {
     return <MobileLayout data={initialData} isMobile={true} />;
   }
 
-  // Renderizado para Escritorio
+  // Renderizado para Desktop
   return <DesktopLayout data={initialData} />;
 };
 
