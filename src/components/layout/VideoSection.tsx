@@ -35,7 +35,6 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
 
   const isHtmlSlideActive = isSlidePlaying && currentSlide && currentSlide.type === 'html';
   
-  // Detección actualizada para la nueva carpeta
   const isLocalIntro = currentVideo?.url && (
       currentVideo.url.startsWith('/') || 
       currentVideo.url.includes('videos_intro')
@@ -76,8 +75,6 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
     }
   }, [currentVideo, isLocalIntro]);
 
-
-
   const toggleFullScreen = () => {
     if (!playerContainerRef.current) return;
     if (!document.fullscreenElement) playerContainerRef.current.requestFullscreen();
@@ -100,12 +97,8 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
   const handleIntroTimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     const video = e.currentTarget;
     if (!video.duration) return;
-
     const timeLeft = video.duration - video.currentTime;
-
-    // Cuando faltan 4 segundos (y no lo hemos activado aún)
     if (timeLeft <= 4 && !transitionTriggeredRef.current) {
-        console.log("Intro: Activando video de fondo (4s antes del final)");
         transitionTriggeredRef.current = true;
         setPlayBackgroundEarly(true);
     }
@@ -119,7 +112,6 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
       )}
       onMouseEnter={() => !isMobile && setShowControls(true)}
       onMouseLeave={() => !isMobile && setShowControls(false)}
-      // onClick ya no es necesario para la visibilidad de controles con este comportamiento
     >
       <div className="absolute inset-0 w-full h-full md:rounded-xl overflow-hidden bg-black">
         
@@ -140,6 +132,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
                 key={currentVideo.id}
                 src={currentVideo.url}
                 autoPlay
+                muted // CORRECCIÓN: Indispensable para autoplay en PC
                 playsInline
                 className="w-full h-full object-cover"
                 onEnded={handleOnEnded}
@@ -158,6 +151,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
                 key={backgroundVideoUrl} 
                 videoUrl={backgroundVideoUrl}
                 autoplay={isBackgroundPlaying}
+                muted={isLocalIntro} // CORRECCIÓN: Sincronizar con intro
                 onClose={handleOnEnded}
                 onProgress={handleProgress} 
                 startAt={!isLocalIntro ? (currentVideo as any).startAt : 0} 
@@ -177,25 +171,10 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
         )}
 
         <AnimatePresence>
-          {/* Barras de formato cine cuando está en pausa */}
           {!isPlaying && !isLocalIntro && !isHtmlSlideActive && (
             <>
-              <motion.div
-                key="top-cinematic-bar"
-                className="absolute top-0 left-0 right-0 h-14 bg-black z-50 pointer-events-none"
-                initial={{ opacity: 1 }} // Aparece instantáneamente
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-              />
-              <motion.div
-                key="bottom-cinematic-bar"
-                className="absolute bottom-0 left-0 right-0 h-14 bg-black z-50 pointer-events-none"
-                initial={{ opacity: 1 }} // Aparece instantáneamente
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-              />
+              <motion.div key="top-cinematic-bar" className="absolute top-0 left-0 right-0 h-14 bg-black z-50 pointer-events-none" initial={{ opacity: 1 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} />
+              <motion.div key="bottom-cinematic-bar" className="absolute bottom-0 left-0 right-0 h-14 bg-black z-50 pointer-events-none" initial={{ opacity: 1 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} />
             </>
           )}
 

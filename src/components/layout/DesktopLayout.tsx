@@ -5,7 +5,7 @@ import AdsSection from './AdsSection';
 import dynamic from 'next/dynamic';
 const VideoSection = dynamic(() => import('./VideoSection'), { ssr: false });
 
-// RUTA CORREGIDA: Apuntamos a la ubicación confirmada en src/components/
+// RUTA CORREGIDA: Apuntamos a src/components/Header.tsx
 import Header from '@/components/Header'; 
 
 import type { PageData } from '@/lib/types';
@@ -29,13 +29,14 @@ const DesktopLayout = ({ data }: { data: PageData }) => {
 
   return (
     <>
-      <Header ticker={tickerTexts} />
+      {/* 1. HEADER RESTAURADO (Permite Modo TV y Claro/Oscuro) */}
+      <Header />
 
       <main className="w-full bg-gray-100 dark:bg-neutral-950 pt-4">
         <div className="container mx-auto px-2">
           <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-4 relative">
             
-            {/* Columna Noticias: Se agregaron todas las categorías faltantes */}
+            {/* 2. COLUMNA NOTICIAS (Se agregaron todas las categorías faltantes) */}
             <div className="col-span-1 lg:col-span-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-8">
                 {articles?.featuredNews && (
@@ -43,19 +44,13 @@ const DesktopLayout = ({ data }: { data: PageData }) => {
                     <NewsCard newsItem={articles.featuredNews} index={0} isFeatured={true} />
                   </div>
                 )}
-                {articles?.secondaryNews?.map((n, i) => (
-                  <NewsCard key={n.id} newsItem={n} index={i} />
-                ))}
-                {articles?.tertiaryNews?.map((n, i) => (
-                  <NewsCard key={n.id} newsItem={n} index={i} />
-                ))}
-                {articles?.otherNews?.map((n, i) => (
-                  <NewsCard key={n.id} newsItem={n} index={i} />
-                ))}
+                {articles?.secondaryNews?.map((n, i) => <NewsCard key={n.id} newsItem={n} index={i} />)}
+                {articles?.tertiaryNews?.map((n, i) => <NewsCard key={n.id} newsItem={n} index={i} />)}
+                {articles?.otherNews?.map((n, i) => <NewsCard key={n.id} newsItem={n} index={i} />)}
               </div>
             </div>
 
-            {/* Columna Central (Fija) */}
+            {/* Columna Central */}
             <div className="hidden lg:block col-span-5 sticky top-[4rem] h-[calc(100vh-5rem)]">
               <div className="flex flex-col h-full gap-2">
                 <VideoSection isMobile={false} />
