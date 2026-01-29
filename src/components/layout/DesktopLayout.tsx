@@ -5,7 +5,7 @@ import AdsSection from './AdsSection';
 import dynamic from 'next/dynamic';
 const VideoSection = dynamic(() => import('./VideoSection'), { ssr: false });
 
-// RUTA CORREGIDA: Apuntamos a src/components/Header.tsx usando el alias @
+// RUTA CORREGIDA: Apuntamos a la ubicación confirmada en src/components/
 import Header from '@/components/Header'; 
 
 import type { PageData } from '@/lib/types';
@@ -20,7 +20,6 @@ const DesktopLayout = ({ data }: { data: PageData }) => {
   const { isSearching, searchResults, searchLoading, handleSearch } = useNews();
   const { allVideos } = videos;
 
-  // Lógica de filtrado de categorías para el carrusel central
   const availableCategoryMappings = categoryMappings.filter(category => {
     const dbCategories = Array.isArray(category.dbCategory) ? category.dbCategory : [category.dbCategory];
     return allVideos.some(video => dbCategories.includes(video.categoria));
@@ -30,14 +29,13 @@ const DesktopLayout = ({ data }: { data: PageData }) => {
 
   return (
     <>
-      {/* HEADER RESTAURADO CON LA RUTA CORRECTA */}
-      <Header />
+      <Header ticker={tickerTexts} />
 
       <main className="w-full bg-gray-100 dark:bg-neutral-950 pt-4">
         <div className="container mx-auto px-2">
           <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-4 relative">
             
-            {/* Columna Izquierda: Noticias */}
+            {/* Columna Noticias: Se agregaron todas las categorías faltantes */}
             <div className="col-span-1 lg:col-span-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-8">
                 {articles?.featuredNews && (
@@ -48,15 +46,19 @@ const DesktopLayout = ({ data }: { data: PageData }) => {
                 {articles?.secondaryNews?.map((n, i) => (
                   <NewsCard key={n.id} newsItem={n} index={i} />
                 ))}
+                {articles?.tertiaryNews?.map((n, i) => (
+                  <NewsCard key={n.id} newsItem={n} index={i} />
+                ))}
+                {articles?.otherNews?.map((n, i) => (
+                  <NewsCard key={n.id} newsItem={n} index={i} />
+                ))}
               </div>
             </div>
 
-            {/* Columna Central: Video y Carrusel (Fija al hacer scroll) */}
+            {/* Columna Central (Fija) */}
             <div className="hidden lg:block col-span-5 sticky top-[4rem] h-[calc(100vh-5rem)]">
               <div className="flex flex-col h-full gap-2">
-                <div className="flex-shrink-0">
-                  <VideoSection isMobile={false} />
-                </div>
+                <VideoSection isMobile={false} />
                 <div className="flex-1 overflow-y-auto scrollbar-hide">
                   <CategoryCycler 
                     allVideos={isSearching ? searchResults : allVideos} 
@@ -68,11 +70,10 @@ const DesktopLayout = ({ data }: { data: PageData }) => {
               </div>
             </div>
 
-            {/* Columna Derecha: Publicidad */}
+            {/* Columna Anuncios */}
             <div className="hidden lg:block col-span-2">
                <AdsSection activeAds={ads} isLoading={false} />
             </div>
-
           </div>
         </div>
       </main>
