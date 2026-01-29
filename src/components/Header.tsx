@@ -10,12 +10,7 @@ import SearchBar from '@/components/ui/SearchBar';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
 
-// Definimos los props para que TypeScript no de error en el Layout
-interface HeaderProps {
-  ticker?: string[];
-}
-
-const Header = ({ ticker = [] }: HeaderProps) => {
+const Header = () => {
   const { viewMode, setViewMode } = useMediaPlayer();
   const [isDarkTheme, setIsDarkTheme] = useState(true);
   const isMobile = useIsMobile();
@@ -23,7 +18,7 @@ const Header = ({ ticker = [] }: HeaderProps) => {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('theme');
-      const initialTheme = savedTheme === 'dark';
+      const initialTheme = savedTheme === 'dark' || !savedTheme; // Default dark
       setIsDarkTheme(initialTheme);
       if (initialTheme) {
         document.documentElement.classList.add('dark');
@@ -59,7 +54,7 @@ const Header = ({ ticker = [] }: HeaderProps) => {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ type: 'spring', stiffness: 120, damping: 20 }}
-      className="bg-main-gradient sticky top-0 left-0 right-0 z-[100] h-[3.3174rem] border-b border-white/5"
+      className="bg-main-gradient sticky top-0 left-0 right-0 z-50 h-[3.3174rem] border-b border-white/5"
     >
       <div className="container mx-auto px-4 h-full flex justify-between items-center relative">
         <div className="flex items-center h-full">
@@ -78,19 +73,21 @@ const Header = ({ ticker = [] }: HeaderProps) => {
 
         <nav className="flex-grow flex justify-end items-center space-x-2">
           <SearchBar />
+          
           <Button 
             variant="ghost" 
             size="icon" 
             onClick={() => setViewMode(viewMode === 'diario' ? 'tv' : 'diario')}  
-            aria-label="Cambiar modo"
-            className="text-white"
+            className="text-neutral-900 dark:text-white"
           >
             {viewMode === 'diario' ? <Tv size={20} /> : <Newspaper size={20} />}
           </Button>
-          <Button variant="ghost" size="icon" onClick={handleShare} className="text-white">
+
+          <Button variant="ghost" size="icon" onClick={handleShare} className="text-neutral-900 dark:text-white">
             <Share2 size={20} />
           </Button>
-          <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-white">
+
+          <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-neutral-900 dark:text-white">
             {isDarkTheme ? <Sun size={20} /> : <Moon size={20} />}
           </Button>
         </nav>

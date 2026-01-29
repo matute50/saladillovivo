@@ -5,17 +5,17 @@ import AdsSection from './AdsSection';
 import dynamic from 'next/dynamic';
 const VideoSection = dynamic(() => import('./VideoSection'), { ssr: false });
 
-// RUTA CORREGIDA: Apuntamos a src/components/Header.tsx
 import Header from '@/components/Header'; 
-
 import type { PageData } from '@/lib/types';
 import CategoryCycler from './CategoryCycler';
-import { categoryMappings, type CategoryMapping } from '@/lib/categoryMappings';
+import { categoryMappings } from '@/lib/categoryMappings';
 import { useNews } from '@/context/NewsContext';
+import { useMediaPlayer } from '@/context/MediaPlayerContext';
 import NoResultsCard from './NoResultsCard';
 import NewsCard from '../NewsCard';
 
 const DesktopLayout = ({ data }: { data: PageData }) => {
+  const { viewMode } = useMediaPlayer();
   const { articles, videos = { allVideos: [] }, ads, tickerTexts = [] } = data || {};
   const { isSearching, searchResults, searchLoading, handleSearch } = useNews();
   const { allVideos } = videos;
@@ -27,16 +27,38 @@ const DesktopLayout = ({ data }: { data: PageData }) => {
 
   const [categoryIndex, setCategoryIndex] = useState(0);
 
+  const handleNextCategory = useCallback(() => {
+    setCategoryIndex(prev => (prev + 1) % availableCategoryMappings.length);
+  }, [availableCategoryMappings.length]);
+
+  const handlePrevCategory = useCallback(() => {
+    setCategoryIndex(prev => (prev - 1 + availableCategoryMappings.length) % availableCategoryMappings.length);
+  }, [availableCategoryMappings.length]);
+
+  // RENDERIZADO MODO TV
+  if (viewMode === 'tv') {
+    return (
+      <>
+        <Header />
+        <main className="w-full bg-black h-[calc(100vh-3.3174rem)] flex flex-col items-center justify-center p-6">
+           <div className="w-full max-w-5xl aspect-video shadow-2xl shadow-orange-600/20 border border-white/10 rounded-xl overflow-hidden">
+              <VideoSection isMobile={false} />
+           </div>
+           <div className="mt-6 text-white/50 text-sm font-light tracking-[0.3em] uppercase animate-pulse">
+              Señal en vivo • Saladillo Vivo TV
+           </div>
+        </main>
+      </>
+    );
+  }
+
+  // RENDERIZADO MODO DIARIO
   return (
     <>
-      {/* 1. HEADER RESTAURADO (Permite Modo TV y Claro/Oscuro) */}
       <Header />
-
       <main className="w-full bg-gray-100 dark:bg-neutral-950 pt-4">
         <div className="container mx-auto px-2">
           <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-4 relative">
-            
-            {/* 2. COLUMNA NOTICIAS (Se agregaron todas las categorías faltantes) */}
             <div className="col-span-1 lg:col-span-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-8">
                 {articles?.featuredNews && (
@@ -50,7 +72,6 @@ const DesktopLayout = ({ data }: { data: PageData }) => {
               </div>
             </div>
 
-            {/* Columna Central */}
             <div className="hidden lg:block col-span-5 sticky top-[4rem] h-[calc(100vh-5rem)]">
               <div className="flex flex-col h-full gap-2">
                 <VideoSection isMobile={false} />
@@ -58,6 +79,8 @@ const DesktopLayout = ({ data }: { data: PageData }) => {
                   <CategoryCycler 
                     allVideos={isSearching ? searchResults : allVideos} 
                     activeCategory={availableCategoryMappings[categoryIndex]} 
+                    onNext={handleNextCategory}
+                    onPrev={handlePrevCategory}
                     isMobile={false} 
                     instanceId="1" 
                   />
@@ -65,7 +88,6 @@ const DesktopLayout = ({ data }: { data: PageData }) => {
               </div>
             </div>
 
-            {/* Columna Anuncios */}
             <div className="hidden lg:block col-span-2">
                <AdsSection activeAds={ads} isLoading={false} />
             </div>
