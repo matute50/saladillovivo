@@ -5,7 +5,6 @@ import AdsSection from './AdsSection';
 import dynamic from 'next/dynamic';
 const VideoSection = dynamic(() => import('./VideoSection'), { ssr: false });
 
-import Header from '@/components/Header';
 import type { PageData } from '@/lib/types';
 import CategoryCycler from './CategoryCycler';
 import { categoryMappings, type CategoryMapping } from '@/lib/categoryMappings';
@@ -63,7 +62,6 @@ const DesktopLayout = ({ data }: DesktopLayoutProps) => {
 
   return (
     <>
-      <Header ticker={tickerTexts} />
 
       <main className="w-full bg-gray-100 dark:bg-neutral-950 pt-[calc(var(--desktop-header-height)-65px)]">
         <div className="container mx-auto px-2">

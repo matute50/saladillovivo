@@ -90,7 +90,8 @@ export default function VideoPlayer({
       }
       isFadingIn.current = false; // Ensure reset on unmount or dependency change
     };
-  }, [videoUrl, autoplay, effectiveVolume, isMuted, isPlayerReady, localVolume]); // Added isPlayerReady and localVolume to dependencies
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [videoUrl, autoplay, effectiveVolume, isMuted, isPlayerReady]); // localVolume omitted to prevent infinite loop
 
   // Handle player ready state and seeking
   const handleReady = useCallback(() => {

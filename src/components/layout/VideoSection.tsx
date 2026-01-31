@@ -122,7 +122,8 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
     return () => {
       if (timer1) clearTimeout(timer1);
     };
-  }, [currentVideo, isPlaying, showIntroCinematicBars]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentVideo, isPlaying]); // showIntroCinematicBars omitted to prevent restarting timer unnecessarily
 
   useEffect(() => {
     if (!currentVideo?.url || isLocalIntro) {
