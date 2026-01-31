@@ -6,10 +6,9 @@ import VideoControls from '../VideoControls';
 import TvContentRail from '../tv/TvContentRail';
 import { useNewsStore } from '@/store/useNewsStore';
 import Image from 'next/image';
-import { useNewsPlayerStore } from '@/store/useNewsPlayerStore';
 import { motion } from 'framer-motion';
 import { usePlayerStore } from '@/store/usePlayerStore'; // Importar el store del reproductor
-import { CategoryMapping, categoryMappings } from '@/lib/categoryMappings'; // Importar categoryMappings
+import { CategoryMapping } from '@/lib/categoryMappings'; // Importar CategoryMapping
 
 // Definir las categorías elegibles para el inicio aleatorio
 const INITIAL_TV_CATEGORIES: CategoryMapping[] = [
@@ -20,8 +19,7 @@ const INITIAL_TV_CATEGORIES: CategoryMapping[] = [
 
 const TvModeLayout = () => {
   const { handleSearch, searchResults, isSearching, searchLoading } = useNewsStore();
-  const { currentSlide, isPlaying: isSlidePlaying } = useNewsPlayerStore();
-  const { currentVideo, isPlaying, setViewMode } = usePlayerStore(); // Obtener el video actual y el estado de reproducción
+  const { isPlaying, setViewMode } = usePlayerStore(); // Obtener el video actual y el estado de reproducción
   const [initialTvCategory, setInitialTvCategory] = useState<CategoryMapping | undefined>(undefined); // Nuevo estado
 
   useEffect(() => {
@@ -170,8 +168,7 @@ const TvModeLayout = () => {
 
 
   // Detectar si hay un slide HTML reproduciéndose
-
-  const isHtmlSlide = isSlidePlaying && currentSlide && currentSlide.type === 'html';
+  // const isHtmlSlide = isSlidePlaying && currentSlide && currentSlide.type === 'html';
 
 
 

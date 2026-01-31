@@ -13,8 +13,6 @@ interface ClientLayoutWrapperProps {
 
 export default function ClientLayoutWrapper({ children }: ClientLayoutWrapperProps) {
   const fetchData = useNewsStore(state => state.fetchData);
-  const loadInitialPlaylist = usePlayerStore(state => state.loadInitialPlaylist);
-
   useEffect(() => {
     // Inicialización global de datos
     fetchData();

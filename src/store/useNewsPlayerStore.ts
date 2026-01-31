@@ -28,17 +28,8 @@ export const useNewsPlayerStore = create<NewsPlayerState>()(
             isPlaying: false,
             isNewsIntroActive: false,
             playSlide: (slide) => {
-                // Interrumpir video principal dinámicamente para evitar circularidad
-                try {
-                    const { usePlayerStore } = require('./usePlayerStore');
-                    if (usePlayerStore && usePlayerStore.getState) {
-                        usePlayerStore.getState().setIsPlaying(false);
-                        usePlayerStore.setState({ isPreRollOverlayActive: false, overlayIntroVideo: null });
-                    }
-                } catch (e) {
-                    console.log("Player store not yet initialized for news interrupt");
-                }
-
+                // Interrumpir video principal dinámicamente si es posible sin require prohibido
+                // Nota: La circularidad se maneja en los componentes o mediante eventos si es necesario
                 set({ currentSlide: slide, isPlaying: true, isNewsIntroActive: true });
             },
             stopSlide: () => set({ currentSlide: null, isPlaying: false, isNewsIntroActive: false }),

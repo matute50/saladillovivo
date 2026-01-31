@@ -9,7 +9,7 @@ import { usePlayerStore } from '@/store/usePlayerStore';
 import { useNewsPlayerStore } from '@/store/useNewsPlayerStore';
 import { useVolumeStore } from '@/store/useVolumeStore';
 import CategoryCycler from '@/components/layout/CategoryCycler';
-import { Video, Article, SlideMedia } from '@/lib/types';
+import { Video, Article } from '@/lib/types';
 import { categoryMappings, type CategoryMapping } from '@/lib/categoryMappings';
 
 const TRANSPARENT_PNG_DATA_URI = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
@@ -121,7 +121,7 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
       }
       return { ...item, imageUrl: thumb, imagen: thumb };
     });
-  }, [galleryVideos]); // Added galleryVideos to dependencies
+  }, []); // galleryVideos removed from dependencies as it's not directly used inside
 
   if (isLoadingNews || availableCategoryMappings.length === 0) {
     return <div className="text-white p-4 bg-white/10 rounded-lg flex justify-center items-center h-[126px]">Cargando...</div>;

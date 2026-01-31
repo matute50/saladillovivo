@@ -29,7 +29,8 @@ const HomePageClient = ({ initialData }: { initialData: PageData }) => {
     window.addEventListener('resize', checkIsMobile);
 
     // 2. Debug de datos (Ayuda a detectar los "faltantes" en la consola del PC)
-    if (process.env.NODE_ENV === 'development' || true) {
+    // 2. Debug de datos (Ayuda a detectar los "faltantes" en la consola del PC)
+    if (process.env.NODE_ENV === 'development') {
       console.log("Saladillo Vivo - Datos cargados:", {
         articulos: initialData?.articles?.secondaryNews?.length || 0,
         noticiaPrincipal: !!initialData?.articles?.featuredNews,

@@ -19,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
   try {
     const data = await getArticlesForHome();
     const featuredNews = data?.featuredNews;
-   
+
     return {
       title: featuredNews?.meta_title || 'Saladillo Vivo - Noticias, Eventos y Cultura',
       description: featuredNews?.meta_description || 'Saladillo Vivo es el canal temático de noticias, eventos y cultura de Saladillo.',
@@ -32,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
         type: featuredNews ? 'article' : 'website',
       },
     };
-  } catch (error) {
+  } catch {
     return { title: 'Saladillo Vivo' };
   }
 }
@@ -41,13 +41,13 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function Page() {
   // Fetch seguro: si falla, devolvemos objetos vacíos en lugar de undefined
-  let articles = { featuredNews: null, secondaryNews: [] };
-  let videos = { featuredVideo: null, recentVideos: [] };
-  let tickerTexts = [];
-  let interviews = [];
-  let banners = [];
-  let ads = [];
-  let events = [];
+  let articles: any = { featuredNews: null, secondaryNews: [], tertiaryNews: [], otherNews: [], allNews: [] };
+  let videos: any = { featuredVideo: null, recentVideos: [], allVideos: [], videoCategories: [] };
+  let tickerTexts: string[] = [];
+  let interviews: any[] = [];
+  let banners: any[] = [];
+  let ads: any[] = [];
+  let events: any[] = [];
 
   try {
     const [resArticles, resVideos, resTicker, resInterviews, resBanners, resAds, resEvents] = await Promise.all([

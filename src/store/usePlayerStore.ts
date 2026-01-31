@@ -202,7 +202,7 @@ export const usePlayerStore = create<PlayerState>()(
                 }
 
                 const randomDbVideo = await get().fetchRandomDbVideo();
-                const isYouTube = randomDbVideo?.url.includes('youtu.be/') || randomDbVideo?.url.includes('youtube.com/');
+                // const isYouTube = randomDbVideo?.url.includes('youtu.be/') || randomDbVideo?.url.includes('youtube.com/');
 
                 if (randomDbVideo) {
                     const intro = get().getRandomIntro();
@@ -220,7 +220,7 @@ export const usePlayerStore = create<PlayerState>()(
 
                 if (playbackState === 'INTRO') {
                     // Si venimos de una INTRO local (4s), elegimos video de DB
-                    let nextV = nextDataVideo || await get().fetchRandomDbVideo(currentVideo?.id, currentVideo?.categoria);
+                    const nextV = nextDataVideo || await get().fetchRandomDbVideo(currentVideo?.id, currentVideo?.categoria);
 
                     if (nextV) {
                         if (isYouTubeVideo(nextV.url)) {
@@ -243,7 +243,7 @@ export const usePlayerStore = create<PlayerState>()(
                     }
 
                     // Buscar próximo video de categoría diferente
-                    let nextV = nextDataVideo || await get().fetchRandomDbVideo(currentVideo?.id, currentVideo?.categoria);
+                    const nextV = nextDataVideo || await get().fetchRandomDbVideo(currentVideo?.id, currentVideo?.categoria);
 
                     if (nextV && isYouTubeVideo(nextV.url)) {
                         // Si es YouTube y NO venimos de intro, ponemos intro overlay

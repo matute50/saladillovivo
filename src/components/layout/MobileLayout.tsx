@@ -3,10 +3,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { usePlayerStore } from '@/store/usePlayerStore';
-import { useNewsStore } from '@/store/useNewsStore';
 import { useVolumeStore } from '@/store/useVolumeStore';
 import VideoSection from './VideoSection';
-import { PageData, Video, Article } from '@/lib/types';
+import { PageData } from '@/lib/types';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Controller } from 'swiper/modules';
 import { Play, ChevronLeft, ChevronRight, Info, FileText } from 'lucide-react';
@@ -130,7 +129,7 @@ function VideoCarouselBlock({ videos, categories }: { videos: any[]; categories:
   );
 }
 
-export default function MobileLayout({ data, isMobile }: { data: PageData; isMobile: boolean }) {
+export default function MobileLayout({ data }: { data: PageData; isMobile: boolean }) {
   const safeData = data || MOCK_DATA;
   const { articles, videos, ads } = safeData as PageData;
   const isLandscape = useOrientation();

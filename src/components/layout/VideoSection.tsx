@@ -27,7 +27,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
   const [isFullScreen, setIsFullScreen] = useState(false);
   const playerContainerRef = useRef<HTMLDivElement>(null);
 
-  const { currentVideo, isPlaying, handleOnEnded, saveCurrentProgress, resumeAfterSlide, setIsPlaying, playbackState, isPreRollOverlayActive, overlayIntroVideo, startIntroHideTimer, playRandomSequence, viewMode } = usePlayerStore();
+  const { currentVideo, isPlaying, handleOnEnded, saveCurrentProgress, setIsPlaying, isPreRollOverlayActive, overlayIntroVideo, startIntroHideTimer, playRandomSequence, viewMode } = usePlayerStore();
   const { currentSlide, isPlaying: isSlidePlaying, stopSlide, isNewsIntroActive, setIsNewsIntroActive } = useNewsPlayerStore();
   const { volume, setVolume, isMuted } = useVolumeStore();
   const { isCastAvailable, handleCast } = useCast(currentVideo);
@@ -122,7 +122,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
     return () => {
       if (timer1) clearTimeout(timer1);
     };
-  }, [currentVideo?.id, isPlaying]);
+  }, [currentVideo, isPlaying, showIntroCinematicBars]);
 
   useEffect(() => {
     if (!currentVideo?.url || isLocalIntro) {
@@ -234,7 +234,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
       v.load();
       v.play().catch(e => console.log("Auto-play prevented, waiting for user interaction or network", e));
     }
-  }, [overlayIntroVideo?.url, isPreRollOverlayActive]);
+  }, [overlayIntroVideo, isPreRollOverlayActive]);
 
   // Helper para determinar si mostrar el overlay de noticias (Solo para Videos/Imágenes, NO para HTML)
   const isNewsContent = (currentVideo?.categoria === 'Noticias' && !isLocalIntro);

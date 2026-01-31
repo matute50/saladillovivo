@@ -6,7 +6,6 @@ import { useNewsStore } from '@/store/useNewsStore'; // Use news store
 import { Play, Pause, Maximize, Minimize, VolumeX, Volume2, Volume1, Search, Newspaper, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useVolumeStore } from '@/store/useVolumeStore'; // Use volume store
-import { Slider } from '@/components/ui/slider'; // Import Slider
 import { useDebounce } from '@/hooks/useDebounce'; // Import useDebounce hook
 
 interface VideoControlsProps {

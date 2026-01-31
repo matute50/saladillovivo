@@ -207,7 +207,7 @@ export async function getNewRandomVideo(currentId?: string, currentCategory?: st
     return null; // No videos in DB
   }
 
-  let allAvailableVideos: Video[] = data as Video[];
+  const allAvailableVideos: Video[] = data as Video[];
   let candidates: Video[] = [...allAvailableVideos]; // Start with all videos
 
   // 1. Exclude currentId if provided

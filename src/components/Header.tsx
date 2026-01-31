@@ -7,19 +7,14 @@ import { motion } from 'framer-motion';
 import { Sun, Moon, Share2, Tv, Newspaper } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import SearchBar from '@/components/ui/SearchBar';
-import { useIsMobile } from '@/hooks/useIsMobile';
 import { usePlayerStore } from '@/store/usePlayerStore';
 import { useNewsStore } from '@/store/useNewsStore';
 
-interface HeaderProps {
-  ticker?: string[];
-}
 
-const Header = ({ ticker = [] }: HeaderProps) => {
+const Header = () => {
   const { viewMode, setViewMode } = usePlayerStore();
   const setIsDarkThemeGlobal = useNewsStore(state => state.setIsDarkTheme);
   const [isDarkTheme, setIsDarkTheme] = useState(true);
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (typeof window !== 'undefined') {

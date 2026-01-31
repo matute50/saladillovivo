@@ -90,7 +90,7 @@ export default function VideoPlayer({
       }
       isFadingIn.current = false; // Ensure reset on unmount or dependency change
     };
-  }, [videoUrl, autoplay, effectiveVolume, isMuted, isPlayerReady]); // Added isPlayerReady to dependencies
+  }, [videoUrl, autoplay, effectiveVolume, isMuted, isPlayerReady, localVolume]); // Added isPlayerReady and localVolume to dependencies
 
   // Handle player ready state and seeking
   const handleReady = useCallback(() => {
