@@ -7,13 +7,15 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-import { useMediaPlayer } from '@/context/MediaPlayerContext';
+import { usePlayerStore } from '@/store/usePlayerStore';
+import { useVolumeStore } from '@/store/useVolumeStore';
 import { useThemeButtonColors } from '@/hooks/useThemeButtonColors';
 import { useToast } from '@/components/ui/use-toast';
 import { Video, ExclusiveVideoCarouselProps } from '@/lib/types';
 
 const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos, isLoading, carouselId, isMobile = false, isLive = false, onVideoClick }) => {
-  const { playSpecificVideo, playLiveStream, streamStatus } = useMediaPlayer();
+  const { playSpecificVideo, playLiveStream, streamStatus } = usePlayerStore();
+  const { volume, setVolume } = useVolumeStore();
   const { toast } = useToast();
   const swiperRef = useRef(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
@@ -27,30 +29,30 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
 
     // Prioridad: Extraer del video.url si es link de YouTube
     if (video.url) {
-        const videoIdMatch = video.url.match(youTubeRegex);
-        if (videoIdMatch) {
-            return `https://img.youtube.com/vi/${videoIdMatch[1]}/hqdefault.jpg`;
-        }
+      const videoIdMatch = video.url.match(youTubeRegex);
+      if (videoIdMatch) {
+        return `https://img.youtube.com/vi/${videoIdMatch[1]}/hqdefault.jpg`;
+      }
     }
 
     // Procesar video.imagen
     const cleanImageUrl = (video.imagen || '').trim();
-    
+
     if (!cleanImageUrl) {
-        return 'https://via.placeholder.com/320x180.png?text=Miniatura';
+      return 'https://via.placeholder.com/320x180.png?text=Miniatura';
     }
 
     // Si video.imagen es URL de YouTube, extraer miniatura
     if (cleanImageUrl.includes('youtube.com') || cleanImageUrl.includes('youtu.be')) {
-        const videoIdMatch = cleanImageUrl.match(youTubeRegex);
-        if (videoIdMatch) {
-            return `https://img.youtube.com/vi/${videoIdMatch[1]}/mqdefault.jpg`;
-        }
+      const videoIdMatch = cleanImageUrl.match(youTubeRegex);
+      if (videoIdMatch) {
+        return `https://img.youtube.com/vi/${videoIdMatch[1]}/mqdefault.jpg`;
+      }
     }
 
     // Si es absoluta, usarla tal cual
     if (cleanImageUrl.match(/^(http|https):\/\//)) {
-        return cleanImageUrl;
+      return cleanImageUrl;
     }
 
     // CORRECCIÓN DE BUG: 'cleanUrl' no existía, debía ser 'cleanImageUrl'
@@ -62,7 +64,7 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
       onVideoClick(video);
       return;
     }
-    
+
     if (isLive || video.isLiveThumbnail) {
       if (streamStatus) {
         playLiveStream(streamStatus);
@@ -73,7 +75,7 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
         description: "Este es un evento futuro. ¡Vuelve pronto para verlo en vivo!",
       });
     } else {
-      playSpecificVideo(video);
+      playSpecificVideo(video, volume, setVolume);
     }
   };
 
@@ -104,7 +106,7 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
       >
         {videos.map((video, index) => {
           const isLiveOrEvent = isLive || video.isLiveThumbnail || video.isEvent;
-          
+
           const slideClasses = "transition-all duration-300 ease-in-out opacity-100 blur-none";
           const titleOverlayClasses = "absolute inset-0 p-2 bg-gradient-to-t from-black/80 to-transparent flex justify-center items-end text-center opacity-100 z-20 transition-opacity duration-300 ease-in-out";
 
@@ -145,10 +147,11 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     priority={index === 0}
+                    loading={index === 0 ? 'eager' : 'lazy'}
                     className={`${isLiveOrEvent ? 'object-contain' : 'object-cover'} transition-transform duration-300 group-hover:scale-110`}
                     // LA SOLUCIÓN MÁGICA:
                     unoptimized={isYouTube}
-                    onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
+                    onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='; }}
                   />
                 </div>
                 <div className={titleOverlayClasses}>
@@ -159,26 +162,26 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
           );
         })}
       </Swiper>
-        <>
-          <motion.button
-            id={`prev-${carouselId}`}
-            className="carousel-nav-button absolute top-1/2 -translate-y-1/2 left-0 z-20 rounded-md p-1 cursor-pointer border shadow-lg shadow-black/50 backdrop-blur-md"
-            animate={{ color: buttonColor, borderColor: buttonBorderColor, backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
-            whileHover={{ backgroundColor: '#012078' }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
-          >
-            <ChevronLeft size={30} />
-          </motion.button>
-          <motion.button
-            id={`next-${carouselId}`}
-            className="carousel-nav-button absolute top-1/2 -translate-y-1/2 right-0 z-20 rounded-md p-1 cursor-pointer border shadow-lg shadow-black/50 backdrop-blur-md"
-            animate={{ color: buttonColor, borderColor: buttonColor, backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
-            whileHover={{ backgroundColor: '#012078' }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
-          >
-            <ChevronRight size={30} />
-          </motion.button>
-        </>
+      <>
+        <motion.button
+          id={`prev-${carouselId}`}
+          className="carousel-nav-button absolute top-1/2 -translate-y-1/2 left-0 z-20 rounded-md p-1 cursor-pointer border shadow-lg shadow-black/50 backdrop-blur-md"
+          animate={{ color: buttonColor, borderColor: buttonBorderColor, backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
+          whileHover={{ backgroundColor: '#012078' }}
+          transition={{ duration: 0.3, ease: 'easeInOut' }}
+        >
+          <ChevronLeft size={30} />
+        </motion.button>
+        <motion.button
+          id={`next-${carouselId}`}
+          className="carousel-nav-button absolute top-1/2 -translate-y-1/2 right-0 z-20 rounded-md p-1 cursor-pointer border shadow-lg shadow-black/50 backdrop-blur-md"
+          animate={{ color: buttonColor, borderColor: buttonColor, backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
+          whileHover={{ backgroundColor: '#012078' }}
+          transition={{ duration: 0.3, ease: 'easeInOut' }}
+        >
+          <ChevronRight size={30} />
+        </motion.button>
+      </>
     </div>
   );
 };

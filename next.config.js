@@ -3,9 +3,7 @@ const nextConfig = {
   // --- CORRECCIÓN PARA EL DESPLIEGUE ---
   // Ignoramos alertas de ESLint y errores de TypeScript para asegurar que
   // tu versión funcional se publique sin bloqueos.
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -51,6 +49,11 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'media.saladillovivo.com.ar',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com',
         pathname: '/**',
       },
     ],

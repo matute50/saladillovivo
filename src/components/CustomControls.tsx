@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { useMediaPlayer } from '@/context/MediaPlayerContext';
-import { useVolume } from '@/context/VolumeContext';
+import { usePlayerStore } from '@/store/usePlayerStore';
+import { useVolumeStore } from '@/store/useVolumeStore';
 import { Maximize, Minimize, Play, Pause, Volume2, VolumeX, Volume1 } from 'lucide-react';
 
 interface CustomControlsProps {
@@ -11,8 +11,8 @@ interface CustomControlsProps {
 }
 
 const CustomControls: React.FC<CustomControlsProps> = ({ onToggleFullScreen, isFullScreen }) => {
-  const { isPlaying, togglePlayPause } = useMediaPlayer();
-  const { volume, setVolume, isMuted, toggleMute } = useVolume();
+  const { isPlaying, togglePlayPause } = usePlayerStore();
+  const { volume, setVolume, isMuted, toggleMute } = useVolumeStore();
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Aseguramos que sea un número flotante
@@ -28,13 +28,13 @@ const CustomControls: React.FC<CustomControlsProps> = ({ onToggleFullScreen, isF
   };
 
   return (
-    <div 
+    <div
       className="w-full bg-gradient-to-t from-black/90 via-black/50 to-transparent px-4 pb-3 pt-10 flex items-center justify-between transition-opacity duration-300"
       onClick={(e) => e.stopPropagation()} // Regla de Oro: Bloqueamos clicks al fondo
     >
-      
+
       {/* IZQUIERDA: Play/Pause */}
-      <button 
+      <button
         onClick={(e) => { e.stopPropagation(); togglePlayPause(); }}
         className="text-white hover:text-[#6699ff] transition-colors p-1"
         title={isPlaying ? "Pausar" : "Reproducir"}
@@ -44,11 +44,11 @@ const CustomControls: React.FC<CustomControlsProps> = ({ onToggleFullScreen, isF
 
       {/* DERECHA: Grupo Controles (Volumen + Fullscreen) */}
       <div className="flex items-center gap-4 bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10">
-        
+
         {/* GRUPO VOLUMEN (Horizontal) */}
         <div className="flex items-center gap-2">
           {/* Botón Mute */}
-          <button 
+          <button
             onClick={(e) => { e.stopPropagation(); toggleMute(); }}
             className="text-white hover:text-[#6699ff] transition-colors"
             title={isMuted ? "Activar sonido" : "Silenciar"}
@@ -78,7 +78,7 @@ const CustomControls: React.FC<CustomControlsProps> = ({ onToggleFullScreen, isF
         <div className="h-5 w-px bg-white/20"></div>
 
         {/* Pantalla Completa */}
-        <button 
+        <button
           onClick={(e) => { e.stopPropagation(); onToggleFullScreen(); }}
           className="text-white hover:text-[#6699ff] transition-colors"
           title={isFullScreen ? "Salir de pantalla completa" : "Pantalla completa"}

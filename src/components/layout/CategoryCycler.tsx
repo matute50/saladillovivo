@@ -22,12 +22,12 @@ interface CategoryCyclerProps {
   onCardClick?: (item: any) => void;
 }
 
-const CategoryCycler: React.FC<CategoryCyclerProps> = ({ 
-  allVideos = [], 
-  activeCategory, 
-  onNext, 
-  onPrev, 
-  isMobile, 
+const CategoryCycler: React.FC<CategoryCyclerProps> = ({
+  allVideos = [],
+  activeCategory,
+  onNext,
+  onPrev,
+  isMobile,
   instanceId,
   isSearchResult = false,
   onCardClick
@@ -38,7 +38,7 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
 
     if (isSearchResult) return safeVideos;
     if (!activeCategory) return [];
-    
+
     // Si es NOTICIAS, devolvemos todo (TvContentRail ya lo filtró)
     if (activeCategory.dbCategory === '__NOTICIAS__') {
       return safeVideos;
@@ -58,7 +58,7 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
   if (!activeCategory) return null;
 
   return (
-    <div className="w-full flex flex-col gap-0 my-2">
+    <div className="w-full flex flex-col gap-4 mt-[-1px] mb-2">
       {!isMobile && ( // Condición para mostrar solo en desktop
         <div className="flex items-baseline justify-center w-full z-10">
           {!isSearchResult && onPrev && (
@@ -96,7 +96,7 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
           isLoading={false}
           carouselId={`category-cycler-${instanceId}`}
           isMobile={isMobile}
-          onVideoClick={onCardClick} 
+          onVideoClick={onCardClick}
         />
       </div>
     </div>

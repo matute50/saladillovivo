@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useMediaPlayer } from '@/context/MediaPlayerContext';
-import { useNews } from '@/context/NewsContext'; // Import useNews to get global searchQuery
+import { usePlayerStore } from '@/store/usePlayerStore';
+import { useNewsStore } from '@/store/useNewsStore'; // Use news store
 import { Play, Pause, Maximize, Minimize, VolumeX, Volume2, Volume1, Search, Newspaper, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useVolume } from '@/context/VolumeContext'; // Use volume context
+import { useVolumeStore } from '@/store/useVolumeStore'; // Use volume store
 import { Slider } from '@/components/ui/slider'; // Import Slider
 import { useDebounce } from '@/hooks/useDebounce'; // Import useDebounce hook
 
@@ -18,15 +18,15 @@ interface VideoControlsProps {
 }
 
 const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onToggleFullScreen, isFullScreen, onSwitchToDailyMode, onSearchSubmit }) => {
-  const { isPlaying, togglePlayPause } = useMediaPlayer();
-  const { volume, isMuted, setVolume, toggleMute } = useVolume(); // Use volume context
-  const { searchQuery } = useNews(); // Get global searchQuery from NewsContext
+  const { isPlaying, togglePlayPause } = usePlayerStore();
+  const { volume, isMuted, setVolume, toggleMute } = useVolumeStore(); // Use volume store
+  const { searchQuery } = useNewsStore(); // Get global searchQuery from NewsStore
 
   const [localQuery, setLocalQuery] = useState(searchQuery); // Local state for input
   const debouncedQuery = useDebounce(localQuery, 400); // Debounce local query
 
-// Synchronize local state if the global query clears from elsewhere
-    useEffect(() => {
+  // Synchronize local state if the global query clears from elsewhere
+  useEffect(() => {
     if (searchQuery !== localQuery) {
       setLocalQuery(searchQuery);
     }

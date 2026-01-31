@@ -4,12 +4,15 @@ import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { useNews } from '@/context/NewsContext';
+import { useNewsStore } from '@/store/useNewsStore';
+import { usePlayerStore } from '@/store/usePlayerStore';
+import { useNewsPlayerStore } from '@/store/useNewsPlayerStore';
+import { useVolumeStore } from '@/store/useVolumeStore';
 import CategoryCycler from '@/components/layout/CategoryCycler';
-import { useMediaPlayer } from '@/context/MediaPlayerContext';
-import { useNewsPlayer } from '@/context/NewsPlayerContext';
-import { Video, Article } from '@/lib/types';
-import { categoryMappings } from '@/lib/categoryMappings';
+import { Video, Article, SlideMedia } from '@/lib/types';
+import { categoryMappings, type CategoryMapping } from '@/lib/categoryMappings';
+
+const TRANSPARENT_PNG_DATA_URI = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
 
 interface TvContentRailProps {
   searchResults: Video[];
@@ -20,22 +23,23 @@ interface TvContentRailProps {
 }
 
 const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearching, searchLoading, initialCategory, isVisible = true }) => {
-  const { galleryVideos, allNews, isLoading: isLoadingNews } = useNews();
-  const { playSpecificVideo, playTemporaryVideo, setIsPlaying } = useMediaPlayer();
-  const { playSlide } = useNewsPlayer();
+  const { galleryVideos, allNews, isLoading: isLoadingNews } = useNewsStore();
+  const { playSpecificVideo, playTemporaryVideo, setIsPlaying } = usePlayerStore();
+  const { playSlide } = useNewsPlayerStore();
+  const { volume, setVolume } = useVolumeStore();
 
   const [categoryIndex, setCategoryIndex] = useState(0);
 
   const availableCategoryMappings = useMemo(() => {
     if (isLoadingNews) return [];
-    
+
     return categoryMappings.filter(category => {
       // Excluir explícitamente la categoría "Noticias (Slides)" del modo TV
       if (category.display === 'Noticias (Slides)') return false;
-      
+
       if (category.dbCategory === '__NOTICIAS__') return allNews.length > 0;
       if (category.dbCategory === '__NOVEDADES__') return galleryVideos.some(video => video.novedad === true);
-      
+
       const dbCategories = Array.isArray(category.dbCategory) ? category.dbCategory : [category.dbCategory];
       return galleryVideos.some(video => dbCategories.includes(video.categoria));
     });
@@ -76,43 +80,44 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
     const isArticle = 'slug' in item || 'titulo' in item || 'url_slide' in item;
 
     if (isArticle) {
-        const newsItem = item as any;
-        const title = newsItem.title || newsItem.titulo;
-        const imageUrl = newsItem.imageUrl || newsItem.image_url || newsItem.imagen || '/placeholder.png';
-        const urlSlide = newsItem.url_slide || newsItem.urlSlide;
-        const duration = newsItem.animation_duration || 15;
-        const isHtmlSlide = urlSlide && urlSlide.endsWith('.html');
+      const newsItem = item as any;
+      const title = newsItem.title || newsItem.titulo;
+      const imageUrl = newsItem.imageUrl || newsItem.image_url || newsItem.imagen || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+      const urlSlide = newsItem.url_slide || newsItem.urlSlide;
+      const audioUrl = newsItem.audio_url || newsItem.audioUrl;
+      const duration = newsItem.animation_duration || 15;
+      const isHtmlSlide = urlSlide && urlSlide.endsWith('.html');
 
-        if (isHtmlSlide) {
-            // Pausar video de fondo y reproducir slide
-            setIsPlaying(false);
-            // AQUÍ PASAMOS EL TÍTULO
-            playSlide({ url: urlSlide, type: 'html', duration, title });
-        } else if (urlSlide) {
-             // Video temporal
-             playTemporaryVideo({
-                id: (newsItem.id || Date.now()).toString(),
-                type: 'video',
-                url: urlSlide, 
-                nombre: title,
-                categoria: 'Noticias',
-                imagen: imageUrl,
-                duration: duration,
-                createdAt: new Date().toISOString(),
-                novedad: false // Added to satisfy SlideMedia interface
-             });
-        }
+      if (isHtmlSlide) {
+        // Pausar video de fondo y reproducir slide
+        setIsPlaying(false);
+        // AQUÍ PASAMOS EL TÍTULO Y EL AUDIO
+        playSlide({ url: urlSlide, type: 'html', duration, title, audioUrl });
+      } else if (urlSlide) {
+        // Video temporal
+        playTemporaryVideo({
+          id: (newsItem.id || Date.now()).toString(),
+          type: 'video',
+          url: urlSlide,
+          nombre: title,
+          categoria: 'Noticias',
+          imagen: imageUrl,
+          duration: duration,
+          createdAt: new Date().toISOString(),
+          novedad: false // Added to satisfy SlideMedia interface
+        });
+      }
     } else {
-        playSpecificVideo(item as Video);
+      playSpecificVideo(item as Video, volume, setVolume);
     }
-  }, [playSpecificVideo, playTemporaryVideo, playSlide, setIsPlaying]);
+  }, [playSpecificVideo, playTemporaryVideo, playSlide, setIsPlaying, volume, setVolume]);
 
   const processThumbnails = useCallback((items: any[]) => {
     return items.map(item => {
-      let thumb = item.imageUrl || item.image_url || item.imagen || '/placeholder.png';
-      if ((thumb === '/placeholder.png' || !thumb) && item.url) {
-         const match = item.url.match(/(?:youtu\.be\/|youtube\.com\/.*v=)([^&]+)/);
-         if (match && match[1]) thumb = `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg`;
+      let thumb = item.imageUrl || item.image_url || item.imagen || TRANSPARENT_PNG_DATA_URI;
+      if ((thumb === TRANSPARENT_PNG_DATA_URI || !thumb) && item.url) {
+        const match = item.url.match(/(?:youtu\.be\/|youtube\.com\/.*v=)([^&]+)/);
+        if (match && match[1]) thumb = `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg`;
       }
       return { ...item, imageUrl: thumb, imagen: thumb };
     });
@@ -134,19 +139,19 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
         style={{ pointerEvents: isVisible ? 'auto' : 'none' }}
         className="w-full max-w-screen-xl mx-auto px-4"
       >
-                  <CategoryCycler 
-                      allVideos={processed} 
-                      activeCategory={{ display: 'Tu Búsqueda', dbCategory: 'search_results' }} 
-                      onNext={() => {}} 
-                      onPrev={() => {}} 
-                      onCardClick={handleCardClick}
-                      isMobile={true} 
-                      isSearchResult={true}
-                      instanceId="search-carousel"
-                  />      </motion.div>
+        <CategoryCycler
+          allVideos={processed}
+          activeCategory={{ display: 'Tu Búsqueda', dbCategory: 'search_results' }}
+          onNext={() => { }}
+          onPrev={() => { }}
+          onCardClick={handleCardClick}
+          isMobile={true}
+          isSearchResult={true}
+          instanceId="search-carousel"
+        />      </motion.div>
     );
   }
-  
+
   const activeCategory = availableCategoryMappings[categoryIndex];
   const rawItems = activeCategory.dbCategory === '__NOTICIAS__' ? allNews : galleryVideos;
   const processedItems = processThumbnails(rawItems);
@@ -159,41 +164,41 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
       style={{ pointerEvents: isVisible ? 'auto' : 'none' }}
       className="w-full max-w-screen-xl mx-auto px-4"
     >
-            <div className="flex items-baseline justify-center w-full z-10 pt-5">
-              {!isSearching && handlePrevCategory && (
-                <motion.button
-                  onClick={handlePrevCategory}
-                  className="carousel-nav-button-title p-0.5 rounded-md border-[1.5px] text-white border-white shadow-lg shadow-black/50 backdrop-blur-md"
-                  animate={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
-                  whileHover={{ backgroundColor: '#012078' }}
-                  transition={{ duration: 0.3, ease: 'easeInOut' }}
-                >
-                  <ChevronLeft size="20" />
-                </motion.button>
-              )}
-              <h2 className="text-3xl font-bold tracking-tight text-white truncate text-center mx-2 drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)]">
-                {activeCategory.display}
-              </h2>
-              {!isSearching && handleNextCategory && (
-                <motion.button
-                  onClick={handleNextCategory}
-                  className="carousel-nav-button-title p-0.5 rounded-md border-[1.5px] text-white border-white shadow-lg shadow-black/50 backdrop-blur-md"
-                  animate={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
-                  whileHover={{ backgroundColor: '#012078' }}
-                  transition={{ duration: 0.3, ease: 'easeInOut' }}
-                >
-                  <ChevronRight size="20" />
-                </motion.button>
-              )}
-            </div>
+      <div className="flex items-baseline justify-center w-full z-10 pt-5">
+        {!isSearching && handlePrevCategory && (
+          <motion.button
+            onClick={handlePrevCategory}
+            className="carousel-nav-button-title p-0.5 rounded-md border-[1.5px] text-white border-white shadow-lg shadow-black/50 backdrop-blur-md"
+            animate={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
+            whileHover={{ backgroundColor: '#012078' }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+          >
+            <ChevronLeft size="20" />
+          </motion.button>
+        )}
+        <h2 className="text-3xl font-bold tracking-tight text-white truncate text-center mx-2 drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)]">
+          {activeCategory.display}
+        </h2>
+        {!isSearching && handleNextCategory && (
+          <motion.button
+            onClick={handleNextCategory}
+            className="carousel-nav-button-title p-0.5 rounded-md border-[1.5px] text-white border-white shadow-lg shadow-black/50 backdrop-blur-md"
+            animate={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
+            whileHover={{ backgroundColor: '#012078' }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+          >
+            <ChevronRight size="20" />
+          </motion.button>
+        )}
+      </div>
       <div className="-mt-[5px] w-full relative z-0">
-        <CategoryCycler 
-          allVideos={processedItems} 
-          activeCategory={activeCategory} 
+        <CategoryCycler
+          allVideos={processedItems}
+          activeCategory={activeCategory}
           onNext={handleNextCategory}
           onPrev={handlePrevCategory}
           onCardClick={handleCardClick}
-          isMobile={true} 
+          isMobile={true}
           instanceId="tv-carousel"
         />
       </div>

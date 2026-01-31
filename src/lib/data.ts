@@ -31,7 +31,7 @@ export async function getArticlesForHome(limitTotal: number = 25) {
         'apikey': supabaseAnonKey,
         'Authorization': `Bearer ${supabaseAnonKey}`,
       },
-      next: { revalidate: 60 } 
+      next: { revalidate: 60 }
     });
 
     if (!response.ok) {
@@ -84,20 +84,20 @@ export async function getArticlesForHome(limitTotal: number = 25) {
     } else if (processedNews.length > 0) {
       // Si no hay 'featured', la más reciente de todas es la destacada
       const oldestNonFeatured = processedNews.find(p => p.id !== featuredNews?.id);
-      if(oldestNonFeatured){
+      if (oldestNonFeatured) {
         featuredNews = oldestNonFeatured;
       }
     }
-    
+
     // Re-ordenar las secundarias y terciarias por fecha de creación descendente
     secondaryNews.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     tertiaryNews.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    
+
     // Ordenar las "otras" noticias de derecha a izquierda (más viejas primero)
     otherNews.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-    
+
     // Filtrar la noticia destacada de las otras listas para evitar duplicados
-    const allButFeatured = [ ...secondaryNews, ...tertiaryNews, ...otherNews].filter(n => n.id !== featuredNews?.id);
+    const allButFeatured = [...secondaryNews, ...tertiaryNews, ...otherNews].filter(n => n.id !== featuredNews?.id);
 
 
     return {
@@ -118,7 +118,7 @@ export async function getVideosForHome(limitRecent: number = 4) {
   const { data, error } = await supabase
     .from('videos')
     .select('id, nombre, url, createdAt, categoria, imagen, novedad, forzar_video')
-    .neq('categoria', 'HCD DE SALADILLO - Período 2025')
+    .not('categoria', 'ilike', '%HCD%')
     .order('createdAt', { ascending: false });
 
   if (error) {
@@ -177,8 +177,8 @@ export async function getVideosForHome(limitRecent: number = 4) {
   return {
     featuredVideo,
     recentVideos: recentVideos.slice(0, limitRecent),
-    allVideos: videos, 
-    videoCategories, 
+    allVideos: videos,
+    videoCategories,
   };
 }
 
@@ -196,7 +196,7 @@ export async function getNewRandomVideo(currentId?: string, currentCategory?: st
   const { data, error } = await supabase
     .from('videos')
     .select('id, nombre, url, createdAt, categoria, imagen, novedad, forzar_video')
-    .neq('categoria', 'HCD DE SALADILLO - Período 2025');
+    .not('categoria', 'ilike', '%HCD%');
 
   if (error) {
     console.error('Error fetching videos for random selection:', error);
@@ -204,33 +204,49 @@ export async function getNewRandomVideo(currentId?: string, currentCategory?: st
   }
 
   if (!data || data.length === 0) {
-    return null;
+    return null; // No videos in DB
   }
 
-  let selectableVideos: Video[] = data as Video[];
+  let allAvailableVideos: Video[] = data as Video[];
+  let candidates: Video[] = [...allAvailableVideos]; // Start with all videos
 
-  if (currentId && data.length > 1) {
-    selectableVideos = selectableVideos.filter(video => video.id !== currentId);
+  // 1. Exclude currentId if provided
+  if (currentId) {
+    candidates = candidates.filter(video => video.id !== currentId);
   }
 
-  if (currentCategory) {
-    const filteredByCategory = selectableVideos.filter(video => video.categoria !== currentCategory);
-    if (filteredByCategory.length > 0) {
-      selectableVideos = filteredByCategory;
-    } else {
-      selectableVideos = data.filter(video => video.id !== currentId) as Video[];
-      if (selectableVideos.length === 0) { 
-        selectableVideos = data as Video[];
+  // 2. Filter by currentCategory if provided and if it leaves videos
+  if (currentCategory) { // Apply category filter only if currentCategory is provided
+    const categoryFiltered = candidates.filter(video => video.categoria !== currentCategory);
+    if (categoryFiltered.length > 0) {
+      candidates = categoryFiltered;
+    }
+    // If category filter left no videos, we stick with 'candidates' before category filter.
+    // This ensures we always have videos unless the initial fetch was empty or currentId removed all.
+  }
+
+  // 3. If after all filtering, candidates list is empty, 
+  //    revert to playing any random video from original data (excluding currentId if possible)
+  if (candidates.length === 0) {
+    if (allAvailableVideos.length > 0) {
+      // If currentId was the *only* video, then playing it again is the only option
+      if (allAvailableVideos.length === 1 && allAvailableVideos[0].id === currentId) {
+        return allAvailableVideos[0];
       }
+      // Otherwise, pick a random from all available (excluding currentId if possible)
+      let finalFallbackCandidates = allAvailableVideos.filter(video => video.id !== currentId);
+      if (finalFallbackCandidates.length === 0) {
+        finalFallbackCandidates = allAvailableVideos; // If currentId excluded all, use all
+      }
+      const randomIndex = Math.floor(Math.random() * finalFallbackCandidates.length);
+      return finalFallbackCandidates[randomIndex];
+    } else {
+      return null; // No videos in DB at all (should be caught by initial data.length check)
     }
   }
 
-  if (selectableVideos.length === 0) {
-    return null; 
-  }
-
-  const randomIndex = Math.floor(Math.random() * selectableVideos.length);
-  return selectableVideos[randomIndex];
+  const randomIndex = Math.floor(Math.random() * candidates.length);
+  return candidates[randomIndex];
 }
 
 export async function getTickerTexts(): Promise<string[]> {
@@ -324,7 +340,7 @@ export async function getCalendarEvents(): Promise<CalendarEvent[]> {
 }
 
 export async function getArticles() {
-  const { allNews } = await getArticlesForHome(100); 
+  const { allNews } = await getArticlesForHome(100);
 
   const destacada = allNews.find(a => a.featureStatus === 'featured') || null;
   const noticias2 = allNews.filter(a => a.featureStatus === 'secondary');
@@ -417,7 +433,7 @@ function filterSearchTerms(query: string): string {
     .toLowerCase()
     .split(/\s+/)
     .filter(word => word.length > 1 && !stopWords.has(word))
-    .join(' & '); 
+    .join(' & ');
 
   return cleanedQuery;
 }

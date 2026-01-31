@@ -57,6 +57,7 @@ export interface Video {
 export interface SlideMedia extends Video {
   imageSourceUrl?: string;
   audioSourceUrl?: string;
+  resumen?: string;
 }
 
 export interface Interview {

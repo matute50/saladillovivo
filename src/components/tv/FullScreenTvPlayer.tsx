@@ -2,11 +2,11 @@
 
 import React from 'react';
 import MediaPlayerWrapper from '@/components/MediaPlayerWrapper';
-import { useMediaPlayer } from '@/context/MediaPlayerContext';
+import { usePlayerStore } from '@/store/usePlayerStore';
 import VideoPlayer from '../VideoPlayer';
 
 const FullScreenTvPlayer = () => {
-  const { currentVideo, isPlaying } = useMediaPlayer();
+  const { currentVideo, isPlaying } = usePlayerStore();
 
   return (
     <div className='absolute inset-0 w-full h-full z-0'>
@@ -17,7 +17,7 @@ const FullScreenTvPlayer = () => {
             imageUrl={currentVideo.type === 'image' ? currentVideo.imageSourceUrl : undefined}
             audioUrl={currentVideo.type === 'image' ? currentVideo.audioSourceUrl : undefined}
             autoplay={isPlaying}
-            onClose={() => {}} // onClose is now a required prop for VideoPlayer. Add a no-op function.
+            onClose={() => { }} // onClose is now a required prop for VideoPlayer. Add a no-op function.
           />
         )}
       </MediaPlayerWrapper>

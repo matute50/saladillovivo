@@ -8,15 +8,16 @@ import { Sun, Moon, Share2, Tv, Newspaper } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import SearchBar from '@/components/ui/SearchBar';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { useMediaPlayer } from '@/context/MediaPlayerContext';
+import { usePlayerStore } from '@/store/usePlayerStore';
+import { useNewsStore } from '@/store/useNewsStore';
 
-// Definimos los props para que TypeScript no de error en el Layout
 interface HeaderProps {
   ticker?: string[];
 }
 
 const Header = ({ ticker = [] }: HeaderProps) => {
-  const { viewMode, setViewMode } = useMediaPlayer();
+  const { viewMode, setViewMode } = usePlayerStore();
+  const setIsDarkThemeGlobal = useNewsStore(state => state.setIsDarkTheme);
   const [isDarkTheme, setIsDarkTheme] = useState(true);
   const isMobile = useIsMobile();
 
@@ -27,19 +28,23 @@ const Header = ({ ticker = [] }: HeaderProps) => {
       setIsDarkTheme(initialTheme);
       if (initialTheme) {
         document.documentElement.classList.add('dark');
+        setIsDarkThemeGlobal(true);
       } else {
         document.documentElement.classList.remove('dark');
+        setIsDarkThemeGlobal(false);
       }
     }
-  }, []);
+  }, [setIsDarkThemeGlobal]);
 
   const toggleTheme = () => {
     const newThemeState = !isDarkTheme;
     setIsDarkTheme(newThemeState);
     if (newThemeState) {
       document.documentElement.classList.add('dark');
+      setIsDarkThemeGlobal(true);
     } else {
       document.documentElement.classList.remove('dark');
+      setIsDarkThemeGlobal(false);
     }
     localStorage.setItem('theme', newThemeState ? 'dark' : 'light');
   };
@@ -59,7 +64,7 @@ const Header = ({ ticker = [] }: HeaderProps) => {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ type: 'spring', stiffness: 120, damping: 20 }}
-      className="bg-main-gradient sticky top-0 left-0 right-0 z-[100] h-[3.3174rem] border-b border-white/5"
+      className="bg-main-gradient sticky top-0 left-0 right-0 z-[100] h-[4.5rem] border-b border-white/5"
     >
       <div className="container mx-auto px-4 h-full flex justify-between items-center relative">
         <div className="flex items-center h-full">
@@ -78,19 +83,22 @@ const Header = ({ ticker = [] }: HeaderProps) => {
 
         <nav className="flex-grow flex justify-end items-center space-x-2">
           <SearchBar />
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => setViewMode(viewMode === 'diario' ? 'tv' : 'diario')}  
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setViewMode(viewMode === 'diario' ? 'tv' : 'diario')}
             aria-label="Cambiar modo"
-            className="text-white"
+            className="text-white hover:bg-white/10"
           >
             {viewMode === 'diario' ? <Tv size={20} /> : <Newspaper size={20} />}
           </Button>
-          <Button variant="ghost" size="icon" onClick={handleShare} className="text-white">
+
+          <Button variant="ghost" size="icon" onClick={handleShare} className="text-white hover:bg-white/10">
             <Share2 size={20} />
           </Button>
-          <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-white">
+
+          <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-white hover:bg-white/10">
             {isDarkTheme ? <Sun size={20} /> : <Moon size={20} />}
           </Button>
         </nav>

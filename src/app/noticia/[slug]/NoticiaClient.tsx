@@ -38,7 +38,7 @@ export default function NoticiaClient({ article }: { article: Article }) {
     const cleanUrl = (inputUrl || '').trim();
     
     if (!cleanUrl) { // Check after trimming
-        return '/placeholder.png';
+        return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
     }
 
     // Check for YouTube URLs first

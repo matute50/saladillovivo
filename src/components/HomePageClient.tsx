@@ -3,7 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import DesktopLayout from '@/components/layout/DesktopLayout';
 import MobileLayout from '@/components/layout/MobileLayout';
+import TvModeLayout from '@/components/layout/TvModeLayout';
 import { PageData } from '@/lib/types';
+import { usePlayerStore } from '@/store/usePlayerStore';
 
 /**
  * HomePageClient - Componente principal del lado del cliente.
@@ -12,6 +14,7 @@ import { PageData } from '@/lib/types';
 const HomePageClient = ({ initialData }: { initialData: PageData }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const { loadInitialPlaylist, viewMode } = usePlayerStore();
 
   useEffect(() => {
     setMounted(true);
@@ -21,7 +24,7 @@ const HomePageClient = ({ initialData }: { initialData: PageData }) => {
       // Usamos 1024px como límite para tablets/móviles en este componente
       setIsMobile(window.innerWidth < 1024);
     };
-    
+
     checkIsMobile();
     window.addEventListener('resize', checkIsMobile);
 
@@ -35,8 +38,10 @@ const HomePageClient = ({ initialData }: { initialData: PageData }) => {
       });
     }
 
+    loadInitialPlaylist(null); // Call to initiate playback
+
     return () => window.removeEventListener('resize', checkIsMobile);
-  }, [initialData]);
+  }, [initialData, loadInitialPlaylist]);
 
   // Prevenir errores de hidratación: el servidor y el cliente deben coincidir en el primer render
   if (!mounted) {
@@ -52,13 +57,17 @@ const HomePageClient = ({ initialData }: { initialData: PageData }) => {
     );
   }
 
-  // El Middleware ya redirige al subdominio 'm.', pero este componente 
-  // asegura que si cambias el tamaño del navegador en PC, la UI se adapte.
+  // Prioridad 1: Modo TV (si está activo, gana a todo)
+  if (viewMode === 'tv') {
+    return <TvModeLayout />;
+  }
+
+  // Prioridad 2: Móvil
   if (isMobile) {
     return <MobileLayout data={initialData} isMobile={true} />;
   }
 
-  // Renderizado para Desktop
+  // Prioridad 3: Desktop
   return <DesktopLayout data={initialData} />;
 };
 

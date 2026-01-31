@@ -1,29 +1,35 @@
 'use client';
 
-import React from 'react';
-import { NewsProvider } from '@/context/NewsContext';
-import { MediaPlayerProvider } from '@/context/MediaPlayerContext';
-import { NewsPlayerProvider } from '@/context/NewsPlayerContext';
-import { VolumeProvider } from '@/context/VolumeContext';
-import { useIsMobile } from '@/hooks/useIsMobile'; // NUEVO IMPORT
-import MobileLayout from '@/components/layout/MobileLayout'; // NUEVO IMPORT
+import React, { useEffect } from 'react';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import PreloadIntros from '@/components/PreloadIntros';
+import { useNewsStore } from '@/store/useNewsStore';
+import { usePlayerStore } from '@/store/usePlayerStore';
 
 interface ClientLayoutWrapperProps {
   children: React.ReactNode;
 }
 
 export default function ClientLayoutWrapper({ children }: ClientLayoutWrapperProps) {
-  const isMobile = useIsMobile();
+  const fetchData = useNewsStore(state => state.fetchData);
+  const loadInitialPlaylist = usePlayerStore(state => state.loadInitialPlaylist);
+
+  useEffect(() => {
+    // Inicialización global de datos
+    fetchData();
+    // La playlist se suele cargar cuando el reproductor está listo o en HomePage
+    // Pero podemos asegurar una carga inicial aquí si es necesario.
+  }, [fetchData]);
+
+  const viewMode = usePlayerStore(state => state.viewMode);
 
   return (
-    <NewsProvider>
-      <VolumeProvider>
-        <MediaPlayerProvider>
-          <NewsPlayerProvider>
-            {isMobile ? <MobileLayout /> : children}
-          </NewsPlayerProvider>
-        </MediaPlayerProvider>
-      </VolumeProvider>
-    </NewsProvider>
+    <>
+      <PreloadIntros />
+      {viewMode === 'diario' && <Header />}
+      {children}
+      {viewMode === 'diario' && <Footer />}
+    </>
   );
 }

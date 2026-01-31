@@ -1,6 +1,7 @@
-import HomePageClient from "@/components/HomePageClient";
+
 import type { Metadata } from "next";
-import dynamic from "next/dynamic";
+import ClientPageWrapper from "@/components/ClientPageWrapper";
+
 import {
   getArticlesForHome,
   getVideosForHome,
@@ -36,11 +37,7 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-// Importación dinámica para evitar errores de hidratación en el cliente
-const DynamicHomePageClient = dynamic(() => import("@/components/HomePageClient"), { 
-  ssr: false,
-  loading: () => <div className="min-h-screen bg-black" /> // Placeholder mientras carga
-});
+
 
 export default async function Page() {
   // Fetch seguro: si falla, devolvemos objetos vacíos en lugar de undefined
@@ -87,7 +84,7 @@ export default async function Page() {
 
   return (
     <main>
-      <DynamicHomePageClient initialData={pageData} />
+      <ClientPageWrapper initialData={pageData} />
     </main>
   );
 }
