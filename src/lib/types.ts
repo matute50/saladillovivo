@@ -52,6 +52,7 @@ export interface Video {
   type?: 'video' | 'stream' | 'image';
   title?: string;
   duration?: number;
+  volumen_extra?: number;
 }
 
 export interface SlideMedia extends Video {

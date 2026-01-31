@@ -316,6 +316,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
               onProgress={handleProgress}
               onDuration={setCurrentDuration}
               startAt={(currentVideo as any).startAt || 0}
+              volumen_extra={currentVideo.volumen_extra}
             />
           </div>
         )}

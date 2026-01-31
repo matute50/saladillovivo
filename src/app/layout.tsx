@@ -4,6 +4,7 @@ import type { Metadata, Viewport } from "next";
 import "@/app/globals.css";
 import Script from 'next/script';
 import ClientLayoutWrapper from "./ClientLayoutWrapper";
+import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   title: {
@@ -39,12 +40,13 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <link rel="preconnect" href="https://media.saladillovivo.com.ar" />
         <link rel="preconnect" href="https://www.youtube.com" />
       </head>
-      
+
       <body className="bg-main-gradient antialiased overflow-x-hidden min-h-screen">
-        {/* Usamos SOLO ClientLayoutWrapper que ya contiene los contextos */}
-        <ClientLayoutWrapper>
-          {children}
-        </ClientLayoutWrapper>
+        <Providers>
+          <ClientLayoutWrapper>
+            {children}
+          </ClientLayoutWrapper>
+        </Providers>
 
         <Script
           src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"

@@ -103,7 +103,7 @@ export const MediaPlayerProvider = ({ children }: { children: React.ReactNode })
                 url: safeUrl,
                 categoria: 'Institucional',
                 createdAt: new Date().toISOString(),
-                type: 'video',
+                type: 'video' as const,
                 imagen: '', // Added to satisfy SlideMedia interface
                 novedad: false // Added to satisfy SlideMedia interface
             };

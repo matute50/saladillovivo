@@ -18,7 +18,8 @@ interface VideoPlayerProps {
   startAt?: number;
   imageUrl?: string;
   audioUrl?: string;
-  playerVolume?: number; // Added to resolve type error and allow external volume control
+  playerVolume?: number;
+  volumen_extra?: number;
 }
 
 export default function VideoPlayer({
@@ -28,7 +29,8 @@ export default function VideoPlayer({
   onProgress,
   onDuration,
   startAt,
-  playerVolume // Destructure playerVolume prop
+  playerVolume,
+  volumen_extra = 1
 }: VideoPlayerProps) {
   const [isMounted, setIsMounted] = useState(false);
   const playerRef = useRef<ReactPlayer>(null);
@@ -44,8 +46,10 @@ export default function VideoPlayer({
     setIsMounted(true);
   }, []);
 
-  // Determine the effective volume based on props or global context
-  const effectiveVolume = typeof playerVolume === 'number' ? playerVolume : volume;
+  // Determine the base volume based on props or global context
+  const baseVolume = typeof playerVolume === 'number' ? playerVolume : volume;
+  // Apply the extra volume multiplier (normalization)
+  const effectiveVolume = baseVolume * volumen_extra;
 
   // Fade-in effect for YouTube videos
   useEffect(() => {

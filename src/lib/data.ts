@@ -117,7 +117,7 @@ export async function getArticlesForHome(limitTotal: number = 25) {
 export async function getVideosForHome(limitRecent: number = 4) {
   const { data, error } = await supabase
     .from('videos')
-    .select('id, nombre, url, createdAt, categoria, imagen, novedad, forzar_video')
+    .select('id, nombre, url, createdAt, categoria, imagen, novedad, forzar_video, volumen_extra')
     .not('categoria', 'ilike', '%HCD%')
     .order('createdAt', { ascending: false });
 
@@ -195,7 +195,7 @@ export async function getRandomVideo(): Promise<Video | null> {
 export async function getNewRandomVideo(currentId?: string, currentCategory?: string): Promise<Video | null> {
   const { data, error } = await supabase
     .from('videos')
-    .select('id, nombre, url, createdAt, categoria, imagen, novedad, forzar_video')
+    .select('id, nombre, url, createdAt, categoria, imagen, novedad, forzar_video, volumen_extra')
     .not('categoria', 'ilike', '%HCD%');
 
   if (error) {
