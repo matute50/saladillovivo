@@ -48,16 +48,19 @@ export default function VideoPlayer({
     setIsMounted(true);
   }, []);
 
-  // Efecto para liberar el muteo forzado inicial tras detectar reproducción real
+  // Efecto para liberar el muteo forzado inicial tras detectar reproducción REAL y ESTABLE
   useEffect(() => {
     let playTimer: NodeJS.Timeout;
+    // Solo iniciamos el temporizador si el video está realmente reproduciéndose (state 1)
     if (isPlayingInternal && forceMute) {
-      // No liberar el muteo hasta que el video lleve al menos 2.5 segundos reproduciéndose
-      // Esto evita que el navegador bloquee el video si se intenta des-silenciar muy pronto
+      console.log("VideoPlayer: Iniciando cuenta atrás para liberar forceMute...");
       playTimer = setTimeout(() => {
         console.log("VideoPlayer: Liberando forceMute tras 2.5s de reproducción estable");
         setForceMute(false);
       }, 2500);
+    } else if (!isPlayingInternal && forceMute) {
+      // Si el video se pausa o entra en buffering antes de los 2.5s, cancelamos el timer
+      if (playTimer!) clearTimeout(playTimer);
     }
     return () => {
       if (playTimer) clearTimeout(playTimer);
@@ -75,15 +78,17 @@ export default function VideoPlayer({
           if (internal && typeof internal.playVideo === 'function') {
             const state = typeof internal.getPlayerState === 'function' ? internal.getPlayerState() : -1;
 
-            // Si está pausado (2), canteado (5), buferizando (3) o no ha empezado (-1, 0)
-            // Reintentamos play si no está en estado PLAYING (1)
-            if (state !== 1) {
+            // Si está pausado (2), canteado (5) o no ha empezado (-1, 0)
+            // IMPORTANTE: NO reintenta si está BUFERIZANDO (3)
+            if (state === 2 || state === 5 || state === -1 || state === 0) {
               console.log("VideoPlayer: Reintentando playVideo() - Estado:", state);
-              // Si el estado es 2 (PAUSED) y autoplay está activo, el navegador probablemente bloqueó el inicio.
-              // Forzamos el play de nuevo.
               internal.playVideo();
             } else if (state === 1 && !isPlayingInternal) {
+              console.log("VideoPlayer: Detectado estado PLAYING (1)");
               setIsPlayingInternal(true);
+            } else if (state === 3) {
+              // Si está buferizando, nos aseguramos de que isPlayingInternal sea false para no des-silenciar antes de tiempo
+              if (isPlayingInternal) setIsPlayingInternal(false);
             }
           }
         }
@@ -212,10 +217,10 @@ export default function VideoPlayer({
                 fs: 0,
                 iv_load_policy: 3,
                 cc_load_policy: 0,
-                origin: typeof window !== 'undefined' ? window.location.origin : 'https://www.saladillovivo.com.ar',
+                origin: 'https://www.saladillovivo.com.ar',
                 enablejsapi: 1,
-                widget_referrer: typeof window !== 'undefined' ? window.location.href : 'https://www.saladillovivo.com.ar',
-                host: 'https://www.youtube-nocookie.com'
+                widget_referrer: 'https://www.saladillovivo.com.ar',
+                host: 'https://www.youtube.com'
               }
             },
             file: {
