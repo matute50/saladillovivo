@@ -109,11 +109,21 @@ export default function VideoPlayer({
   // Handle player ready state and seeking
   const handleReady = useCallback(() => {
     setIsPlayerReady(true); // Player is ready
+
+    // Si es YouTube y debe ser autoplay, forzamos el play de forma explícita
+    if (autoplay && playerRef.current) {
+      const internalPlayer = playerRef.current.getInternalPlayer();
+      if (internalPlayer && typeof internalPlayer.playVideo === 'function') {
+        console.log("VideoPlayer: Forzando playVideo() en YouTube onReady");
+        internalPlayer.playVideo();
+      }
+    }
+
     if (startAt && startAt > 0 && !hasSeeked.current && playerRef.current) {
       playerRef.current.seekTo(startAt, 'seconds');
       hasSeeked.current = true;
     }
-  }, [startAt]);
+  }, [autoplay, startAt]);
 
   const handleError = useCallback((e: any) => {
     console.error("VideoPlayer Error:", videoUrl, e);

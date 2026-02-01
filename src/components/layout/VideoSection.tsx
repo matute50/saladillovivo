@@ -296,12 +296,10 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
         {currentVideo?.url && !isHtmlSlideActive && (
           <div
             className={cn(
-              "absolute inset-0 z-20 bg-black",
-              isPreRollOverlayActive && !isIntroVideoPlaying ? "opacity-0" : "transition-opacity duration-500 opacity-100"
+              "absolute inset-0 z-20 bg-black opacity-100"
             )}
             style={{
-              opacity: isPreRollOverlayActive && !isIntroVideoPlaying ? 0 : youtubePlayerOpacity,
-              transition: isPreRollOverlayActive && !isIntroVideoPlaying ? 'none' : 'opacity 0.5s ease-in-out'
+              transition: 'opacity 0.5s ease-in-out'
             }}
           >
             <VideoPlayer
