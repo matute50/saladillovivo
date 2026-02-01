@@ -3,7 +3,6 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import ReactPlayer from 'react-player';
 import { useVolumeStore } from '@/store/useVolumeStore';
-import { cn } from '@/lib/utils';
 
 // Helper to check if a URL is a YouTube video (redefined here for VideoPlayer context)
 const isYouTubeVideo = (url: string) => {
