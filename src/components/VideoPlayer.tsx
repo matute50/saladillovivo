@@ -35,9 +35,9 @@ export default function VideoPlayer({
   const [isMounted, setIsMounted] = useState(false);
   const playerRef = useRef<ReactPlayer>(null);
   const hasSeeked = useRef(false);
-  const [localVolume, setLocalVolume] = useState(0); // State for fade-in volume
+  const [localVolume, setLocalVolume] = useState(0); // Absolute zero volume start
   const isFadingIn = useRef(false); // Ref to track if fade-in is active
-  const [forceMute, setForceMute] = useState(autoplay);
+  const [forceMute, setForceMute] = useState(autoplay); // Respect autoplay for initial mute
   const [isPlayingInternal, setIsPlayingInternal] = useState(false);
   const [isFadingOut, setIsFadingOut] = useState(false); // Flag for fade-out at the end
   const durationRef = useRef(0);
