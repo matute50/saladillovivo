@@ -20,33 +20,40 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useNewsStore } from '@/store/useNewsStore';
 
-// Mapping WMO codes to Icons
-// https://open-meteo.com/en/docs
+// Mapping WeatherAPI codes to Icons
+// https://www.weatherapi.com/docs/weather_conditions.json
 const getWeatherIcon = (code: number, isDay: boolean = true) => {
-    // https://open-meteo.com/en/docs
-    if (code === 0) return isDay ? <Sun size={30} className="text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.4)]" /> : <Moon size={30} className="text-indigo-200 drop-shadow-[0_0_8px_rgba(199,210,254,0.3)]" />;
+    // Sunny / Clear
+    if (code === 1000) {
+        return isDay
+            ? <Sun size={30} className="text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.4)]" />
+            : <Moon size={30} className="text-indigo-200 drop-shadow-[0_0_8px_rgba(199,210,254,0.3)]" />;
+    }
 
-    // Cloudy (1, 2, 3)
-    if (code >= 1 && code <= 3) return <Cloud size={30} className={cn(isDay ? "text-sky-300" : "text-slate-400")} />;
+    // Part cloudy (1003)
+    if (code === 1003) return <Cloud size={30} className={cn(isDay ? "text-sky-300" : "text-slate-400")} />;
 
-    // Fog (45, 48)
-    if (code >= 45 && code <= 48) return <CloudFog size={30} className="text-slate-500" />;
+    // Cloudy / Overcast (1006, 1009)
+    if (code === 1006 || code === 1009) return <Cloud size={30} className="text-slate-400" />;
 
-    // Drizzle (51, 53, 55)
-    if (code >= 51 && code <= 55) return <CloudDrizzle size={30} className="text-cyan-400" />;
+    // Mist, Fog (1030, 1135, 1147)
+    if (code === 1030 || code === 1135 || code === 1147) return <CloudFog size={30} className="text-slate-300/80" />;
 
-    // Rain (61, 63, 65, 66, 67, 80, 81, 82)
-    if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) {
+    // Patchy rain, light drizzle (1063, 1150, 1153, 1180, 1183)
+    if ([1063, 1150, 1153, 1180, 1183].includes(code)) return <CloudDrizzle size={30} className="text-cyan-400" />;
+
+    // Moderate/Heavy Rain (1186, 1189, 1192, 1195, 1240, 1243, 1246)
+    if ([1186, 1189, 1192, 1195, 1240, 1243, 1246].includes(code)) {
         return <CloudRain size={30} className="text-blue-500 drop-shadow-[0_0_5px_rgba(59,130,246,0.3)]" />;
     }
 
-    // Snow (71, 73, 75, 77, 85, 86)
-    if ((code >= 71 && code <= 77) || (code >= 85 && code <= 86)) {
-        return <CloudSnow size={30} className="text-blue-50" />;
-    }
+    // Snow (1066, 1114, 1117, 1210-1225, 1255-1258)
+    if (code >= 1210 && code <= 1258 || [1066, 1114, 1117].includes(code)) return <CloudSnow size={30} className="text-blue-50" />;
 
-    // Thunderstorm (95, 96, 99)
-    if (code >= 95 && code <= 99) return <CloudLightning size={30} className="text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.5)]" />;
+    // Thundery outbreaks (1087, 1273, 1276, 1279, 1282)
+    if ([1087, 1273, 1276, 1279, 1282].includes(code)) {
+        return <CloudLightning size={30} className="text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.5)]" />;
+    }
 
     return <Wind size={30} className="text-teal-300" />;
 };
@@ -94,9 +101,15 @@ const WeatherWidget = () => {
             >
                 {weather && (
                     <>
-                        {getWeatherIcon(weather.current.weatherCode, weather.current.isDay)}
-                        <span className="text-lg font-bold">{weather.current.temp}°</span>
-                        <ChevronDown size={21} className={cn("transition-transform", isOpen && "rotate-180")} />
+                        {getWeatherIcon(weather.current.conditionCode, weather.current.isDay)}
+                        <div className="flex flex-col items-start leading-none">
+                            <span className="text-lg font-bold">{weather.current.temp}°</span>
+                            <span className={cn(
+                                "text-[10px] opacity-70",
+                                isDarkTheme ? "text-gray-300" : "text-gray-600"
+                            )}>ST {weather.current.feelsLike}°</span>
+                        </div>
+                        <ChevronDown size={21} className={cn("transition-transform ml-1", isOpen && "rotate-180")} />
                     </>
                 )}
             </button>
@@ -141,6 +154,7 @@ const WeatherWidget = () => {
                             )}>
                                 <MapPin size={15} />
                                 <span>{weather?.locationName || 'Saladillo, Argentina'}</span>
+                                <span className="ml-auto text-[10px] italic">WeatherAPI</span>
                             </div>
                         </div>
 
@@ -172,7 +186,12 @@ const WeatherWidget = () => {
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            {getWeatherIcon(day.weatherCode)}
+                                            <div className="flex flex-col items-end mr-1">
+                                                {getWeatherIcon(day.conditionCode)}
+                                                <span className="text-[8px] mt-1 opacity-60 text-center truncate max-w-[50px]">
+                                                    {day.conditionText}
+                                                </span>
+                                            </div>
                                             <div className="flex items-center gap-2 min-w-[60px] justify-end">
                                                 <span className={cn(
                                                     "text-xs font-bold",
