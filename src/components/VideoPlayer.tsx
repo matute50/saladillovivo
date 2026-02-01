@@ -37,7 +37,6 @@ export default function VideoPlayer({
   const hasSeeked = useRef(false);
   const [localVolume, setLocalVolume] = useState(0); // Absolute zero volume start
   const isFadingIn = useRef(false); // Ref to track if fade-in is active
-  const [forceMute, setForceMute] = useState(autoplay); // Respect autoplay for initial mute
   const [isPlayingInternal, setIsPlayingInternal] = useState(false);
   const [isFadingOut, setIsFadingOut] = useState(false); // Flag for fade-out at the end
   const durationRef = useRef(0);
@@ -57,6 +56,11 @@ export default function VideoPlayer({
     const timer = setTimeout(() => setShouldPlay(autoplay), 100);
     return () => clearTimeout(timer);
   }, [autoplay]);
+
+  // Determine the base volume based on props or global context
+  const baseVolume = typeof playerVolume === 'number' ? playerVolume : volume;
+  // Apply the extra volume multiplier (normalization)
+  const effectiveVolume = baseVolume * volumen_extra;
 
   // Efecto para sincronizar el volumen base cuando no hay fade activo
   useEffect(() => {
@@ -103,9 +107,7 @@ export default function VideoPlayer({
   }, [isMounted, autoplay, videoUrl, isPlayingInternal]);
 
   // Determine the base volume based on props or global context
-  const baseVolume = typeof playerVolume === 'number' ? playerVolume : volume;
-  // Apply the extra volume multiplier (normalization)
-  const effectiveVolume = baseVolume * volumen_extra;
+  // (Moved up)
 
   // Eliminado el fade-in inicial automático por petición del usuario.
   // El reproductor inicia silenciado y se mantiene así hasta interacción manual.
