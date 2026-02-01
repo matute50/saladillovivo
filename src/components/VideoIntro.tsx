@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react'; // Eliminar useState, useRef si no se usan
 
 interface VideoIntroProps {
-  videoSrc: string; 
+  videoSrc: string;
   onEnd: () => void;
-  videoRef: React.RefObject<HTMLVideoElement>; 
+  videoRef: React.RefObject<HTMLVideoElement>;
   style?: React.CSSProperties; // NUEVO: para controlar la opacidad inicial
 }
 
@@ -26,9 +26,9 @@ const VideoIntro: React.FC<VideoIntroProps> = ({ videoSrc, onEnd, videoRef, styl
     <video
       ref={videoRef}
       src={videoSrc}
-      className="absolute inset-0 w-full h-full object-cover"
-      muted 
-      playsInline 
+      className="absolute inset-0 w-full h-full object-contain"
+      muted
+      playsInline
       onEnded={onEnd}
       style={style} // Aplicar el estilo
     />
