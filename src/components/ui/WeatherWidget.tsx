@@ -22,15 +22,15 @@ import { cn } from '@/lib/utils';
 // Mapping WMO codes to Icons
 // https://open-meteo.com/en/docs
 const getWeatherIcon = (code: number, isDay: boolean = true) => {
-    if (code === 0) return isDay ? <Sun size={20} className="text-yellow-400" /> : <Moon size={20} className="text-blue-200" />;
-    if (code >= 1 && code <= 3) return <Cloud size={20} className="text-gray-300" />; // Cloudy
-    if (code >= 45 && code <= 48) return <CloudFog size={20} className="text-gray-400" />; // Fog
-    if (code >= 51 && code <= 55) return <CloudDrizzle size={20} className="text-blue-300" />; // Drizzle
-    if (code >= 61 && code <= 67) return <CloudRain size={20} className="text-blue-400" />; // Rain
-    if (code >= 71 && code <= 77) return <CloudSnow size={20} className="text-white" />; // Snow
-    if (code >= 80 && code <= 82) return <CloudRain size={20} className="text-blue-500" />; // Showers
-    if (code >= 95 && code <= 99) return <CloudLightning size={20} className="text-yellow-500" />; // Storm
-    return <Wind size={20} className="text-gray-300" />;
+    if (code === 0) return isDay ? <Sun size={30} className="text-yellow-400" /> : <Moon size={30} className="text-blue-200" />;
+    if (code >= 1 && code <= 3) return <Cloud size={30} className="text-gray-300" />; // Cloudy
+    if (code >= 45 && code <= 48) return <CloudFog size={30} className="text-gray-400" />; // Fog
+    if (code >= 51 && code <= 55) return <CloudDrizzle size={30} className="text-blue-300" />; // Drizzle
+    if (code >= 61 && code <= 67) return <CloudRain size={30} className="text-blue-400" />; // Rain
+    if (code >= 71 && code <= 77) return <CloudSnow size={30} className="text-white" />; // Snow
+    if (code >= 80 && code <= 82) return <CloudRain size={30} className="text-blue-500" />; // Showers
+    if (code >= 95 && code <= 99) return <CloudLightning size={30} className="text-yellow-500" />; // Storm
+    return <Wind size={30} className="text-gray-300" />;
 };
 
 const WeatherWidget = () => {
@@ -65,14 +65,14 @@ const WeatherWidget = () => {
             {/* Compact Header Trigger */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 transition-all border border-white/10 text-white"
+                className="flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 transition-all border border-white/10 text-white"
                 title="Ver clima"
             >
                 {weather && (
                     <>
                         {getWeatherIcon(weather.current.weatherCode, weather.current.isDay)}
-                        <span className="text-sm font-semibold">{weather.current.temp}°</span>
-                        <ChevronDown size={14} className={cn("transition-transform", isOpen && "rotate-180")} />
+                        <span className="text-lg font-bold">{weather.current.temp}°</span>
+                        <ChevronDown size={21} className={cn("transition-transform", isOpen && "rotate-180")} />
                     </>
                 )}
             </button>
@@ -96,10 +96,10 @@ const WeatherWidget = () => {
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
-                                <Search className="absolute left-3 top-2.5 text-gray-500" size={14} />
+                                <Search className="absolute left-3 top-2.5 text-gray-500" size={21} />
                             </form>
-                            <div className="mt-2 flex items-center gap-1 text-[10px] text-gray-400 px-1">
-                                <MapPin size={10} />
+                            <div className="mt-2 flex items-center gap-1 text-xs text-gray-400 px-1">
+                                <MapPin size={15} />
                                 <span>{weather?.locationName || 'Saladillo, Argentina'}</span>
                             </div>
                         </div>
