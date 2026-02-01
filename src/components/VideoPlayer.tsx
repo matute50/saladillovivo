@@ -45,7 +45,7 @@ export default function VideoPlayer({
   const [appOrigin, setAppOrigin] = useState('https://www.saladillovivo.com.ar');
 
   // Consumimos el estado global del volumen
-  const { volume, isMuted } = useVolumeStore();
+  const { volume, isMuted, unmute, setVolume } = useVolumeStore();
 
   useEffect(() => {
     setIsMounted(true);
@@ -61,8 +61,11 @@ export default function VideoPlayer({
     if (isPlayingInternal && forceMute) {
       console.log("VideoPlayer: Iniciando cuenta atrás para liberar forceMute (1s)...");
       playTimer = setTimeout(() => {
-        console.log("VideoPlayer: Liberando forceMute tras 1s de reproducción estable");
+        console.log("VideoPlayer: Liberando forceMute tras 1s de reproducción estable y sincronizando Store");
         setForceMute(false);
+        if (isMuted) unmute();
+        // Ajustamos el volumen del store al 25% inicial como se solicitó para el autoplay
+        setVolume(0.25);
       }, 1000);
     } else if (!isPlayingInternal && !isFadingIn.current && forceMute) {
       // Si el video se pausa EXPLÍCITAMENTE (no por buffering) antes de los 2.5s, cancelamos el timer
@@ -226,7 +229,7 @@ export default function VideoPlayer({
           Evita cualquier interacción directa con el iframe de YouTube */}
       <div className="absolute inset-0 z-10 bg-transparent" />
 
-      <div className="w-full h-full scale-[1.02] transform-gpu">
+      <div className="w-full h-full scale-[1.15] transform-gpu overflow-hidden">
         <ReactPlayer
           ref={playerRef}
           url={videoUrl}
