@@ -42,12 +42,16 @@ export default function VideoPlayer({
   const [isFadingOut, setIsFadingOut] = useState(false); // Flag for fade-out at the end
   const durationRef = useRef(0);
   const playStartTimeRef = useRef<number | null>(null); // Track when playback actually started
+  const [appOrigin, setAppOrigin] = useState('https://www.saladillovivo.com.ar');
 
   // Consumimos el estado global del volumen
   const { volume, isMuted } = useVolumeStore();
 
   useEffect(() => {
     setIsMounted(true);
+    if (typeof window !== 'undefined') {
+      setAppOrigin(window.location.origin);
+    }
   }, []);
 
   // Efecto para liberar el muteo forzado inicial tras detectar reproducción REAL y ESTABLE
@@ -273,9 +277,9 @@ export default function VideoPlayer({
                 fs: 0,
                 iv_load_policy: 3,
                 cc_load_policy: 0,
-                origin: 'https://www.saladillovivo.com.ar',
+                origin: appOrigin,
                 enablejsapi: 1,
-                widget_referrer: 'https://www.saladillovivo.com.ar',
+                widget_referrer: appOrigin,
                 host: 'https://www.youtube.com'
               }
             },
