@@ -227,8 +227,8 @@ export default function VideoPlayer({
           height="100%"
           progressInterval={500}
           onEnded={onClose}
-          onProgress={onProgress}
-          onDuration={onDuration}
+          onProgress={handleProgressInternal}
+          onDuration={handleDurationInternal}
           onReady={handleReady}
           onError={handleError}
           onPlay={() => setIsPlayingInternal(true)}
