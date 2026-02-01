@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useWeather } from '@/hooks/useWeather';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 // Mapping WMO codes to Icons
 // https://open-meteo.com/en/docs
@@ -133,10 +134,5 @@ const WeatherWidget = () => {
         </div>
     );
 };
-
-// Tooltip helper
-function cn(...classes: any[]) {
-    return classes.filter(Boolean).join(' ');
-}
 
 export default WeatherWidget;

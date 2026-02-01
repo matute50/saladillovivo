@@ -12,13 +12,13 @@ interface ClientLayoutWrapperProps {
 }
 
 export default function ClientLayoutWrapper({ children }: ClientLayoutWrapperProps) {
-  const fetchData = useNewsStore(state => state.fetchData);
+  const fetchInitialData = useNewsStore(state => state.fetchInitialData);
   useEffect(() => {
     // Inicialización global de datos
-    fetchData();
+    fetchInitialData();
     // La playlist se suele cargar cuando el reproductor está listo o en HomePage
     // Pero podemos asegurar una carga inicial aquí si es necesario.
-  }, [fetchData]);
+  }, [fetchInitialData]);
 
   const viewMode = usePlayerStore(state => state.viewMode);
 
