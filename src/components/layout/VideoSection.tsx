@@ -38,7 +38,6 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
   const [currentDuration, setCurrentDuration] = useState(0);
   const transitionSignaledRef = useRef(false);
 
-  const youtubePlayerOpacity = 1;
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const overlayVideoRef = useRef<HTMLVideoElement>(null);
