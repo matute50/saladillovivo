@@ -37,7 +37,6 @@ export default function VideoPlayer({
   const hasSeeked = useRef(false);
   const [localVolume, setLocalVolume] = useState(0); // State for fade-in volume
   const isFadingIn = useRef(false); // Ref to track if fade-in is active
-  const [isPlayerReady, setIsPlayerReady] = useState(false); // New state to track if ReactPlayer is ready
   const [forceMute, setForceMute] = useState(autoplay);
   const [isPlayingInternal, setIsPlayingInternal] = useState(false);
   const [isFadingOut, setIsFadingOut] = useState(false); // Flag for fade-out at the end
@@ -144,6 +143,7 @@ export default function VideoPlayer({
     return () => {
       if (interval) clearInterval(interval);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoUrl, autoplay, effectiveVolume, forceMute, isPlayingInternal, isFadingOut]);
 
   // Handle Fade-out effect
@@ -185,7 +185,6 @@ export default function VideoPlayer({
 
   // Handle player ready state and seeking
   const handleReady = useCallback(() => {
-    setIsPlayerReady(true); // Player is ready
 
     // Si es YouTube y debe ser autoplay, forzamos el play de forma explícita
     if (autoplay && playerRef.current) {
