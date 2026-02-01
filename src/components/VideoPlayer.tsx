@@ -43,6 +43,7 @@ export default function VideoPlayer({
   const durationRef = useRef(0);
   const playStartTimeRef = useRef<number | null>(null); // Track when playback actually started
   const [appOrigin, setAppOrigin] = useState('https://www.saladillovivo.com.ar');
+  const [shouldPlay, setShouldPlay] = useState(false); // New state to force playback trigger
 
   // Consumimos el estado global del volumen
   const { volume, isMuted, unmute, setVolume } = useVolumeStore();
@@ -52,7 +53,10 @@ export default function VideoPlayer({
     if (typeof window !== 'undefined') {
       setAppOrigin(window.location.origin);
     }
-  }, []);
+    // Activamos shouldPlay tras un pequeño delay para asegurar la reactividad
+    const timer = setTimeout(() => setShouldPlay(autoplay), 100);
+    return () => clearTimeout(timer);
+  }, [autoplay]);
 
   // Efecto para liberar el muteo forzado inicial tras detectar reproducción REAL y ESTABLE
   useEffect(() => {
@@ -74,7 +78,7 @@ export default function VideoPlayer({
     return () => {
       if (playTimer) clearTimeout(playTimer);
     };
-  }, [isPlayingInternal, forceMute]);
+  }, [isPlayingInternal, forceMute, isMuted, unmute, setVolume]);
 
   // --- REINTENTO AGRESIVO DE AUTOPLAY PARA YOUTUBE ---
   useEffect(() => {
@@ -229,11 +233,11 @@ export default function VideoPlayer({
           Evita cualquier interacción directa con el iframe de YouTube */}
       <div className="absolute inset-0 z-10 bg-transparent" />
 
-      <div className="w-full h-full scale-[1.15] transform-gpu overflow-hidden">
+      <div className="w-full h-full scale-[1.20] transform-gpu overflow-hidden">
         <ReactPlayer
           ref={playerRef}
           url={videoUrl}
-          playing={autoplay}
+          playing={shouldPlay}
           controls={false} // Desactivamos controles nativos
           volume={isMuted ? 0 : localVolume}
           muted={forceMute || isMuted} // Muteamos siempre al inicio si es autoplay para garantizar el play
