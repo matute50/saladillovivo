@@ -205,21 +205,6 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
     }
   };
 
-  const [delayedPlay, setDelayedPlay] = useState(false);
-
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (isPreRollOverlayActive) {
-      setDelayedPlay(false);
-      // Esperamos 0.5s después de que se activa la intro para empezar el video de fondo
-      timer = setTimeout(() => {
-        setDelayedPlay(true);
-      }, 500);
-    } else {
-      setDelayedPlay(true);
-    }
-    return () => clearTimeout(timer);
-  }, [isPreRollOverlayActive, currentVideo?.id]);
 
   const handleIntroPlay = () => {
     console.log("Intro visible y reproduciendo. Activando fondo...");
