@@ -59,7 +59,7 @@ const Header = () => {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ type: 'spring', stiffness: 120, damping: 20 }}
-      className="bg-main-gradient sticky top-0 left-0 right-0 z-[100] h-[4.5rem] border-b border-white/5"
+      className={`bg-gradient-to-b ${isDarkTheme ? 'from-gray-500 to-black' : 'from-gray-500 to-white'} sticky top-0 left-0 right-0 z-[100] h-[4.5rem]`}
     >
       <div className="container mx-auto px-4 h-full flex justify-between items-center relative">
         <div className="flex items-center h-full">

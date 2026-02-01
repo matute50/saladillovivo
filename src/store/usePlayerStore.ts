@@ -265,11 +265,42 @@ export const usePlayerStore = create<PlayerState>()(
                 }
             },
 
-            playNextVideoInQueue: () => {
-                const { handleOnEnded } = get();
-                // No pasamos setVolume aquí porque playNext controlado por usuario no debería bajar el volumen brusco? 
-                // Usamos la lógica de handleOnEnded
-                handleOnEnded();
+            playNextVideoInQueue: async () => {
+                const { currentVideo } = get();
+
+                // 1. Obtener el video que ya estaba precargado o buscar uno nuevo
+                let nextV = nextDataVideo;
+                if (!nextV) {
+                    nextV = await get().fetchRandomDbVideo(currentVideo?.id, currentVideo?.categoria);
+                }
+
+                if (nextV) {
+                    // 2. Disparar INTRO OVERLAY (Espacio Publicitario)
+                    const intro = get().getRandomIntro();
+
+                    // 3. Seteamos el nuevo video pero con overlay activo
+                    // Esto hará que VideoSection inicie la carga del video real por debajo
+                    set({
+                        currentVideo: nextV,
+                        isPlaying: true,
+                        isPreRollOverlayActive: true,
+                        overlayIntroVideo: intro,
+                        playbackState: 'DB_RANDOM' // Cambiamos a DB_RANDOM para que handleOnEnded sepa qué hacer después
+                    });
+
+                    // 4. Limpiar el slot de precarga usado y disparar la siguiente precarga
+                    nextDataVideo = null;
+                    get().preloadNextVideo(nextV.id);
+                } else {
+                    // Fallback extremo: solo intro si no hay nada en DB
+                    set({
+                        playbackState: 'INTRO',
+                        currentVideo: get().getRandomIntro(),
+                        isPlaying: true,
+                        isPreRollOverlayActive: false,
+                        overlayIntroVideo: null
+                    });
+                }
             },
 
             resumeAfterSlide: () => {
