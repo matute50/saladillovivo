@@ -59,11 +59,11 @@ export default function VideoPlayer({
     let playTimer: NodeJS.Timeout;
     // Solo iniciamos el temporizador si el video está realmente reproduciéndose (state 1)
     if (isPlayingInternal && forceMute) {
-      console.log("VideoPlayer: Iniciando cuenta atrás para liberar forceMute...");
+      console.log("VideoPlayer: Iniciando cuenta atrás para liberar forceMute (1s)...");
       playTimer = setTimeout(() => {
-        console.log("VideoPlayer: Liberando forceMute tras 2.5s de reproducción estable");
+        console.log("VideoPlayer: Liberando forceMute tras 1s de reproducción estable");
         setForceMute(false);
-      }, 2500);
+      }, 1000);
     } else if (!isPlayingInternal && !isFadingIn.current && forceMute) {
       // Si el video se pausa EXPLÍCITAMENTE (no por buffering) antes de los 2.5s, cancelamos el timer
       if (playTimer!) clearTimeout(playTimer);
@@ -120,27 +120,30 @@ export default function VideoPlayer({
     let interval: NodeJS.Timeout;
 
     if (isYouTubeVideo(videoUrl) && autoplay && effectiveVolume > 0 && isPlayingInternal && !forceMute && !isFadingOut) {
-      if (isFadingIn.current && localVolume === effectiveVolume) return;
+      // Capped initial volume target at 0.25 (25%) as requested for autoplay start
+      const targetVolume = Math.min(effectiveVolume, 0.25);
 
-      console.log("VideoPlayer: Iniciando Fade-in de audio");
+      if (isFadingIn.current && localVolume === targetVolume) return;
+
+      console.log("VideoPlayer: Iniciando Fade-in de audio (Objetivo: " + targetVolume + ")");
       isFadingIn.current = true;
       setLocalVolume(0);
 
       const fadeDuration = 1000;
       const fadeSteps = 20;
-      const increment = effectiveVolume / fadeSteps;
+      const increment = targetVolume / fadeSteps;
       let currentFadeVolume = 0;
       let step = 0;
 
       interval = setInterval(() => {
         step++;
-        currentFadeVolume = Math.min(effectiveVolume, currentFadeVolume + increment);
+        currentFadeVolume = Math.min(targetVolume, currentFadeVolume + increment);
         setLocalVolume(currentFadeVolume);
 
-        if (step >= fadeSteps || currentFadeVolume >= effectiveVolume) {
+        if (step >= fadeSteps || currentFadeVolume >= targetVolume) {
           clearInterval(interval);
           isFadingIn.current = false;
-          setLocalVolume(effectiveVolume);
+          setLocalVolume(targetVolume);
         }
       }, fadeDuration / fadeSteps);
     } else if (!forceMute && !isFadingOut) {
