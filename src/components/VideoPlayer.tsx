@@ -58,27 +58,12 @@ export default function VideoPlayer({
     return () => clearTimeout(timer);
   }, [autoplay]);
 
-  // Efecto para liberar el muteo forzado inicial tras detectar reproducción REAL y ESTABLE
+  // Efecto para sincronizar el volumen base cuando no hay fade activo
   useEffect(() => {
-    let playTimer: NodeJS.Timeout;
-    // Solo iniciamos el temporizador si el video está realmente reproduciéndose (state 1)
-    if (isPlayingInternal && forceMute) {
-      console.log("VideoPlayer: Iniciando cuenta atrás para liberar forceMute (1s)...");
-      playTimer = setTimeout(() => {
-        console.log("VideoPlayer: Liberando forceMute tras 1s de reproducción estable y sincronizando Store");
-        setForceMute(false);
-        if (isMuted) unmute();
-        // Ajustamos el volumen del store al 25% inicial como se solicitó para el autoplay
-        setVolume(0.25);
-      }, 1000);
-    } else if (!isPlayingInternal && !isFadingIn.current && forceMute) {
-      // Si el video se pausa EXPLÍCITAMENTE (no por buffering) antes de los 2.5s, cancelamos el timer
-      if (playTimer!) clearTimeout(playTimer);
+    if (!isFadingIn.current && !isFadingOut && localVolume !== effectiveVolume) {
+      setLocalVolume(effectiveVolume);
     }
-    return () => {
-      if (playTimer) clearTimeout(playTimer);
-    };
-  }, [isPlayingInternal, forceMute, isMuted, unmute, setVolume]);
+  }, [effectiveVolume, localVolume, isFadingOut]);
 
   // --- REINTENTO AGRESIVO DE AUTOPLAY PARA YOUTUBE ---
   useEffect(() => {
@@ -122,48 +107,8 @@ export default function VideoPlayer({
   // Apply the extra volume multiplier (normalization)
   const effectiveVolume = baseVolume * volumen_extra;
 
-  // Fade-in effect for YouTube videos (triggers when forceMute is released)
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-
-    if (isYouTubeVideo(videoUrl) && autoplay && effectiveVolume > 0 && isPlayingInternal && !forceMute && !isFadingOut) {
-      // Capped initial volume target at 0.25 (25%) as requested for autoplay start
-      const targetVolume = Math.min(effectiveVolume, 0.25);
-
-      if (isFadingIn.current && localVolume === targetVolume) return;
-
-      console.log("VideoPlayer: Iniciando Fade-in de audio (Objetivo: " + targetVolume + ")");
-      isFadingIn.current = true;
-      setLocalVolume(0);
-
-      const fadeDuration = 1000;
-      const fadeSteps = 20;
-      const increment = targetVolume / fadeSteps;
-      let currentFadeVolume = 0;
-      let step = 0;
-
-      interval = setInterval(() => {
-        step++;
-        currentFadeVolume = Math.min(targetVolume, currentFadeVolume + increment);
-        setLocalVolume(currentFadeVolume);
-
-        if (step >= fadeSteps || currentFadeVolume >= targetVolume) {
-          clearInterval(interval);
-          isFadingIn.current = false;
-          setLocalVolume(targetVolume);
-        }
-      }, fadeDuration / fadeSteps);
-    } else if (!forceMute && !isFadingOut) {
-      if (effectiveVolume !== localVolume && !isFadingIn.current) {
-        setLocalVolume(effectiveVolume);
-      }
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [videoUrl, autoplay, effectiveVolume, forceMute, isPlayingInternal, isFadingOut]);
+  // Eliminado el fade-in inicial automático por petición del usuario.
+  // El reproductor inicia silenciado y se mantiene así hasta interacción manual.
 
   // Handle Fade-out effect
   const handleProgressInternal = (state: { playedSeconds: number, loadedSeconds: number }) => {
@@ -239,8 +184,8 @@ export default function VideoPlayer({
           url={videoUrl}
           playing={shouldPlay}
           controls={false} // Desactivamos controles nativos
-          volume={isMuted ? 0 : localVolume}
-          muted={forceMute || isMuted} // Muteamos siempre al inicio si es autoplay para garantizar el play
+          volume={localVolume}
+          muted={isMuted}
           width="100%"
           height="100%"
           progressInterval={500}
