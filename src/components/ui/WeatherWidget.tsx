@@ -102,12 +102,15 @@ const WeatherWidget = () => {
                 {weather && (
                     <>
                         {getWeatherIcon(weather.current.conditionCode, weather.current.isDay)}
-                        <div className="flex flex-col items-start leading-none">
-                            <span className="text-lg font-bold">{weather.current.temp}°</span>
-                            <span className={cn(
-                                "text-[10px] opacity-70",
-                                isDarkTheme ? "text-gray-300" : "text-gray-600"
-                            )}>ST {weather.current.feelsLike}°</span>
+                        <div className="flex items-center gap-2">
+                            <span className="text-xl font-bold">{weather.current.temp}°</span>
+                            <div className="flex flex-col items-start leading-[0.8] mt-0.5">
+                                <span className={cn(
+                                    "text-[9px] font-bold uppercase",
+                                    isDarkTheme ? "text-gray-400" : "text-gray-500"
+                                )}>ST</span>
+                                <span className="text-xs font-semibold">{weather.current.feelsLike}°</span>
+                            </div>
                         </div>
                         <ChevronDown size={21} className={cn("transition-transform ml-1", isOpen && "rotate-180")} />
                     </>
