@@ -38,6 +38,7 @@ export default function VideoPlayer({
   const [localVolume, setLocalVolume] = useState(0); // State for fade-in volume
   const isFadingIn = useRef(false); // Ref to track if fade-in is active
   const [isPlayerReady, setIsPlayerReady] = useState(false); // New state to track if ReactPlayer is ready
+  const [forceMute, setForceMute] = useState(autoplay);
 
   // Consumimos el estado global del volumen
   const { volume, isMuted } = useVolumeStore();
@@ -45,6 +46,14 @@ export default function VideoPlayer({
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Efecto para liberar el muteo forzado inicial tras el arranque
+  useEffect(() => {
+    if (isPlayerReady && forceMute) {
+      const timer = setTimeout(() => setForceMute(false), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isPlayerReady, forceMute]);
 
   // Determine the base volume based on props or global context
   const baseVolume = typeof playerVolume === 'number' ? playerVolume : volume;
@@ -125,11 +134,11 @@ export default function VideoPlayer({
           url={videoUrl}
           playing={autoplay}
           controls={false} // Desactivamos controles nativos
-          volume={isMuted ? 0 : localVolume}  // <--- APLICAMOS localVolume (o 0 si muteado)
-          muted={isMuted}  // <--- APLICAMOS MUTE DEL CONTEXTO
+          volume={isMuted ? 0 : localVolume}
+          muted={forceMute || isMuted} // Muteamos siempre al inicio si es autoplay para garantizar el play
           width="100%"
           height="100%"
-          progressInterval={500} // Aumentamos precisión a 0.5s para la transición de 1s
+          progressInterval={500}
           onEnded={onClose}
           onProgress={onProgress}
           onDuration={onDuration}
@@ -142,6 +151,8 @@ export default function VideoPlayer({
                 modestbranding: 1,
                 rel: 0,
                 autoplay: autoplay ? 1 : 0,
+                mute: 1, // Forzamos mute en la API de YT para mayor seguridad de autoplay
+                playsinline: 1,
                 controls: 0,
                 disablekb: 1,
                 fs: 0,
@@ -153,6 +164,7 @@ export default function VideoPlayer({
             file: {
               attributes: {
                 controlsList: 'nodownload',
+                playsInline: true,
                 style: { objectFit: 'cover', width: '100%', height: '100%' }
               }
             }
