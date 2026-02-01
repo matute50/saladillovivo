@@ -306,7 +306,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
               videoUrl={currentVideo.url}
               // REGLA: Si hay overlay, el video debe empezar a cargar y reproducirse DE INMEDIATO
               // para estar listo cuando el overlay desaparezca a los 4s.
-              autoplay={isPlaying && (isPreRollOverlayActive || delayedPlay)}
+              autoplay={isPlaying}
               onClose={() => {
                 if (!transitionSignaledRef.current) {
                   handleOnEnded(setVolume);

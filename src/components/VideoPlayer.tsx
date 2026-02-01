@@ -39,6 +39,7 @@ export default function VideoPlayer({
   const isFadingIn = useRef(false); // Ref to track if fade-in is active
   const [isPlayerReady, setIsPlayerReady] = useState(false); // New state to track if ReactPlayer is ready
   const [forceMute, setForceMute] = useState(autoplay);
+  const [isPlayingInternal, setIsPlayingInternal] = useState(false);
 
   // Consumimos el estado global del volumen
   const { volume, isMuted } = useVolumeStore();
@@ -47,13 +48,43 @@ export default function VideoPlayer({
     setIsMounted(true);
   }, []);
 
-  // Efecto para liberar el muteo forzado inicial tras el arranque
+  // Efecto para liberar el muteo forzado inicial tras detectar reproducción real
   useEffect(() => {
-    if (isPlayerReady && forceMute) {
-      const timer = setTimeout(() => setForceMute(false), 300);
+    if (isPlayingInternal && forceMute) {
+      const timer = setTimeout(() => {
+        console.log("VideoPlayer: Liberando forceMute");
+        setForceMute(false);
+      }, 800);
       return () => clearTimeout(timer);
     }
-  }, [isPlayerReady, forceMute]);
+  }, [isPlayingInternal, forceMute]);
+
+  // --- REINTENTO AGRESIVO DE AUTOPLAY PARA YOUTUBE ---
+  useEffect(() => {
+    let retryInterval: NodeJS.Timeout;
+
+    if (isMounted && autoplay && isYouTubeVideo(videoUrl) && !isPlayingInternal) {
+      retryInterval = setInterval(() => {
+        if (playerRef.current) {
+          const internal = playerRef.current.getInternalPlayer();
+          if (internal && typeof internal.playVideo === 'function') {
+            const state = typeof internal.getPlayerState === 'function' ? internal.getPlayerState() : -1;
+            // Si está pausado (2), canteado (5) o no ha empezado (-1, 0, 3)
+            if (state !== 1) {
+              console.log("VideoPlayer: Reintentando playVideo() - Estado:", state);
+              internal.playVideo();
+            } else if (state === 1 && !isPlayingInternal) {
+              setIsPlayingInternal(true);
+            }
+          }
+        }
+      }, 1000);
+    }
+
+    return () => {
+      if (retryInterval) clearInterval(retryInterval);
+    };
+  }, [isMounted, autoplay, videoUrl, isPlayingInternal]);
 
   // Determine the base volume based on props or global context
   const baseVolume = typeof playerVolume === 'number' ? playerVolume : volume;
@@ -64,7 +95,7 @@ export default function VideoPlayer({
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
-    if (isYouTubeVideo(videoUrl) && autoplay && effectiveVolume > 0 && isPlayerReady) { // Added isPlayerReady condition
+    if (isYouTubeVideo(videoUrl) && autoplay && effectiveVolume > 0 && isPlayingInternal) {
       // Only start fade-in if not already fading in for the same video/state
       if (isFadingIn.current && localVolume === effectiveVolume) return;
 
@@ -154,6 +185,10 @@ export default function VideoPlayer({
           onDuration={onDuration}
           onReady={handleReady}
           onError={handleError}
+          onPlay={() => setIsPlayingInternal(true)}
+          onPause={() => {
+            if (autoplay) setIsPlayingInternal(false);
+          }}
           config={{
             youtube: {
               playerVars: {
@@ -161,14 +196,17 @@ export default function VideoPlayer({
                 modestbranding: 1,
                 rel: 0,
                 autoplay: autoplay ? 1 : 0,
-                mute: 1, // Forzamos mute en la API de YT para mayor seguridad de autoplay
+                mute: 1,
                 playsinline: 1,
                 controls: 0,
                 disablekb: 1,
                 fs: 0,
                 iv_load_policy: 3,
                 cc_load_policy: 0,
-                origin: typeof window !== 'undefined' ? window.location.origin : ''
+                origin: typeof window !== 'undefined' ? window.location.origin : '',
+                enablejsapi: 1,
+                widget_referrer: typeof window !== 'undefined' ? window.location.href : '',
+                host: 'https://www.youtube.com'
               }
             },
             file: {
