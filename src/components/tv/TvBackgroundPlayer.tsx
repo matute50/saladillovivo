@@ -72,7 +72,7 @@ const TvBackgroundPlayer = () => {
             autoPlay
             playsInline
             muted // Las intros siempre deben estar silenciadas para el autoplay
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
             onEnded={() => handleOnEnded(setVolume)}
             onTimeUpdate={handleIntroTimeUpdate}
             onError={() => handleOnEnded(setVolume)} // Si la intro falla, pasa al siguiente

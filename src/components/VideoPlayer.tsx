@@ -185,7 +185,7 @@ export default function VideoPlayer({
 
       <div className={cn(
         "w-full h-full transform-gpu overflow-hidden",
-        isYouTubeVideo(videoUrl) ? "scale-[1.20]" : "scale-100"
+        isYouTubeVideo(videoUrl) ? "scale-[1.08]" : "scale-100"
       )}>
         <ReactPlayer
           ref={playerRef}
@@ -249,7 +249,7 @@ export default function VideoPlayer({
               attributes: {
                 controlsList: 'nodownload',
                 playsInline: true,
-                style: { objectFit: 'cover', width: '100%', height: '100%' }
+                style: { objectFit: 'contain', width: '100%', height: '100%' }
               }
             }
           }}

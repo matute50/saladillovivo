@@ -358,7 +358,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
             src={thumbnailSrc}
             alt="Fondo"
             fill
-            className="absolute inset-0 z-10 object-cover opacity-60"
+            className="absolute inset-0 z-10 object-contain opacity-60"
             priority
             onError={() => setThumbnailSrc('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=')}
           />
