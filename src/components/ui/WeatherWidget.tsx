@@ -23,15 +23,32 @@ import { useNewsStore } from '@/store/useNewsStore';
 // Mapping WMO codes to Icons
 // https://open-meteo.com/en/docs
 const getWeatherIcon = (code: number, isDay: boolean = true) => {
-    if (code === 0) return isDay ? <Sun size={30} className="text-yellow-400" /> : <Moon size={30} className="text-blue-200" />;
-    if (code >= 1 && code <= 3) return <Cloud size={30} className="text-gray-300" />; // Cloudy
-    if (code >= 45 && code <= 48) return <CloudFog size={30} className="text-gray-400" />; // Fog
-    if (code >= 51 && code <= 55) return <CloudDrizzle size={30} className="text-blue-300" />; // Drizzle
-    if (code >= 61 && code <= 67) return <CloudRain size={30} className="text-blue-400" />; // Rain
-    if (code >= 71 && code <= 77) return <CloudSnow size={30} className="text-white" />; // Snow
-    if (code >= 80 && code <= 82) return <CloudRain size={30} className="text-blue-500" />; // Showers
-    if (code >= 95 && code <= 99) return <CloudLightning size={30} className="text-yellow-500" />; // Storm
-    return <Wind size={30} className="text-gray-300" />;
+    // https://open-meteo.com/en/docs
+    if (code === 0) return isDay ? <Sun size={30} className="text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.4)]" /> : <Moon size={30} className="text-indigo-200 drop-shadow-[0_0_8px_rgba(199,210,254,0.3)]" />;
+
+    // Cloudy (1, 2, 3)
+    if (code >= 1 && code <= 3) return <Cloud size={30} className={cn(isDay ? "text-sky-300" : "text-slate-400")} />;
+
+    // Fog (45, 48)
+    if (code >= 45 && code <= 48) return <CloudFog size={30} className="text-slate-500" />;
+
+    // Drizzle (51, 53, 55)
+    if (code >= 51 && code <= 55) return <CloudDrizzle size={30} className="text-cyan-400" />;
+
+    // Rain (61, 63, 65, 66, 67, 80, 81, 82)
+    if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) {
+        return <CloudRain size={30} className="text-blue-500 drop-shadow-[0_0_5px_rgba(59,130,246,0.3)]" />;
+    }
+
+    // Snow (71, 73, 75, 77, 85, 86)
+    if ((code >= 71 && code <= 77) || (code >= 85 && code <= 86)) {
+        return <CloudSnow size={30} className="text-blue-50" />;
+    }
+
+    // Thunderstorm (95, 96, 99)
+    if (code >= 95 && code <= 99) return <CloudLightning size={30} className="text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.5)]" />;
+
+    return <Wind size={30} className="text-teal-300" />;
 };
 
 const WeatherWidget = () => {
