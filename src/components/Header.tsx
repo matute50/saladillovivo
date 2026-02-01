@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import SearchBar from '@/components/ui/SearchBar';
 import { usePlayerStore } from '@/store/usePlayerStore';
 import { useNewsStore } from '@/store/useNewsStore';
-
+import WeatherWidget from '@/components/ui/WeatherWidget';
 
 const Header = () => {
   const { viewMode, setViewMode } = usePlayerStore();
@@ -76,7 +76,7 @@ const Header = () => {
           </Link>
         </div>
 
-        <nav className="flex-grow flex justify-end items-center space-x-2">
+        <nav className="flex items-center space-x-2">
           <SearchBar />
 
           <Button
@@ -96,6 +96,10 @@ const Header = () => {
           <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-white hover:bg-white/10">
             {isDarkTheme ? <Sun size={20} /> : <Moon size={20} />}
           </Button>
+
+          <div className="h-6 w-px bg-white/20 mx-1 hidden md:block"></div>
+
+          <WeatherWidget />
         </nav>
       </div>
     </motion.header>
