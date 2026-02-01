@@ -78,8 +78,6 @@ const Header = () => {
         <div className="flex-grow" />
 
         <nav className="flex items-center space-x-2">
-          <SearchBar />
-
           <Button
             variant="ghost"
             size="icon"
@@ -97,6 +95,8 @@ const Header = () => {
           <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-black dark:text-white hover:bg-black/10 dark:hover:bg-white/10">
             {isDarkTheme ? <Sun size={20} /> : <Moon size={20} />}
           </Button>
+
+          <SearchBar />
 
           <div className="h-6 w-px bg-black/20 dark:bg-white/20 mx-1 hidden md:block"></div>
 
