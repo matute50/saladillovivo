@@ -84,20 +84,20 @@ const Header = () => {
             size="icon"
             onClick={() => setViewMode(viewMode === 'diario' ? 'tv' : 'diario')}
             aria-label="Cambiar modo"
-            className="text-white hover:bg-white/10"
+            className="text-black dark:text-white hover:bg-black/10 dark:hover:bg-white/10"
           >
             {viewMode === 'diario' ? <Tv size={20} /> : <Newspaper size={20} />}
           </Button>
 
-          <Button variant="ghost" size="icon" onClick={handleShare} className="text-white hover:bg-white/10">
+          <Button variant="ghost" size="icon" onClick={handleShare} className="text-black dark:text-white hover:bg-black/10 dark:hover:bg-white/10">
             <Share2 size={20} />
           </Button>
 
-          <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-white hover:bg-white/10">
+          <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-black dark:text-white hover:bg-black/10 dark:hover:bg-white/10">
             {isDarkTheme ? <Sun size={20} /> : <Moon size={20} />}
           </Button>
 
-          <div className="h-6 w-px bg-white/20 mx-1 hidden md:block"></div>
+          <div className="h-6 w-px bg-black/20 dark:bg-white/20 mx-1 hidden md:block"></div>
 
           <WeatherWidget />
         </nav>
