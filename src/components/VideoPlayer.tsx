@@ -183,10 +183,7 @@ export default function VideoPlayer({
           Evita cualquier interacción directa con el iframe de YouTube */}
       <div className="absolute inset-0 z-10 bg-transparent" />
 
-      <div className={cn(
-        "w-full h-full transform-gpu overflow-hidden",
-        isYouTubeVideo(videoUrl) ? "scale-[1.08]" : "scale-100"
-      )}>
+      <div className="w-full h-full transform-gpu overflow-hidden">
         <ReactPlayer
           ref={playerRef}
           url={videoUrl}
