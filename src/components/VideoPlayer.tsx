@@ -41,6 +41,7 @@ export default function VideoPlayer({
   const [isPlayingInternal, setIsPlayingInternal] = useState(false);
   const [isFadingOut, setIsFadingOut] = useState(false); // Flag for fade-out at the end
   const durationRef = useRef(0);
+  const playStartTimeRef = useRef<number | null>(null); // Track when playback actually started
 
   // Consumimos el estado global del volumen
   const { volume, isMuted } = useVolumeStore();
@@ -59,8 +60,8 @@ export default function VideoPlayer({
         console.log("VideoPlayer: Liberando forceMute tras 2.5s de reproducción estable");
         setForceMute(false);
       }, 2500);
-    } else if (!isPlayingInternal && forceMute) {
-      // Si el video se pausa o entra en buffering antes de los 2.5s, cancelamos el timer
+    } else if (!isPlayingInternal && !isFadingIn.current && forceMute) {
+      // Si el video se pausa EXPLÍCITAMENTE (no por buffering) antes de los 2.5s, cancelamos el timer
       if (playTimer!) clearTimeout(playTimer);
     }
     return () => {
@@ -82,14 +83,18 @@ export default function VideoPlayer({
             // Si está pausado (2), canteado (5) o no ha empezado (-1, 0)
             // IMPORTANTE: NO reintenta si está BUFERIZANDO (3)
             if (state === 2 || state === 5 || state === -1 || state === 0) {
-              console.log("VideoPlayer: Reintentando playVideo() - Estado:", state);
+              console.log("VideoPlayer: Reintentando playVideo() para salir de estado:", state);
               internal.playVideo();
-            } else if (state === 1 && !isPlayingInternal) {
-              console.log("VideoPlayer: Detectado estado PLAYING (1)");
-              setIsPlayingInternal(true);
+            } else if (state === 1) {
+              if (!isPlayingInternal) {
+                console.log("VideoPlayer: Detectado estado PLAYING (1)");
+                setIsPlayingInternal(true);
+                if (playStartTimeRef.current === null) playStartTimeRef.current = Date.now();
+              }
             } else if (state === 3) {
-              // Si está buferizando, nos aseguramos de que isPlayingInternal sea false para no des-silenciar antes de tiempo
-              if (isPlayingInternal) setIsPlayingInternal(false);
+              // En BUFFERING (3), mantenemos isPlayingInternal en true para no resetear timers de muteo
+              // pero no actualizamos el playStartTimeRef inicial
+              if (!isPlayingInternal) setIsPlayingInternal(true);
             }
           }
         }
@@ -230,9 +235,29 @@ export default function VideoPlayer({
           onDuration={handleDurationInternal}
           onReady={handleReady}
           onError={handleError}
-          onPlay={() => setIsPlayingInternal(true)}
+          onPlay={() => {
+            setIsPlayingInternal(true);
+            if (playStartTimeRef.current === null) playStartTimeRef.current = Date.now();
+          }}
           onPause={() => {
-            if (autoplay) setIsPlayingInternal(false);
+            if (autoplay) {
+              // BLOQUEADOR DE PAUSAS: Si se pausa durante los primeros 5 segundos de vida
+              // y es autoplay, es probable que sea un bloqueo del navegador o error de estado.
+              const now = Date.now();
+              const playDuration = playStartTimeRef.current ? (now - playStartTimeRef.current) : 0;
+
+              if (playDuration < 5000) {
+                console.warn("VideoPlayer: Pausa prematura detectada (" + playDuration + "ms). Forzando Play...");
+                if (playerRef.current) {
+                  const internal = playerRef.current.getInternalPlayer();
+                  if (internal && typeof internal.playVideo === 'function') internal.playVideo();
+                }
+              } else {
+                setIsPlayingInternal(false);
+              }
+            } else {
+              setIsPlayingInternal(false);
+            }
           }}
           config={{
             youtube: {
