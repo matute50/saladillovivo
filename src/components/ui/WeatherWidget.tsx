@@ -13,7 +13,6 @@ import {
     CloudDrizzle,
     Search,
     MapPin,
-    X,
     ChevronDown
 } from 'lucide-react';
 import { useWeather } from '@/hooks/useWeather';
