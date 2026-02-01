@@ -45,7 +45,7 @@ export default function VideoPlayer({
   const [shouldPlay, setShouldPlay] = useState(false); // New state to force playback trigger
 
   // Consumimos el estado global del volumen
-  const { volume, isMuted, unmute, setVolume } = useVolumeStore();
+  const { volume, isMuted } = useVolumeStore();
 
   useEffect(() => {
     setIsMounted(true);
