@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import ReactPlayer from 'react-player';
 import { useVolumeStore } from '@/store/useVolumeStore';
+import { cn } from '@/lib/utils';
 
 // Helper to check if a URL is a YouTube video (redefined here for VideoPlayer context)
 const isYouTubeVideo = (url: string) => {
@@ -182,7 +183,10 @@ export default function VideoPlayer({
           Evita cualquier interacción directa con el iframe de YouTube */}
       <div className="absolute inset-0 z-10 bg-transparent" />
 
-      <div className="w-full h-full scale-[1.20] transform-gpu overflow-hidden">
+      <div className={cn(
+        "w-full h-full transform-gpu overflow-hidden",
+        isYouTubeVideo(videoUrl) ? "scale-[1.20]" : "scale-100"
+      )}>
         <ReactPlayer
           ref={playerRef}
           url={videoUrl}
