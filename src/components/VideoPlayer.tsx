@@ -40,6 +40,8 @@ export default function VideoPlayer({
   const [isPlayerReady, setIsPlayerReady] = useState(false); // New state to track if ReactPlayer is ready
   const [forceMute, setForceMute] = useState(autoplay);
   const [isPlayingInternal, setIsPlayingInternal] = useState(false);
+  const [isFadingOut, setIsFadingOut] = useState(false); // Flag for fade-out at the end
+  const durationRef = useRef(0);
 
   // Consumimos el estado global del volumen
   const { volume, isMuted } = useVolumeStore();
@@ -105,19 +107,19 @@ export default function VideoPlayer({
   // Apply the extra volume multiplier (normalization)
   const effectiveVolume = baseVolume * volumen_extra;
 
-  // Fade-in effect for YouTube videos
+  // Fade-in effect for YouTube videos (triggers when forceMute is released)
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
-    if (isYouTubeVideo(videoUrl) && autoplay && effectiveVolume > 0 && isPlayingInternal) {
-      // Only start fade-in if not already fading in for the same video/state
+    if (isYouTubeVideo(videoUrl) && autoplay && effectiveVolume > 0 && isPlayingInternal && !forceMute && !isFadingOut) {
       if (isFadingIn.current && localVolume === effectiveVolume) return;
 
+      console.log("VideoPlayer: Iniciando Fade-in de audio");
       isFadingIn.current = true;
-      setLocalVolume(0); // Start from muted for fade-in
+      setLocalVolume(0);
 
-      const fadeDuration = 1000; // 1 second exact
-      const fadeSteps = 20; // Fewer steps for efficiency but enough for smoothness
+      const fadeDuration = 1000;
+      const fadeSteps = 20;
       const increment = effectiveVolume / fadeSteps;
       let currentFadeVolume = 0;
       let step = 0;
@@ -130,26 +132,56 @@ export default function VideoPlayer({
         if (step >= fadeSteps || currentFadeVolume >= effectiveVolume) {
           clearInterval(interval);
           isFadingIn.current = false;
-          setLocalVolume(effectiveVolume); // Ensure it's at final volume
+          setLocalVolume(effectiveVolume);
         }
       }, fadeDuration / fadeSteps);
-    } else {
-      // If not YouTube, or not autoplaying, or muted, or effectiveVolume is 0, or player not ready
-      // just set local volume to effective immediately.
-      if (effectiveVolume !== localVolume) {
+    } else if (!forceMute && !isFadingOut) {
+      if (effectiveVolume !== localVolume && !isFadingIn.current) {
         setLocalVolume(effectiveVolume);
       }
-      isFadingIn.current = false; // Reset fade-in status
     }
 
     return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-      isFadingIn.current = false; // Ensure reset on unmount or dependency change
+      if (interval) clearInterval(interval);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [videoUrl, autoplay, effectiveVolume, isMuted, isPlayerReady]); // localVolume omitted to prevent infinite loop
+  }, [videoUrl, autoplay, effectiveVolume, forceMute, isPlayingInternal, isFadingOut]);
+
+  // Handle Fade-out effect
+  const handleProgressInternal = (state: { playedSeconds: number, loadedSeconds: number }) => {
+    if (onProgress) onProgress(state);
+
+    if (isYouTubeVideo(videoUrl) && durationRef.current > 0 && !isFadingOut) {
+      const timeLeft = durationRef.current - state.playedSeconds;
+
+      // Start fade-out when 1 second remains
+      if (timeLeft <= 1 && timeLeft > 0) {
+        console.log("VideoPlayer: Iniciando Fade-out de audio (1s restante)");
+        setIsFadingOut(true);
+
+        const fadeDuration = 1000;
+        const fadeSteps = 20;
+        const decrement = localVolume / fadeSteps;
+        let currentFadeVolume = localVolume;
+        let step = 0;
+
+        const fadeOutInterval = setInterval(() => {
+          step++;
+          currentFadeVolume = Math.max(0, currentFadeVolume - decrement);
+          setLocalVolume(currentFadeVolume);
+
+          if (step >= fadeSteps || currentFadeVolume <= 0) {
+            clearInterval(fadeOutInterval);
+            setLocalVolume(0);
+          }
+        }, fadeDuration / fadeSteps);
+      }
+    }
+  };
+
+  const handleDurationInternal = (duration: number) => {
+    durationRef.current = duration;
+    if (onDuration) onDuration(duration);
+  };
 
   // Handle player ready state and seeking
   const handleReady = useCallback(() => {
