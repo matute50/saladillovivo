@@ -2,22 +2,26 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
+const API_KEY = 'b9fd6909428741cc9aa182830260102';
 const DEFAULT_COORDS = { lat: -34.636, lon: -59.778 }; // Saladillo, Buenos Aires
 const SALADILLO_NAME = 'Saladillo, BA';
-const WEATHER_CACHE_KEY = 'saladillovivo_weather_cache';
-const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
+const WEATHER_CACHE_KEY = 'saladillovivo_weather_cache_v2';
+const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes (reduced for better accuracy)
 
 export interface WeatherData {
     current: {
         temp: number;
-        weatherCode: number;
+        feelsLike: number;
+        conditionCode: number;
         isDay: boolean;
+        conditionText: string;
     };
     forecast: Array<{
         date: string;
         minTemp: number;
         maxTemp: number;
-        weatherCode: number;
+        conditionCode: number;
+        conditionText: string;
     }>;
     locationName: string;
 }
@@ -30,8 +34,8 @@ export const useWeather = () => {
     const fetchWeather = useCallback(async (lat: number, lon: number, name: string) => {
         try {
             setLoading(true);
-            // Open-Meteo API
-            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,is_day,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=4`;
+            // WeatherAPI.com - Current and Forecast
+            const url = `https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${lat},${lon}&days=4&aqi=no&alerts=no&lang=es`;
 
             const response = await fetch(url);
             if (!response.ok) throw new Error('Error al obtener datos del clima');
@@ -40,15 +44,18 @@ export const useWeather = () => {
 
             const weatherData: WeatherData = {
                 current: {
-                    temp: Math.round(data.current.temperature_2m),
-                    weatherCode: data.current.weather_code,
+                    temp: Math.round(data.current.temp_c),
+                    feelsLike: Math.round(data.current.feelslike_c),
+                    conditionCode: data.current.condition.code,
                     isDay: !!data.current.is_day,
+                    conditionText: data.current.condition.text,
                 },
-                forecast: data.daily.time.slice(1, 4).map((time: string, index: number) => ({
-                    date: time,
-                    maxTemp: Math.round(data.daily.temperature_2m_max[index + 1]),
-                    minTemp: Math.round(data.daily.temperature_2m_min[index + 1]),
-                    weatherCode: data.daily.weather_code[index + 1],
+                forecast: data.forecast.forecastday.slice(1).map((day: any) => ({
+                    date: day.date,
+                    maxTemp: Math.round(day.day.maxtemp_c),
+                    minTemp: Math.round(day.day.mintemp_c),
+                    conditionCode: day.day.condition.code,
+                    conditionText: day.day.condition.text,
                 })),
                 locationName: name,
             };
@@ -69,30 +76,14 @@ export const useWeather = () => {
         }
     }, []);
 
-    const reverseGeocode = async (lat: number, lon: number) => {
-        try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10`);
-            const data = await res.json();
-            return data.address.city || data.address.town || data.address.village || 'Ubicación Actual';
-        } catch {
-            return 'Ubicación Actual';
-        }
-    };
-
-    const updateLocation = async (lat: number, lon: number, name?: string) => {
-        const finalName = name || await reverseGeocode(lat, lon);
-        fetchWeather(lat, lon, finalName);
-    };
-
     const searchLocation = async (query: string) => {
         try {
             setLoading(true);
-            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
+            const res = await fetch(`https://api.weatherapi.com/v1/search.json?key=${API_KEY}&q=${encodeURIComponent(query)}`);
             const data = await res.json();
             if (data && data[0]) {
-                const { lat, lon, display_name } = data[0];
-                const shortName = display_name.split(',')[0];
-                updateLocation(parseFloat(lat), parseFloat(lon), shortName);
+                const { lat, lon, name } = data[0];
+                fetchWeather(lat, lon, name);
             } else {
                 setError('Ubicación no encontrada');
                 setLoading(false);
@@ -101,6 +92,10 @@ export const useWeather = () => {
             setError('Error al buscar ubicación');
             setLoading(false);
         }
+    };
+
+    const updateLocation = async (lat: number, lon: number, name?: string) => {
+        fetchWeather(lat, lon, name || 'Ubicación Actual');
     };
 
     useEffect(() => {
@@ -121,7 +116,8 @@ export const useWeather = () => {
                 navigator.geolocation.getCurrentPosition(
                     async (position) => {
                         const { latitude, longitude } = position.coords;
-                        updateLocation(latitude, longitude);
+                        // For name we can just use "Ubicación Actual" or better, let WeatherAPI handle it
+                        fetchWeather(latitude, longitude, 'Ubicación Actual');
                     },
                     () => {
                         // Fallback to Saladillo if declined
@@ -129,7 +125,6 @@ export const useWeather = () => {
                     }
                 );
             } else {
-                // Fallback to Saladillo if not supported
                 fetchWeather(DEFAULT_COORDS.lat, DEFAULT_COORDS.lon, SALADILLO_NAME);
             }
         };
