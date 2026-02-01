@@ -12,12 +12,13 @@ interface CustomControlsProps {
 
 const CustomControls: React.FC<CustomControlsProps> = ({ onToggleFullScreen, isFullScreen }) => {
   const { isPlaying, togglePlayPause } = usePlayerStore();
-  const { volume, setVolume, isMuted, toggleMute } = useVolumeStore();
+  const { volume, setVolume, isMuted, toggleMute, unmute } = useVolumeStore();
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Aseguramos que sea un número flotante
     const newVol = parseFloat(e.target.value);
     setVolume(newVol);
+    // Si el usuario mueve el slider y estaba muteado, forzamos el desmuteo
+    if (isMuted && newVol > 0) unmute();
   };
 
   // Determinar icono de volumen

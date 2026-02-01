@@ -64,10 +64,12 @@ export default function VideoPlayer({
 
   // Efecto para sincronizar el volumen base cuando no hay fade activo
   useEffect(() => {
-    if (!isFadingIn.current && !isFadingOut && localVolume !== effectiveVolume) {
-      setLocalVolume(effectiveVolume);
+    const clampedVolume = Math.max(0, Math.min(1, effectiveVolume));
+    if (!isFadingIn.current && !isFadingOut && localVolume !== clampedVolume) {
+      console.log(`VideoPlayer: Sincronizando localVolume a ${clampedVolume} (effective: ${effectiveVolume}, isMuted: ${isMuted})`);
+      setLocalVolume(clampedVolume);
     }
-  }, [effectiveVolume, localVolume, isFadingOut]);
+  }, [effectiveVolume, localVolume, isFadingOut, isMuted]);
 
   // --- REINTENTO AGRESIVO DE AUTOPLAY PARA YOUTUBE ---
   useEffect(() => {
@@ -227,7 +229,6 @@ export default function VideoPlayer({
                 modestbranding: 1,
                 rel: 0,
                 autoplay: autoplay ? 1 : 0,
-                mute: 1,
                 playsinline: 1,
                 controls: 0,
                 disablekb: 1,
