@@ -41,8 +41,24 @@ const VideoSection: React.FC = () => {
   } = usePlayerStore();
 
   const { currentSlide, isPlaying: isSlidePlaying, stopSlide, isNewsIntroActive, setIsNewsIntroActive } = useNewsPlayerStore();
-  const { volume, setVolume, isMuted } = useVolumeStore();
+  const { volume, setVolume, isMuted, unmute } = useVolumeStore(); // Added unmute
   const { isCastAvailable, handleCast } = useCast(currentVideo);
+
+  // Auto-Unmute for News or HTML Slides
+  const isHtmlSlideActive = isSlidePlaying && currentSlide && currentSlide.type === 'html';
+  const isLocalIntro = currentVideo?.url && (
+    currentVideo.url.startsWith('/') ||
+    currentVideo.url.includes('videos_intro')
+  ) || false;
+  const isNewsContent = !!(currentVideo?.categoria === 'Noticias' && !isLocalIntro);
+
+  useEffect(() => {
+    if ((isNewsContent || isHtmlSlideActive) && isMuted) {
+      console.log("Unmuting for News content...");
+      unmute();
+    }
+  }, [isNewsContent, isHtmlSlideActive, isMuted, unmute]);
+
   const [showControls, setShowControls] = useState(false);
   const [thumbnailSrc, setThumbnailSrc] = useState<string>('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=');
   const [areCinematicBarsActive, setAreCinematicBarsActive] = useState(false);
@@ -107,13 +123,6 @@ const VideoSection: React.FC = () => {
 
   const [playBackgroundEarly, setPlayBackgroundEarly] = useState(false);
   const transitionTriggeredRef = useRef(false);
-
-  const isHtmlSlideActive = isSlidePlaying && currentSlide && currentSlide.type === 'html';
-
-  const isLocalIntro = currentVideo?.url && (
-    currentVideo.url.startsWith('/') ||
-    currentVideo.url.includes('videos_intro')
-  );
 
   useEffect(() => {
     setPlayBackgroundEarly(false);
@@ -260,7 +269,6 @@ const VideoSection: React.FC = () => {
   };
 
 
-  const isNewsContent = (currentVideo?.categoria === 'Noticias' && !isLocalIntro);
   const displayTitle = currentVideo?.nombre;
   const displaySubtitle = (currentVideo as any)?.resumen || (currentVideo as any)?.description;
 
@@ -427,9 +435,9 @@ const VideoSection: React.FC = () => {
                   </motion.div>
                 )}
 
-                {areCinematicBarsActive && (
+                {areCinematicBarsActive && !isNewsContent && (
                   <motion.div
-                    key="cinematic-bar-top"
+                    key="cinematic-bar-top-solid"
                     className="absolute top-0 left-0 right-0 h-[14%] bg-black z-[45] pointer-events-auto"
                     initial={{ y: 0 }}
                     animate={{ y: 0 }}
@@ -437,14 +445,14 @@ const VideoSection: React.FC = () => {
                     transition={{ duration: 1.2, ease: "easeInOut" }}
                   />
                 )}
-                {areCinematicBarsActive && (
+                {areCinematicBarsActive && !isNewsContent && (
                   <motion.div
-                    key="cinematic-bar-top"
+                    key="cinematic-bar-top-gradient"
                     className="absolute top-0 left-0 right-0 h-[35%] bg-gradient-to-b from-black via-black/90 to-transparent z-[45] pointer-events-auto"
                     initial={{ opacity: 1 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 4, ease: "easeInOut" }}
+                    transition={{ duration: 2.0, ease: "easeOut" }}
                   />
                 )}
                 {areCinematicBarsActive && (
@@ -454,7 +462,7 @@ const VideoSection: React.FC = () => {
                     initial={{ opacity: 1 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 4, ease: "easeInOut" }}
+                    transition={{ duration: 2.0, ease: "easeOut" }}
                   />
                 )}
               </AnimatePresence>

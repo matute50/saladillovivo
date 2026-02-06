@@ -234,7 +234,7 @@ const TvModeLayout = () => {
         </div>
 
         <div
-          className="absolute top-4 right-4 z-40 flex items-center gap-2 pointer-events-auto"
+          className="absolute top-4 right-4 z-[60] flex items-center gap-2 pointer-events-auto"
           onMouseEnter={() => { cancelHideTimer(); setIsOverlayVisible(true); }}
         >
           <div className="rounded-md p-2 bg-black/10 backdrop-blur-lg shadow-lg shadow-black/50">

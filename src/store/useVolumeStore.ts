@@ -12,8 +12,8 @@ interface VolumeState {
 export const useVolumeStore = create<VolumeState>()(
     persist(
         (set) => ({
-            volume: 1,
-            isMuted: true,
+            volume: 0.2,
+            isMuted: false,
             setVolume: (newVolume: number) => {
                 const clamped = Math.max(0, Math.min(1, newVolume));
                 set({ volume: clamped });
