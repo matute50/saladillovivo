@@ -130,8 +130,6 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
           }
 
           const thumbUrl = getYoutubeThumbnail(video);
-          // DETECCIÓN DE YOUTUBE PARA EVITAR ERROR 402
-          const isYouTube = thumbUrl.includes('youtube.com') || thumbUrl.includes('ytimg.com');
 
           return (
             <SwiperSlide
@@ -155,7 +153,7 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
                     loading={index === 0 ? 'eager' : 'lazy'}
                     className={`${isLiveOrEvent ? 'object-contain' : 'object-cover'} transition-transform duration-300 group-hover:scale-110`}
                     // LA SOLUCIÓN MÁGICA:
-                    unoptimized={isYouTube}
+                    unoptimized={true}
                     onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='; }}
                   />
                 </div>
