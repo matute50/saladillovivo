@@ -50,6 +50,11 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
       }
     }
 
+    // Supports Data URI
+    if (cleanImageUrl.startsWith('data:image')) {
+      return cleanImageUrl;
+    }
+
     // Si es absoluta, usarla tal cual
     if (cleanImageUrl.match(/^(http|https):\/\//)) {
       return cleanImageUrl;

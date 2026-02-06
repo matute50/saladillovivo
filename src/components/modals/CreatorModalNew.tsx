@@ -32,7 +32,7 @@ const CreatorModalNew: React.FC<CreatorModalProps> = ({ isOpen, onClose }) => {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     onClick={onClose}
-                    className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+                    className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4"
                 >
                     <motion.div
                         initial={{ scale: 0.95, opacity: 0, y: 20 }}
@@ -41,12 +41,12 @@ const CreatorModalNew: React.FC<CreatorModalProps> = ({ isOpen, onClose }) => {
                         onClick={(e) => e.stopPropagation()}
                         className="bg-white dark:bg-neutral-900 w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl border border-gray-200 dark:border-neutral-800 relative flex flex-col"
                     >
-                        {/* Botón Cerrar */}
+                        {/* Botón Cerrar - Mejorado */}
                         <button
                             onClick={onClose}
-                            className="absolute top-3 right-3 p-2 rounded-full bg-gray-100 dark:bg-neutral-800 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 text-gray-500 transition-colors z-10"
+                            className="absolute top-4 right-4 p-2 rounded-full bg-gray-200 dark:bg-neutral-800 hover:bg-red-500 hover:text-white text-gray-600 dark:text-gray-400 transition-all z-50 shadow-md"
                         >
-                            <X size={20} />
+                            <X size={24} />
                         </button>
 
                         {/* Contenido */}

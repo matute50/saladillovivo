@@ -114,7 +114,12 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
 
   const processThumbnails = useCallback((items: any[]) => {
     return items.map(item => {
-      let thumb = item.imageUrl || item.image_url || item.imagen || item.url_slide || TRANSPARENT_PNG_DATA_URI;
+      let thumb = item.imageUrl || item.image_url || item.imagen;
+      // Only use url_slide if it's not an HTML file (prevent broken images)
+      if (!thumb && item.url_slide && !item.url_slide.endsWith('.html')) {
+        thumb = item.url_slide;
+      }
+      thumb = thumb || TRANSPARENT_PNG_DATA_URI;
       if ((thumb === TRANSPARENT_PNG_DATA_URI || !thumb) && item.url) {
         const match = item.url.match(/(?:youtu\.be\/|youtube\.com\/.*v=)([^&]+)/);
         if (match && match[1]) thumb = `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg`;
