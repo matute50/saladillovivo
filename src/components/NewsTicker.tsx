@@ -5,10 +5,9 @@ import { motion, useAnimationControls } from 'framer-motion';
 
 interface NewsTickerProps {
   tickerTexts: string[];
-  isMobile?: boolean;
 }
 
-const NewsTicker: React.FC<NewsTickerProps> = ({ tickerTexts, isMobile = false }) => {
+const NewsTicker: React.FC<NewsTickerProps> = ({ tickerTexts }) => {
   const [isPaused, setIsPaused] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
   const [textWidth, setTextWidth] = useState(0);
@@ -28,7 +27,7 @@ const NewsTicker: React.FC<NewsTickerProps> = ({ tickerTexts, isMobile = false }
     };
 
     calculateWidths(); // Initial calculation
-    
+
     const resizeObserver = new ResizeObserver(calculateWidths);
     if (containerRef.current) resizeObserver.observe(containerRef.current);
     if (textRef.current) resizeObserver.observe(textRef.current);
@@ -36,7 +35,7 @@ const NewsTicker: React.FC<NewsTickerProps> = ({ tickerTexts, isMobile = false }
     return () => {
       resizeObserver.disconnect();
     };
-  }, [tickerTexts, animationKey, isMobile]);
+  }, [tickerTexts, animationKey]);
 
   useEffect(() => {
     if (textWidth > 0 && containerWidth > 0 && textWidth > containerWidth) {
@@ -110,4 +109,4 @@ const NewsTicker: React.FC<NewsTickerProps> = ({ tickerTexts, isMobile = false }
   );
 };
 
-export default NewsTicker;
+export default React.memo(NewsTicker);

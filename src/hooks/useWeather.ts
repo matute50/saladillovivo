@@ -22,6 +22,10 @@ export interface WeatherData {
         maxTemp: number;
         conditionCode: number;
         conditionText: string;
+        maxWind: number;
+        humidity: number;
+        rainChance: number;
+        uv: number;
     }>;
     locationName: string;
 }
@@ -35,7 +39,7 @@ export const useWeather = () => {
         try {
             setLoading(true);
             // WeatherAPI.com - Current and Forecast
-            const url = `https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${lat},${lon}&days=4&aqi=no&alerts=no&lang=es`;
+            const url = `https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${lat},${lon}&days=6&aqi=no&alerts=no&lang=es`;
 
             const response = await fetch(url);
             if (!response.ok) throw new Error('Error al obtener datos del clima');
@@ -56,6 +60,10 @@ export const useWeather = () => {
                     minTemp: Math.round(day.day.mintemp_c),
                     conditionCode: day.day.condition.code,
                     conditionText: day.day.condition.text,
+                    maxWind: Math.round(day.day.maxwind_kph),
+                    humidity: day.day.avghumidity,
+                    rainChance: day.day.daily_chance_of_rain,
+                    uv: day.day.uv,
                 })),
                 locationName: name,
             };

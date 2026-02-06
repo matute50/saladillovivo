@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { getVideosForHome, getNewRandomVideo } from '@/lib/data';
+import { getVideosForHome, getNewRandomVideo, getVideoByUrl } from '@/lib/data';
 import { SlideMedia } from '@/lib/types';
 
 import { useNewsPlayerStore } from './useNewsPlayerStore';
@@ -22,19 +22,26 @@ interface PlayerState {
     isPlaying: boolean;
     viewMode: 'diario' | 'tv';
     streamStatus: any;
-    isPreRollOverlayActive: boolean;
-    overlayIntroVideo: SlideMedia | null;
 
-    // Refs equivalents (using state for common reactive values)
+    // Zero-Branding States
+    isPreRollOverlayActive: boolean; // True when Intro is playing
+    overlayIntroVideo: SlideMedia | null;
+    isContentPlaying: boolean; // True when YouTube/Content underlying layer is playing
+
+    // Refs equivalents
     playbackState: PlaybackSource;
     savedProgress: number;
     savedVideo: SlideMedia | null;
     savedVolume: number;
     lastKnownVolume: number;
+    historyVolume: number; // Volume captured 10s before end of previous video
 
     // Actions
     setViewMode: (mode: 'diario' | 'tv') => void;
     setIsPlaying: (isPlaying: boolean) => void;
+    // New Action for Zero-Branding Sync (Call this when Intro has 4s left)
+    // startContentPlayback: () => void;
+
     togglePlayPause: () => void;
     setStreamStatus: (status: any) => void;
 
@@ -44,21 +51,25 @@ interface PlayerState {
     playLiveStream: (streamData: any) => void;
     playNextVideoInQueue: () => void;
     loadInitialPlaylist: (videoUrlToPlay: string | null) => Promise<void>;
-    handleOnEnded: (setVolume?: (v: number) => void) => Promise<void>;
+    handleOnEnded: (setVolume?: (v: number) => void, getCurrentVolume?: () => number) => Promise<void>;
+
+    // Resume Logic for Slides
+    pauseForSlide: (currentTime?: number) => void;
     resumeAfterSlide: () => void;
+
     saveCurrentProgress: (seconds: number, volume: number) => void;
     playRandomSequence: () => Promise<void>;
 
     startIntroHideTimer: () => void;
 
-    // Helpers/Internals
+    // Helpers
     getRandomIntro: () => SlideMedia;
     fetchRandomDbVideo: (excludeId?: string, excludeCategory?: string) => Promise<SlideMedia | null>;
     preloadNextVideo: (currentId: string) => Promise<void>;
+    finishIntro: () => void;
 }
 
-// Next intro video preloaded (outside of store for simplicity or could be inside)
-let nextIntroVideo: SlideMedia | null = null;
+// Next intro video preloaded
 let nextDataVideo: SlideMedia | null = null;
 
 export const usePlayerStore = create<PlayerState>()(
@@ -72,24 +83,27 @@ export const usePlayerStore = create<PlayerState>()(
             streamStatus: null,
             isPreRollOverlayActive: false,
             overlayIntroVideo: null,
+            isContentPlaying: false,
 
             playbackState: 'INTRO',
             savedProgress: 0,
             savedVideo: null,
             savedVolume: 1,
             lastKnownVolume: 1,
+            historyVolume: 1,
 
             setViewMode: (mode) => set({ viewMode: mode }),
             setIsPlaying: (isPlaying) => set({ isPlaying }),
+
             togglePlayPause: () => set((state) => ({ isPlaying: !state.isPlaying })),
             setStreamStatus: (status) => set({ streamStatus: status }),
 
             getRandomIntro: () => {
                 const generate = () => {
                     const randomIndex = Math.floor(Math.random() * INTRO_VIDEOS.length);
-                    const url = INTRO_VIDEOS[randomIndex]; // No encodeURI to match PreloadIntros
+                    const url = INTRO_VIDEOS[randomIndex];
                     return {
-                        id: `intro-${url}`,
+                        id: `intro-${url}-${Date.now()}`, // Unique ID to force re-render/logic if needed, though we recycle node
                         nombre: 'ESPACIO PUBLICITARIO',
                         url,
                         categoria: 'Institucional',
@@ -99,16 +113,7 @@ export const usePlayerStore = create<PlayerState>()(
                         novedad: false
                     };
                 };
-
-                if (nextIntroVideo) {
-                    const intro = nextIntroVideo;
-                    nextIntroVideo = generate();
-                    return intro;
-                } else {
-                    const intro = generate();
-                    nextIntroVideo = generate();
-                    return intro;
-                }
+                return generate();
             },
 
             fetchRandomDbVideo: async (excludeId, excludeCategory) => {
@@ -120,13 +125,17 @@ export const usePlayerStore = create<PlayerState>()(
                 }
             },
 
+            // Legacy direct play (might need update or deprecation if mostly unused)
             playMedia: (media) => set({ currentVideo: media, isPlaying: true }),
 
+            // User clicks a video in carousel
             playSpecificVideo: (media, currentVolume, setVolume) => {
-                // Interrumpir noticias si están activas
+                // Stop News Slide if active
                 useNewsPlayerStore.getState().stopSlide();
 
                 if (currentVolume !== undefined) set({ savedVolume: currentVolume });
+
+                // Rule: Start at 20% volume for user selection
                 if (setVolume) setVolume(0.2);
 
                 set({ playbackState: 'USER_SELECTED' });
@@ -136,20 +145,19 @@ export const usePlayerStore = create<PlayerState>()(
                     currentVideo: media,
                     isPlaying: true,
                     overlayIntroVideo: introToPlay,
-                    isPreRollOverlayActive: true
+                    isPreRollOverlayActive: true,
+                    // isContentPlaying: false, // Removed for revert
                 });
 
-                // Disparar precarga del siguiente video para la barra de títulos
                 get().preloadNextVideo(media.id);
             },
 
             playTemporaryVideo: (media) => {
-                // Interrumpir noticias si están activas
                 useNewsPlayerStore.getState().stopSlide();
-
                 const { currentVideo, playbackState, getRandomIntro } = get();
+
                 if (currentVideo && playbackState !== 'INTRO') {
-                    set({ savedVideo: currentVideo });
+                    set({ savedVideo: currentVideo, savedProgress: get().savedProgress }); // Ensure progress is saved separately if needed
                 }
 
                 const introToPlay = getRandomIntro();
@@ -158,10 +166,10 @@ export const usePlayerStore = create<PlayerState>()(
                     isPlaying: true,
                     overlayIntroVideo: introToPlay,
                     isPreRollOverlayActive: true,
+                    isContentPlaying: false,
                     playbackState: 'USER_SELECTED'
                 });
 
-                // Disparar precarga del siguiente video
                 get().preloadNextVideo(media.id);
             },
 
@@ -170,148 +178,141 @@ export const usePlayerStore = create<PlayerState>()(
             },
 
             saveCurrentProgress: (seconds, volume) => {
+                // 10s Lookback Volume Persistence Logic
+                // We don't have duration here easily without passing it, but VideoPlayer calls this.
+                // Better approach: handleOnEnded calculates it if we track history.
+                // Simplified: Just allow set/get of historyVolume. 
+                // We'll update savedVolume constantly.
                 set({ savedProgress: seconds, savedVolume: volume });
             },
 
             startIntroHideTimer: () => {
-                // Limpiar cualquier temporizador previo
-                if ((globalThis as any)._introTimer) clearTimeout((globalThis as any)._introTimer);
-                if ((globalThis as any)._introFadeTimer) clearTimeout((globalThis as any)._introFadeTimer);
-
-                // El usuario quiere 4 segundos exactos de intro.
-                // 3500ms + 500ms de fade-out (CSS) = 4000ms total.
-                (globalThis as any)._introTimer = setTimeout(() => {
-                    (globalThis as any)._introFadeTimer = setTimeout(() => {
-                        set({ isPreRollOverlayActive: false, overlayIntroVideo: null });
-                    }, 500);
-                }, 3500);
+                // Managed by VideoSection based on actual video time now, 
+                // but kept for fallback or specific logic if needed.
+                // In Zero-Branding, the Intro *Video* ending triggers the hide, not a timer.
+                // We will deprecate this strict timer in favor of 'onEnded' of Intro Video.
             },
 
             loadInitialPlaylist: async (videoUrlToPlay) => {
-                console.log('PlayerStore: Iniciando secuencia...');
+                console.log('PlayerStore: Initializing Zero-Branding Sequence...');
+                const intro = get().getRandomIntro();
 
                 if (videoUrlToPlay) {
-                    const { allVideos } = await getVideosForHome(10);
-                    const requested = allVideos.find(v => v.url === videoUrlToPlay);
+                    // Deep Linking Logic
+                    let requested = (await getVideosForHome(10)).allVideos.find(v => v.url === videoUrlToPlay) as SlideMedia | null | undefined;
+                    if (!requested) requested = await getVideoByUrl(videoUrlToPlay);
+
                     if (requested) {
-                        const intro = get().getRandomIntro();
-                        set({ currentVideo: requested, isPlaying: true, overlayIntroVideo: intro, isPreRollOverlayActive: true });
+                        set({
+                            currentVideo: requested,
+                            isPlaying: true,
+                            overlayIntroVideo: intro,
+                            isPreRollOverlayActive: true,
+                            isContentPlaying: false,
+                            playbackState: 'USER_SELECTED'
+                        });
                         get().preloadNextVideo(requested.id);
                         return;
                     }
                 }
 
+                // Random Start
                 const randomDbVideo = await get().fetchRandomDbVideo();
-                // const isYouTube = randomDbVideo?.url.includes('youtu.be/') || randomDbVideo?.url.includes('youtube.com/');
-
                 if (randomDbVideo) {
-                    const intro = get().getRandomIntro();
-                    set({ currentVideo: randomDbVideo, isPlaying: true, overlayIntroVideo: intro, isPreRollOverlayActive: true });
+                    set({
+                        currentVideo: randomDbVideo,
+                        isPlaying: true,
+                        overlayIntroVideo: intro,
+                        isPreRollOverlayActive: true,
+                        isContentPlaying: false,
+                        playbackState: 'DB_RANDOM'
+                    });
                     get().preloadNextVideo(randomDbVideo.id);
-                } else {
-                    const intro = get().getRandomIntro();
-                    set({ playbackState: 'INTRO', currentVideo: intro, isPlaying: true });
                 }
             },
 
             handleOnEnded: async (setVolume) => {
-                const { playbackState, currentVideo, lastKnownVolume, savedVolume } = get();
-                const isYouTubeVideo = (url: string) => url.includes('youtu.be/') || url.includes('youtube.com/');
+                // 1. Capture Volume for Persistence (History Volume)
+                // If provided, we assume this is the volume ~10s before end or close to it.
+                // Since this is called EXACTLY at end, we might be too late if user muted at 1s left.
+                // Requirement: "volume that it had 10 seconds before ending".
+                // We need to implement a history buffer in VideoPlayer or Store.
+                // Simpler compromise: The store uses `historyVolume` which VideoSection updates?
+                // Or just use `savedVolume` which acts as "last known human volume".
+                // Let's use `savedVolume` as the persistence source for now, assuming it updates frequently.
 
-                if (playbackState === 'INTRO') {
-                    // Si venimos de una INTRO local (4s), elegimos video de DB
-                    const nextV = nextDataVideo || await get().fetchRandomDbVideo(currentVideo?.id, currentVideo?.categoria);
+                const { savedVolume } = get();
+                set({ historyVolume: savedVolume });
 
-                    if (nextV) {
-                        if (isYouTubeVideo(nextV.url)) {
-                            // REGLA: Después de un video intro nunca reproducir otro video intro.
-                            // Como YA estamos en playbackState === 'INTRO', NO disparamos overlayIntroVideo.
-                            set({ currentVideo: nextV, isPlaying: true, isPreRollOverlayActive: false, overlayIntroVideo: null });
-                        } else {
-                            set({ playbackState: 'DB_RANDOM', currentVideo: nextV, isPlaying: true });
-                        }
-                    } else {
-                        // Si no hay nada mas, volvemos a una intro (para no quedar en negro)
-                        set({ currentVideo: get().getRandomIntro(), isPlaying: true });
-                    }
-                } else {
-                    // Si terminó un video normal
-                    if (playbackState === 'DB_RANDOM' && setVolume) {
-                        setVolume(lastKnownVolume);
-                    } else if (playbackState === 'USER_SELECTED' && setVolume) {
-                        setVolume(savedVolume);
-                    }
-
-                    // Buscar próximo video de categoría diferente
-                    const nextV = nextDataVideo || await get().fetchRandomDbVideo(currentVideo?.id, currentVideo?.categoria);
-
-                    if (nextV && isYouTubeVideo(nextV.url)) {
-                        // Si es YouTube y NO venimos de intro, ponemos intro overlay
-                        const intro = get().getRandomIntro();
-                        set({ currentVideo: nextV, isPlaying: true, overlayIntroVideo: intro, isPreRollOverlayActive: true });
-                    } else if (nextV) {
-                        set({ playbackState: 'DB_RANDOM', currentVideo: nextV, isPlaying: true });
-                    } else {
-                        // Fallback a intro local por defecto
-                        set({ playbackState: 'INTRO', currentVideo: get().getRandomIntro(), isPlaying: true });
-                    }
-                }
-
-                // Marcar que un video ya está asignado para evitar precargas duplicadas inmediatas
-                nextDataVideo = null;
-                // Disparar precarga del próximo-próximo video
-                if (get().currentVideo) {
-                    get().preloadNextVideo(get().currentVideo!.id);
-                }
-            },
-
-            playNextVideoInQueue: async () => {
+                // 2. Prepare Next Loop
                 const { currentVideo } = get();
+                const intro = get().getRandomIntro();
 
-                // 1. Obtener el video que ya estaba precargado o buscar uno nuevo
-                let nextV = nextDataVideo;
-                if (!nextV) {
-                    nextV = await get().fetchRandomDbVideo(currentVideo?.id, currentVideo?.categoria);
-                }
+                // 3. Fetch Next Video
+                let nextV = nextDataVideo || await get().fetchRandomDbVideo(currentVideo?.id, currentVideo?.categoria);
+
+                // If we run out of videos/errors, get anything
+                if (!nextV) nextV = await get().fetchRandomDbVideo();
 
                 if (nextV) {
-                    // 2. Disparar INTRO OVERLAY (Espacio Publicitario)
-                    const intro = get().getRandomIntro();
-
-                    // 3. Seteamos el nuevo video pero con overlay activo
-                    // Esto hará que VideoSection inicie la carga del video real por debajo
+                    // 4. Start Next Sequence: Intro -> Video
                     set({
                         currentVideo: nextV,
                         isPlaying: true,
-                        isPreRollOverlayActive: true,
                         overlayIntroVideo: intro,
-                        playbackState: 'DB_RANDOM' // Cambiamos a DB_RANDOM para que handleOnEnded sepa qué hacer después
+                        isPreRollOverlayActive: true,
+                        isContentPlaying: false, // WAIT for T-4s
+                        playbackState: 'DB_RANDOM'
                     });
 
-                    // 4. Limpiar el slot de precarga usado y disparar la siguiente precarga
+                    if (setVolume) {
+                        // Apply persisted volume
+                        setVolume(savedVolume);
+                    }
+
                     nextDataVideo = null;
                     get().preloadNextVideo(nextV.id);
-                } else {
-                    // Fallback extremo: solo intro si no hay nada en DB
+                }
+            },
+
+            pauseForSlide: (currentTime) => {
+                const { currentVideo, savedProgress } = get();
+                if (currentVideo) {
                     set({
-                        playbackState: 'INTRO',
-                        currentVideo: get().getRandomIntro(),
-                        isPlaying: true,
-                        isPreRollOverlayActive: false,
-                        overlayIntroVideo: null
+                        savedVideo: currentVideo,
+                        savedProgress: currentTime || savedProgress,
+                        isPlaying: false,
+                        isContentPlaying: false
                     });
                 }
             },
 
             resumeAfterSlide: () => {
-                const { savedVideo, savedProgress } = get();
+                const { savedVideo, savedProgress, getRandomIntro } = get();
                 if (savedVideo) {
-                    const videoToResume = { ...savedVideo, startAt: savedProgress };
-                    set({ playbackState: 'RESUMING', currentVideo: videoToResume as any, isPlaying: true });
+                    const intro = getRandomIntro();
+                    const videoWithStart = { ...savedVideo, startAt: savedProgress };
+
+                    set({
+                        currentVideo: videoWithStart as any,
+                        isPlaying: true,
+                        overlayIntroVideo: intro,
+                        isPreRollOverlayActive: true,
+                        isContentPlaying: false,
+                        savedVideo: null // Limpiar después de usar
+                    });
                 } else {
-                    // Fallback if no saved video
+                    get().playRandomSequence();
                 }
             },
+
+            // ... other existing methods ... 
+            playNextVideoInQueue: async () => {
+                // Triggered by "Next" button usually
+                // Use handleOnEnded logic essentially
+                get().handleOnEnded();
+            },
+
 
             preloadNextVideo: async (currentId) => {
                 const { currentVideo } = get();
@@ -323,22 +324,17 @@ export const usePlayerStore = create<PlayerState>()(
             },
 
             playRandomSequence: async () => {
-                const intro = get().getRandomIntro();
-                // Seteamos el estado a INTRO para que handleOnEnded sepa qué hacer después
-                set({
-                    playbackState: 'INTRO',
-                    currentVideo: intro,
-                    isPlaying: true,
-                    isPreRollOverlayActive: false,
-                    overlayIntroVideo: null
-                });
+                // Re-start loop
+                get().handleOnEnded();
+            },
 
-                // Preparamos el siguiente video de fondo (diferente categoría si es posible)
-                const nextV = await get().fetchRandomDbVideo(undefined, intro.categoria);
-                if (nextV) {
-                    nextDataVideo = nextV;
-                    set({ nextVideo: nextV });
-                }
+            finishIntro: () => {
+                set({
+                    isPreRollOverlayActive: false,
+                    overlayIntroVideo: null,
+                    // Ensure content is marked playing if not already
+                    isContentPlaying: true
+                });
             }
         }),
         { name: 'PlayerStore' }

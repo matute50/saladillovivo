@@ -16,7 +16,6 @@ interface CategoryCyclerProps {
   activeCategory: CategoryMapping;
   onNext?: () => void;
   onPrev?: () => void;
-  isMobile: boolean;
   instanceId: string;
   isSearchResult?: boolean;
   onCardClick?: (item: any) => void;
@@ -27,7 +26,6 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
   activeCategory,
   onNext,
   onPrev,
-  isMobile,
   instanceId,
   isSearchResult = false,
   onCardClick
@@ -59,35 +57,33 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
 
   return (
     <div className="w-full flex flex-col gap-4 mt-[-1px] mb-2">
-      {!isMobile && ( // Condición para mostrar solo en desktop
-        <div className="flex items-baseline justify-center w-full z-10">
-          {!isSearchResult && onPrev && (
-            <motion.button
-              onClick={onPrev}
-              className="carousel-nav-button-title p-0.5 rounded-md border-[1.5px] text-white border-white shadow-lg shadow-black/50 backdrop-blur-md"
-              animate={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
-              whileHover={{ backgroundColor: '#012078' }}
-              transition={{ duration: 0.3, ease: 'easeInOut' }}
-            >
-              <ChevronLeft size="20" />
-            </motion.button>
-          )}
-          <h2 className="text-xl lg:text-3xl font-bold tracking-tight text-white truncate text-center mx-2 drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)]">
-            {activeCategory.display}
-          </h2>
-          {!isSearchResult && onNext && (
-            <motion.button
-              onClick={onNext}
-              className="carousel-nav-button-title p-0.5 rounded-md border-[1.5px] text-white border-white shadow-lg shadow-black/50 backdrop-blur-md"
-              animate={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
-              whileHover={{ backgroundColor: '#012078' }}
-              transition={{ duration: 0.3, ease: 'easeInOut' }}
-            >
-              <ChevronRight size="20" />
-            </motion.button>
-          )}
-        </div>
-      )}
+      <div className="flex items-baseline justify-center w-full z-10 mt-[10px]">
+        {!isSearchResult && onPrev && (
+          <motion.button
+            onClick={onPrev}
+            className="carousel-nav-button-title p-0.5 rounded-md border-[1.5px] text-white border-white shadow-lg shadow-black/50 backdrop-blur-md"
+            animate={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
+            whileHover={{ backgroundColor: '#012078' }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+          >
+            <ChevronLeft size="20" />
+          </motion.button>
+        )}
+        <h2 className="text-xl lg:text-3xl font-bold tracking-tight text-white truncate text-center mx-2 drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)]">
+          {activeCategory.display}
+        </h2>
+        {!isSearchResult && onNext && (
+          <motion.button
+            onClick={onNext}
+            className="carousel-nav-button-title p-0.5 rounded-md border-[1.5px] text-white border-white shadow-lg shadow-black/50 backdrop-blur-md"
+            animate={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
+            whileHover={{ backgroundColor: '#012078' }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+          >
+            <ChevronRight size="20" />
+          </motion.button>
+        )}
+      </div>
 
       <div className="-mt-[5px] w-full relative z-0">
         <ExclusiveVideoCarousel
@@ -95,7 +91,6 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
           videos={filteredVideos}
           isLoading={false}
           carouselId={`category-cycler-${instanceId}`}
-          isMobile={isMobile}
           onVideoClick={onCardClick}
         />
       </div>

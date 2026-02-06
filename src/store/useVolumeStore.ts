@@ -24,6 +24,7 @@ export const useVolumeStore = create<VolumeState>()(
         }),
         {
             name: 'player-volume-storage',
+            partialize: (state) => ({ volume: state.volume }), // Solo persistimos el nivel de volumen, NO el estado de mute
         }
     )
 );

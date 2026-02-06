@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
-import { Sun, Moon, Share2, Tv, Newspaper } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sun, Moon, Share2, Tv, Newspaper, Smartphone, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import SearchBar from '@/components/ui/SearchBar';
 import { usePlayerStore } from '@/store/usePlayerStore';
@@ -15,6 +15,7 @@ const Header = () => {
   const { viewMode, setViewMode } = usePlayerStore();
   const setIsDarkThemeGlobal = useNewsStore(state => state.setIsDarkTheme);
   const [isDarkTheme, setIsDarkTheme] = useState(true);
+  const [isQRModalOpen, setIsQRModalOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -78,6 +79,22 @@ const Header = () => {
         <div className="flex-grow" />
 
         <nav className="flex items-center space-x-2">
+          {/* 1. Modo Claro/Oscuro */}
+          <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-black dark:text-white hover:bg-black/10 dark:hover:bg-white/10">
+            {isDarkTheme ? <Sun size={20} /> : <Moon size={20} />}
+          </Button>
+
+          {/* 2. Compartir */}
+          <Button variant="ghost" size="icon" onClick={handleShare} className="text-black dark:text-white hover:bg-black/10 dark:hover:bg-white/10">
+            <Share2 size={20} />
+          </Button>
+
+          {/* Acceso Mobile (QR) */}
+          <Button variant="ghost" size="icon" onClick={() => setIsQRModalOpen(true)} className="text-black dark:text-white hover:bg-black/10 dark:hover:bg-white/10">
+            <Smartphone size={20} />
+          </Button>
+
+          {/* 3. Modo TV */}
           <Button
             variant="ghost"
             size="icon"
@@ -88,21 +105,71 @@ const Header = () => {
             {viewMode === 'diario' ? <Tv size={20} /> : <Newspaper size={20} />}
           </Button>
 
-          <Button variant="ghost" size="icon" onClick={handleShare} className="text-black dark:text-white hover:bg-black/10 dark:hover:bg-white/10">
-            <Share2 size={20} />
-          </Button>
+          <div className="h-6 w-px bg-black/20 dark:bg-white/20 mx-1 block"></div>
 
-          <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-black dark:text-white hover:bg-black/10 dark:hover:bg-white/10">
-            {isDarkTheme ? <Sun size={20} /> : <Moon size={20} />}
-          </Button>
-
-          <SearchBar />
-
-          <div className="h-6 w-px bg-black/20 dark:bg-white/20 mx-1 hidden md:block"></div>
-
+          {/* 4. Widget Clima */}
           <WeatherWidget />
+
+          {/* 5. Caja de Búsqueda */}
+          <SearchBar />
         </nav>
       </div>
+
+      {/* QR Code Modal */}
+      <AnimatePresence>
+        {isQRModalOpen && (
+          <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsQRModalOpen(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative bg-white dark:bg-zinc-900 rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-black/5 dark:border-white/5 overflow-hidden"
+            >
+              <button
+                onClick={() => setIsQRModalOpen(false)}
+                className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-600 dark:hover:text-white transition-colors p-2"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="flex flex-col items-center text-center space-y-6">
+                <div className="relative w-64 h-64 bg-white p-4 rounded-2xl shadow-inner">
+                  <Image
+                    src="/qr.png"
+                    alt="Saladillo Vivo Mobile QR"
+                    width={256}
+                    height={256}
+                    className="w-full h-full object-contain"
+                    unoptimized
+                  />
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-xl font-bold text-zinc-900 dark:text-white">
+                    ¡Saladillo Vivo en tu bolsillo!
+                  </h3>
+                  <p className="text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed">
+                    Escaneá el QR y sentí el pulso de Saladillo. Llevá nuestra historia, talento y futuro siempre con vos.
+                  </p>
+                </div>
+
+                <div className="w-full h-px bg-zinc-100 dark:bg-zinc-800" />
+
+                <p className="text-[10px] uppercase tracking-widest text-zinc-400 font-medium">
+                  versión mobile oficial
+                </p>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </motion.header>
   );
 };

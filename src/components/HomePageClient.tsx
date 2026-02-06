@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import DesktopLayout from '@/components/layout/DesktopLayout';
-import MobileLayout from '@/components/layout/MobileLayout';
 import TvModeLayout from '@/components/layout/TvModeLayout';
 import { PageData } from '@/lib/types';
 import { usePlayerStore } from '@/store/usePlayerStore';
@@ -12,23 +11,12 @@ import { usePlayerStore } from '@/store/usePlayerStore';
  * Recibe 'initialData' desde page.tsx (Servidor).
  */
 const HomePageClient = ({ initialData }: { initialData: PageData }) => {
-  const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { loadInitialPlaylist, viewMode } = usePlayerStore();
 
   useEffect(() => {
     setMounted(true);
 
-    // 1. Detección de dispositivo para renderizado condicional en el cliente
-    const checkIsMobile = () => {
-      // Usamos 1024px como límite para tablets/móviles en este componente
-      setIsMobile(window.innerWidth < 1024);
-    };
-
-    checkIsMobile();
-    window.addEventListener('resize', checkIsMobile);
-
-    // 2. Debug de datos (Ayuda a detectar los "faltantes" en la consola del PC)
     // 2. Debug de datos (Ayuda a detectar los "faltantes" en la consola del PC)
     if (process.env.NODE_ENV === 'development') {
       console.log("Saladillo Vivo - Datos cargados:", {
@@ -40,8 +28,6 @@ const HomePageClient = ({ initialData }: { initialData: PageData }) => {
     }
 
     loadInitialPlaylist(null); // Call to initiate playback
-
-    return () => window.removeEventListener('resize', checkIsMobile);
   }, [initialData, loadInitialPlaylist]);
 
   // Prevenir errores de hidratación: el servidor y el cliente deben coincidir en el primer render
@@ -63,12 +49,7 @@ const HomePageClient = ({ initialData }: { initialData: PageData }) => {
     return <TvModeLayout />;
   }
 
-  // Prioridad 2: Móvil
-  if (isMobile) {
-    return <MobileLayout data={initialData} isMobile={true} />;
-  }
-
-  // Prioridad 3: Desktop
+  // Prioridad 2: SIEMPRE Desktop (Mobile eliminado)
   return <DesktopLayout data={initialData} />;
 };
 

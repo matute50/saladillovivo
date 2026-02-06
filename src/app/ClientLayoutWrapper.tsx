@@ -16,8 +16,19 @@ export default function ClientLayoutWrapper({ children }: ClientLayoutWrapperPro
   useEffect(() => {
     // Inicialización global de datos
     fetchInitialData();
-    // La playlist se suele cargar cuando el reproductor está listo o en HomePage
-    // Pero podemos asegurar una carga inicial aquí si es necesario.
+
+    // Mobile Redirection Strategy
+    const checkMobileAndRedirect = () => {
+      if (typeof window !== 'undefined') {
+        const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+        // Basic mobile detection regex
+        if (/android|ipad|iphone|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase())) {
+          window.location.href = "https://m.saladillovivo.com.ar";
+        }
+      }
+    };
+
+    checkMobileAndRedirect();
   }, [fetchInitialData]);
 
   const viewMode = usePlayerStore(state => state.viewMode);

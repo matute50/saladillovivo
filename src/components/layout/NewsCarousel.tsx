@@ -13,10 +13,9 @@ import { useThemeButtonColors } from '@/hooks/useThemeButtonColors';
 interface NewsCarouselProps {
   items: Article[];
   carouselId: string;
-  isMobile?: boolean;
 }
 
-const NewsCarousel: React.FC<NewsCarouselProps> = ({ items, carouselId, isMobile = false }) => {
+const NewsCarousel: React.FC<NewsCarouselProps> = ({ items, carouselId }) => {
   const { buttonColor, buttonBorderColor } = useThemeButtonColors();
 
   if (!items || items.length === 0) {
@@ -29,8 +28,8 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({ items, carouselId, isMobile
         slidesPerView={'auto'}
         centeredSlides={false}
         initialSlide={0}
-        spaceBetween={isMobile ? 10 : 16}
-        loop={items.length > (isMobile ? 3 : 4)}
+        spaceBetween={16}
+        loop={items.length > 4}
         navigation={{
           prevEl: `#prev-${carouselId}`,
           nextEl: `#next-${carouselId}`,

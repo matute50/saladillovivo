@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react'; // Eliminar useState, useRef si no se usan
+import React, { useEffect } from 'react';
+import { cn } from '@/lib/utils';
 
 interface VideoIntroProps {
   videoSrc: string;
@@ -7,30 +8,42 @@ interface VideoIntroProps {
   style?: React.CSSProperties; // NUEVO: para controlar la opacidad inicial
 }
 
-const VideoIntro: React.FC<VideoIntroProps> = ({ videoSrc, onEnd, videoRef, style }) => {
+const VideoIntro: React.FC<VideoIntroProps & { isVisible?: boolean }> = ({ videoSrc, onEnd, videoRef, style, isVisible = true }) => {
   useEffect(() => {
-    // Este efecto se ejecuta cuando el videoSrc cambia o la ref se asigna.
-    if (videoRef && videoRef.current && videoSrc) {
-      // Si tenemos todo lo necesario, cargamos y reproducimos el video.
-      videoRef.current.load();
-      videoRef.current.play().catch((error) => {
-        // La reproducción automática puede ser bloqueada por el navegador si el usuario no ha interactuado con la página.
-        console.warn("La reproducción automática del video de intro fue bloqueada:", error);
-      });
-    }
-  }, [videoSrc, videoRef]); // Dependemos de videoSrc y videoRef para re-evaluar.
+    // Solo gestionar carga/play si tenemos src y estamos visibles
+    if (videoRef && videoRef.current && videoSrc && isVisible) {
+      // Si la URL cambió o acabamos de hacernos visibles
+      const videoEl = videoRef.current;
 
-  if (!videoSrc) return null;
+      // Chequear si necesitamos recargar (src diferente) o solo play
+      // Nota: videoEl.src devuelve la absoluta, videoSrc puede ser relativa
+      if (!videoEl.currentSrc.endsWith(videoSrc) && videoSrc !== videoEl.currentSrc) {
+        videoEl.src = videoSrc;
+        videoEl.load();
+      }
+
+      videoEl.play().catch((error) => {
+        console.warn("Autoplay intro bloqued:", error);
+      });
+    } else if (videoRef && videoRef.current && !isVisible) {
+      // Si no es visible, aseguramos pausa y reset para liberar recursos pero mantenemos el nodo
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
+  }, [videoSrc, videoRef, isVisible]);
 
   return (
     <video
       ref={videoRef}
-      src={videoSrc}
-      className="absolute inset-0 w-full h-full object-contain"
+      className={cn("absolute inset-0 w-full h-full object-contain", !isVisible && "opacity-0 pointer-events-none")}
       muted
       playsInline
       onEnded={onEnd}
-      style={style} // Aplicar el estilo
+      style={{
+        ...style,
+        zIndex: 999, // Z-Index Supremacy (v23.0)
+        display: 'block' // Ensure it's never 'none' unless intent
+      }}
     />
   );
 };

@@ -13,7 +13,7 @@ import { useThemeButtonColors } from '@/hooks/useThemeButtonColors';
 import { useToast } from '@/components/ui/use-toast';
 import { Video, ExclusiveVideoCarouselProps } from '@/lib/types';
 
-const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos, isLoading, carouselId, isMobile = false, isLive = false, onVideoClick }) => {
+const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos, isLoading, carouselId, isLive = false, onVideoClick }) => {
   const { playSpecificVideo, playLiveStream, streamStatus } = usePlayerStore();
   const { volume, setVolume } = useVolumeStore();
   const { toast } = useToast();
@@ -95,9 +95,9 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
         ref={swiperRef}
         slidesPerView={videos.length === 2 ? 2 : 'auto'}
         centeredSlides={videos.length === 2 ? false : true}
-        initialSlide={videos.length === 2 ? 0 : (isMobile ? 0 : (videos.length > 1 ? 1 : 0))}
-        spaceBetween={isMobile ? 10 : 12}
-        loop={videos.length === 2 ? false : (videos.length > (isMobile ? 3 : 3))}
+        initialSlide={videos.length === 2 ? 0 : (videos.length > 1 ? 1 : 0)}
+        spaceBetween={12}
+        loop={videos.length === 2 ? false : (videos.length > 3)}
         navigation={{
           prevEl: `#prev-${carouselId}`,
           nextEl: `#next-${carouselId}`,
@@ -138,7 +138,7 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
             >
               <div
                 onClick={() => handleVideoClick(video)}
-                className="relative cursor-pointer group rounded-xl overflow-hidden shadow-lg dark:shadow-none hover:shadow-[0_0_25px_10px_rgba(255,255,255,0.7)] transition-all duration-300 ease-in-out"
+                className="relative w-56 cursor-pointer group rounded-xl overflow-hidden shadow-lg dark:shadow-none hover:shadow-[0_0_25px_10px_rgba(255,255,255,0.7)] transition-all duration-300 ease-in-out"
               >
                 <div className="relative w-56 aspect-video flex items-center justify-center bg-black">
                   <Image
@@ -155,7 +155,7 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
                   />
                 </div>
                 <div className={titleOverlayClasses}>
-                  <p className="text-white font-thin uppercase leading-tight text-xs">{video.nombre}</p>
+                  <p className="text-white font-bold uppercase leading-tight text-sm drop-shadow-md">{video.nombre}</p>
                 </div>
               </div>
             </SwiperSlide>

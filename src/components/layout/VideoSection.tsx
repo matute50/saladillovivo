@@ -1,46 +1,103 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import ReactDOM from 'react-dom';
+import React, { useRef, useState, useEffect } from 'react';
 import VideoPlayer from '@/components/VideoPlayer';
 import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
 import { usePlayerStore } from '@/store/usePlayerStore';
+import { SlideMedia } from '@/lib/types';
 import { useNewsPlayerStore } from '@/store/useNewsPlayerStore';
 import { useVolumeStore } from '@/store/useVolumeStore';
 import CustomControls from '@/components/CustomControls';
 import useCast from '@/hooks/useCast';
 import VideoTitleBar from '@/components/VideoTitleBar';
 import NewsTicker from '@/components/NewsTicker';
+import WeatherOverlay from '@/components/tv/WeatherOverlay';
 import { cn } from '@/lib/utils';
+import { isYouTubeVideo } from '@/lib/utils';
 import { Play, Cast } from 'lucide-react';
+import AntiGravityLayer from './AntiGravityLayer';
 
-const isYouTubeVideo = (url: string) => url.includes('youtu.be/') || url.includes('youtube.com/');
+// Simplified VideoSection for Desktop Only
 
-interface VideoSectionProps {
-  isMobileFixed?: boolean;
-  isMobile: boolean;
-}
 
-const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMobile }) => {
-  const [isMobileFullscreen, setIsMobileFullscreen] = useState(false);
+const VideoSection: React.FC = () => {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const playerContainerRef = useRef<HTMLDivElement>(null);
 
-  const { currentVideo, isPlaying, handleOnEnded, saveCurrentProgress, setIsPlaying, isPreRollOverlayActive, overlayIntroVideo, startIntroHideTimer, playRandomSequence, viewMode } = usePlayerStore();
+  const {
+    currentVideo,
+    isPlaying,
+    handleOnEnded,
+    saveCurrentProgress,
+    setIsPlaying,
+    isPreRollOverlayActive,
+    overlayIntroVideo,
+    viewMode,
+    isContentPlaying,
+    pauseForSlide,
+    resumeAfterSlide,
+    finishIntro
+  } = usePlayerStore();
+
   const { currentSlide, isPlaying: isSlidePlaying, stopSlide, isNewsIntroActive, setIsNewsIntroActive } = useNewsPlayerStore();
   const { volume, setVolume, isMuted } = useVolumeStore();
   const { isCastAvailable, handleCast } = useCast(currentVideo);
   const [showControls, setShowControls] = useState(false);
   const [thumbnailSrc, setThumbnailSrc] = useState<string>('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=');
-  const [showIntroCinematicBars, setShowIntroCinematicBars] = useState(false); // New state for intro cinematic bars
+  const [areCinematicBarsActive, setAreCinematicBarsActive] = useState(false);
+  const cinematicTimerRef = useRef<NodeJS.Timeout | null>(null);
   const lastProcessedVideoIdRef = useRef<string | null>(null);
   const [currentDuration, setCurrentDuration] = useState(0);
   const transitionSignaledRef = useRef(false);
 
-
   const audioRef = useRef<HTMLAudioElement>(null);
-  const overlayVideoRef = useRef<HTMLVideoElement>(null);
+
+
+  // --- SMART SLOTS LOGIC (v18.0) ---
+  const [activeSlot, setActiveSlot] = useState<'A' | 'B'>('A');
+  const [slotA, setSlotA] = useState<SlideMedia | null>(null);
+  const [slotB, setSlotB] = useState<SlideMedia | null>(null);
+
+  // ZERO-BLACK Sync (v20)
+
+
+  // Determine which slot holds the current video (Target)
+  const isSlotATarget = slotA?.id === currentVideo?.id;
+  const isSlotBTarget = slotB?.id === currentVideo?.id;
+
+  // If neither holds it directly (e.g. init), fallback to active or next logic, 
+  // but usually one matches. If not, we wait for effect to load it.
+
+  useEffect(() => {
+    if (!currentVideo) return;
+
+    // Determine target based on state
+    // We prefer the 'other' slot if possible for A/B swap
+    const targetSlot = (isSlotATarget) ? 'A' :
+      (isSlotBTarget) ? 'B' :
+        (activeSlot === 'A' ? 'B' : 'A');
+
+    // Load content into target slot if needed - comparison by reference or URL to catch prop updates like startAt
+    // Load content into target slot if needed
+    if (targetSlot === 'A') {
+      if (slotA !== currentVideo) setSlotA(currentVideo);
+      if (slotB !== null) setSlotB(null); // STRICT CLEANUP for Ghost Audio
+    }
+    if (targetSlot === 'B') {
+      if (slotB !== currentVideo) setSlotB(currentVideo);
+      if (slotA !== null) setSlotA(null); // STRICT CLEANUP for Ghost Audio
+    }
+
+    // Transition Logic
+    if (targetSlot !== activeSlot) {
+      setActiveSlot(targetSlot);
+    }
+    // RESET CLEAN STATE ON NEW VIDEO WITH INTRO
+
+  }, [currentVideo, isPreRollOverlayActive, activeSlot, isSlotATarget, isSlotBTarget, slotA, slotB]);
+
+  // ... (Other effects)
 
   useEffect(() => {
     if (audioRef.current) {
@@ -48,26 +105,18 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
     }
   }, [volume, isMuted]);
 
-
   const [playBackgroundEarly, setPlayBackgroundEarly] = useState(false);
   const transitionTriggeredRef = useRef(false);
 
   const isHtmlSlideActive = isSlidePlaying && currentSlide && currentSlide.type === 'html';
 
-  // Detección actualizada para la nueva carpeta
   const isLocalIntro = currentVideo?.url && (
     currentVideo.url.startsWith('/') ||
     currentVideo.url.includes('videos_intro')
   );
 
-  // backgroundVideoUrl and isBackgroundPlaying are no longer directly used in this way
-  // as the main video player always uses currentVideo and the overlay uses overlayIntroVideo
-  // const backgroundVideoUrl = isLocalIntro ? nextVideo?.url : currentVideo?.url;
-  // const isBackgroundPlaying = isLocalIntro ? playBackgroundEarly : isPlaying;
-
   useEffect(() => {
     setPlayBackgroundEarly(false);
-    setIsIntroVideoPlaying(false);
     transitionTriggeredRef.current = false;
     transitionSignaledRef.current = false;
     setCurrentDuration(0);
@@ -76,57 +125,86 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (isHtmlSlideActive && currentSlide) {
-      setIsPlaying(false);
+      // RULE OF GOLD: Pause and save background state
+      pauseForSlide(); // Uses internal savedProgress automatically
+
       const duration = (currentSlide.duration || 15) * 1000;
       timer = setTimeout(() => {
         stopSlide();
-        // Al terminar el slide, iniciamos la secuencia aleatoria (Intro + Video)
-        playRandomSequence();
+        resumeAfterSlide();
       }, duration);
     }
     return () => clearTimeout(timer);
-  }, [isHtmlSlideActive, currentSlide, stopSlide, playRandomSequence, setIsPlaying]);
+  }, [isHtmlSlideActive, currentSlide, stopSlide, resumeAfterSlide, pauseForSlide]);
 
-  // Effect para la intro de noticias (2 segundos)
+  // --- UNIVERSAL PAUSE-ZOOM STRATEGY (V23.2) ---
+  // No specific "Return from News" detection needed.
+  // The Pause state itself triggers the shield.
+
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (isNewsIntroActive) {
       timer = setTimeout(() => {
         setIsNewsIntroActive(false);
-      }, 2500); // 2.5s fijas + 1s fade-out = 3.5s total
+      }, 4000);
     }
-    return () => clearTimeout(timer);
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, [isNewsIntroActive, setIsNewsIntroActive]);
 
-  // New useEffect for cinematic bars on YouTube video start
   useEffect(() => {
-    let timer1: NodeJS.Timeout;
+    const isNewVideo = !!(currentVideo && currentVideo.id !== lastProcessedVideoIdRef.current);
 
-    const isNewVideo = currentVideo && currentVideo.id !== lastProcessedVideoIdRef.current;
+    // Clear any previous timer
+    const clearTimer = () => {
+      if (cinematicTimerRef.current) {
+        clearTimeout(cinematicTimerRef.current);
+        cinematicTimerRef.current = null;
+      }
+    };
 
-    if (currentVideo && isPlaying && isNewVideo) {
-      console.log("Activando barras cinematográficas por 5s para:", currentVideo.nombre);
-      setShowIntroCinematicBars(true);
-      lastProcessedVideoIdRef.current = currentVideo.id;
-
-      timer1 = setTimeout(() => {
-        setShowIntroCinematicBars(false);
-      }, 5000);
-    } else if (!isPlaying && showIntroCinematicBars) {
-      setShowIntroCinematicBars(false);
-    } else if (!currentVideo && showIntroCinematicBars) {
-      setShowIntroCinematicBars(false);
+    if (isPlaying) {
+      if (isNewVideo && !isLocalIntro && !isPreRollOverlayActive) {
+        // --- CASE: NEW VIDEO START (INTRO) ---
+        lastProcessedVideoIdRef.current = currentVideo.id;
+        setAreCinematicBarsActive(true);
+        clearTimer();
+        cinematicTimerRef.current = setTimeout(() => {
+          setAreCinematicBarsActive(false);
+        }, 5000); // 5s Anti-Branding Shield
+      } else if (!isNewVideo) {
+        // --- CASE: RESUME PLAY (Universal Anti-Branding V23.2) ---
+        // Resume from Pause (or News) -> Hold Shield for 2s, then Zoom Out (1s)
+        console.log("Resuming -> Holding Shield for 2s");
+        setAreCinematicBarsActive(true); // Ensure active
+        clearTimer();
+        cinematicTimerRef.current = setTimeout(() => {
+          setAreCinematicBarsActive(false); // Triggers Zoom Out transition
+        }, 3000); // 3s Hold (V23.3)
+      } else if (isNewVideo) {
+        // Backup: update ref even if we don't show bars
+        lastProcessedVideoIdRef.current = currentVideo.id || null;
+      }
+    } else {
+      // --- CASE: PAUSED (Manual or Auto) ---
+      // Force Shield + Over-Scaling immediately
+      if (!isLocalIntro && !isHtmlSlideActive && !isPreRollOverlayActive && currentVideo) {
+        console.log("Paused -> Force Shield");
+        setAreCinematicBarsActive(true);
+        clearTimer(); // Keep active indefinitely while paused
+      } else {
+        setAreCinematicBarsActive(false);
+        clearTimer();
+      }
     }
 
-    return () => {
-      if (timer1) clearTimeout(timer1);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentVideo, isPlaying]); // showIntroCinematicBars omitted to prevent restarting timer unnecessarily
+    return () => clearTimer();
+  }, [isPlaying, currentVideo?.id, isLocalIntro, isHtmlSlideActive, isPreRollOverlayActive, currentVideo]);
 
   useEffect(() => {
     if (!currentVideo?.url || isLocalIntro) {
-      setThumbnailSrc('data:image/png;base64,iVBORw0KGgoAAAANSUgABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=');
+      setThumbnailSrc('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=');
       return;
     }
     const cleanUrl = currentVideo.url.trim();
@@ -143,23 +221,21 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
     if (!document.fullscreenElement) (document.documentElement as any).requestFullscreen();
     else document.exitFullscreen?.();
   };
+
   useEffect(() => {
     const handleFs = () => {
       setIsFullScreen(!!document.fullscreenElement);
-      if (isMobile) setIsMobileFullscreen(!!document.fullscreenElement);
     };
     document.addEventListener('fullscreenchange', handleFs);
     return () => document.removeEventListener('fullscreenchange', handleFs);
-  }, [isMobile]);
+  }, []);
 
   const handleProgress = (state: { playedSeconds: number, loadedSeconds: number }) => {
     const { playedSeconds } = state;
 
-    // Only save progress for the main video, not for the local intro or pre-roll overlay
     if (!isLocalIntro && !isPreRollOverlayActive) {
       saveCurrentProgress(playedSeconds, volume);
 
-      // --- LOGICA DE TRANSICIÓN ANTICIPADA (1s antes) ---
       if (
         currentDuration > 0 &&
         currentDuration - playedSeconds <= 1 &&
@@ -173,294 +249,275 @@ const VideoSection: React.FC<VideoSectionProps> = ({ isMobileFixed = false, isMo
     }
   };
 
-  const handleIntroTimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>) => {
-    const video = e.currentTarget;
-    if (!video.duration) return;
-
-    const timeLeft = video.duration - video.currentTime;
-
-    // Cuando faltan 4 segundos (y no lo hemos activado aún)
-    if (timeLeft <= 4 && !transitionTriggeredRef.current) {
-      console.log("Intro: Activando video de fondo (4s antes del final)");
-      transitionTriggeredRef.current = true;
-      setPlayBackgroundEarly(true);
-    }
-  };
-
-  const [isIntroVideoPlaying, setIsIntroVideoPlaying] = useState(false);
-
-  useEffect(() => {
-    if (!isPreRollOverlayActive) {
-      setIsIntroVideoPlaying(false);
-    }
-  }, [isPreRollOverlayActive]);
+  // Now handled by <IntroLayer /> with Strict Timer.
 
   const handleIntroMetadata = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     const video = e.currentTarget;
     if (video.duration) {
-      // Ajustamos la velocidad para que dure exactamente 4 segundos
       const rate = video.duration / 4.0;
       video.playbackRate = rate;
-      console.log(`Intro Metadata: duration=${video.duration}, playbackRate set to=${rate}`);
     }
   };
 
 
-  const handleIntroPlay = () => {
-    console.log("Intro visible y reproduciendo. Activando fondo...");
-    setIsIntroVideoPlaying(true);
-  };
-
-  // Efecto para forzar la carga y reproducción rápida de la intro
-  useEffect(() => {
-    if (isPreRollOverlayActive && overlayIntroVideo && overlayVideoRef.current) {
-      console.log("Forzando carga inmediata de intro:", overlayIntroVideo.url);
-      const v = overlayVideoRef.current;
-      v.load();
-      v.play().catch(e => console.log("Auto-play prevented, waiting for user interaction or network", e));
-    }
-  }, [overlayIntroVideo, isPreRollOverlayActive]);
-
-  // Helper para determinar si mostrar el overlay de noticias (Solo para Videos/Imágenes, NO para HTML)
   const isNewsContent = (currentVideo?.categoria === 'Noticias' && !isLocalIntro);
   const displayTitle = currentVideo?.nombre;
   const displaySubtitle = (currentVideo as any)?.resumen || (currentVideo as any)?.description;
 
-  const playerCore = (
-    <div
-      ref={playerContainerRef}
-      className={cn(
-        "relative w-full h-full aspect-video bg-black overflow-hidden border-0 md:border md:rounded-xl card-blur-player shadow-lg",
-      )}
-      onMouseEnter={() => !isMobile && setShowControls(true)}
-      onMouseLeave={() => !isMobile && setShowControls(false)}
-    // onClick ya no es necesario para la visibilidad de controles con este comportamiento
-    >
-      <div className="absolute inset-0 w-full h-full md:rounded-xl overflow-hidden bg-black">
-
-        {isHtmlSlideActive && (
-          <div className="absolute inset-0 z-40 bg-black">
-            <iframe
-              src={currentSlide.url}
-              className="w-full h-full border-none pointer-events-none"
-              title="Slide"
-              allow="autoplay"
-            />
-            {currentSlide.audioUrl && (
-              <audio
-                ref={audioRef}
-                src={currentSlide.audioUrl}
-                autoPlay
-                className="hidden"
-                muted={isMuted}
-                onError={(e) => console.error("Error reproduciendo audio de noticia:", e)}
-              />
-            )}
-          </div>
-        )}
-
-        {/* Overlay de Título y Ticker para Contenido de Noticias (HTML, Video, Imagen) */}
-        {isNewsContent && (
-          <>
-            <div className="absolute inset-x-0 top-0 z-50 p-4 bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
-              <div className="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 inline-block max-w-[90%] md:max-w-[70%] shadow-2xl">
-                <h2 className="text-white text-base md:text-xl font-bold leading-tight drop-shadow-lg break-words">
-                  {displayTitle}
-                </h2>
-              </div>
-            </div>
-
-            <div className="absolute inset-x-0 bottom-0 z-50 pointer-events-auto h-8 bg-black/80 backdrop-blur-md border-t border-white/10 flex items-center">
-              <NewsTicker tickerTexts={[displaySubtitle || '']} />
-            </div>
-          </>
-        )}
-
-        {/* Main VideoPlayer (for YouTube or DB videos) - always renders, controlled by opacity */}
-        {currentVideo?.url && !isHtmlSlideActive && (
-          <div
-            className={cn(
-              "absolute inset-0 z-20 bg-black opacity-100"
-            )}
-            style={{
-              transition: 'opacity 0.5s ease-in-out'
-            }}
-          >
-            <VideoPlayer
-              key={currentVideo.id}
-              videoUrl={currentVideo.url}
-              // REGLA: Si hay overlay, el video debe empezar a cargar y reproducirse DE INMEDIATO
-              // para estar listo cuando el overlay desaparezca a los 4s.
-              autoplay={isPlaying}
-              onClose={() => {
-                if (!transitionSignaledRef.current) {
-                  handleOnEnded(setVolume);
-                }
-              }}
-              onProgress={handleProgress}
-              onDuration={setCurrentDuration}
-              startAt={(currentVideo as any).startAt || 0}
-              volumen_extra={currentVideo.volumen_extra}
-            />
-          </div>
-        )}
-
-        {/* Local Intro (main intro sequence, not the overlay) */}
-        {isLocalIntro && !isPreRollOverlayActive && (
-          <div className="absolute inset-0 z-30 bg-black">
-            <video
-              key={currentVideo.id}
-              src={currentVideo.url}
-              autoPlay
-              playsInline
-              className="w-full h-full object-cover"
-              onEnded={() => handleOnEnded(setVolume)}
-              onTimeUpdate={handleIntroTimeUpdate}
-              onError={(e) => {
-                console.error("ERROR INTRO:", currentVideo.url, e);
-                handleOnEnded(setVolume);
-              }}
-            />
-          </div>
-        )}
-
-        {/* Pre-roll Overlay Intro - now correctly conditional */}
-        {isPreRollOverlayActive && overlayIntroVideo && (
-          <div className={cn(
-            "absolute inset-0 z-40 bg-black",
-            isPreRollOverlayActive ? "opacity-100" : "opacity-0 transition-opacity duration-500 pointer-events-none"
-          )}>
-            <video
-              ref={overlayVideoRef}
-              src={overlayIntroVideo.url}
-              autoPlay
-              playsInline
-              muted={true}
-              preload="auto"
-              className="w-full h-full object-cover"
-              onPlay={handleIntroPlay}
-              onPlaying={() => {
-                handleIntroPlay();
-                startIntroHideTimer(); // El timer de 4s empieza cuando REALMENTE se reproduce
-              }}
-              onLoadedMetadata={handleIntroMetadata}
-              onLoadedData={() => {
-                console.log("Intro loaded data");
-              }}
-              onError={(e) => console.error("ERROR PRE-ROLL OVERLAY INTRO:", overlayIntroVideo.url, e)}
-            />
-          </div>
-        )}
-
-        {/* El Thumbnail se queda visible hasta que el video (intro o principal) esté realmente reproduciéndose */}
-        {(!isPlaying || (isPreRollOverlayActive && !isIntroVideoPlaying)) && !isLocalIntro && !playBackgroundEarly && !isHtmlSlideActive && (
-          <Image
-            src={thumbnailSrc}
-            alt="Fondo"
-            fill
-            className="absolute inset-0 z-10 object-contain opacity-60"
-            priority
-            onError={() => setThumbnailSrc('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=')}
-          />
-        )}
-
-        <AnimatePresence>
-          {/* Intro de Noticias (noticias.mp4) - 3.5 segundos con fade-out */}
-          {isNewsIntroActive && (
-            <motion.div
-              key="news-intro"
-              initial={{ opacity: 1 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 1 }}
-              className="absolute inset-0 z-50 bg-black"
-            >
-              <video
-                src="/videos_intro/noticias.mp4"
-                autoPlay
-                playsInline
-                muted
-                className="w-full h-full object-contain"
-              />
-            </motion.div>
-          )}
-
-          {showIntroCinematicBars && ( // New cinematic bars for YouTube intro
-            <>
-              <motion.div
-                key="youtube-top-cinematic-bar"
-                className="absolute top-0 left-0 right-0 h-14 bg-black z-30 pointer-events-none"
-                initial={{ y: 0 }}
-                animate={{ y: 0 }}
-                exit={{ y: "-100%" }}
-                transition={{ duration: 1 }}
-              />
-              <motion.div
-                key="youtube-bottom-cinematic-bar"
-                className="absolute bottom-0 left-0 right-0 h-14 bg-black z-30 pointer-events-none"
-                initial={{ y: 0 }}
-                animate={{ y: 0 }}
-                exit={{ y: "100%" }}
-                transition={{ duration: 1 }}
-              />
-            </>
-          )}
-
-          {/* Barras de formato cine cuando está en pausa */}
-          {!isPlaying && !isLocalIntro && !isHtmlSlideActive && !isPreRollOverlayActive && !showIntroCinematicBars && (
-            <>
-              <motion.div
-                key="top-cinematic-bar"
-                className="absolute top-0 left-0 right-0 h-14 bg-black z-50 pointer-events-none"
-                initial={{ opacity: 1 }} // Aparece instantáneamente
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-              />
-              <motion.div
-                key="bottom-cinematic-bar"
-                className="absolute bottom-0 left-0 right-0 h-14 bg-black z-50 pointer-events-none"
-                initial={{ opacity: 1 }} // Aparece instantáneamente
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-              />
-            </>
-          )}
-
-          {showControls && !isHtmlSlideActive && !isLocalIntro && !isPreRollOverlayActive && !showIntroCinematicBars && (
-            <motion.div key="controls" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute bottom-0 left-0 right-0 w-full z-[51]">
-              <CustomControls onToggleFullScreen={toggleFullScreen} isFullScreen={isFullScreen} />
-            </motion.div>
-          )}
-
-          {showControls && isCastAvailable && !isHtmlSlideActive && !isPreRollOverlayActive && !showIntroCinematicBars && (
-            <motion.div key="cast" className="absolute top-4 right-4 z-[52]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <button onClick={handleCast} className="text-white hover:text-orange-500 transition-colors">
-                <Cast size={24} />
-              </button>
-            </motion.div>
-          )}
-
-          {!isPlaying && !isHtmlSlideActive && !isLocalIntro && !playBackgroundEarly && !isPreRollOverlayActive && !showIntroCinematicBars && currentVideo && (
-            <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/20 flex items-center justify-center z-50 pointer-events-none">
-              <div className="p-4 bg-black/40 rounded-full border border-white"><Play size={38} className="text-white/80" fill="white" strokeWidth={1.35} /></div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </div>
-  );
-
-  if (isMobileFixed && isMobileFullscreen && typeof document !== 'undefined') {
-    return ReactDOM.createPortal(<div className="fixed inset-0 z-[9999] bg-black">{playerCore}</div>, document.body);
-  }
   return (
-    <div className={isMobileFixed ? "fixed top-[var(--header-height)] left-0 w-full z-40" : "w-full overflow-visible"}>
-      <div className="relative aspect-video w-full">{playerCore}</div>
+    <div className="w-full overflow-visible">
+      <div className="relative aspect-video w-full">
+        <div
+          ref={playerContainerRef}
+          className={cn(
+            "relative w-full h-full aspect-video bg-black overflow-hidden border-0 md:border md:rounded-xl card-blur-player shadow-lg",
+          )}
+          onMouseEnter={() => setShowControls(true)}
+          onMouseLeave={() => setShowControls(false)}
+        >
+          <div className="absolute inset-0 w-full h-full md:rounded-xl overflow-hidden bg-black">
+
+            {/* === VIDEO UNIVERSE (SCALABLE & IMMERSIVE) === */}
+            {/* === VIDEO UNIVERSE (SCALABLE & IMMERSIVE) === */}
+            <div
+              className={cn(
+                "video-universe absolute inset-0 w-full h-full transition-transform ease-in-out md:rounded-xl overflow-hidden"
+              )}
+              style={{
+                transform: areCinematicBarsActive ? 'scale(1.20)' : 'scale(1)',
+                transitionDuration: areCinematicBarsActive ? '75ms' : '5000ms'
+              }}
+            >
+
+              {/* HTML Slide (Considered Content/Video) */}
+              {isHtmlSlideActive && currentSlide && (
+                <div className="absolute inset-0 z-40 bg-black">
+                  <iframe
+                    src={currentSlide.url}
+                    className="w-full h-full border-none pointer-events-none"
+                    title="Slide"
+                    allow="autoplay"
+                  />
+                  {currentSlide.audioUrl && (
+                    <audio
+                      ref={audioRef}
+                      src={currentSlide.audioUrl}
+                      autoPlay
+                      className="hidden"
+                      muted={isMuted}
+                      onError={(e) => console.error("Error reproduciendo audio de noticia:", e)}
+                    />
+                  )}
+                </div>
+              )}
+
+              {/* === SMART SLOT A (v18.0) === */}
+              <div
+                className={cn(
+                  "absolute inset-0 bg-black transition-opacity duration-500",
+                  activeSlot === 'A' ? "z-20 opacity-100 pointer-events-auto" : "z-0 opacity-0 pointer-events-none"
+                )}
+              >
+                {slotA?.url && !isHtmlSlideActive && (
+                  <VideoPlayer
+                    videoUrl={slotA.url}
+                    autoplay={isPlaying && isContentPlaying && isSlotATarget}
+                    onClose={() => {
+                      if (activeSlot === 'A' && !transitionSignaledRef.current) handleOnEnded(setVolume);
+                    }}
+                    onProgress={(state) => {
+                      if (isSlotATarget) handleProgress(state);
+                    }}
+                    onDuration={(d) => {
+                      if (isSlotATarget) setCurrentDuration(d);
+                    }}
+                    startAt={(slotA as any).startAt || 0}
+                    volumen_extra={slotA.volumen_extra}
+                  />
+                )}
+              </div>
+
+              {/* === SMART SLOT B (v18.0) === */}
+              <div
+                className={cn(
+                  "absolute inset-0 bg-black transition-opacity duration-500",
+                  activeSlot === 'B' ? "z-20 opacity-100 pointer-events-auto" : "z-0 opacity-0 pointer-events-none"
+                )}
+              >
+                {slotB?.url && !isHtmlSlideActive && (
+                  <VideoPlayer
+                    videoUrl={slotB.url}
+                    autoplay={isPlaying && isContentPlaying && isSlotBTarget}
+                    onClose={() => {
+                      if (activeSlot === 'B' && !transitionSignaledRef.current) handleOnEnded(setVolume);
+                    }}
+                    onProgress={(state) => {
+                      if (isSlotBTarget) handleProgress(state);
+                    }}
+                    onDuration={(d) => {
+                      if (isSlotBTarget) setCurrentDuration(d);
+                    }}
+                    startAt={(slotB as any).startAt || 0}
+                    volumen_extra={slotB.volumen_extra}
+                  />
+                )}
+              </div>
+
+              {/* === PERSISTENT INTRO OVERLAY === */}
+              <AnimatePresence>
+                {isPreRollOverlayActive && overlayIntroVideo && (
+                  <motion.div
+                    key="intro-overlay"
+                    initial={{ opacity: 1 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 z-[999] bg-black"
+                  >
+                    <video
+                      src={overlayIntroVideo.url}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="w-full h-full object-cover"
+                      onEnded={() => {
+                        console.log("Intro ended natively.");
+                        finishIntro();
+                      }}
+                      onError={(e) => {
+                        console.error("Intro Error:", e);
+                        finishIntro();
+                      }}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {
+                (!isPlaying) && !isLocalIntro && !playBackgroundEarly && !isHtmlSlideActive && (
+                  <Image
+                    src={thumbnailSrc}
+                    alt="Fondo"
+                    fill
+                    className="absolute inset-0 z-10 object-contain opacity-60"
+                    priority
+                    onError={() => setThumbnailSrc('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=')}
+                  />
+                )
+              }
+
+              <AnimatePresence>
+                {isNewsIntroActive && (
+                  <motion.div
+                    key="news-intro"
+                    initial={{ opacity: 1 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 1 }}
+                    className="absolute inset-0 z-[998] bg-black"
+                  >
+                    <video
+                      src="/videos_intro/noticias.mp4"
+                      autoPlay
+                      playsInline
+                      muted
+                      className="w-full h-full object-contain"
+                      onPlay={() => { }}
+                      onLoadedMetadata={handleIntroMetadata}
+                    />
+                  </motion.div>
+                )}
+
+                {areCinematicBarsActive && (
+                  <motion.div
+                    key="cinematic-bar-top"
+                    className="absolute top-0 left-0 right-0 h-[14%] bg-black z-[45] pointer-events-auto"
+                    initial={{ y: 0 }}
+                    animate={{ y: 0 }}
+                    exit={{ y: "-100%" }}
+                    transition={{ duration: 1.2, ease: "easeInOut" }}
+                  />
+                )}
+                {areCinematicBarsActive && (
+                  <motion.div
+                    key="cinematic-bar-top"
+                    className="absolute top-0 left-0 right-0 h-[35%] bg-gradient-to-b from-black via-black/90 to-transparent z-[45] pointer-events-auto"
+                    initial={{ opacity: 1 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 4, ease: "easeInOut" }}
+                  />
+                )}
+                {areCinematicBarsActive && (
+                  <motion.div
+                    key="cinematic-bar-bottom"
+                    className="absolute bottom-0 left-0 right-0 h-[35%] bg-gradient-to-t from-black via-black/90 to-transparent z-[45] pointer-events-auto"
+                    initial={{ opacity: 1 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 4, ease: "easeInOut" }}
+                  />
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* === ANTI-GRAVITY UI LAYER (STATIC & PRESERVED) === */}
+            <AntiGravityLayer areCinematicBarsActive={areCinematicBarsActive}>
+
+              {isNewsContent && (
+                <>
+                  <div className="absolute inset-x-0 top-0 top-safe-area z-[50] p-4 bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
+                    <div className="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 inline-block max-w-[90%] md:max-w-[70%] shadow-2xl">
+                      <h2 className="text-white text-base md:text-xl font-bold leading-tight drop-shadow-lg break-words">
+                        {displayTitle}
+                      </h2>
+                    </div>
+                  </div>
+
+                  <div className="absolute inset-x-0 bottom-0 z-[50] pointer-events-auto h-8 bg-black/80 backdrop-blur-md border-t border-white/10 flex items-center">
+                    <NewsTicker tickerTexts={[displaySubtitle || '']} />
+                  </div>
+                </>
+              )}
+
+              <WeatherOverlay />
+
+              <AnimatePresence>
+                {showControls && !isHtmlSlideActive && !isLocalIntro && !isPreRollOverlayActive && (
+                  <motion.div key="controls" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute bottom-0 left-0 right-0 w-full z-[51] pointer-events-auto">
+                    <CustomControls onToggleFullScreen={toggleFullScreen} isFullScreen={isFullScreen} />
+                  </motion.div>
+                )}
+
+                {showControls && isCastAvailable && !isHtmlSlideActive && !isPreRollOverlayActive && (
+                  <motion.div key="cast" className="absolute top-4 right-4 z-[52] pointer-events-auto" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                    <button onClick={handleCast} className="text-white hover:text-orange-500 transition-colors">
+                      <Cast size={24} />
+                    </button>
+                  </motion.div>
+                )}
+
+                {!isPlaying && !isHtmlSlideActive && !isLocalIntro && !playBackgroundEarly && currentVideo && (
+                  <motion.div
+                    key="play"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 flex items-center justify-center z-50 cursor-pointer pointer-events-auto"
+                    onClick={() => setIsPlaying(true)}
+                  >
+                    <div className="p-4 bg-black/40 rounded-full border border-white backdrop-blur-sm"><Play size={38} className="text-white/80" fill="white" strokeWidth={1.35} /></div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+            </AntiGravityLayer>
+          </div>
+        </div>
+      </div>
       {viewMode === 'diario' && <VideoTitleBar className="mt-2" />}
     </div>
   );
+
 };
 
 export default VideoSection;

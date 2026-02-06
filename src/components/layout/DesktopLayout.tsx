@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import AdsSection from './AdsSection';
 import dynamic from 'next/dynamic';
 const VideoSection = dynamic(() => import('./VideoSection'), { ssr: false });
@@ -9,9 +9,12 @@ import type { PageData } from '@/lib/types';
 import CategoryCycler from './CategoryCycler';
 import { categoryMappings, type CategoryMapping } from '@/lib/categoryMappings';
 import { useNewsStore } from '@/store/useNewsStore';
+import { usePlayerStore } from '@/store/usePlayerStore';
+import { useVolumeStore } from '@/store/useVolumeStore';
 import NoResultsCard from './NoResultsCard';
 import NewsCard from '../NewsCard';
 import NewsTicker from '../NewsTicker';
+import { shuffleArray } from '@/lib/utils'; // Import shuffleArray
 
 interface DesktopLayoutProps {
   data: PageData;
@@ -26,24 +29,48 @@ const DesktopLayout = ({ data }: DesktopLayoutProps) => {
   } = data || {};
 
   const { isSearching, searchResults, searchLoading, handleSearch } = useNewsStore();
-  const { allVideos } = videos;
+  const { allVideos: rawVideos } = videos; // Rename to rawVideos
 
-  const availableCategoryMappings = categoryMappings.filter(category => {
-    if (category.dbCategory === '__NOVEDADES__') {
-      return allVideos.some(video => video.novedad === true);
-    }
-    const dbCategories = Array.isArray(category.dbCategory) ? category.dbCategory : [category.dbCategory];
-    return allVideos.some(video => dbCategories.includes(video.categoria));
-  });
+  // --- RANDOMIZATION LOGIC (V.SHUFFLE) ---
+  // 1. Shuffle Videos on Mount (so every reload feels different)
+  const shuffledVideos = useMemo(() => {
+    return shuffleArray(rawVideos || []);
+  }, [rawVideos]);
 
+  const { playSpecificVideo } = usePlayerStore();
+  const { volume, setVolume } = useVolumeStore();
+
+  const handleSearchResultClick = (video: any) => {
+    // Interaction Stability (v23.2) - 500ms Rule
+    playSpecificVideo(video, volume, setVolume);
+    setTimeout(() => {
+      handleSearch('');
+    }, 500);
+  };
+
+  const availableCategoryMappings = useMemo(() => {
+    return categoryMappings.filter(category => {
+      if (category.dbCategory === '__NOVEDADES__') {
+        return shuffledVideos.some(video => video.novedad === true);
+      }
+      const dbCategories = Array.isArray(category.dbCategory) ? category.dbCategory : [category.dbCategory];
+      return shuffledVideos.some(video => dbCategories.includes(video.categoria));
+    });
+  }, [shuffledVideos]);
+
+
+  // 2. Random Start Category
   const [categoryIndex, setCategoryIndex] = useState(0);
+  const [hasInitializedPosition, setHasInitializedPosition] = useState(false);
 
   useEffect(() => {
-    if (availableCategoryMappings.length > 0) {
+    // Only randomize if we haven't done it yet and have categories
+    if (!hasInitializedPosition && availableCategoryMappings.length > 0) {
       const randomIndex = Math.floor(Math.random() * availableCategoryMappings.length);
       setCategoryIndex(randomIndex);
+      setHasInitializedPosition(true); // Lock it so re-renders don't jump around
     }
-  }, [availableCategoryMappings.length]);
+  }, [availableCategoryMappings, hasInitializedPosition]);
 
   const handleNextCategory = useCallback(() => {
     const total = availableCategoryMappings.length;
@@ -94,7 +121,7 @@ const DesktopLayout = ({ data }: DesktopLayoutProps) => {
             <div className="hidden lg:block col-span-5 sticky top-0 h-screen">
               <div className="flex flex-col h-full gap-6 pt-0">
                 <div className="flex-shrink-0">
-                  <VideoSection isMobile={false} />
+                  <VideoSection />
                 </div>
 
                 <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none'] mt-[-9px] mb-4">
@@ -106,8 +133,8 @@ const DesktopLayout = ({ data }: DesktopLayoutProps) => {
                         allVideos={searchResults}
                         activeCategory={searchCategoryMapping}
                         isSearchResult={true}
-                        isMobile={false}
                         instanceId="search"
+                        onCardClick={handleSearchResultClick}
                       />
                     ) : (
                       <NoResultsCard message="No se encontraron videos para tu búsqueda." onClearSearch={() => handleSearch('')} />
@@ -115,11 +142,10 @@ const DesktopLayout = ({ data }: DesktopLayoutProps) => {
                   ) : (
                     availableCategoryMappings[categoryIndex] && (
                       <CategoryCycler
-                        allVideos={allVideos}
+                        allVideos={shuffledVideos}
                         activeCategory={availableCategoryMappings[categoryIndex]}
                         onNext={handleNextCategory}
                         onPrev={handlePrevCategory}
-                        isMobile={false}
                         instanceId="1"
                       />
                     )

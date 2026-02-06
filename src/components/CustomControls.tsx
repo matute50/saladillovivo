@@ -91,4 +91,4 @@ const CustomControls: React.FC<CustomControlsProps> = ({ onToggleFullScreen, isF
   );
 };
 
-export default CustomControls;
+export default React.memo(CustomControls);

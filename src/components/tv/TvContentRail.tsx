@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+
 
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useNewsStore } from '@/store/useNewsStore';
@@ -119,9 +119,24 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
         const match = item.url.match(/(?:youtu\.be\/|youtube\.com\/.*v=)([^&]+)/);
         if (match && match[1]) thumb = `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg`;
       }
-      return { ...item, imageUrl: thumb, imagen: thumb };
+
+      // Map title/titulo to nombre for ExclusiveVideoCarousel
+      const nombre = item.nombre || item.title || item.titulo || '';
+
+      return { ...item, imageUrl: thumb, imagen: thumb, nombre };
     });
   }, []); // galleryVideos removed from dependencies as it's not directly used inside
+
+  const processedAllNews = useMemo(() => processThumbnails(allNews), [allNews, processThumbnails]);
+
+  // Determine activeCategory and rawItems only if availableCategoryMappings is not empty
+  const activeCategory = availableCategoryMappings.length > 0 ? availableCategoryMappings[categoryIndex] : undefined;
+
+  const rawItems = useMemo(() => {
+    return activeCategory ? (activeCategory.dbCategory === '__NOTICIAS__' ? allNews : galleryVideos) : [];
+  }, [activeCategory, allNews, galleryVideos]);
+
+  const processedItems = useMemo(() => processThumbnails(rawItems), [rawItems, processThumbnails]);
 
   if (isLoadingNews || availableCategoryMappings.length === 0) {
     return <div className="text-white p-4 bg-white/10 rounded-lg flex justify-center items-center h-[126px]">Cargando...</div>;
@@ -145,16 +160,11 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
           onNext={() => { }}
           onPrev={() => { }}
           onCardClick={handleCardClick}
-          isMobile={true}
           isSearchResult={true}
           instanceId="search-carousel"
         />      </motion.div>
     );
   }
-
-  const activeCategory = availableCategoryMappings[categoryIndex];
-  const rawItems = activeCategory.dbCategory === '__NOTICIAS__' ? allNews : galleryVideos;
-  const processedItems = processThumbnails(rawItems);
 
   return (
     <motion.div
@@ -164,43 +174,34 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
       style={{ pointerEvents: isVisible ? 'auto' : 'none' }}
       className="w-full max-w-screen-xl mx-auto px-4"
     >
-      <div className="flex items-baseline justify-center w-full z-10 pt-5">
-        {!isSearching && handlePrevCategory && (
-          <motion.button
-            onClick={handlePrevCategory}
-            className="carousel-nav-button-title p-0.5 rounded-md border-[1.5px] text-white border-white shadow-lg shadow-black/50 backdrop-blur-md"
-            animate={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
-            whileHover={{ backgroundColor: '#012078' }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
-          >
-            <ChevronLeft size="20" />
-          </motion.button>
-        )}
-        <h2 className="text-3xl font-bold tracking-tight text-white truncate text-center mx-2 drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)]">
-          {activeCategory.display}
-        </h2>
-        {!isSearching && handleNextCategory && (
-          <motion.button
-            onClick={handleNextCategory}
-            className="carousel-nav-button-title p-0.5 rounded-md border-[1.5px] text-white border-white shadow-lg shadow-black/50 backdrop-blur-md"
-            animate={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
-            whileHover={{ backgroundColor: '#012078' }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
-          >
-            <ChevronRight size="20" />
-          </motion.button>
-        )}
-      </div>
-      <div className="-mt-[5px] w-full relative z-0">
+      <div className="-mt-[5px] w-full relative z-0 flex flex-col gap-6">
+        {/* Static Latest News Carousel */}
         <CategoryCycler
-          allVideos={processedItems}
-          activeCategory={activeCategory}
-          onNext={handleNextCategory}
-          onPrev={handlePrevCategory}
+          allVideos={processedAllNews}
+          activeCategory={{ display: 'ÚLTIMAS NOTICIAS', dbCategory: '__NOTICIAS__' }}
+          // Hide navigation arrows for this static row if preferred, or keep them empty/managed internally if needed.
+          // Since CategoryCycler handles its own internal filtering/display, passing 'allNews' is correct.
+          // However, CategoryCycler usually expects onNext/onPrev for the *category* switching.
+          // If we just want a carousel of items without category switching, we can pass dummy/empty functions or modify CategoryCycler.
+          // Based on current CategoryCycler, it renders navigation buttons for the CATEGORY.
+          // For this specific 'Latest News' row, we likely DON'T want category switching arrows.
+          onNext={undefined}
+          onPrev={undefined}
           onCardClick={handleCardClick}
-          isMobile={true}
-          instanceId="tv-carousel"
+          instanceId="tv-latest-news"
         />
+
+        {/* Dynamic Category Cycler */}
+        {activeCategory && (
+          <CategoryCycler
+            allVideos={processedItems}
+            activeCategory={activeCategory}
+            onNext={handleNextCategory}
+            onPrev={handlePrevCategory}
+            onCardClick={handleCardClick}
+            instanceId="tv-carousel"
+          />
+        )}
       </div>
     </motion.div>
   );

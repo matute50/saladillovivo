@@ -16,13 +16,12 @@ interface Ad {
 interface AdsSectionProps {
   activeAds: Ad[];
   isLoading: boolean; // Prop renombrada para consistencia
-  isMobile?: boolean;
 }
 
-const AdsSection: React.FC<AdsSectionProps> = ({ activeAds, isLoading, isMobile = false }) => {
-  
+const AdsSection: React.FC<AdsSectionProps> = ({ activeAds, isLoading }) => {
+
   const containerClasses = "bg-transparent rounded-lg flex flex-col justify-start items-center w-full";
-  const gridColsClass = isMobile ? 'grid-cols-4 gap-1.5' : 'grid-cols-1 space-y-2.5';
+  const gridColsClass = 'grid-cols-1 space-y-2.5';
 
   return (
     <motion.div
@@ -37,14 +36,14 @@ const AdsSection: React.FC<AdsSectionProps> = ({ activeAds, isLoading, isMobile 
           <div className="h-24 bg-muted w-full rounded"></div>
         </div>
       ) : activeAds && activeAds.length > 0 ? (
-        <div className={`w-full ${isMobile ? 'grid' : 'flex flex-col'} ${gridColsClass}`}>
+        <div className={`w-full flex flex-col ${gridColsClass}`}>
           {activeAds.map((ad, index) => (
             <Link key={ad.id || index} href={ad.linkUrl || "#"} target="_blank" rel="noopener noreferrer" className="block w-full">
-              <Image 
+              <Image
                 loading="lazy"
                 className="w-full h-auto object-cover rounded-md" // Imagen ocupa todo el ancho
-                alt={ad.name || `Anuncio publicitario ${index + 1}`} 
-                src={ad.imageUrl} 
+                alt={ad.name || `Anuncio publicitario ${index + 1}`}
+                src={ad.imageUrl}
                 width={300} // Ancho base
                 height={250} // Alto base
               />
@@ -52,7 +51,7 @@ const AdsSection: React.FC<AdsSectionProps> = ({ activeAds, isLoading, isMobile 
           ))}
         </div>
       ) : (
-        null 
+        null
       )}
     </motion.div>
   );

@@ -438,6 +438,7 @@ function filterSearchTerms(query: string): string {
   return cleanedQuery;
 }
 
+
 export async function fetchVideosBySearch(searchTerm: string): Promise<Video[]> {
   const processedTerm = filterSearchTerms(searchTerm);
 
@@ -456,4 +457,18 @@ export async function fetchVideosBySearch(searchTerm: string): Promise<Video[]> 
   }
 
   return data || [];
+}
+
+export async function getVideoByUrl(url: string): Promise<Video | null> {
+  const { data, error } = await supabase
+    .from('videos')
+    .select('id, nombre, url, createdAt, categoria, imagen, novedad, volumen_extra')
+    .eq('url', url)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Error fetching video by URL:', error);
+    return null;
+  }
+  return data;
 }

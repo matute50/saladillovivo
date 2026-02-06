@@ -27,6 +27,7 @@ const ImageModal: React.FC<ImageModalProps> = ({ isOpen, onClose, imageUrl, imag
           height={600} // Adjust as needed
           className="object-contain" // Reemplaza objectFit
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
+          unoptimized
         />
       </div>
     </div>

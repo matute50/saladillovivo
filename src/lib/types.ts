@@ -59,6 +59,7 @@ export interface SlideMedia extends Video {
   imageSourceUrl?: string;
   audioSourceUrl?: string;
   resumen?: string;
+  startAt?: number;
 }
 
 export interface Interview {
@@ -101,7 +102,6 @@ export interface ExclusiveVideoCarouselProps {
   videos: Video[];
   isLoading: boolean;
   carouselId: string;
-  isMobile?: boolean;
   isLive?: boolean;
   onVideoClick?: (video: Video) => void;
 }
