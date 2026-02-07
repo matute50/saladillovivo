@@ -13,8 +13,7 @@ import useCast from '@/hooks/useCast';
 import VideoTitleBar from '@/components/VideoTitleBar';
 import NewsTicker from '@/components/NewsTicker';
 import WeatherOverlay from '@/components/tv/WeatherOverlay';
-import { cn } from '@/lib/utils';
-import { isYouTubeVideo } from '@/lib/utils';
+import { cn, cleanTitle, isYouTubeVideo } from '@/lib/utils';
 import { Play, Cast } from 'lucide-react';
 import AntiGravityLayer from './AntiGravityLayer';
 
@@ -269,7 +268,7 @@ const VideoSection: React.FC = () => {
   };
 
 
-  const displayTitle = currentVideo?.nombre;
+  const displayTitle = cleanTitle(currentVideo?.nombre);
   const displaySubtitle = (currentVideo as any)?.resumen || (currentVideo as any)?.description;
 
   return (

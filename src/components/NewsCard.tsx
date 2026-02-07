@@ -7,7 +7,7 @@ import { Play } from 'lucide-react';
 import { SlideMedia } from '@/lib/types';
 import { format } from 'date-fns';
 import { useNewsPlayerStore } from '@/store/useNewsPlayerStore';
-import { cn } from '@/lib/utils';
+import { cn, cleanTitle } from '@/lib/utils';
 import { usePlayerStore } from '@/store/usePlayerStore';
 
 // 1. CORRECCIÓN CLAVE: Aseguramos que la interfaz acepte 'onCardClick'
@@ -26,7 +26,9 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
 
   if (!newsItem) return null;
 
-  const title = newsItem.title || newsItem.titulo;
+  if (!newsItem) return null;
+
+  const title = cleanTitle(newsItem.title || newsItem.titulo);
 
   const getProcessedImageUrl = (inputUrl: string | undefined | null): string => {
     if (!inputUrl) return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';

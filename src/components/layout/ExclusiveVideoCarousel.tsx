@@ -12,6 +12,7 @@ import { useVolumeStore } from '@/store/useVolumeStore';
 import { useThemeButtonColors } from '@/hooks/useThemeButtonColors';
 import { useToast } from '@/components/ui/use-toast';
 import { Video, ExclusiveVideoCarouselProps } from '@/lib/types';
+import { cleanTitle } from '@/lib/utils';
 
 const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos, isLoading, carouselId, isLive = false, onVideoClick }) => {
   const { playSpecificVideo, playLiveStream, streamStatus } = usePlayerStore();
@@ -146,7 +147,7 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
                 <div className="relative w-56 aspect-video flex items-center justify-center bg-black">
                   <Image
                     src={thumbUrl}
-                    alt={video.nombre || "Miniatura de video"}
+                    alt={cleanTitle(video.nombre) || "Miniatura de video"}
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     priority={index === 0}
@@ -158,7 +159,7 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
                   />
                 </div>
                 <div className={titleOverlayClasses}>
-                  <p className="text-white font-bold uppercase leading-tight text-sm drop-shadow-md">{video.nombre}</p>
+                  <p className="text-white font-bold uppercase leading-tight text-sm drop-shadow-md">{cleanTitle(video.nombre)}</p>
                 </div>
               </div>
             </SwiperSlide>

@@ -4,7 +4,7 @@ import React from 'react';
 import { useNewsPlayerStore } from '@/store/useNewsPlayerStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, cleanTitle } from '@/lib/utils';
 import { getDisplayCategory } from '@/lib/categoryMappings'; // Importar la función
 import { usePlayerStore } from '@/store/usePlayerStore';
 
@@ -24,7 +24,7 @@ const VideoTitleBar: React.FC<VideoTitleBarProps> = ({ className }) => {
   };
 
   // --- DATOS ACTUALES ---
-  const currentVideoName = currentVideo?.nombre || currentVideo?.title || '';
+  const currentVideoName = cleanTitle(currentVideo?.nombre || currentVideo?.title);
 
   const currentCategoryDb = currentVideo?.categoria || 'VIDEO';
   const currentDisplayCategory = getDisplayCategory(currentCategoryDb);
@@ -36,7 +36,8 @@ const VideoTitleBar: React.FC<VideoTitleBarProps> = ({ className }) => {
       : `${currentDisplayCategory.toUpperCase()}, ${currentVideoName}`);
 
   // --- DATOS PRÓXIMOS / CONTINUAR ---
-  const nextVideoName = preloadedNextVideo ? (preloadedNextVideo.nombre || preloadedNextVideo.title) : null;
+  // --- DATOS PRÓXIMOS / CONTINUAR ---
+  const nextVideoName = preloadedNextVideo ? cleanTitle(preloadedNextVideo.nombre || preloadedNextVideo.title) : null;
   const nextCategoryDb = preloadedNextVideo ? (preloadedNextVideo.categoria || 'VIDEO') : null;
   const nextDisplayCategory = nextCategoryDb ? getDisplayCategory(nextCategoryDb) : null;
 
@@ -45,7 +46,8 @@ const VideoTitleBar: React.FC<VideoTitleBarProps> = ({ className }) => {
     : nextVideoName ? `${nextDisplayCategory?.toUpperCase()}, ${nextVideoName}` : '';
 
   // Continuar Viendo (solo durante slide)
-  const savedVideoName = savedVideo ? (savedVideo.nombre || savedVideo.title) : '';
+  // Continuar Viendo (solo durante slide)
+  const savedVideoName = savedVideo ? cleanTitle(savedVideo.nombre || savedVideo.title) : '';
   const savedCategoryDb = savedVideo ? (savedVideo.categoria || 'VIDEO') : null;
   const savedDisplayCategory = savedCategoryDb ? getDisplayCategory(savedCategoryDb) : '';
   const continueVideoDisplay = savedVideoName === 'ESPACIO PUBLICITARIO'

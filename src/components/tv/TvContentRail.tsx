@@ -11,6 +11,7 @@ import { useVolumeStore } from '@/store/useVolumeStore';
 import CategoryCycler from '@/components/layout/CategoryCycler';
 import { Video, Article } from '@/lib/types';
 import { categoryMappings, type CategoryMapping } from '@/lib/categoryMappings';
+import { cleanTitle } from '@/lib/utils';
 
 const TRANSPARENT_PNG_DATA_URI = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
 
@@ -81,7 +82,7 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
 
     if (isArticle) {
       const newsItem = item as any;
-      const title = newsItem.title || newsItem.titulo;
+      const title = cleanTitle(newsItem.title || newsItem.titulo);
       const imageUrl = newsItem.imageUrl || newsItem.image_url || newsItem.imagen || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
       const urlSlide = newsItem.url_slide || newsItem.urlSlide;
       const audioUrl = newsItem.audio_url || newsItem.audioUrl;
@@ -126,7 +127,7 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
       }
 
       // Map title/titulo to nombre for ExclusiveVideoCarousel
-      const nombre = item.nombre || item.title || item.titulo || '';
+      const nombre = cleanTitle(item.nombre || item.title || item.titulo || '');
 
       return { ...item, imageUrl: thumb, imagen: thumb, nombre };
     });

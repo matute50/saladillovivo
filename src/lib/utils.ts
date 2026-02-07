@@ -70,3 +70,8 @@ export function shuffleArray<T>(array: T[]): T[] {
   }
   return newArray;
 }
+
+export const cleanTitle = (title: string | undefined | null): string => {
+  if (!title) return '';
+  return title.replace(/\|/g, '').trim();
+};
