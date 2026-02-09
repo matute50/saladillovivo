@@ -10,7 +10,8 @@ declare global {
     }
 }
 
-const CHROMECAST_BG_URL = 'https://media.saladillovivo.com.ar/images/chromecast-bg.png';
+// La URL se construirá dinámicamente para evitar problemas de CORS y asegurar que apunte al dominio actual
+let CHROMECAST_BG_URL = 'https://media.saladillovivo.com.ar/images/chromecast-bg.png';
 
 export function useChromecast() {
     const [isCastAvailable, setIsCastAvailable] = useState(false);
@@ -20,9 +21,14 @@ export function useChromecast() {
     const loadDefaultMedia = useCallback((session: any) => {
         if (!session) return;
 
-        console.log('Chromecast: Iniciando carga de imagen con cache-busting...');
+        // Intentar usar el origen actual si estamos en el navegador
+        const origin = window.location.origin;
+        const assetPath = '/images/chromecast-bg.png';
+        const finalBaseUrl = origin.includes('localhost') ? CHROMECAST_BG_URL : `${origin}${assetPath}`;
+
+        console.log(`Chromecast: Iniciando carga de imagen desde: ${finalBaseUrl}`);
         // Forzar recarga de la imagen evitando caché
-        const urlWithCacheBust = `${CHROMECAST_BG_URL}?v=${new Date().getTime()}`;
+        const urlWithCacheBust = `${finalBaseUrl}?v=${new Date().getTime()}`;
 
         // Implementación de MediaLoadRequestData con metadatos enriquecidos
         const mediaInfo = new window.chrome.cast.media.MediaInfo(urlWithCacheBust, 'image/png');
