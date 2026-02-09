@@ -17,57 +17,7 @@ export function useChromecast() {
     const [isCasting, setIsCasting] = useState(false);
     const [castSession, setCastSession] = useState<any>(null);
 
-    useEffect(() => {
-        // Definir la función que el SDK llama cuando está listo
-        window.__onGCastApiAvailable = (isAvailable: boolean) => {
-            if (isAvailable) {
-                initializeCastApi();
-            }
-        };
-
-        // Si ya está disponible (p.ej. navegación en SPA)
-        if (window.cast && window.cast.framework) {
-            initializeCastApi();
-        }
-    }, []);
-
-    const initializeCastApi = () => {
-        const castContext = window.cast.framework.CastContext.getInstance();
-        castContext.setOptions({
-            receiverApplicationId: window.chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
-            autoJoinPolicy: window.chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED,
-        });
-
-        setIsCastAvailable(true);
-
-        // Interceptar cambios de sesión (onSessionStarted / onSessionResumed)
-        castContext.addEventListener(
-            window.cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
-            (event: any) => {
-                const sessionState = event.sessionState;
-
-                switch (sessionState) {
-                    case window.cast.framework.SessionState.SESSION_STARTED:
-                    case window.cast.framework.SessionState.SESSION_RESUMED:
-                        console.log('Chromecast: Sesión activa detectada');
-                        setIsCasting(true);
-                        const currentSession = castContext.getCurrentSession();
-                        setCastSession(currentSession);
-
-                        // Requerimiento Técnico: Inicializar RemoteMediaClient y cargar contenido
-                        loadDefaultMedia(currentSession);
-                        break;
-                    case window.cast.framework.SessionState.SESSION_ENDED:
-                        console.log('Chromecast: Sesión terminada');
-                        setIsCasting(false);
-                        setCastSession(null);
-                        break;
-                }
-            }
-        );
-    };
-
-    const loadDefaultMedia = (session: any) => {
+    const loadDefaultMedia = useCallback((session: any) => {
         if (!session) return;
 
         // Implementación de MediaLoadRequestData con metadatos enriquecidos
@@ -90,7 +40,58 @@ export function useChromecast() {
             () => { console.log('Chromecast: MediaLoadRequest enviado con éxito'); },
             (error: any) => { console.error('Chromecast: Error en MediaLoadRequest', error); }
         );
-    };
+    }, []);
+
+    const initializeCastApi = useCallback(() => {
+        const castContext = window.cast.framework.CastContext.getInstance();
+        castContext.setOptions({
+            receiverApplicationId: window.chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+            autoJoinPolicy: window.chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED,
+        });
+
+        setIsCastAvailable(true);
+
+        // Interceptar cambios de sesión (onSessionStarted / onSessionResumed)
+        castContext.addEventListener(
+            window.cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
+            (event: any) => {
+                const sessionState = event.sessionState;
+
+                switch (sessionState) {
+                    case window.cast.framework.SessionState.SESSION_STARTED:
+                    case window.cast.framework.SessionState.SESSION_RESUMED: {
+                        console.log('Chromecast: Sesión activa detectada');
+                        setIsCasting(true);
+                        const currentSession = castContext.getCurrentSession();
+                        setCastSession(currentSession);
+
+                        // Requerimiento Técnico: Inicializar RemoteMediaClient y cargar contenido
+                        loadDefaultMedia(currentSession);
+                        break;
+                    }
+                    case window.cast.framework.SessionState.SESSION_ENDED:
+                        console.log('Chromecast: Sesión terminada');
+                        setIsCasting(false);
+                        setCastSession(null);
+                        break;
+                }
+            }
+        );
+    }, [loadDefaultMedia]);
+
+    useEffect(() => {
+        // Definir la función que el SDK llama cuando está listo
+        window.__onGCastApiAvailable = (isAvailable: boolean) => {
+            if (isAvailable) {
+                initializeCastApi();
+            }
+        };
+
+        // Si ya está disponible (p.ej. navegación en SPA)
+        if (window.cast && window.cast.framework) {
+            initializeCastApi();
+        }
+    }, [initializeCastApi]);
 
     const requestCastSession = useCallback(async () => {
         if (!isCastAvailable) return;
