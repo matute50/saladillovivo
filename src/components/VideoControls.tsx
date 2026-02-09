@@ -137,6 +137,11 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onToggleFul
               {isFullScreen ? <Minimize size={24} /> : <Maximize size={24} />}
             </button>
 
+            {/* Diagnostic helper */}
+            <span className="text-[10px] text-white/30 ml-2 select-none">
+              Cast:{isCastAvailable ? "READY" : "WAITING"}
+            </span>
+
             {isCastAvailable ? (
               <button
                 onClick={() => requestCastSession()}
