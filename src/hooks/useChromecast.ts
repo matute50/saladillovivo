@@ -20,15 +20,19 @@ export function useChromecast() {
     const loadDefaultMedia = useCallback((session: any) => {
         if (!session) return;
 
+        console.log('Chromecast: Iniciando carga de imagen con cache-busting...');
+        // Forzar recarga de la imagen evitando caché
+        const urlWithCacheBust = `${CHROMECAST_BG_URL}?v=${new Date().getTime()}`;
+
         // Implementación de MediaLoadRequestData con metadatos enriquecidos
-        const mediaInfo = new window.chrome.cast.media.MediaInfo(CHROMECAST_BG_URL, 'image/png');
+        const mediaInfo = new window.chrome.cast.media.MediaInfo(urlWithCacheBust, 'image/png');
         mediaInfo.streamType = window.chrome.cast.media.StreamType.BUFFERED;
 
         const metadata = new window.chrome.cast.media.GenericMediaMetadata();
         metadata.metadataType = window.chrome.cast.media.MetadataType.GENERIC;
         metadata.title = "Saladillo Vivo - App";
         metadata.subtitle = "Streaming en progreso";
-        metadata.images = [{ url: CHROMECAST_BG_URL }];
+        metadata.images = [{ url: urlWithCacheBust }];
 
         mediaInfo.metadata = metadata;
 
@@ -37,8 +41,10 @@ export function useChromecast() {
 
         // Manejo de promesas para capturar excepciones en el MediaStatus
         session.loadMedia(loadRequest).then(
-            () => { console.log('Chromecast: MediaLoadRequest enviado con éxito'); },
-            (error: any) => { console.error('Chromecast: Error en MediaLoadRequest', error); }
+            () => { console.log('Chromecast: MediaLoadRequest enviado con éxito a la TV'); },
+            (error: any) => {
+                console.error('Chromecast: Error CRÍTICO en MediaLoadRequest. Probable problema de CORS o URL inaccesible.', error);
+            }
         );
     }, []);
 
@@ -60,13 +66,16 @@ export function useChromecast() {
                 switch (sessionState) {
                     case window.cast.framework.SessionState.SESSION_STARTED:
                     case window.cast.framework.SessionState.SESSION_RESUMED: {
-                        console.log('Chromecast: Sesión activa detectada');
+                        console.log('Chromecast: Sesión activa detectada (Iniciada/Reanudada)');
                         setIsCasting(true);
                         const currentSession = castContext.getCurrentSession();
                         setCastSession(currentSession);
 
-                        // Requerimiento Técnico: Inicializar RemoteMediaClient y cargar contenido
-                        loadDefaultMedia(currentSession);
+                        // Requerimiento Técnico: Pequeño delay de cortesía para asegurar que el socket está listo
+                        setTimeout(() => {
+                            console.log('Chromecast: Ejecutando carga diferida...');
+                            loadDefaultMedia(currentSession);
+                        }, 1500);
                         break;
                     }
                     case window.cast.framework.SessionState.SESSION_ENDED:
