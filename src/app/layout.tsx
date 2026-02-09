@@ -47,7 +47,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
 
         <Script
           src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"
-          strategy="lazyOnload"
+          strategy="afterInteractive"
         />
         <SpeedInsights />
       </body>
