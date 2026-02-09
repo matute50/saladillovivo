@@ -11,7 +11,7 @@ declare global {
 }
 
 // La URL se construirá dinámicamente para evitar problemas de CORS y asegurar que apunte al dominio actual
-let CHROMECAST_BG_URL = 'https://media.saladillovivo.com.ar/images/chromecast-bg.png';
+const CHROMECAST_BG_URL = 'https://media.saladillovivo.com.ar/images/chromecast-bg.png';
 
 export function useChromecast() {
     const [isCastAvailable, setIsCastAvailable] = useState(false);
