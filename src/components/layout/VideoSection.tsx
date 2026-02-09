@@ -9,12 +9,11 @@ import { SlideMedia } from '@/lib/types';
 import { useNewsPlayerStore } from '@/store/useNewsPlayerStore';
 import { useVolumeStore } from '@/store/useVolumeStore';
 import CustomControls from '@/components/CustomControls';
-import useCast from '@/hooks/useCast';
 import VideoTitleBar from '@/components/VideoTitleBar';
 import NewsTicker from '@/components/NewsTicker';
 import WeatherOverlay from '@/components/tv/WeatherOverlay';
 import { cn, cleanTitle, isYouTubeVideo } from '@/lib/utils';
-import { Play, Cast } from 'lucide-react';
+import { Play } from 'lucide-react';
 import AntiGravityLayer from './AntiGravityLayer';
 
 // Simplified VideoSection for Desktop Only
@@ -41,7 +40,6 @@ const VideoSection: React.FC = () => {
 
   const { currentSlide, isPlaying: isSlidePlaying, stopSlide, isNewsIntroActive, setIsNewsIntroActive } = useNewsPlayerStore();
   const { volume, setVolume, isMuted, unmute } = useVolumeStore(); // Added unmute
-  const { isCastAvailable, handleCast } = useCast(currentVideo);
 
   // Auto-Unmute for News or HTML Slides
   const isHtmlSlideActive = isSlidePlaying && currentSlide && currentSlide.type === 'html';
@@ -498,13 +496,6 @@ const VideoSection: React.FC = () => {
                   </motion.div>
                 )}
 
-                {showControls && isCastAvailable && !isHtmlSlideActive && !isPreRollOverlayActive && (
-                  <motion.div key="cast" className="absolute top-4 right-4 z-[52] pointer-events-auto" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                    <button onClick={handleCast} className="text-white hover:text-orange-500 transition-colors">
-                      <Cast size={24} />
-                    </button>
-                  </motion.div>
-                )}
 
                 {!isPlaying && !isHtmlSlideActive && !isLocalIntro && !playBackgroundEarly && currentVideo && (
                   <motion.div
