@@ -31,7 +31,22 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onToggleFul
   const [localQuery, setLocalQuery] = useState(searchQuery);
   const debouncedQuery = useDebounce(localQuery, 400);
 
-  // ... useEffects for search
+  // Synchronize local state if the global query clears from elsewhere
+  useEffect(() => {
+    if (searchQuery !== localQuery) {
+      setLocalQuery(searchQuery);
+    }
+  }, [searchQuery, localQuery]);
+
+  // Execute search when the debounced value changes
+  useEffect(() => {
+    // Only submit if debouncedQuery is different from current global searchQuery
+    // This prevents re-triggering search if NewsContext already updated searchQuery
+    // and also prevents empty search submission on initial render if searchQuery is empty
+    if (debouncedQuery !== searchQuery) {
+      onSearchSubmit(debouncedQuery);
+    }
+  }, [debouncedQuery, onSearchSubmit, searchQuery]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLocalQuery(e.target.value);
