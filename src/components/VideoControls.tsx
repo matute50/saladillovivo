@@ -7,6 +7,8 @@ import { Play, Pause, Maximize, Minimize, VolumeX, Volume2, Volume1, Search, New
 import { motion, AnimatePresence } from 'framer-motion';
 import { useVolumeStore } from '@/store/useVolumeStore'; // Use volume store
 import { useDebounce } from '@/hooks/useDebounce'; // Import useDebounce hook
+import { useChromecast } from '@/hooks/useChromecast';
+import { Cast } from 'lucide-react';
 
 interface VideoControlsProps {
   showControls: boolean;
@@ -20,6 +22,7 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onToggleFul
   const { isPlaying, togglePlayPause } = usePlayerStore();
   const { volume, isMuted, setVolume, toggleMute } = useVolumeStore(); // Use volume store
   const { searchQuery } = useNewsStore(); // Get global searchQuery from NewsStore
+  const { isCastAvailable, isCasting, requestCastSession } = useChromecast();
 
   const [localQuery, setLocalQuery] = useState(searchQuery); // Local state for input
   const debouncedQuery = useDebounce(localQuery, 400); // Debounce local query
@@ -133,6 +136,16 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onToggleFul
             <button onClick={onToggleFullScreen} className="text-white transition-colors">
               {isFullScreen ? <Minimize size={24} /> : <Maximize size={24} />}
             </button>
+
+            {isCastAvailable && (
+              <button
+                onClick={() => requestCastSession()}
+                className={`transition-colors ${isCasting ? 'text-[#6699ff]' : 'text-white'}`}
+                title="Transmitir a Chromecast"
+              >
+                <Cast size={24} />
+              </button>
+            )}
           </div>
         </motion.div>
       )}

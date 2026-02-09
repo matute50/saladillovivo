@@ -45,10 +45,19 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
     return `${process.env.NEXT_PUBLIC_MEDIA_URL || ''}${cleanUrl.startsWith('/') ? cleanUrl : `/${cleanUrl}`}`;
   };
 
+  const getProcessedAudioUrl = (inputUrl: string | undefined | null): string | null => {
+    if (!inputUrl) return null;
+    const cleanUrl = inputUrl.trim();
+    if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) {
+      return cleanUrl;
+    }
+    return `${process.env.NEXT_PUBLIC_MEDIA_URL || ''}${cleanUrl.startsWith('/') ? cleanUrl : `/${cleanUrl}`}`;
+  };
+
   const finalImageUrl = getProcessedImageUrl(newsItem.image_url || newsItem.imageUrl);
 
   const createdAt = newsItem.created_at || newsItem.fecha;
-  const audioUrl = newsItem.audio_url || newsItem.audioUrl;
+  const audioUrl = getProcessedAudioUrl(newsItem.audio_url || newsItem.audioUrl);
   const urlSlide = newsItem.url_slide || newsItem.urlSlide;
   const duration = newsItem.animation_duration || 15;
 

@@ -28,6 +28,7 @@ export default function VideoPlayer({
   startAt,
   playerVolume,
   volumen_extra = 1,
+  audioUrl,
   muted: forceMuted // Alias to avoid conflict with global isMuted
 }: VideoPlayerProps) {
   const [isMounted, setIsMounted] = useState(false);
@@ -332,6 +333,17 @@ export default function VideoPlayer({
             }
           }}
         />
+
+        {audioUrl && (
+          <audio
+            src={audioUrl}
+            autoPlay={shouldPlay}
+            muted={isMuted || forceMuted}
+            className="hidden"
+            onPlay={() => console.log(`VideoPlayer: Reproduciendo audio externo: ${audioUrl}`)}
+            onError={(e) => console.error("VideoPlayer: Error en audio externo:", e)}
+          />
+        )}
 
         {/* SHIELD OF GOLD (Zero-Branding) */}
       </div>

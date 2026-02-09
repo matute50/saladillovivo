@@ -80,12 +80,21 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
   const handleCardClick = useCallback((item: Video | Article) => {
     const isArticle = 'slug' in item || 'titulo' in item || 'url_slide' in item;
 
+    const getProcessedAudioUrl = (inputUrl: string | undefined | null): string | null => {
+      if (!inputUrl) return null;
+      const cleanUrl = inputUrl.trim();
+      if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) {
+        return cleanUrl;
+      }
+      return `${process.env.NEXT_PUBLIC_MEDIA_URL || ''}${cleanUrl.startsWith('/') ? cleanUrl : `/${cleanUrl}`}`;
+    };
+
     if (isArticle) {
       const newsItem = item as any;
       const title = cleanTitle(newsItem.title || newsItem.titulo);
       const imageUrl = newsItem.imageUrl || newsItem.image_url || newsItem.imagen || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
       const urlSlide = newsItem.url_slide || newsItem.urlSlide;
-      const audioUrl = newsItem.audio_url || newsItem.audioUrl;
+      const audioUrl = getProcessedAudioUrl(newsItem.audio_url || newsItem.audioUrl);
       const duration = newsItem.animation_duration || 15;
       const isHtmlSlide = urlSlide && urlSlide.endsWith('.html');
 

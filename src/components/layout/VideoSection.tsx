@@ -312,7 +312,8 @@ const VideoSection: React.FC = () => {
                       autoPlay
                       className="hidden"
                       muted={isMuted}
-                      onError={(e) => console.error("Error reproduciendo audio de noticia:", e)}
+                      onPlay={() => console.log(`Reproduciendo audio de slide: ${currentSlide.audioUrl}`)}
+                      onError={(e) => console.error("Error reproduciendo audio de noticia:", e, currentSlide.audioUrl)}
                     />
                   )}
                 </div>
@@ -340,6 +341,7 @@ const VideoSection: React.FC = () => {
                     }}
                     startAt={(slotA as any).startAt || 0}
                     volumen_extra={slotA.volumen_extra}
+                    audioUrl={slotA.audioSourceUrl}
                   />
                 )}
               </div>
@@ -366,6 +368,7 @@ const VideoSection: React.FC = () => {
                     }}
                     startAt={(slotB as any).startAt || 0}
                     volumen_extra={slotB.volumen_extra}
+                    audioUrl={slotB.audioSourceUrl}
                   />
                 )}
               </div>
