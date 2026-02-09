@@ -10,51 +10,38 @@ declare global {
     }
 }
 
-// La URL se construirá dinámicamente para evitar problemas de CORS y asegurar que apunte al dominio actual
-const CHROMECAST_BG_URL = 'https://media.saladillovivo.com.ar/images/chromecast-bg.png';
+const DEFAULT_BG = 'https://media.saladillovivo.com.ar/images/chromecast-bg.png';
 
 export function useChromecast() {
     const [isCastAvailable, setIsCastAvailable] = useState(false);
     const [isCasting, setIsCasting] = useState(false);
     const [castSession, setCastSession] = useState<any>(null);
 
-    const loadDefaultMedia = useCallback((session: any) => {
+    const loadMedia = useCallback((session: any) => {
         if (!session) return;
 
-        const origin = window.location.origin;
-        const assetPath = '/images/chromecast-bg.png';
-        const finalBaseUrl = origin.includes('localhost') ? CHROMECAST_BG_URL : `${origin}${assetPath}`;
-
-        console.log(`Chromecast: Cargando imagen => ${finalBaseUrl}`);
-        const urlWithCacheBust = `${finalBaseUrl}?v=${new Date().getTime()}`;
-
         try {
-            if (!window.chrome?.cast?.media) return;
+            const origin = window.location.origin;
+            const assetUrl = origin.includes('localhost') ? DEFAULT_BG : `${origin}/images/chromecast-bg.png`;
+            const finalUrl = `${assetUrl}?v=${Date.now()}`;
 
-            const mediaInfo = new window.chrome.cast.media.MediaInfo(urlWithCacheBust, 'image/png');
+            console.log('Chromecast: Sending Media ->', finalUrl);
+
+            const mediaInfo = new window.chrome.cast.media.MediaInfo(finalUrl, 'image/png');
             mediaInfo.streamType = window.chrome.cast.media.StreamType.BUFFERED;
-
             const metadata = new window.chrome.cast.media.GenericMediaMetadata();
-            metadata.metadataType = window.chrome.cast.media.MetadataType.GENERIC;
             metadata.title = "Saladillo Vivo";
-            metadata.subtitle = "Streaming";
-            metadata.images = [{ url: urlWithCacheBust }];
-
+            metadata.images = [{ url: finalUrl }];
             mediaInfo.metadata = metadata;
 
-            const loadRequest = new window.chrome.cast.media.LoadRequest(mediaInfo);
-            loadRequest.autoplay = true;
-
-            session.loadMedia(loadRequest).then(
-                () => { console.log('Chromecast: Media enviada'); },
-                (error: any) => {
-                    console.error('Chromecast: Error receptor', error);
-                    // Fallback directo a media URL si el del origen falla
-                    if (finalBaseUrl !== CHROMECAST_BG_URL) {
-                        const fallbackMedia = new window.chrome.cast.media.MediaInfo(CHROMECAST_BG_URL, 'image/png');
-                        fallbackMedia.metadata = metadata;
-                        session.loadMedia(new window.chrome.cast.media.LoadRequest(fallbackMedia));
-                    }
+            const request = new window.chrome.cast.media.LoadRequest(mediaInfo);
+            session.loadMedia(request).then(
+                () => console.log('Chromecast: Load Success'),
+                (err: any) => {
+                    console.error('Chromecast: Load Failed, trying fallback...', err);
+                    const fallback = new window.chrome.cast.media.MediaInfo(DEFAULT_BG, 'image/png');
+                    fallback.metadata = metadata;
+                    session.loadMedia(new window.chrome.cast.media.LoadRequest(fallback));
                 }
             );
         } catch (e) {
@@ -62,70 +49,62 @@ export function useChromecast() {
         }
     }, []);
 
-    const initializeCastApi = useCallback(() => {
-        if (isCastAvailable) return;
-        if (!window.cast?.framework || !window.chrome?.cast) return;
+    const init = useCallback(() => {
+        if (typeof window === 'undefined' || !window.cast?.framework || !window.chrome?.cast) return;
+        if (window.cast.framework.CastContext.getInstance().getCastState() !== 'NO_DEVICES_AVAILABLE') {
+            // Already initialized logic
+        }
 
-        console.log('Chromecast: Inicializando API de Cast...');
         try {
-            const castContext = window.cast.framework.CastContext.getInstance();
-            castContext.setOptions({
+            const context = window.cast.framework.CastContext.getInstance();
+            context.setOptions({
                 receiverApplicationId: window.chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
-                autoJoinPolicy: window.chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED,
-                resumeSavedSession: true
+                autoJoinPolicy: window.chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
             });
 
             setIsCastAvailable(true);
+            console.log('Chromecast: API Initialized');
 
-            castContext.addEventListener(
-                window.cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
-                (event: any) => {
-                    const sessionState = event.sessionState;
-                    console.log('Chromecast State:', sessionState);
-
-                    if (sessionState === window.cast.framework.SessionState.SESSION_STARTED ||
-                        sessionState === window.cast.framework.SessionState.SESSION_RESUMED) {
-                        setIsCasting(true);
-                        const session = castContext.getCurrentSession();
-                        setCastSession(session);
-                        setTimeout(() => loadDefaultMedia(session), 2500);
-                    } else if (sessionState === window.cast.framework.SessionState.SESSION_ENDED) {
-                        setIsCasting(false);
-                        setCastSession(null);
-                    }
+            context.addEventListener(window.cast.framework.CastContextEventType.SESSION_STATE_CHANGED, (event: any) => {
+                const s = event.sessionState;
+                console.log('Chromecast Session:', s);
+                if (s === 'SESSION_STARTED' || s === 'SESSION_RESUMED') {
+                    setIsCasting(true);
+                    const session = context.getCurrentSession();
+                    setCastSession(session);
+                    setTimeout(() => loadMedia(session), 2000);
+                } else if (s === 'SESSION_ENDED') {
+                    setIsCasting(false);
                 }
-            );
+            });
         } catch (e) {
             console.error('Chromecast Init Error:', e);
         }
-    }, [isCastAvailable, loadDefaultMedia]);
+    }, [loadMedia]);
 
     useEffect(() => {
-        // 1. Callback de SDK
-        window.__onGCastApiAvailable = (isAvailable: boolean) => {
-            if (isAvailable) initializeCastApi();
+        window.__onGCastApiAvailable = (isAvailable) => {
+            if (isAvailable) init();
         };
 
-        // 2. Polling de seguridad por si el SDK carga antes o después de forma asíncrona
-        const interval = setInterval(() => {
+        const check = setInterval(() => {
             if (window.cast?.framework && window.chrome?.cast) {
-                initializeCastApi();
-                // Si logramos inicializar, mantenemos el interval un par de segundos más o limpiamos
-                if (isCastAvailable) clearInterval(interval);
+                init();
+                clearInterval(check);
             }
         }, 1000);
 
-        return () => clearInterval(interval);
-    }, [initializeCastApi, isCastAvailable]);
+        return () => clearInterval(check);
+    }, [init]);
 
-    const requestCastSession = useCallback(async () => {
+    const requestSession = useCallback(async () => {
         if (!isCastAvailable) return;
         try {
             await window.cast.framework.CastContext.getInstance().requestSession();
         } catch (e) {
-            console.error('Cast Request Error:', e);
+            console.error('Cast Error:', e);
         }
     }, [isCastAvailable]);
 
-    return { isCastAvailable, isCasting, requestCastSession, castSession };
+    return { isCastAvailable, isCasting, requestCastSession: requestSession, castSession };
 }

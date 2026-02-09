@@ -137,7 +137,7 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onToggleFul
               {isFullScreen ? <Minimize size={24} /> : <Maximize size={24} />}
             </button>
 
-            {isCastAvailable && (
+            {isCastAvailable ? (
               <button
                 onClick={() => requestCastSession()}
                 className={`transition-colors ${isCasting ? 'text-[#6699ff]' : 'text-white'}`}
@@ -145,7 +145,11 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onToggleFul
               >
                 <Cast size={24} />
               </button>
+            ) : (
+              <span className="opacity-0 w-0 h-0 overflow-hidden">Cast:Off</span>
             )}
+            {/* Debug indicator helper */}
+            <div data-cast-debug={isCastAvailable ? "on" : "off"} className="hidden"></div>
           </div>
         </motion.div>
       )}
