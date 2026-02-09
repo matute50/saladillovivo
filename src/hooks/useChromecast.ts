@@ -1,7 +1,6 @@
-'use client';
-
 import { useState, useEffect, useCallback } from 'react';
 
+// Declaration to avoid TypeScript errors without installing @types/chromecast-caf-sender
 declare global {
     interface Window {
         __onGCastApiAvailable: (isAvailable: boolean) => void;
@@ -10,101 +9,101 @@ declare global {
     }
 }
 
-const DEFAULT_BG = 'https://media.saladillovivo.com.ar/images/chromecast-bg.png';
+export const useChromecast = () => {
+    const [isAvailable, setIsAvailable] = useState(false);
+    const [isConnected, setIsConnected] = useState(false);
+    const [castContext, setCastContext] = useState<any>(null);
 
-export function useChromecast() {
-    const [isCastAvailable, setIsCastAvailable] = useState(false);
-    const [isCasting, setIsCasting] = useState(false);
-    const [castSession, setCastSession] = useState<any>(null);
+    const initializeCastApi = useCallback(() => {
+        if (window.chrome?.cast?.media) { // Check if API is already loaded
+            try {
+                const context = window.cast.framework.CastContext.getInstance();
+                if (!context) return;
 
-    const loadMedia = useCallback((session: any) => {
-        if (!session) return;
+                context.setOptions({
+                    receiverApplicationId: window.chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+                    autoJoinPolicy: window.chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED,
+                });
 
-        try {
-            const origin = window.location.origin;
-            const assetUrl = origin.includes('localhost') ? DEFAULT_BG : `${origin}/images/chromecast-bg.png`;
-            const finalUrl = `${assetUrl}?v=${Date.now()}`;
+                setCastContext(context);
+                setIsAvailable(true);
 
-            console.log('Chromecast: Sending Media ->', finalUrl);
+                // Listen for session state changes
+                context.addEventListener(
+                    window.cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
+                    (event: any) => {
+                        const sessionState = event.sessionState;
+                        const SessionState = window.cast.framework.SessionState;
 
-            const mediaInfo = new window.chrome.cast.media.MediaInfo(finalUrl, 'image/png');
-            mediaInfo.streamType = window.chrome.cast.media.StreamType.BUFFERED;
-            const metadata = new window.chrome.cast.media.GenericMediaMetadata();
-            metadata.title = "Saladillo Vivo";
-            metadata.images = [{ url: finalUrl }];
-            mediaInfo.metadata = metadata;
+                        if (sessionState === SessionState.SESSION_STARTED || sessionState === SessionState.SESSION_RESUMED) {
+                            setIsConnected(true);
+                            castImage(context.getCurrentSession());
+                        } else if (sessionState === SessionState.SESSION_ENDED) {
+                            setIsConnected(false);
+                        }
+                    }
+                );
 
-            const request = new window.chrome.cast.media.LoadRequest(mediaInfo);
-            session.loadMedia(request).then(
-                () => console.log('Chromecast: Load Success'),
-                (err: any) => {
-                    console.error('Chromecast: Load Failed, trying fallback...', err);
-                    const fallback = new window.chrome.cast.media.MediaInfo(DEFAULT_BG, 'image/png');
-                    fallback.metadata = metadata;
-                    session.loadMedia(new window.chrome.cast.media.LoadRequest(fallback));
+                // Check initial state
+                const currentSession = context.getCurrentSession();
+                if (currentSession) {
+                    setIsConnected(true);
                 }
-            );
-        } catch (e) {
-            console.error('Chromecast Error:', e);
+
+            } catch (e) {
+                console.error('Error initializing Cast API:', e);
+            }
         }
     }, []);
 
-    const init = useCallback(() => {
-        if (typeof window === 'undefined' || !window.cast?.framework || !window.chrome?.cast) return;
-        if (window.cast.framework.CastContext.getInstance().getCastState() !== 'NO_DEVICES_AVAILABLE') {
-            // Already initialized logic
-        }
-
-        try {
-            const context = window.cast.framework.CastContext.getInstance();
-            context.setOptions({
-                receiverApplicationId: window.chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
-                autoJoinPolicy: window.chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
-            });
-
-            setIsCastAvailable(true);
-            console.log('Chromecast: API Initialized');
-
-            context.addEventListener(window.cast.framework.CastContextEventType.SESSION_STATE_CHANGED, (event: any) => {
-                const s = event.sessionState;
-                console.log('Chromecast Session:', s);
-                if (s === 'SESSION_STARTED' || s === 'SESSION_RESUMED') {
-                    setIsCasting(true);
-                    const session = context.getCurrentSession();
-                    setCastSession(session);
-                    setTimeout(() => loadMedia(session), 2000);
-                } else if (s === 'SESSION_ENDED') {
-                    setIsCasting(false);
-                }
-            });
-        } catch (e) {
-            console.error('Chromecast Init Error:', e);
-        }
-    }, [loadMedia]);
-
     useEffect(() => {
-        window.__onGCastApiAvailable = (isAvailable) => {
-            if (isAvailable) init();
+        window.__onGCastApiAvailable = (isAvailable: boolean) => {
+            if (isAvailable) {
+                initializeCastApi();
+            } else {
+                setIsAvailable(false);
+            }
         };
 
-        const check = setInterval(() => {
-            if (window.cast?.framework && window.chrome?.cast) {
-                init();
-                clearInterval(check);
-            }
-        }, 1000);
-
-        return () => clearInterval(check);
-    }, [init]);
-
-    const requestSession = useCallback(async () => {
-        if (!isCastAvailable) return;
-        try {
-            await window.cast.framework.CastContext.getInstance().requestSession();
-        } catch (e) {
-            console.error('Cast Error:', e);
+        // If script already loaded before hook mounted
+        if (window.chrome?.cast && window.cast?.framework) {
+            initializeCastApi();
         }
-    }, [isCastAvailable]);
+    }, [initializeCastApi]);
 
-    return { isCastAvailable, isCasting, requestCastSession: requestSession, castSession };
-}
+    const castImage = (session: any) => {
+        if (!session) return;
+
+        const mediaInfo = new window.chrome.cast.media.MediaInfo(
+            'https://www.saladillovivo.com.ar/images/chromecast-bg.png',
+            'image/png'
+        );
+
+        // Metadata is optional but good practice
+        const metadata = new window.chrome.cast.media.GenericMediaMetadata();
+        metadata.title = 'Saladillo Vivo';
+        metadata.images = [{ url: 'https://www.saladillovivo.com.ar/images/chromecast-bg.png' }];
+        mediaInfo.metadata = metadata;
+
+        const request = new window.chrome.cast.media.LoadRequest(mediaInfo);
+
+        session.loadMedia(request).then(
+            () => { console.log('Image load success'); },
+            (errorCode: any) => { console.error('Image load error', errorCode); }
+        );
+    };
+
+    const requestSession = () => {
+        if (castContext) {
+            castContext.requestSession().then(
+                (err: any) => {
+                    if (err) {
+                        console.error('Error requesting session', err);
+                    }
+                }
+            );
+        }
+    };
+
+    return { isAvailable, isConnected, requestSession };
+};

@@ -3,10 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { usePlayerStore } from '@/store/usePlayerStore';
 import { useNewsStore } from '@/store/useNewsStore'; // Use news store
-import { Play, Pause, Maximize, Minimize, VolumeX, Volume2, Volume1, Search, Newspaper, X } from 'lucide-react';
+import { Play, Pause, Maximize, Minimize, VolumeX, Volume2, Volume1, Search, Newspaper, X, Cast } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useVolumeStore } from '@/store/useVolumeStore'; // Use volume store
 import { useDebounce } from '@/hooks/useDebounce'; // Import useDebounce hook
+import { useChromecast } from '@/hooks/useChromecast'; // Imort useChromecast hook
 
 interface VideoControlsProps {
   showControls: boolean;
@@ -16,31 +17,21 @@ interface VideoControlsProps {
   onSearchSubmit: (term: string) => void; // New prop for submitting search
 }
 
+
+
+// ... interfaces
+
 const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onToggleFullScreen, isFullScreen, onSwitchToDailyMode, onSearchSubmit }) => {
   const { isPlaying, togglePlayPause } = usePlayerStore();
-  const { volume, isMuted, setVolume, toggleMute } = useVolumeStore(); // Use volume store
-  const { searchQuery } = useNewsStore(); // Get global searchQuery from NewsStore
+  const { volume, isMuted, setVolume, toggleMute } = useVolumeStore();
+  const { searchQuery } = useNewsStore();
 
-  const [localQuery, setLocalQuery] = useState(searchQuery); // Local state for input
-  const debouncedQuery = useDebounce(localQuery, 400); // Debounce local query
+  const { isAvailable, isConnected, requestSession } = useChromecast(); // Use the hook
 
-  // Synchronize local state if the global query clears from elsewhere
-  useEffect(() => {
-    if (searchQuery !== localQuery) {
-      setLocalQuery(searchQuery);
-    }
-  }, [searchQuery, localQuery]);
+  const [localQuery, setLocalQuery] = useState(searchQuery);
+  const debouncedQuery = useDebounce(localQuery, 400);
 
-  // Execute search when the debounced value changes
-  useEffect(() => {
-    // Only submit if debouncedQuery is different from current global searchQuery
-    // This prevents re-triggering search if NewsContext already updated searchQuery
-    // and also prevents empty search submission on initial render if searchQuery is empty
-    if (debouncedQuery !== searchQuery) {
-      onSearchSubmit(debouncedQuery);
-    }
-  }, [debouncedQuery, onSearchSubmit, searchQuery]);
-
+  // ... useEffects for search
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLocalQuery(e.target.value);
@@ -48,8 +39,7 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onToggleFul
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      e.preventDefault(); // Prevent default form submission
-      // For immediate search on Enter, use localQuery
+      e.preventDefault();
       if (localQuery.trim()) {
         onSearchSubmit(localQuery.trim());
       }
@@ -58,21 +48,18 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onToggleFul
 
   const clearSearch = () => {
     setLocalQuery('');
-    onSearchSubmit(''); // Clear the search immediately
+    onSearchSubmit('');
   };
 
-  // Si no se deben mostrar los controles, no renderizar nada
   if (!showControls) {
     return null;
   }
-
-
 
   return (
     <AnimatePresence>
       {showControls && (
         <motion.div
-          className="flex items-center justify-between w-full h-full" // Adjusted to be flexible inside its parent
+          className="flex items-center justify-between w-full h-full"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
@@ -94,7 +81,7 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onToggleFul
                 step={0.01}
                 value={isMuted ? 0 : volume}
                 onChange={(e) => setVolume(parseFloat(e.target.value))}
-                onInput={(e) => setVolume(parseFloat((e.target as HTMLInputElement).value))} // Para respuesta inmediata
+                onInput={(e) => setVolume(parseFloat((e.target as HTMLInputElement).value))}
                 className="
                   w-20 h-1
                   appearance-none bg-white/30 rounded-full cursor-pointer
@@ -127,6 +114,14 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onToggleFul
               )}
               {!localQuery && <Search size={20} className="absolute right-3 text-white/70" />}
             </div>
+
+            {/* Chromecast Button */}
+            {isAvailable && (
+              <button onClick={requestSession} className={`transition-colors ${isConnected ? 'text-blue-500' : 'text-white'}`}>
+                <Cast size={24} />
+              </button>
+            )}
+
             <button onClick={onSwitchToDailyMode} className="text-white transition-colors">
               <Newspaper size={24} />
             </button>
