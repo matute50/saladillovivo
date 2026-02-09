@@ -3,8 +3,7 @@
 import React from 'react';
 import { usePlayerStore } from '@/store/usePlayerStore';
 import { useVolumeStore } from '@/store/useVolumeStore';
-import { Maximize, Minimize, Play, Pause, Volume2, VolumeX, Volume1, Cast } from 'lucide-react';
-import { useChromecast } from '@/hooks/useChromecast';
+import { Maximize, Minimize, Play, Pause, Volume2, VolumeX, Volume1 } from 'lucide-react';
 
 interface CustomControlsProps {
   onToggleFullScreen: () => void;
@@ -14,7 +13,6 @@ interface CustomControlsProps {
 const CustomControls: React.FC<CustomControlsProps> = ({ onToggleFullScreen, isFullScreen }) => {
   const { isPlaying, togglePlayPause } = usePlayerStore();
   const { volume, setVolume, isMuted, toggleMute, unmute } = useVolumeStore();
-  const { isCastAvailable, isCasting, requestCastSession } = useChromecast();
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVol = parseFloat(e.target.value);
@@ -46,15 +44,6 @@ const CustomControls: React.FC<CustomControlsProps> = ({ onToggleFullScreen, isF
           {isPlaying ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" />}
         </button>
 
-        {isCastAvailable && (
-          <button
-            onClick={(e) => { e.stopPropagation(); requestCastSession(); }}
-            className={`transition-colors p-1 ${isCasting ? 'text-[#6699ff]' : 'text-white/70 hover:text-white'}`}
-            title="Transmitir a Chromecast"
-          >
-            <Cast size={24} fill={isCasting ? "currentColor" : "none"} />
-          </button>
-        )}
       </div>
 
       {/* DERECHA: Grupo Controles (Volumen + Fullscreen) */}
