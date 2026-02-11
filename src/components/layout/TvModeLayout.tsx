@@ -56,9 +56,6 @@ const TvModeLayout = () => {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, [isControlsVisible, setControlsVisible, updateActivity]);
 
-  const onSearchSubmit = useCallback((term: string) => {
-    handleSearch(term);
-  }, [handleSearch]);
 
   // Manejo de teclado para ENTER (Mostrar overlay instantáneamente)
   useEffect(() => {
@@ -145,7 +142,6 @@ const TvModeLayout = () => {
               <TvContentRail
                 searchResults={searchResults}
                 isSearching={isSearching}
-                searchLoading={searchLoading}
                 initialCategory={initialTvCategory} // Pasa la categoría inicial aleatoria
                 isVisible={isControlsVisible} // Pasa la visibilidad al carrusel
               />

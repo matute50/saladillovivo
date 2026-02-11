@@ -19,12 +19,11 @@ const TRANSPARENT_PNG_DATA_URI = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA
 interface TvContentRailProps {
   searchResults: Video[];
   isSearching: boolean;
-  searchLoading: boolean;
   initialCategory?: CategoryMapping; // Nuevo prop para la categoría inicial
   isVisible?: boolean; // Nuevo prop para controlar la visibilidad
 }
 
-const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearching, searchLoading, initialCategory, isVisible = true }) => {
+const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearching, initialCategory, isVisible = true }) => {
   const { galleryVideos, allNews, isLoading: isLoadingNews, handleSearch } = useNewsStore();
   const { playSpecificVideo, playTemporaryVideo, setIsPlaying } = usePlayerStore();
   const { playSlide } = useNewsPlayerStore();

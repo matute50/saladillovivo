@@ -25,7 +25,6 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({
 }) => {
   const { playSpecificVideo, playLiveStream, streamStatus } = usePlayerStore();
   const { volume, setVolume } = useVolumeStore();
-  const { focusedId } = useNavigationStore();
   const { toast } = useToast();
   const swiperRef = useRef<any>(null);
 
