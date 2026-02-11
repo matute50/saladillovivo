@@ -122,7 +122,8 @@ export async function getVideosForHome(limitRecent: number = 4) {
     .from('videos')
     .select('id, nombre, url, createdAt, categoria, imagen, novedad, forzar_video, volumen_extra')
     .not('categoria', 'ilike', '%HCD%')
-    .order('createdAt', { ascending: false });
+    .order('createdAt', { ascending: false })
+    .limit(150);
 
   if (error) {
     console.error('Error fetching videos:', error);
@@ -199,7 +200,8 @@ export async function getNewRandomVideo(currentId?: string, currentCategory?: st
   const { data, error } = await supabase
     .from('videos')
     .select('id, nombre, url, createdAt, categoria, imagen, novedad, forzar_video, volumen_extra')
-    .not('categoria', 'ilike', '%HCD%');
+    .not('categoria', 'ilike', '%HCD%')
+    .limit(150);
 
   if (error) {
     console.error('Error fetching videos for random selection:', error);
@@ -257,7 +259,8 @@ export async function getTickerTexts(): Promise<string[]> {
     .from('textos_ticker')
     .select('text, isActive')
     .eq('isActive', true)
-    .order('createdAt', { ascending: true });
+    .order('createdAt', { ascending: true })
+    .limit(20);
 
   if (error) {
     console.warn('Error fetching ticker texts:', error);
@@ -273,7 +276,8 @@ export async function getInterviews(): Promise<Interview[]> {
   const { data, error } = await supabase
     .from('entrevistas')
     .select('id, nombre, url, created_at, updated_at, categoria, imagen')
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .limit(50);
 
   if (error) {
     console.error('Error fetching interviews:', error);
@@ -305,7 +309,8 @@ export async function getActiveBanners(): Promise<Banner[]> {
     .from('banner')
     .select('id, imageUrl, nombre, isActive')
     .eq('isActive', true)
-    .order('createdAt', { ascending: false });
+    .order('createdAt', { ascending: false })
+    .limit(10);
 
   if (error) {
     console.error('Error fetching banners:', error);
@@ -319,7 +324,8 @@ export async function getActiveAds(): Promise<Ad[]> {
     .from('anuncios')
     .select('id, imageUrl, name, isActive, linkUrl')
     .eq('isActive', true)
-    .order('createdAt', { ascending: false });
+    .order('createdAt', { ascending: false })
+    .limit(20);
 
   if (error) {
     console.error('Error fetching ads:', error);
@@ -333,7 +339,8 @@ export async function getCalendarEvents(): Promise<CalendarEvent[]> {
     .from('eventos')
     .select('nombre, fecha, hora')
     .order('fecha', { ascending: true })
-    .order('hora', { ascending: true });
+    .order('hora', { ascending: true })
+    .limit(30);
 
   if (error) {
     console.warn('Error fetching calendar events:', error);
@@ -452,7 +459,8 @@ export async function fetchVideosBySearch(searchTerm: string): Promise<Video[]> 
   const { data, error } = await supabase
     .from('videos')
     .select('id, nombre, url, createdAt, categoria, imagen, novedad')
-    .textSearch('nombre', processedTerm, { type: 'websearch' });
+    .textSearch('nombre', processedTerm, { type: 'websearch' })
+    .limit(50);
 
   if (error) {
     console.error('Error searching videos:', error);

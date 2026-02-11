@@ -1,6 +1,6 @@
 import React from "react";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import "@/app/globals.css";
 import ClientLayoutWrapper from "./ClientLayoutWrapper";
 
@@ -35,6 +35,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
+        <Script
+          src="/scripts/patch-events.js"
+          strategy="beforeInteractive"
+        />
         <link rel="preconnect" href="https://media.saladillovivo.com.ar" />
         <link rel="preconnect" href="https://www.youtube.com" />
       </head>
@@ -43,8 +47,6 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <ClientLayoutWrapper>
           {children}
         </ClientLayoutWrapper>
-
-        <SpeedInsights />
       </body>
     </html>
   );

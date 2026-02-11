@@ -12,8 +12,11 @@ interface ClientLayoutWrapperProps {
 }
 
 export default function ClientLayoutWrapper({ children }: ClientLayoutWrapperProps) {
+  const [isMounted, setIsMounted] = React.useState(false);
   const fetchInitialData = useNewsStore(state => state.fetchInitialData);
+
   useEffect(() => {
+    setIsMounted(true);
     // Inicialización global de datos
     fetchInitialData();
 
@@ -32,6 +35,11 @@ export default function ClientLayoutWrapper({ children }: ClientLayoutWrapperPro
   }, [fetchInitialData]);
 
   const viewMode = usePlayerStore(state => state.viewMode);
+
+  // Hydration safety: render basic structure until mounted
+  if (!isMounted) {
+    return <>{children}</>;
+  }
 
   return (
     <>
