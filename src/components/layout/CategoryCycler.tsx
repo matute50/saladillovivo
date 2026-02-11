@@ -23,6 +23,7 @@ interface CategoryCyclerProps {
   contentLayer?: number;
   carouselMt?: string;
   isFocusable?: boolean;
+  isInfinite?: boolean;
 }
 
 const CategoryCycler: React.FC<CategoryCyclerProps> = ({
@@ -35,7 +36,8 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
   onCardClick,
   contentLayer = 3,
   carouselMt = "-mt-[5px]",
-  isFocusable = true
+  isFocusable = true,
+  isInfinite = true
 }) => {
   const { focusedElementId } = useNavigationStore();
   const titleId = `category-title-${instanceId}`;
@@ -96,7 +98,7 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
 
   return (
     <div className="w-full flex flex-col gap-4 mt-[-1px] mb-2">
-      <div className="flex items-baseline justify-center w-full z-10 mt-[10px]">
+      <div className="flex items-baseline justify-center w-full z-10 mt-[25px]">
         <Focusable
           id={`category-title-${instanceId}`}
           group="category-nav"
@@ -108,8 +110,10 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
         >
           {({ isFocused }) => {
             return (
-              <div className={`flex items-center justify-center gap-4 px-6 py-2 transition-all duration-300 rounded-xl bg-black/20 backdrop-blur-xl shadow-xl shadow-black/50 w-fit ${isFocused ? 'bg-white/10 scale-105' : ''
-                }`}>
+              <div
+                style={{ transform: (activeCategory.dbCategory === '__NOTICIAS__' || activeCategory.dbCategory === 'search_results') ? 'translateY(-15px)' : 'translateY(-10px)' }}
+                className={`flex items-center justify-center gap-4 px-6 py-2 transition-all duration-300 rounded-xl bg-black/20 backdrop-blur-xl shadow-xl shadow-black/50 w-fit ${isFocused ? 'bg-white/10 scale-105' : ''
+                  }`}>
                 <ChevronLeft
                   size={40}
                   className={`transition-all duration-200 ${isFocused ? 'opacity-100 scale-110' : 'opacity-0'} ${activeArrow === 'left' ? 'text-yellow-400' : 'text-white'
@@ -137,6 +141,8 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
           carouselId={`category-cycler-${instanceId}`}
           onVideoClick={onCardClick}
           layer={contentLayer}
+          loop={isInfinite}
+          isSearchResult={isSearchResult}
         />
       </div>
     </div>

@@ -39,6 +39,28 @@ export const useRemoteControl = (enabled = true) => {
         // Actualizar timestamp de actividad
         updateActivity();
 
+        // Si el foco está en un input o textarea, dejar que el navegador maneje las teclas estándar
+        const activeElement = document.activeElement;
+        const tag = activeElement?.tagName.toLowerCase();
+        const isInputFocused = tag === 'input' || tag === 'textarea';
+
+        if (isInputFocused) {
+            // Permitir que Arriba/Abajo escapen del input para navegación espacial
+            if (isKeyCode(keyCode, TV_KEYS.UP)) {
+                navigateDirection('up');
+                e.preventDefault();
+                return;
+            }
+            if (isKeyCode(keyCode, TV_KEYS.DOWN)) {
+                navigateDirection('down');
+                e.preventDefault();
+                return;
+            }
+
+            // Dejar pasar Enter para capturas locales y Left/Right para mover el cursor
+            return;
+        }
+
         // Navegación Direccional
         if (isKeyCode(keyCode, TV_KEYS.UP)) {
             e.preventDefault();
@@ -71,16 +93,19 @@ export const useRemoteControl = (enabled = true) => {
             e.preventDefault();
             togglePlayPause();
         }
-        else if (isKeyCode(keyCode, TV_KEYS.VOLUME_UP)) {
+        else if (isKeyCode(keyCode, TV_KEYS.VOLUME_UP) || e.key === 'VolumeUp' || e.key === '+') {
             e.preventDefault();
+            updateActivity(); // Mostrar controles como feedback
             setVolume(Math.min(1, volume + 0.1));
         }
-        else if (isKeyCode(keyCode, TV_KEYS.VOLUME_DOWN)) {
+        else if (isKeyCode(keyCode, TV_KEYS.VOLUME_DOWN) || e.key === 'VolumeDown' || e.key === '-') {
             e.preventDefault();
+            updateActivity(); // Mostrar controles como feedback
             setVolume(Math.max(0, volume - 0.1));
         }
-        else if (isKeyCode(keyCode, TV_KEYS.MUTE)) {
+        else if (isKeyCode(keyCode, TV_KEYS.MUTE) || e.key === 'VolumeMute') {
             e.preventDefault();
+            updateActivity(); // Mostrar controles como feedback
             toggleMute();
         }
     }, [enabled, navigateDirection, selectFocused, updateActivity, isControlsVisible, volume, setVolume, togglePlayPause, toggleMute]);

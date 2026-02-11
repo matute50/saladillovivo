@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { usePlayerStore } from '@/store/usePlayerStore';
 import { useNewsStore } from '@/store/useNewsStore';
 import { Play, Pause, VolumeX, Volume2, Volume1, Search, X } from 'lucide-react';
@@ -12,12 +12,13 @@ import WeatherWidget from '@/components/ui/WeatherWidget';
 
 interface VideoControlsProps {
   showControls: boolean;
-  onSearchSubmit: (term: string) => void; // New prop for submitting search
+  onSearchSubmit: (term: string) => void;
+  isSearching?: boolean;
 }
 
 // ... interfaces
 
-const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onSearchSubmit }) => {
+const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onSearchSubmit, isSearching }) => {
   const { isPlaying, togglePlayPause } = usePlayerStore();
   const { volume, isMuted, setVolume, toggleMute } = useVolumeStore();
   const { searchQuery } = useNewsStore();
@@ -25,12 +26,12 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onSearchSub
   const [localQuery, setLocalQuery] = useState(searchQuery);
   const debouncedQuery = useDebounce(localQuery, 400);
 
-  // Synchronize local state if the global query clears from elsewhere
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Synchronize local state ONLY when the global query changes from outside (e.g. cleared)
   useEffect(() => {
-    if (searchQuery !== localQuery) {
-      setLocalQuery(searchQuery);
-    }
-  }, [searchQuery, localQuery]);
+    setLocalQuery(searchQuery);
+  }, [searchQuery]);
 
   // Execute search when the debounced value changes
   useEffect(() => {
@@ -38,6 +39,11 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onSearchSub
     // This prevents re-triggering search if NewsContext already updated searchQuery
     // and also prevents empty search submission on initial render if searchQuery is empty
     if (debouncedQuery !== searchQuery) {
+      // GUARD: If store was cleared (external reset) but our debouncer is still lagging with old text,
+      // skip this cycle. Sync effect already updated localQuery, so debouncedQuery will catch up.
+      if (searchQuery === '' && debouncedQuery !== '') {
+        return;
+      }
       onSearchSubmit(debouncedQuery);
     }
   }, [debouncedQuery, onSearchSubmit, searchQuery]);
@@ -47,6 +53,12 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onSearchSub
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Solo detener propagación para teclas que NO sean Arriba/Abajo 
+    // para permitir que useRemoteControl maneje el escape del input
+    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') {
+      e.stopPropagation();
+    }
+
     if (e.key === 'Enter') {
       e.preventDefault();
       if (localQuery.trim()) {
@@ -68,7 +80,7 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onSearchSub
     <AnimatePresence>
       {showControls && (
         <motion.div
-          className="flex items-center justify-between w-full h-full"
+          className="flex items-center gap-10 w-full h-full"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
@@ -105,38 +117,55 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onSearchSub
                 value={isMuted ? 0 : volume}
                 onChange={(e) => setVolume(parseFloat(e.target.value))}
                 onInput={(e) => setVolume(parseFloat((e.target as HTMLInputElement).value))}
+                tabIndex={-1}
                 className="
-                  w-20 h-1
-                  appearance-none bg-white/30 rounded-full cursor-pointer
-                  accent-[#6699ff] hover:accent-[#4d88ff]
+                  w-28 h-1
+                  appearance-none bg-white/30 rounded-full cursor-none pointer-events-none
+                  accent-[#6699ff]
                 "
               />
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-8">
             {/* Search Box */}
-            <div className="relative flex items-center">
-              <input
-                type="text"
-                placeholder="Buscar..."
-                className="bg-black/20 text-white rounded-md pl-3 pr-10 py-1 focus:outline-none focus:ring-1 focus:ring-white/50"
-                value={localQuery}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-                maxLength={20}
-              />
-              {localQuery && (
-                <button
-                  onClick={clearSearch}
-                  className="absolute right-3 flex items-center justify-center text-gray-500 hover:text-white"
-                  aria-label="Limpiar búsqueda"
-                >
-                  <X className="h-5 w-5" />
-                </button>
+            <Focusable
+              id="tv-search-input"
+              group="video-controls"
+              onFocus={() => {
+                inputRef.current?.focus();
+              }}
+              onBlur={() => {
+                inputRef.current?.blur();
+              }}
+              layer={isSearching ? 10 : 0}
+            >
+              {({ isFocused }) => (
+                <div className={`relative flex items-center transition-all duration-300 ${isFocused ? 'scale-105' : ''}`}>
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    placeholder="Buscar..."
+                    onMouseDown={(e) => e.stopPropagation()}
+                    className={`bg-black/20 text-white rounded-md pl-3 pr-10 py-1 focus:outline-none w-72 border transition-all duration-300 ${isFocused ? 'border-white ring-2 ring-white/20 bg-black/40' : 'border-white/40'}`}
+                    value={localQuery}
+                    onChange={handleInputChange}
+                    onKeyDown={handleKeyDown}
+                    maxLength={20}
+                  />
+                  {localQuery && (
+                    <button
+                      onClick={clearSearch}
+                      className="absolute right-3 flex items-center justify-center text-gray-500 hover:text-white"
+                      aria-label="Limpiar búsqueda"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  )}
+                  {!localQuery && <Search size={20} className={`absolute right-3 transition-colors ${isFocused ? 'text-white' : 'text-white/70'}`} />}
+                </div>
               )}
-              {!localQuery && <Search size={20} className="absolute right-3 text-white/70" />}
-            </div>
+            </Focusable>
 
             {/* Widget de Clima */}
             <WeatherWidget />

@@ -52,7 +52,7 @@ const TvModeLayout = () => {
       updateActivity();
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, [isControlsVisible, setControlsVisible, updateActivity]);
 
@@ -136,11 +136,11 @@ const TvModeLayout = () => {
         </div>
 
         <div
-          className="bg-gradient-to-t from-black/80 to-transparent p-8 pointer-events-auto"
+          className="bg-gradient-to-t from-black/80 to-transparent p-8 pointer-events-auto w-full"
         >
-          <div className="flex justify-between items-end">
+          <div className="flex flex-col items-center w-full">
             <div
-              className="pointer-events-auto" // Permitir eventos de mouse en este div
+              className="pointer-events-auto w-full" // Permitir eventos de mouse en este div
             >
               <TvContentRail
                 searchResults={searchResults}
@@ -159,7 +159,8 @@ const TvModeLayout = () => {
           <div className="rounded-md p-2 bg-black/10 backdrop-blur-lg shadow-lg shadow-black/50">
             <VideoControls
               showControls={isControlsVisible}
-              onSearchSubmit={onSearchSubmit}
+              onSearchSubmit={handleSearch}
+              isSearching={isSearching}
             />
           </div>
         </div>

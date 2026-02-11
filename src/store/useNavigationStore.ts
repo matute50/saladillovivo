@@ -173,9 +173,9 @@ export const useNavigationStore = create<NavigationState>()(
 
                     if (direction === 'up' || direction === 'down') {
                         // REGLA DE ORO: Priorizar el alineamiento horizontal (centrado)
-                        // Penalizamos fuertemente dx (desviación respecto al elemento actual)
-                        // Y damos un pequeño bono si está cerca del centro de la pantalla
-                        distance = Math.abs(dx * 10) + Math.abs(dy) + (absCenterX * 2);
+                        // Penalizamos absCenterX para que el foco caiga siempre al centro
+                        // Reducimos dx vs dy para permitir saltos más diagonales entre buscador y carrusel
+                        distance = Math.abs(dx * 5) + Math.abs(dy) + (absCenterX * 80);
                     } else {
                         // Priorizar alineamiento vertical en navegación horizontal
                         distance = Math.abs(dx) + Math.abs(dy * 2);

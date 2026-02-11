@@ -25,7 +25,7 @@ interface TvContentRailProps {
 }
 
 const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearching, searchLoading, initialCategory, isVisible = true }) => {
-  const { galleryVideos, allNews, isLoading: isLoadingNews } = useNewsStore();
+  const { galleryVideos, allNews, isLoading: isLoadingNews, handleSearch } = useNewsStore();
   const { playSpecificVideo, playTemporaryVideo, setIsPlaying } = usePlayerStore();
   const { playSlide } = useNewsPlayerStore();
   const { volume, setVolume } = useVolumeStore();
@@ -123,10 +123,13 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
       playSpecificVideo(item as Video, volume, setVolume);
     }
 
+    // Limpiar búsqueda al elegir contenido (handleSearch('') resetea isSearching a false)
+    handleSearch('');
+
     // Ocultar el overlay inmediatamente al elegir contenido
     setControlsVisible(false);
 
-  }, [playSpecificVideo, playTemporaryVideo, playSlide, setIsPlaying, volume, setVolume, setControlsVisible]);
+  }, [playSpecificVideo, playTemporaryVideo, playSlide, setIsPlaying, volume, setVolume, setControlsVisible, handleSearch]);
 
   const processThumbnails = useCallback((items: any[]) => {
     return items.map(item => {
@@ -164,65 +167,60 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
   }
 
   // --- RENDERIZADO ---
-  if (isSearching) {
-    if (searchLoading) return <div className="text-white p-4">Buscando...</div>;
-    const processed = processThumbnails(searchResults);
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
-        transition={{ duration: 0.5 }}
-        style={{ pointerEvents: isVisible ? 'auto' : 'none' }}
-        className="w-full max-w-screen-xl mx-auto px-4"
-      >
-        <CategoryCycler
-          allVideos={processed}
-          activeCategory={{ display: 'Tu Búsqueda', dbCategory: 'search_results' }}
-          onNext={() => { }}
-          onPrev={() => { }}
-          onCardClick={handleCardClick}
-          isSearchResult={true}
-          instanceId="search-carousel"
-        />      </motion.div>
-    );
-  }
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
+      animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? (isSearching ? -165 : -75) : 20 }}
       transition={{ duration: 0.5 }}
       style={{ pointerEvents: isVisible ? 'auto' : 'none' }}
-      className="w-full max-w-screen-xl mx-auto px-4"
+      className="w-full mx-auto px-4"
     >
-      <div className="mt-[5px] w-full relative z-0 flex flex-col gap-6">
-        {/* Static Latest News Carousel */}
-        <CategoryCycler
-          allVideos={processedAllNews}
-          activeCategory={{ display: 'ÚLTIMAS NOTICIAS', dbCategory: '__NOTICIAS__' }}
-          onNext={undefined}
-          onPrev={undefined}
-          onCardClick={handleCardClick}
-          instanceId="tv-latest-news"
-          contentLayer={1}
-          isFocusable={false}
-        />
-
-        {/* Dynamic Category Cycler */}
-        {activeCategory && (
+      <div className="mt-0 w-full relative z-0 flex flex-col gap-6">
+        {/* Static Latest News Carousel OR Search Results */}
+        {isSearching ? (
           <CategoryCycler
-            allVideos={processedItems}
-            activeCategory={activeCategory}
-            onNext={handleNextCategory}
-            onPrev={handlePrevCategory}
+            allVideos={processThumbnails(searchResults)}
+            activeCategory={{ display: 'TU BÚSQUEDA', dbCategory: 'search_results' }}
+            onNext={undefined}
+            onPrev={undefined}
             onCardClick={handleCardClick}
-            instanceId="tv-carousel"
-            carouselMt="-mt-[15px]"
-            contentLayer={3}
+            instanceId="tv-search-results"
+            contentLayer={11}
+            isSearchResult={true}
+            carouselMt="-mt-[35px]"
+            isInfinite={false}
+            isFocusable={false}
+          />
+        ) : (
+          <CategoryCycler
+            allVideos={processedAllNews}
+            activeCategory={{ display: 'ÚLTIMAS NOTICIAS', dbCategory: '__NOTICIAS__' }}
+            onNext={undefined}
+            onPrev={undefined}
+            onCardClick={handleCardClick}
+            instanceId="tv-latest-news"
+            contentLayer={1}
+            isFocusable={false}
           />
         )}
-      </div>
-    </motion.div>
+
+        {/* Dynamic Category Cycler - Hidden during search */}
+        {
+          !isSearching && activeCategory && (
+            <CategoryCycler
+              allVideos={processedItems}
+              activeCategory={activeCategory}
+              onNext={handleNextCategory}
+              onPrev={handlePrevCategory}
+              onCardClick={handleCardClick}
+              instanceId="tv-carousel"
+              carouselMt="-mt-[30px]"
+              contentLayer={3}
+            />
+          )
+        }
+      </div >
+    </motion.div >
   );
 };
 

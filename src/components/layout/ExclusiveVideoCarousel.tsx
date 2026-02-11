@@ -10,39 +10,51 @@ import { useVolumeStore } from '@/store/useVolumeStore';
 import { useToast } from '@/components/ui/use-toast';
 import { Video, ExclusiveVideoCarouselProps } from '@/lib/types';
 import { cleanTitle } from '@/lib/utils';
+import { useNavigationStore } from '@/store/useNavigationStore';
 import { Focusable } from '@/components/ui/Focusable';
 
-const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos, isLoading, carouselId, isLive = false, onVideoClick, layer }) => {
+const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({
+  videos,
+  isLoading,
+  carouselId,
+  isLive = false,
+  onVideoClick,
+  layer,
+  loop = true,
+  isSearchResult = false
+}) => {
   const { playSpecificVideo, playLiveStream, streamStatus } = usePlayerStore();
   const { volume, setVolume } = useVolumeStore();
+  const { focusedId } = useNavigationStore();
   const { toast } = useToast();
   const swiperRef = useRef<any>(null);
+
 
   // Multiplicar elementos si son pocos para asegurar que el loop de Swiper siempre esté "lleno"
   // en resoluciones de TV (hasta 4K). Necesitamos al menos 15-20 elementos.
   const displayVideos = React.useMemo(() => {
     if (!videos || videos.length === 0) return [];
+    if (!loop) return videos; // No repetir si no es infinito
+
     let result = [...videos];
     // Si hay pocos, repetimos la secuencia hasta tener al menos 15 items
     while (result.length > 0 && result.length < 15) {
       result = [...result, ...videos];
     }
     return result;
-  }, [videos]);
+  }, [videos, loop]);
 
   // Encontrar el índice del primer "featuredNews" (o primer video) en el array original
   // y proyectarlo al set central de la lista repetida para que aparezca enfocado al inicio.
   const middleInitialSlide = React.useMemo(() => {
-    if (videos.length === 0) return 0;
-    const originalCount = videos.length;
-    const totalCount = displayVideos.length;
-    const repetitions = Math.floor(totalCount / originalCount);
-    const middleRepetition = Math.floor(repetitions / 2);
+    if (!displayVideos.length) return 0;
+    if (!loop) return 0; // Si no es infinito, empezar desde el principio
 
-    // El "centro" del array original ya lo calculamos en data.ts (donde está la destacada)
-    const originalCenter = Math.floor(originalCount / 2);
-    return (middleRepetition * originalCount) + originalCenter;
-  }, [videos, displayVideos]);
+    const originalLength = videos.length;
+    const middleIndex = Math.floor(displayVideos.length / 2);
+    // Ajustar para que sea el inicio de un bloque original
+    return middleIndex - (middleIndex % originalLength);
+  }, [displayVideos, videos, loop]);
 
 
   const getYoutubeThumbnail = (video: Video): string => {
@@ -120,12 +132,16 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
       <Swiper
         ref={swiperRef}
         slidesPerView={'auto'}
-        centeredSlides={true}
+        centeredSlides={!isSearchResult}
         initialSlide={middleInitialSlide}
-        spaceBetween={12}
-        loop={displayVideos.length > 1}
+        spaceBetween={isSearchResult ? 32 : 12}
+        loop={displayVideos.length > 1 && loop}
         observer={true}
         observeParents={true}
+        watchSlidesProgress={true}
+        centerInsufficientSlides={true}
+        slidesOffsetBefore={0}
+        slidesOffsetAfter={0}
         navigation={{
           prevEl: `#prev-${carouselId}`,
           nextEl: `#next-${carouselId}`,
@@ -177,7 +193,7 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                           priority={index === 0}
                           loading={index === 0 ? 'eager' : 'lazy'}
-                          className={`${isLiveOrEvent ? 'object-contain' : 'object-cover'} transition-transform duration-300 group-hover:scale-110`}
+                          className={`${(isLiveOrEvent || isSearchResult) ? 'object-contain' : 'object-cover'} transition-transform duration-300 group-hover:scale-110`}
                           // LA SOLUCIÓN MÁGICA:
                           unoptimized={false}
                           onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='; }}
