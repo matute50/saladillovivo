@@ -2,17 +2,22 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-  const { nextUrl: url, headers } = request
-  
-  const userAgent = headers.get('user-agent') || ''
+  const userAgent = request.headers.get('user-agent') || ''
   const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)
 
-  // Evitamos la redirección si la petición es interna de Next.js (_next/data)
-  // o si ya estamos en el subdominio móvil.
-  if (isMobile && !url.hostname.startsWith('m.') && !url.pathname.startsWith('/_next')) {
-    const mobileUrl = new URL(url.pathname, 'https://m.saladillovivo.com.ar')
-    mobileUrl.search = url.search
-    return NextResponse.redirect(mobileUrl, { status: 307 })
+  // Avoid redirecting if already on mobile domain or if it's a Next.js internal request
+  const isNextInternal = request.nextUrl.pathname.startsWith('/_next')
+  const isApi = request.nextUrl.pathname.startsWith('/api')
+
+  if (isMobile && !isNextInternal && !isApi) {
+    // Only redirect if we can clearly identify we are NOT on the mobile domain already
+    // Vercel deployment URLs might not start with 'm.'
+    const host = request.headers.get('host') || ''
+    if (!host.startsWith('m.')) {
+      const mobileUrl = new URL(request.nextUrl.pathname, 'https://m.saladillovivo.com.ar')
+      mobileUrl.search = request.nextUrl.search
+      return NextResponse.redirect(mobileUrl, { status: 307 })
+    }
   }
 
   return NextResponse.next()
@@ -21,9 +26,13 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Matcher actualizado para excluir explícitamente _next/data y archivos estáticos.
-     * Esto permite que la versión de PC cargue sus noticias y configuraciones.
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - robots.txt, sitemap.xml, etc.
      */
-    '/((?!api|_next/static|_next/data|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.[\\w]+$).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mp4|mp3|woff|woff2|ttf|otf|css|js)$).*)',
   ],
 }
