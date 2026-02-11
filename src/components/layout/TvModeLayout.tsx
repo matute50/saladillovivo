@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import VideoSection from './VideoSection';
 import VideoControls from '../VideoControls';
 import TvContentRail from '../tv/TvContentRail';
@@ -21,7 +21,7 @@ const INITIAL_TV_CATEGORIES: CategoryMapping[] = [
 ];
 
 const TvModeLayout = () => {
-  const { handleSearch, searchResults, isSearching, searchLoading } = useNewsStore();
+  const { handleSearch, searchResults, isSearching } = useNewsStore();
   const { isPlaying } = usePlayerStore();
   const { isPlaying: isNewsPlaying, currentSlide } = useNewsPlayerStore();
   const isHtmlSlide = isNewsPlaying && currentSlide && currentSlide.type === 'html';

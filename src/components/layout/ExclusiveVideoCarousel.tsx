@@ -10,7 +10,6 @@ import { useVolumeStore } from '@/store/useVolumeStore';
 import { useToast } from '@/components/ui/use-toast';
 import { Video, ExclusiveVideoCarouselProps } from '@/lib/types';
 import { cleanTitle } from '@/lib/utils';
-import { useNavigationStore } from '@/store/useNavigationStore';
 import { Focusable } from '@/components/ui/Focusable';
 
 const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({
