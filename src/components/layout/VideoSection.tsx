@@ -9,14 +9,13 @@ import { SlideMedia } from '@/lib/types';
 import { useNewsPlayerStore } from '@/store/useNewsPlayerStore';
 import { useVolumeStore } from '@/store/useVolumeStore';
 import CustomControls from '@/components/CustomControls';
-import VideoTitleBar from '@/components/VideoTitleBar';
 import NewsTicker from '@/components/NewsTicker';
 import WeatherOverlay from '@/components/tv/WeatherOverlay';
 import { cn, cleanTitle, isYouTubeVideo } from '@/lib/utils';
 import { Play } from 'lucide-react';
 import AntiGravityLayer from './AntiGravityLayer';
 
-// Simplified VideoSection for Desktop Only
+// VideoSection optimizado para TvMode
 
 
 const VideoSection: React.FC = () => {
@@ -31,7 +30,6 @@ const VideoSection: React.FC = () => {
     setIsPlaying,
     isPreRollOverlayActive,
     overlayIntroVideo,
-    viewMode,
     isContentPlaying,
     pauseForSlide,
     resumeAfterSlide,
@@ -67,12 +65,10 @@ const VideoSection: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement>(null);
 
 
-  // --- SMART SLOTS LOGIC (v18.0) ---
+  // --- SLOT MANAGEMENT ---
   const [activeSlot, setActiveSlot] = useState<'A' | 'B'>('A');
   const [slotA, setSlotA] = useState<SlideMedia | null>(null);
   const [slotB, setSlotB] = useState<SlideMedia | null>(null);
-
-  // ZERO-BLACK Sync (v20)
 
 
   // Determine which slot holds the current video (Target)
@@ -110,7 +106,6 @@ const VideoSection: React.FC = () => {
 
   }, [currentVideo, isPreRollOverlayActive, activeSlot, isSlotATarget, isSlotBTarget, slotA, slotB]);
 
-  // ... (Other effects)
 
   useEffect(() => {
     if (audioRef.current) {
@@ -255,7 +250,6 @@ const VideoSection: React.FC = () => {
     }
   };
 
-  // Now handled by <IntroLayer /> with Strict Timer.
 
   const handleIntroMetadata = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     const video = e.currentTarget;
@@ -515,7 +509,6 @@ const VideoSection: React.FC = () => {
           </div>
         </div>
       </div>
-      {viewMode === 'diario' && <VideoTitleBar className="mt-2" />}
     </div>
   );
 

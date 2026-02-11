@@ -2,31 +2,25 @@
 
 import React, { useState, useEffect } from 'react';
 import { usePlayerStore } from '@/store/usePlayerStore';
-import { useNewsStore } from '@/store/useNewsStore'; // Use news store
-import { Play, Pause, Maximize, Minimize, VolumeX, Volume2, Volume1, Search, Newspaper, X, Cast } from 'lucide-react';
+import { useNewsStore } from '@/store/useNewsStore';
+import { Play, Pause, VolumeX, Volume2, Volume1, Search, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useVolumeStore } from '@/store/useVolumeStore'; // Use volume store
-import { useDebounce } from '@/hooks/useDebounce'; // Import useDebounce hook
-import { useChromecast } from '@/hooks/useChromecast'; // Imort useChromecast hook
+import { useVolumeStore } from '@/store/useVolumeStore';
+import { useDebounce } from '@/hooks/useDebounce';
+import { Focusable } from '@/components/ui/Focusable';
+import WeatherWidget from '@/components/ui/WeatherWidget';
 
 interface VideoControlsProps {
   showControls: boolean;
-  onToggleFullScreen: () => void;
-  isFullScreen: boolean;
-  onSwitchToDailyMode: () => void; // New prop for switching to daily mode
   onSearchSubmit: (term: string) => void; // New prop for submitting search
 }
 
-
-
 // ... interfaces
 
-const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onToggleFullScreen, isFullScreen, onSwitchToDailyMode, onSearchSubmit }) => {
+const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onSearchSubmit }) => {
   const { isPlaying, togglePlayPause } = usePlayerStore();
   const { volume, isMuted, setVolume, toggleMute } = useVolumeStore();
   const { searchQuery } = useNewsStore();
-
-  const { isAvailable, isConnected, requestSession } = useChromecast(); // Use the hook
 
   const [localQuery, setLocalQuery] = useState(searchQuery);
   const debouncedQuery = useDebounce(localQuery, 400);
@@ -81,14 +75,28 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onToggleFul
           transition={{ duration: 0.2 }}
         >
           <div className="flex items-center gap-4">
-            <button onClick={togglePlayPause} className="text-white transition-colors">
-              {isPlaying ? <Pause size={28} fill="white" /> : <Play size={28} fill="white" />}
-            </button>
+            <Focusable
+              id="btn-play-pause"
+              group="video-controls"
+              onSelect={togglePlayPause}
+              layer={0}
+            >
+              <button className="text-white transition-colors" aria-label="Play/Pause">
+                {isPlaying ? <Pause size={28} fill="white" /> : <Play size={28} fill="white" />}
+              </button>
+            </Focusable>
 
             <div className="flex items-center gap-2">
-              <button onClick={toggleMute} className="text-white transition-colors">
-                {isMuted ? <VolumeX size={24} fill="red" /> : (volume <= 0.5 ? <Volume1 size={24} /> : <Volume2 size={24} />)}
-              </button>
+              <Focusable
+                id="btn-mute"
+                group="video-controls"
+                onSelect={toggleMute}
+                layer={0}
+              >
+                <button className="text-white transition-colors" aria-label="Mute">
+                  {isMuted ? <VolumeX size={24} fill="red" /> : (volume <= 0.5 ? <Volume1 size={24} /> : <Volume2 size={24} />)}
+                </button>
+              </Focusable>
               <input
                 type="range"
                 min={0}
@@ -130,20 +138,8 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onToggleFul
               {!localQuery && <Search size={20} className="absolute right-3 text-white/70" />}
             </div>
 
-            {/* Chromecast Button */}
-            {isAvailable && (
-              <button onClick={requestSession} className={`transition-colors ${isConnected ? 'text-blue-500' : 'text-white'}`}>
-                <Cast size={24} />
-              </button>
-            )}
-
-            <button onClick={onSwitchToDailyMode} className="text-white transition-colors">
-              <Newspaper size={24} />
-            </button>
-            <button onClick={onToggleFullScreen} className="text-white transition-colors">
-              {isFullScreen ? <Minimize size={24} /> : <Maximize size={24} />}
-            </button>
-
+            {/* Widget de Clima */}
+            <WeatherWidget />
           </div>
         </motion.div>
       )}

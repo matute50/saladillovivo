@@ -69,43 +69,46 @@ export async function getArticlesForHome(limitTotal: number = 25) {
 
     // Clasificar noticias
     const featuredCandidates = processedNews.filter(news => news.featureStatus === 'featured');
-    const secondaryNews = processedNews.filter(news => news.featureStatus === 'secondary');
-    const tertiaryNews = processedNews.filter(news => news.featureStatus === 'tertiary');
-    const otherNews = processedNews.filter(news => !news.featureStatus);
-
     let featuredNews: Article | null = null;
 
-    // Asegurar que solo haya una noticia destacada
+    // Extraer la destacada (la más reciente 'featured' o la más reciente de todas)
     if (featuredCandidates.length > 0) {
-      // Ya vienen ordenadas por created_at.desc, así que la primera es la más nueva.
-      featuredNews = featuredCandidates.shift()!;
-      // Las demás 'featured' se convierten en 'secondary'
-      secondaryNews.unshift(...featuredCandidates);
+      featuredNews = featuredCandidates[0];
     } else if (processedNews.length > 0) {
-      // Si no hay 'featured', la más reciente de todas es la destacada
-      const oldestNonFeatured = processedNews.find(p => p.id !== featuredNews?.id);
-      if (oldestNonFeatured) {
-        featuredNews = oldestNonFeatured;
-      }
+      featuredNews = processedNews[0];
     }
 
-    // Re-ordenar las secundarias y terciarias por fecha de creación descendente
-    secondaryNews.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    tertiaryNews.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    // Listas para el resto (excluyendo la destacada ya seleccionada)
+    const remaining = processedNews.filter(n => n.id !== featuredNews?.id);
+    const secondaryList = remaining.filter(n => n.featureStatus === 'secondary');
+    const tertiaryList = remaining.filter(n => n.featureStatus === 'tertiary');
+    const othersList = remaining.filter(n => !['secondary', 'tertiary'].includes(n.featureStatus || ''));
 
-    // Ordenar las "otras" noticias de derecha a izquierda (más viejas primero)
-    otherNews.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    // Algoritmo de distribución Zigzag
+    // Empezamos con la destacada
+    const orderedNews: Article[] = featuredNews ? [featuredNews] : [];
 
-    // Filtrar la noticia destacada de las otras listas para evitar duplicados
-    const allButFeatured = [...secondaryNews, ...tertiaryNews, ...otherNews].filter(n => n.id !== featuredNews?.id);
+    const distributeZigzag = (items: Article[]) => {
+      items.forEach((item, index) => {
+        if (index % 2 === 0) {
+          orderedNews.unshift(item); // Izquierda
+        } else {
+          orderedNews.push(item);    // Derecha
+        }
+      });
+    };
 
+    // Distribuir por prioridad: secundarias -> terciarias -> otras
+    distributeZigzag(secondaryList);
+    distributeZigzag(tertiaryList);
+    distributeZigzag(othersList);
 
     return {
       featuredNews,
-      secondaryNews: allButFeatured.filter(n => n.featureStatus === 'secondary' || featuredCandidates.some(fc => fc.id === n.id)),
-      tertiaryNews: allButFeatured.filter(n => n.featureStatus === 'tertiary'),
-      otherNews: allButFeatured.filter(n => !n.featureStatus),
-      allNews: [featuredNews, ...allButFeatured].filter((n): n is Article => n !== null),
+      secondaryNews: secondaryList,
+      tertiaryNews: tertiaryList,
+      otherNews: othersList,
+      allNews: orderedNews, // Este es el array que usará el carrusel
     };
 
   } catch (error) {

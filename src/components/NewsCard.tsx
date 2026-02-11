@@ -148,7 +148,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
           className="object-cover transition-transform duration-700 group-hover:scale-110"
           priority={priority}
           loading={priority ? 'eager' : 'lazy'}
-          unoptimized={true}
+          unoptimized={false}
           onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='; }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-90" />

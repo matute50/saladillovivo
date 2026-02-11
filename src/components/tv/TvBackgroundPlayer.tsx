@@ -60,8 +60,6 @@ const IntroLayer = ({
 
 const TvBackgroundPlayer = () => {
   const {
-    currentVideo,
-    handleOnEnded,
     isPlaying,
 
     // Zero-Branding State
@@ -69,9 +67,15 @@ const TvBackgroundPlayer = () => {
     overlayIntroVideo,
     isContentPlaying,
 
+    // Slots (Smart Slots v18.0)
+    activeSlot,
+    slotAContent,
+    slotBContent,
+
     // Actions
-    startContentPlayback,
-    finishIntro
+    handleOnEnded,
+    finishIntro,
+    startContentPlayback
   } = usePlayerStore();
 
   const { volume, isMuted, setVolume } = useVolumeStore();
@@ -82,26 +86,24 @@ const TvBackgroundPlayer = () => {
     startContentPlayback();
   };
 
-  if (!currentVideo) {
-    return (
-      <div className="absolute inset-0 z-0">
-        <Image
-          src="/FONDO OSCURO.PNG"
-          alt="Background"
-          fill
-          className="object-cover"
-          priority
-        />
-        <div className="absolute inset-0 bg-black/40" />
-      </div>
-    );
-  }
-
   return (
     <div className="absolute inset-0 z-0 bg-black">
 
-      {/* CAPA SUPERIOR: Intro Overlay (Zero-Branding) */}
-      {/* We use a key on IntroLayer to force full remount if video ID changes */}
+      {/* CAPA DE FONDO (Fallback) */}
+      {!slotAContent && !slotBContent && (
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/FONDO OSCURO.PNG"
+            alt="Background"
+            fill
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-black/40" />
+        </div>
+      )}
+
+      {/* CAPA SUPERIOR: Intro Overlay (Zero-Branding) - persistence node v16.0 */}
       <AnimatePresence>
         {isPreRollOverlayActive && overlayIntroVideo && (
           <IntroLayer
@@ -112,20 +114,42 @@ const TvBackgroundPlayer = () => {
         )}
       </AnimatePresence>
 
-      {/* CAPA INFERIOR: Video principal (Content) */}
-      {currentVideo && (
-        <div className="absolute inset-0 z-20">
+      {/* SMART SLOTS SYSTEM (v18.0) */}
+      {/* Slot A */}
+      <div
+        className={`absolute inset-0 transition-opacity duration-500 ${activeSlot === 'A' ? 'z-20 opacity-100' : 'z-0 opacity-100'}`}
+        style={{ pointerEvents: activeSlot === 'A' ? 'auto' : 'none' }}
+      >
+        {slotAContent && (
           <VideoPlayer
-            key={currentVideo.id}
-            videoUrl={currentVideo.url}
-            autoplay={isPlaying && isContentPlaying}
+            videoUrl={slotAContent.url}
+            autoplay={isPlaying && isContentPlaying && activeSlot === 'A'}
             onClose={() => handleOnEnded(setVolume)}
             playerVolume={isMuted || isPreRollOverlayActive ? 0 : volume}
-            muted={isPreRollOverlayActive}
-            startAt={currentVideo.startAt}
+            muted={isPreRollOverlayActive || activeSlot !== 'A'}
+            startAt={slotAContent.startAt}
+            volumen_extra={slotAContent.volumen_extra}
           />
-        </div>
-      )}
+        )}
+      </div>
+
+      {/* Slot B */}
+      <div
+        className={`absolute inset-0 transition-opacity duration-500 ${activeSlot === 'B' ? 'z-20 opacity-100' : 'z-0 opacity-100'}`}
+        style={{ pointerEvents: activeSlot === 'B' ? 'auto' : 'none' }}
+      >
+        {slotBContent && (
+          <VideoPlayer
+            videoUrl={slotBContent.url}
+            autoplay={isPlaying && isContentPlaying && activeSlot === 'B'}
+            onClose={() => handleOnEnded(setVolume)}
+            playerVolume={isMuted || isPreRollOverlayActive ? 0 : volume}
+            muted={isPreRollOverlayActive || activeSlot !== 'B'}
+            startAt={slotBContent.startAt}
+            volumen_extra={slotBContent.volumen_extra}
+          />
+        )}
+      </div>
 
       <div className="absolute inset-0 bg-black/20 pointer-events-none z-40" />
 

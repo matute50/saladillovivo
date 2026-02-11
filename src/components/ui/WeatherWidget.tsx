@@ -91,13 +91,10 @@ const WeatherWidget = () => {
                             title="Ver detalles de hoy"
                         >
                             {getWeatherIcon(weather.current.conditionCode, weather.current.isDay)}
-                            <div className="flex items-center gap-2">
-                                <span className="text-xl font-bold">{weather.current.temp}°</span>
+                            <div className="flex items-center gap-2 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+                                <span className="text-xl font-bold tracking-tight">{weather.current.temp}°</span>
                                 <div className="flex flex-col items-start leading-[0.8] mt-0.5">
-                                    <span className={cn(
-                                        "text-[9px] font-bold uppercase",
-                                        isDarkTheme ? "text-gray-400" : "text-gray-500"
-                                    )}>ST</span>
+                                    <span className="text-[9px] font-bold uppercase opacity-80">ST</span>
                                     <span className="text-xs font-semibold">{weather.current.feelsLike}°</span>
                                 </div>
                             </div>

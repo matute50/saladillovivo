@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import DesktopLayout from '@/components/layout/DesktopLayout';
 import TvModeLayout from '@/components/layout/TvModeLayout';
 import { PageData } from '@/lib/types';
 import { usePlayerStore } from '@/store/usePlayerStore';
@@ -12,14 +11,15 @@ import { usePlayerStore } from '@/store/usePlayerStore';
  */
 const HomePageClient = ({ initialData }: { initialData: PageData }) => {
   const [mounted, setMounted] = useState(false);
-  const { loadInitialPlaylist, viewMode } = usePlayerStore();
+  const { loadInitialPlaylist } = usePlayerStore();
 
   useEffect(() => {
     setMounted(true);
 
     // 2. Debug de datos (Ayuda a detectar los "faltantes" en la consola del PC)
     if (process.env.NODE_ENV === 'development') {
-      console.log("Saladillo Vivo - Datos cargados:", {
+      console.log("Saladillo Vivo TV - Iniciando en Modo TV");
+      console.log("Datos cargados:", {
         articulos: initialData?.articles?.secondaryNews?.length || 0,
         noticiaPrincipal: !!initialData?.articles?.featuredNews,
         videos: initialData?.videos?.recentVideos?.length || 0,
@@ -35,22 +35,17 @@ const HomePageClient = ({ initialData }: { initialData: PageData }) => {
     return <div className="min-h-screen bg-black" />;
   }
 
-  // Validación defensiva: Si no hay datos, evitamos que DesktopLayout/MobileLayout fallen
+  // Validación defensiva: Si no hay datos, evitamos que TvModeLayout falle
   if (!initialData) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center text-white">
-        Cargando contenidos...
+        Cargando experiencia TV...
       </div>
     );
   }
 
-  // Prioridad 1: Modo TV (si está activo, gana a todo)
-  if (viewMode === 'tv') {
-    return <TvModeLayout />;
-  }
-
-  // Prioridad 2: SIEMPRE Desktop (Mobile eliminado)
-  return <DesktopLayout data={initialData} />;
+  // SIEMPRE Modo TV
+  return <TvModeLayout />;
 };
 
 export default HomePageClient;

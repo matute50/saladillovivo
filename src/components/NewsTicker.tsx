@@ -8,7 +8,7 @@ interface NewsTickerProps {
 }
 
 const NewsTicker: React.FC<NewsTickerProps> = ({ tickerTexts }) => {
-  const [isPaused, setIsPaused] = useState(false);
+  const [isPaused] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
   const [textWidth, setTextWidth] = useState(0);
   const textRef = useRef<HTMLDivElement>(null);
@@ -91,8 +91,6 @@ const NewsTicker: React.FC<NewsTickerProps> = ({ tickerTexts }) => {
     <div
       ref={containerRef}
       className="ticker-background overflow-hidden relative h-5 flex items-center container mx-auto px-0 ticker-container z-30 -mb-px"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
     >
       <motion.div
         key={animationKey}

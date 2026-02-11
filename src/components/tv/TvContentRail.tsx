@@ -8,6 +8,7 @@ import { useNewsStore } from '@/store/useNewsStore';
 import { usePlayerStore } from '@/store/usePlayerStore';
 import { useNewsPlayerStore } from '@/store/useNewsPlayerStore';
 import { useVolumeStore } from '@/store/useVolumeStore';
+import { useNavigationStore } from '@/store/useNavigationStore';
 import CategoryCycler from '@/components/layout/CategoryCycler';
 import { Video, Article } from '@/lib/types';
 import { categoryMappings, type CategoryMapping } from '@/lib/categoryMappings';
@@ -28,6 +29,7 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
   const { playSpecificVideo, playTemporaryVideo, setIsPlaying } = usePlayerStore();
   const { playSlide } = useNewsPlayerStore();
   const { volume, setVolume } = useVolumeStore();
+  const { setControlsVisible } = useNavigationStore();
 
   const [categoryIndex, setCategoryIndex] = useState(0);
 
@@ -120,7 +122,11 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
     } else {
       playSpecificVideo(item as Video, volume, setVolume);
     }
-  }, [playSpecificVideo, playTemporaryVideo, playSlide, setIsPlaying, volume, setVolume]);
+
+    // Ocultar el overlay inmediatamente al elegir contenido
+    setControlsVisible(false);
+
+  }, [playSpecificVideo, playTemporaryVideo, playSlide, setIsPlaying, volume, setVolume, setControlsVisible]);
 
   const processThumbnails = useCallback((items: any[]) => {
     return items.map(item => {
@@ -154,7 +160,7 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
   const processedItems = useMemo(() => processThumbnails(rawItems), [rawItems, processThumbnails]);
 
   if (isLoadingNews || availableCategoryMappings.length === 0) {
-    return <div className="text-white p-4 bg-white/10 rounded-lg flex justify-center items-center h-[126px]">Cargando...</div>;
+    return <div className="text-white p-4 bg-white/10 rounded-lg flex justify-center items-center h-[145px]">Cargando...</div>;
   }
 
   // --- RENDERIZADO ---
@@ -189,21 +195,17 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
       style={{ pointerEvents: isVisible ? 'auto' : 'none' }}
       className="w-full max-w-screen-xl mx-auto px-4"
     >
-      <div className="-mt-[5px] w-full relative z-0 flex flex-col gap-6">
+      <div className="mt-[5px] w-full relative z-0 flex flex-col gap-6">
         {/* Static Latest News Carousel */}
         <CategoryCycler
           allVideos={processedAllNews}
           activeCategory={{ display: 'ÚLTIMAS NOTICIAS', dbCategory: '__NOTICIAS__' }}
-          // Hide navigation arrows for this static row if preferred, or keep them empty/managed internally if needed.
-          // Since CategoryCycler handles its own internal filtering/display, passing 'allNews' is correct.
-          // However, CategoryCycler usually expects onNext/onPrev for the *category* switching.
-          // If we just want a carousel of items without category switching, we can pass dummy/empty functions or modify CategoryCycler.
-          // Based on current CategoryCycler, it renders navigation buttons for the CATEGORY.
-          // For this specific 'Latest News' row, we likely DON'T want category switching arrows.
           onNext={undefined}
           onPrev={undefined}
           onCardClick={handleCardClick}
           instanceId="tv-latest-news"
+          contentLayer={1}
+          isFocusable={false}
         />
 
         {/* Dynamic Category Cycler */}
@@ -215,6 +217,8 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
             onPrev={handlePrevCategory}
             onCardClick={handleCardClick}
             instanceId="tv-carousel"
+            carouselMt="-mt-[15px]"
+            contentLayer={3}
           />
         )}
       </div>

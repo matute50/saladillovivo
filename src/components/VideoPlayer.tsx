@@ -42,7 +42,6 @@ export default function VideoPlayer({
   const playStartTimeRef = useRef<number | null>(null); // Track when playback actually started
   const [appOrigin, setAppOrigin] = useState('https://www.saladillovivo.com.ar');
   const [shouldPlay, setShouldPlay] = useState(autoplay);
-  const sessionStartPlayedSecondsRef = useRef<number | null>(null);
 
   // Consumimos el estado global del volumen
   const { volume, isMuted } = useVolumeStore();
@@ -62,7 +61,6 @@ export default function VideoPlayer({
     if (autoplay && playerRef.current) {
       const internal = playerRef.current.getInternalPlayer();
       if (internal && typeof internal.playVideo === 'function') {
-        console.log("VideoPlayer: Autoplay activated, forcing playVideo() immediately");
         internal.playVideo();
       }
     }
@@ -74,7 +72,6 @@ export default function VideoPlayer({
     setIsFadingOut(false);
     playStartTimeRef.current = null;
     hasSeeked.current = false; // RESET ALWAYS ON URL/STARTAT CHANGE
-    sessionStartPlayedSecondsRef.current = null; // Reset session timer
     // Initial seek attempt
     if (startAt && startAt > 0 && playerRef.current) {
       playerRef.current.seekTo(startAt, 'seconds');
@@ -111,13 +108,10 @@ export default function VideoPlayer({
 
             // Si está pausado (2), canteado (5), no iniciado (-1, 0) o BUFFERING (3 - Force Kick)
             if (state === 2 || state === 5 || state === -1 || state === 0 || (state === 3 && !isPlayingInternal)) {
-              console.log(`VideoPlayer: Kicking player state: ${state} (Attempt ${kickAttemptsRef.current + 1})`);
-
               // AUTOPLAY POLICY FALLBACK:
               // If we are stuck in unstarted state for > 1s (4 attempts), usually means unmuted autoplay is blocked.
               // We try to MUTE and play again.
               if (kickAttemptsRef.current >= 4) {
-                console.warn("VideoPlayer: Autoplay blocked? Attempting FORCE MUTE + PLAY.");
                 if (typeof internal.mute === 'function') internal.mute();
                 // Optionally update local state to reflect mute, though internal iframe update is priority
               }
@@ -293,7 +287,6 @@ export default function VideoPlayer({
               const playDuration = playStartTimeRef.current ? (now - playStartTimeRef.current) : 0;
 
               if (playDuration < 5000) {
-                console.warn("VideoPlayer: Pausa prematura detectada (" + playDuration + "ms). Forzando Play...");
                 if (playerRef.current) {
                   const internal = playerRef.current.getInternalPlayer();
                   if (internal && typeof internal.playVideo === 'function') internal.playVideo();
@@ -340,7 +333,7 @@ export default function VideoPlayer({
             autoPlay={shouldPlay}
             muted={isMuted || forceMuted}
             className="hidden"
-            onPlay={() => console.log(`VideoPlayer: Reproduciendo audio externo: ${audioUrl}`)}
+            onPlay={() => { }}
             onError={(e) => console.error("VideoPlayer: Error en audio externo:", e)}
           />
         )}

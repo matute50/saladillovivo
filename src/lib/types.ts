@@ -103,7 +103,8 @@ export interface ExclusiveVideoCarouselProps {
   isLoading: boolean;
   carouselId: string;
   isLive?: boolean;
-  onVideoClick?: (video: Video) => void;
+  onVideoClick?: (video: any) => void;
+  layer?: number;
 }
 
 // Main data structure for the home page

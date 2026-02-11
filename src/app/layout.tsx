@@ -2,7 +2,6 @@ import React from "react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata, Viewport } from "next";
 import "@/app/globals.css";
-import Script from 'next/script';
 import ClientLayoutWrapper from "./ClientLayoutWrapper";
 
 export const metadata: Metadata = {
@@ -41,10 +40,6 @@ export default function RootLayout({ children }: RootLayoutProps) {
       </head>
 
       <body className="bg-main-gradient antialiased overflow-x-hidden min-h-screen">
-        <Script
-          src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"
-          strategy="beforeInteractive"
-        />
         <ClientLayoutWrapper>
           {children}
         </ClientLayoutWrapper>
