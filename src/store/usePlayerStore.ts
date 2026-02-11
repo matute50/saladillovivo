@@ -20,7 +20,7 @@ interface PlayerState {
     nextVideo: SlideMedia | null;
     playlist: SlideMedia[];
     isPlaying: boolean;
-    viewMode: 'tv';
+    viewMode: 'tv' | 'diario';
     streamStatus: any;
 
     // Zero-Branding States
@@ -42,7 +42,7 @@ interface PlayerState {
     historyVolume: number; // Volume captured 10s before end of previous video
 
     // Actions
-    setViewMode: (mode: 'tv') => void;
+    setViewMode: (mode: 'tv' | 'diario') => void;
     setIsPlaying: (isPlaying: boolean) => void;
     togglePlayPause: () => void;
     setStreamStatus: (status: any) => void;
@@ -98,7 +98,7 @@ export const usePlayerStore = create<PlayerState>()(
             lastKnownVolume: 1,
             historyVolume: 1,
 
-            setViewMode: (mode: 'tv') => set({ viewMode: mode }),
+            setViewMode: (mode: 'tv' | 'diario') => set({ viewMode: mode }),
             setIsPlaying: (isPlayingState: boolean) => set({ isPlaying: isPlayingState }),
 
             togglePlayPause: () => set((state) => ({ isPlaying: !state.isPlaying })),
