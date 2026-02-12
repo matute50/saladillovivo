@@ -6,6 +6,7 @@ import { Video } from '@/lib/types';
 import { Focusable } from '@/components/ui/Focusable';
 import { useNavigationStore } from '@/store/useNavigationStore';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export interface CategoryMapping {
   display: string;
@@ -112,20 +113,30 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
             return (
               <div
                 style={{ transform: (activeCategory.dbCategory === '__NOTICIAS__' || activeCategory.dbCategory === 'search_results') ? 'translateY(-15px)' : 'translateY(-10px)' }}
-                className={`flex items-center justify-center gap-4 px-6 py-2 transition-all duration-300 rounded-xl bg-gray-900 border border-white/10 shadow-lg shadow-black/80 w-fit ${isFocused ? 'bg-gray-800 scale-105 border-white/30' : ''
-                  }`}>
+                className={cn(
+                  "flex items-center justify-center gap-4 px-6 py-2 transition-all duration-300 rounded-xl border border-white/10 shadow-lg shadow-black/80 w-fit",
+                  (activeCategory.dbCategory === '__NOTICIAS__') ? "news-shimmer-bg" : "bg-gray-900",
+                  isFocused && "news-shimmer-bg-active scale-105 border-white/30"
+                )}
+              >
                 <ChevronLeft
                   size={40}
-                  className={`transition-all duration-200 ${isFocused ? 'opacity-100 scale-110' : 'opacity-0'} ${activeArrow === 'left' ? 'text-yellow-400' : 'text-white'
-                    }`}
+                  className={cn(
+                    "transition-all duration-200",
+                    isFocused ? 'opacity-100 scale-110' : 'opacity-0',
+                    activeArrow === 'left' ? 'text-yellow-400' : 'text-white'
+                  )}
                 />
                 <h2 className="text-xl lg:text-3xl font-bold tracking-tight text-white uppercase whitespace-nowrap text-center mx-2 drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)]">
                   {activeCategory.display}
                 </h2>
                 <ChevronRight
                   size={40}
-                  className={`transition-all duration-200 ${isFocused ? 'opacity-100 scale-110' : 'opacity-0'} ${activeArrow === 'right' ? 'text-yellow-400' : 'text-white'
-                    }`}
+                  className={cn(
+                    "transition-all duration-200",
+                    isFocused ? 'opacity-100 scale-110' : 'opacity-0',
+                    activeArrow === 'right' ? 'text-yellow-400' : 'text-white'
+                  )}
                 />
               </div>
             );
