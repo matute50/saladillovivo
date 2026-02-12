@@ -3,9 +3,11 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabaseClient'; // Usa tu cliente de Supabase
 
+export const dynamic = 'force-dynamic';
+
 // Esta es la función que Vercel "despertará" cada hora
 export async function GET(request: Request) {
-  
+
   // 1. SEGURIDAD: Verifica el Secreto del Cron Job
   // (Para evitar que cualquiera pueda llamar a esta API)
   const authHeader = request.headers.get('authorization');
@@ -51,8 +53,8 @@ export async function GET(request: Request) {
   // 4. LLAMAR AL WEBHOOK: Envía el "paquete" a Make.com
   const makeWebhookUrl = process.env.MAKE_WEBHOOK_URL;
   if (!makeWebhookUrl) {
-     console.error('MAKE_WEBHOOK_URL no está configurada en Vercel');
-     return NextResponse.json({ error: 'Webhook URL not configured' }, { status: 500 });
+    console.error('MAKE_WEBHOOK_URL no está configurada en Vercel');
+    return NextResponse.json({ error: 'Webhook URL not configured' }, { status: 500 });
   }
 
   try {
