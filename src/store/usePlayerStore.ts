@@ -270,7 +270,7 @@ export const usePlayerStore = create<PlayerState>()(
             },
 
             handleOnEnded: async (setVolume) => {
-                const { savedVolume, currentVideo } = get();
+                const { savedVolume, currentVideo, savedVideo, savedProgress } = get();
                 set({ historyVolume: savedVolume });
 
                 const intro = get().getRandomIntro();
@@ -283,9 +283,19 @@ export const usePlayerStore = create<PlayerState>()(
                     isContentPlaying: false
                 });
 
-                // 2. Fetch Next Video
-                let nextV = nextDataVideo || await get().fetchRandomDbVideo(currentVideo?.id, currentVideo?.categoria);
-                if (!nextV) nextV = await get().fetchRandomDbVideo();
+                // 2. Fetch Next Video or Resume Saved One
+                let nextV: SlideMedia | null = null;
+                let isResuming = false;
+
+                if (savedVideo) {
+                    console.log("handleOnEnded: Resuming saved video:", savedVideo.nombre);
+                    nextV = { ...savedVideo, startAt: savedProgress } as any;
+                    isResuming = true;
+                    set({ savedVideo: null, savedProgress: 0 }); // Clean up
+                } else {
+                    nextV = nextDataVideo || await get().fetchRandomDbVideo(currentVideo?.id, currentVideo?.categoria);
+                    if (!nextV) nextV = await get().fetchRandomDbVideo();
+                }
 
                 if (nextV) {
                     // 3. Swap after Safety Delay
@@ -297,13 +307,15 @@ export const usePlayerStore = create<PlayerState>()(
                             [nextSlot === 'A' ? 'slotAContent' : 'slotBContent']: nextV,
                             activeSlot: nextSlot,
                             currentVideo: nextV,
-                            playbackState: 'DB_RANDOM'
+                            playbackState: isResuming ? 'RESUMING' : 'DB_RANDOM'
                         });
 
                         if (setVolume) setVolume(savedVolume);
 
                         nextDataVideo = null;
-                        get().preloadNextVideo(nextV!.id);
+                        if (!isResuming) {
+                            get().preloadNextVideo(nextV!.id);
+                        }
                     }, 800);
                 }
             },
