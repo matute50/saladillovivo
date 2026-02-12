@@ -126,7 +126,8 @@ const TvModeLayout = () => {
               alt="Saladillo Vivo Logo"
               width={288}
               height={72}
-              className="h-auto w-72 object-contain drop-shadow-[0_0_20px_rgba(0,0,0,1)] drop-shadow-[0_0_45px_rgba(0,0,0,1)]"
+              className="object-contain drop-shadow-[0_0_20px_rgba(0,0,0,1)] drop-shadow-[0_0_45px_rgba(0,0,0,1)]"
+              style={{ width: '18rem', height: 'auto' }}
               priority
             />
           )}

@@ -93,7 +93,7 @@ const TvBackgroundPlayer = () => {
       {!slotAContent && !slotBContent && (
         <div className="absolute inset-0 z-0">
           <Image
-            src="/FONDO OSCURO.PNG"
+            src="/FONDO_OSCURO.png"
             alt="Background"
             fill
             className="object-cover"

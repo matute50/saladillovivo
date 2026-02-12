@@ -23,6 +23,13 @@ export default function ClientLayoutWrapper({ children }: ClientLayoutWrapperPro
     // Mobile Redirection Strategy
     const checkMobileAndRedirect = () => {
       if (typeof window !== 'undefined') {
+        const hostname = window.location.hostname;
+        // Exception: Do not redirect if already on TV subdomain
+        if (hostname.startsWith('tv.')) {
+          console.log("TV Subdomain detected. Skipping mobile redirection.");
+          return;
+        }
+
         const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
         // Basic mobile detection regex
         if (/android|ipad|iphone|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase())) {
@@ -37,16 +44,18 @@ export default function ClientLayoutWrapper({ children }: ClientLayoutWrapperPro
   const viewMode = usePlayerStore(state => state.viewMode);
 
   // Hydration safety: render basic structure until mounted
-  if (!isMounted) {
-    return <>{children}</>;
-  }
-
   return (
     <>
-      <PreloadIntros />
-      {viewMode === 'diario' && <Header />}
+      <div className={isMounted ? "opacity-100" : "opacity-0 invisible"} key="client-extras">
+        <PreloadIntros />
+        {viewMode === 'diario' && <Header />}
+      </div>
+
       {children}
-      {viewMode === 'diario' && <Footer />}
+
+      <div className={isMounted ? "opacity-100" : "opacity-0 invisible"} key="client-footer">
+        {viewMode === 'diario' && <Footer />}
+      </div>
     </>
   );
 }
