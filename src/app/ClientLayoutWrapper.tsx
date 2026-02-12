@@ -17,19 +17,20 @@ export default function ClientLayoutWrapper({ children }: ClientLayoutWrapperPro
     // Inicialización global de datos
     fetchInitialData();
 
+    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+    const userAgent = typeof navigator !== 'undefined' ? (navigator.userAgent || navigator.vendor || (window as any).opera).toLowerCase() : '';
+
     // Mobile Redirection Strategy
     const checkMobileAndRedirect = () => {
-      if (typeof window !== 'undefined') {
-        const hostname = window.location.hostname;
+      if (hostname) {
         // Exception: Do not redirect if already on TV subdomain
         if (hostname.startsWith('tv.')) {
           console.log("TV Subdomain detected. Skipping mobile redirection.");
           return;
         }
 
-        const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
         // Basic mobile detection regex
-        if (/android|ipad|iphone|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase())) {
+        if (/android|ipad|iphone|ipod|blackberry|iemobile|opera mini/i.test(userAgent)) {
           window.location.href = "https://m.saladillovivo.com.ar";
         }
       }
@@ -39,8 +40,8 @@ export default function ClientLayoutWrapper({ children }: ClientLayoutWrapperPro
 
     // TV Native Experience: Hide cursor on tv. subdomains or standalone/android TV
     const isTV = hostname.startsWith('tv.') ||
-      /android tv|tv|viera|smarttv/i.test(userAgent.toLowerCase()) ||
-      (window.matchMedia('(display-mode: standalone)').matches);
+      /android tv|tv|viera|smarttv/i.test(userAgent) ||
+      (typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches);
 
     if (typeof window !== 'undefined' && isTV) {
       document.body.classList.add('tv-cursor-hide');
