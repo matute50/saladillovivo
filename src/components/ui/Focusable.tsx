@@ -24,7 +24,7 @@ export const Focusable: React.FC<FocusableProps> = ({
     group,
     onSelect,
     className,
-    focusClassName = 'outline outline-8 outline-white scale-[1.3] z-50',
+    focusClassName = 'outline outline-[10px] outline-white scale-[1.1] z-50 ring-offset-4 ring-offset-black ring-4 ring-white/50',
     disabled = false,
     layer,
     onFocus,

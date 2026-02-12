@@ -16,18 +16,12 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
-  // Fetch seguro: Solo datos necesarios para TV
-  let videos: any = { featuredVideo: null, recentVideos: [], allVideos: [], videoCategories: [] };
-  let tickerTexts: string[] = [];
-
   try {
-    const [resVideos, resTicker] = await Promise.all([
+    // Preheat cache
+    await Promise.all([
       getVideosForHome(),
       getTickerTexts(),
     ]);
-
-    videos = resVideos || videos;
-    tickerTexts = resTicker || [];
   } catch (error) {
     console.error("Error cargando datos en Page:", error);
   }

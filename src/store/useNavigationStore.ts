@@ -45,8 +45,9 @@ export const useNavigationStore = create<NavigationState>()(
                     const newElements = new Map(state.elements);
                     newElements.set(element.id, element);
 
-                    // Si es el primer elemento, enfocarlo automáticamente
-                    const newFocusedId = state.focusedId || element.id;
+                    // Si no hay foco aún, o si el foco actual no existe en el mapa, enfocar el nuevo
+                    const currentFocusedExists = state.focusedId ? newElements.has(state.focusedId) : false;
+                    const newFocusedId = currentFocusedExists ? state.focusedId : element.id;
 
                     return {
                         elements: newElements,

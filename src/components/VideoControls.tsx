@@ -20,7 +20,7 @@ interface VideoControlsProps {
 
 const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onSearchSubmit, isSearching }) => {
   const { isPlaying, togglePlayPause } = usePlayerStore();
-  const { volume, isMuted, setVolume, toggleMute } = useVolumeStore();
+  const { volume, isMuted, toggleMute } = useVolumeStore();
   const { searchQuery } = useNewsStore();
 
   const [localQuery, setLocalQuery] = useState(searchQuery);

@@ -37,9 +37,14 @@ export default function ClientLayoutWrapper({ children }: ClientLayoutWrapperPro
 
     checkMobileAndRedirect();
 
-    // TV Native Experience: Hide cursor on tv. subdomains
-    if (typeof window !== 'undefined' && window.location.hostname.startsWith('tv.')) {
+    // TV Native Experience: Hide cursor on tv. subdomains or standalone/android TV
+    const isTV = hostname.startsWith('tv.') ||
+      /android tv|tv|viera|smarttv/i.test(userAgent.toLowerCase()) ||
+      (window.matchMedia('(display-mode: standalone)').matches);
+
+    if (typeof window !== 'undefined' && isTV) {
       document.body.classList.add('tv-cursor-hide');
+      console.log("TV Experience Mode enabled: Cursor hidden.");
     }
 
     return () => {
