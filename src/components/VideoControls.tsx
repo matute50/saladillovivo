@@ -109,21 +109,6 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onSearchSub
                   {isMuted ? <VolumeX size={24} fill="red" /> : (volume <= 0.5 ? <Volume1 size={24} /> : <Volume2 size={24} />)}
                 </button>
               </Focusable>
-              <input
-                type="range"
-                min={0}
-                max={1}
-                step={0.01}
-                value={isMuted ? 0 : volume}
-                onChange={(e) => setVolume(parseFloat(e.target.value))}
-                onInput={(e) => setVolume(parseFloat((e.target as HTMLInputElement).value))}
-                tabIndex={-1}
-                className="
-                  w-28 h-1
-                  appearance-none bg-white/30 rounded-full cursor-none pointer-events-none
-                  accent-[#6699ff]
-                "
-              />
             </div>
           </div>
 

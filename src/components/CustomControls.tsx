@@ -12,14 +12,7 @@ interface CustomControlsProps {
 
 const CustomControls: React.FC<CustomControlsProps> = ({ onToggleFullScreen, isFullScreen }) => {
   const { isPlaying, togglePlayPause } = usePlayerStore();
-  const { volume, setVolume, isMuted, toggleMute, unmute } = useVolumeStore();
-
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVol = parseFloat(e.target.value);
-    setVolume(newVol);
-    // Si el usuario mueve el slider y estaba muteado, forzamos el desmuteo
-    if (isMuted && newVol > 0) unmute();
-  };
+  const { volume, isMuted, toggleMute } = useVolumeStore();
 
   // Determinar icono de volumen
   const getVolumeIcon = () => {
@@ -43,13 +36,12 @@ const CustomControls: React.FC<CustomControlsProps> = ({ onToggleFullScreen, isF
         >
           {isPlaying ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" />}
         </button>
-
       </div>
 
       {/* DERECHA: Grupo Controles (Volumen + Fullscreen) */}
       <div className="flex items-center gap-4 bg-gray-900 px-3 py-1.5 rounded-full border border-white/10 shadow-lg shadow-black/40">
 
-        {/* GRUPO VOLUMEN (Horizontal) */}
+        {/* GRUPO VOLUMEN */}
         <div className="flex items-center gap-2">
           {/* Botón Mute */}
           <button
@@ -59,23 +51,6 @@ const CustomControls: React.FC<CustomControlsProps> = ({ onToggleFullScreen, isF
           >
             {getVolumeIcon()}
           </button>
-
-          {/* Slider Horizontal Funcional */}
-          <input
-            type="range"
-            min={0}
-            max={1}
-            step={0.01}
-            value={isMuted ? 0 : volume}
-            onChange={handleVolumeChange}
-            onInput={handleVolumeChange} // Para respuesta inmediata en algunos navegadores
-            onClick={(e) => e.stopPropagation()} // Vital para no pausar el video al arrastrar
-            className="
-              w-20 h-1 
-              appearance-none bg-white/30 rounded-full cursor-pointer 
-              accent-[#6699ff] hover:accent-[#4d88ff]
-            "
-          />
         </div>
 
         {/* Separador Vertical */}
