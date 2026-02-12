@@ -147,7 +147,7 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onSearchSub
                     type="text"
                     placeholder="Buscar..."
                     onMouseDown={(e) => e.stopPropagation()}
-                    className={`bg-black/20 text-white rounded-md pl-3 pr-10 py-1 focus:outline-none w-72 border transition-all duration-300 ${isFocused ? 'border-white ring-2 ring-white/20 bg-black/40' : 'border-white/40'}`}
+                    className={`bg-gray-800 text-white rounded-md pl-3 pr-10 py-1 focus:outline-none w-72 border transition-all duration-300 ${isFocused ? 'border-white/40 bg-gray-700' : 'border-white/10'}`}
                     value={localQuery}
                     onChange={handleInputChange}
                     onKeyDown={handleKeyDown}

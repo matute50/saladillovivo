@@ -47,7 +47,7 @@ const CustomControls: React.FC<CustomControlsProps> = ({ onToggleFullScreen, isF
       </div>
 
       {/* DERECHA: Grupo Controles (Volumen + Fullscreen) */}
-      <div className="flex items-center gap-4 bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10">
+      <div className="flex items-center gap-4 bg-gray-900 px-3 py-1.5 rounded-full border border-white/10 shadow-lg shadow-black/40">
 
         {/* GRUPO VOLUMEN (Horizontal) */}
         <div className="flex items-center gap-2">

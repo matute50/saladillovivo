@@ -153,7 +153,7 @@ const TvModeLayout = () => {
         <div
           className="absolute top-4 right-4 z-[60] flex items-center gap-2 pointer-events-auto"
         >
-          <div className="rounded-md p-2 bg-black/10 backdrop-blur-lg shadow-lg shadow-black/50">
+          <div className="rounded-xl p-2 bg-gray-900 border border-white/10 shadow-lg shadow-black/80">
             <VideoControls
               showControls={isControlsVisible}
               onSearchSubmit={handleSearch}
