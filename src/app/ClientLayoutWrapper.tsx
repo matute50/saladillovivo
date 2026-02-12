@@ -1,11 +1,8 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 import PreloadIntros from '@/components/PreloadIntros';
 import { useNewsStore } from '@/store/useNewsStore';
-import { usePlayerStore } from '@/store/usePlayerStore';
 
 interface ClientLayoutWrapperProps {
   children: React.ReactNode;
@@ -52,21 +49,14 @@ export default function ClientLayoutWrapper({ children }: ClientLayoutWrapperPro
     };
   }, [fetchInitialData]);
 
-  const viewMode = usePlayerStore(state => state.viewMode);
-
   // Hydration safety: render basic structure until mounted
   return (
     <>
       <div className={isMounted ? "opacity-100" : "opacity-0 invisible"} key="client-extras">
         <PreloadIntros />
-        {viewMode === 'diario' && <Header />}
       </div>
 
       {children}
-
-      <div className={isMounted ? "opacity-100" : "opacity-0 invisible"} key="client-footer">
-        {viewMode === 'diario' && <Footer />}
-      </div>
     </>
   );
 }

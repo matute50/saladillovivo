@@ -269,7 +269,7 @@ const VideoSection: React.FC = () => {
         <div
           ref={playerContainerRef}
           className={cn(
-            "relative w-full h-full aspect-video bg-black overflow-hidden border-0 md:border md:rounded-xl card-blur-player shadow-lg",
+            "relative w-full h-full aspect-video bg-black overflow-hidden border-0 md:border md:rounded-xl shadow-lg",
           )}
           onMouseEnter={() => setShowControls(true)}
           onMouseLeave={() => setShowControls(false)}

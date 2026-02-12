@@ -11,7 +11,7 @@
 @font-face {
   font-family: 'Century Gothic';
   src: url('/fonts/CenturyGothic.woff2') format('woff2'),
-       url('/fonts/CenturyGothic.woff') format('woff');
+    url('/fonts/CenturyGothic.woff') format('woff');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -20,7 +20,7 @@
 @font-face {
   font-family: 'Century Gothic';
   src: url('/fonts/CenturyGothic-Bold.woff2') format('woff2'),
-       url('/fonts/CenturyGothic-Bold.woff') format('woff');
+    url('/fonts/CenturyGothic-Bold.woff') format('woff');
   font-weight: bold;
   font-style: normal;
   font-display: swap;
@@ -30,17 +30,26 @@
 @layer base {
   :root {
     /* Light Mode */
-    --background-start: 0 0% 65%; /* darker */
-    --background-end: 223 44% 95%; /* lighter */
-    --background: hsl(var(--background-start)); /* Fallback */
-    --foreground: 0 0% 0%; /* black */
-    --card-start: 223 44% 95%; /* lighter */
-    --card-end: 0 0% 65%; /* darker */
-    --card: hsl(var(--card-start)); /* Fallback */
-    --card-foreground: 0 0% 0%; /* black */
+    --background-start: 0 0% 65%;
+    /* darker */
+    --background-end: 223 44% 95%;
+    /* lighter */
+    --background: hsl(var(--background-start));
+    /* Fallback */
+    --foreground: 0 0% 0%;
+    /* black */
+    --card-start: 223 44% 95%;
+    /* lighter */
+    --card-end: 0 0% 65%;
+    /* darker */
+    --card: hsl(var(--card-start));
+    /* Fallback */
+    --card-foreground: 0 0% 0%;
+    /* black */
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 0%;
-    --primary: 225 100% 30%; /* #003399 */
+    --primary: 225 100% 30%;
+    /* #003399 */
     --primary-foreground: 0 0% 100%;
     --secondary: 240 100% 60%;
     --secondary-foreground: 0 0% 100%;
@@ -48,15 +57,19 @@
     --muted-foreground: 0 0% 45%;
     --accent: hsl(var(--background-start));
     --accent-foreground: 0 0% 0%;
-    --destructive: 0 100% 50%; /* red */
+    --destructive: 0 100% 50%;
+    /* red */
     --destructive-foreground: 0 0% 100%;
-    --border: 107 7% 47%; /* #707f6f */
+    --border: 107 7% 47%;
+    /* #707f6f */
     --input: hsl(var(--background-start));
     --ring: 225 100% 30%;
     --radius: 0.5rem;
 
-    --footer-bg-start: 0 0% 90%; /* claro */
-    --footer-bg-end: 0 0% 65%; /* oscuro */
+    --footer-bg-start: 0 0% 90%;
+    /* claro */
+    --footer-bg-end: 0 0% 65%;
+    /* oscuro */
     --footer-bg-color: #aaaaaa;
     --shadow-color: rgba(0, 0, 0, 0.5);
 
@@ -69,53 +82,72 @@
     --desktop-header-height: 72px;
     --ticker-height: 32px;
 
-    --carousel-button-color: 255, 255, 255; /* Blanco para modo claro */
-    --carousel-button-border-color: 255, 255, 255; /* Blanco para modo claro */
+    --carousel-button-color: 255, 255, 255;
+    /* Blanco para modo claro */
+    --carousel-button-border-color: 255, 255, 255;
+    /* Blanco para modo claro */
   }
 
   .dark {
     /* Dark Mode */
-    --background-start: 0 0% 28%; /* lighter */
-    --background-end: 0 0% 8%; /* darker */
-    --background: hsl(var(--background-start)); /* Fallback */
-    --foreground: 0 0% 100%; /* #FFFFFF */
-    --card-start: 0 0% 8%; /* darker */
-    --card-end: 0 0% 28%; /* lighter */
-    --card: hsl(var(--card-start)); /* Fallback */
+    --background-start: 0 0% 28%;
+    /* lighter */
+    --background-end: 0 0% 8%;
+    /* darker */
+    --background: hsl(var(--background-start));
+    /* Fallback */
+    --foreground: 0 0% 100%;
+    /* #FFFFFF */
+    --card-start: 0 0% 8%;
+    /* darker */
+    --card-end: 0 0% 28%;
+    /* lighter */
+    --card: hsl(var(--card-start));
+    /* Fallback */
     --card-foreground: 0 0% 100%;
     --popover: 0 0% 7%;
     --popover-foreground: 0 0% 100%;
-    --primary: 225 100% 30%; /* #003399 */
+    --primary: 225 100% 30%;
+    /* #003399 */
     --primary-foreground: 0 0% 0%;
     --secondary: 210 100% 40%;
     --secondary-foreground: 0 0% 100%;
     --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 80%; /* #CCCCCC */
+    --muted-foreground: 0 0% 80%;
+    /* #CCCCCC */
     --accent: 0 0% 13%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 100% 50%; /* red */
+    --destructive: 0 100% 50%;
+    /* red */
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 28%; /* lighter */
+    --border: 0 0% 28%;
+    /* lighter */
     --input: hsl(var(--background-start));
     --ring: 220 100% 70%;
 
-    --footer-bg-start: 0 0% 8%; /* darker */
-    --footer-bg-end: 0 0% 28%; /* lighter */
+    --footer-bg-start: 0 0% 8%;
+    /* darker */
+    --footer-bg-end: 0 0% 28%;
+    /* lighter */
     --shadow-color: rgba(0, 0, 0, 0.5);
     --link-color-dark: #6699ff;
 
-    --carousel-button-color: 255, 255, 255; /* Blanco para modo oscuro */
-    --carousel-button-border-color: 255, 255, 255; /* Blanco para modo oscuro */
+    --carousel-button-color: 255, 255, 255;
+    /* Blanco para modo oscuro */
+    --carousel-button-border-color: 255, 255, 255;
+    /* Blanco para modo oscuro */
   }
 
   * {
     @apply border-border;
   }
+
   html {
     height: 100%;
     margin: 0;
     padding: 0;
   }
+
   body {
     @apply text-foreground;
     background-repeat: no-repeat;
@@ -125,8 +157,10 @@
     min-height: 100%;
 
     /* Custom Scrollbar for Webkit browsers */
-    scrollbar-width: thin; /* "auto" or "thin" */
-    scrollbar-color: hsl(var(--muted-foreground)) hsl(var(--muted)); /* thumb and track color */
+    scrollbar-width: thin;
+    /* "auto" or "thin" */
+    scrollbar-color: hsl(var(--muted-foreground)) hsl(var(--muted));
+    /* thumb and track color */
   }
 
   /* TV Native Experience: Hide cursor */
@@ -139,51 +173,70 @@
   :focus-visible {
     outline: none !important;
   }
-  
+
   :focus {
     outline: none !important;
   }
 
   /* For Webkit browsers (Chrome, Safari, Edge) */
   body::-webkit-scrollbar {
-    width: 8px; /* width of the entire scrollbar */
+    width: 8px;
+    /* width of the entire scrollbar */
   }
 
   body::-webkit-scrollbar-track {
-    background: hsl(var(--muted)); /* color of the tracking area */
+    background: hsl(var(--muted));
+    /* color of the tracking area */
     border-radius: 10px;
   }
 
   body::-webkit-scrollbar-thumb {
-    background-color: hsl(var(--muted-foreground)); /* color of the scroll thumb */
-    border-radius: 10px; /* roundness of the scroll thumb */
-    border: 2px solid hsl(var(--muted)); /* creates padding around scroll thumb */
+    background-color: hsl(var(--muted-foreground));
+    /* color of the scroll thumb */
+    border-radius: 10px;
+    /* roundness of the scroll thumb */
+    border: 2px solid hsl(var(--muted));
+    /* creates padding around scroll thumb */
   }
 
   /* Dark mode scrollbar styles */
   .dark body::-webkit-scrollbar-thumb {
-    background-color: hsl(var(--muted-foreground)); /* color of the scroll thumb in dark mode */
-    border: 2px solid hsl(var(--background-start)); /* creates padding around scroll thumb in dark mode */
+    background-color: hsl(var(--muted-foreground));
+    /* color of the scroll thumb in dark mode */
+    border: 2px solid hsl(var(--background-start));
+    /* creates padding around scroll thumb in dark mode */
   }
 
   .dark body::-webkit-scrollbar-track {
-    background: hsl(var(--background-start)); /* color of the tracking area in dark mode */
+    background: hsl(var(--background-start));
+    /* color of the tracking area in dark mode */
   }
+
   #root {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
   }
+
   .hide-scrollbar {
     overflow-y: scroll;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* Internet Explorer 10+ */
   }
-  .hide-scrollbar::-webkit-scrollbar { /* WebKit */
+
+  .hide-scrollbar::-webkit-scrollbar {
+    /* WebKit */
     display: none;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply text-foreground;
   }
 
@@ -202,8 +255,8 @@
   html.dark .card a h3,
   html.dark .featured-news-card h1,
   html.dark .featured-news-card a h1 {
-      color: #ffffff !important;
-      transition: color 0.3s linear !important;
+    color: #ffffff !important;
+    transition: color 0.3s linear !important;
   }
 
   /* Al pasar el mouse */
@@ -211,7 +264,7 @@
   html.dark .card a:hover h3,
   html.dark .featured-news-card h1:hover,
   html.dark .featured-news-card a:hover h1 {
-      color: #6699ff !important;
+    color: #6699ff !important;
   }
 
   html.dark button:active {
@@ -248,7 +301,7 @@
     margin-bottom: 20px;
   }
 
-   @keyframes spin {
+  @keyframes spin {
     to {
       transform: rotate(360deg);
     }
@@ -257,18 +310,18 @@
   /* ===== LINKS DEL FOOTER ===== */
   footer a,
   footer a:visited {
-      color: #6699ff !important;
-      transition: color 0.3s ease-in-out !important;
+    color: #6699ff !important;
+    transition: color 0.3s ease-in-out !important;
   }
 
   html.dark footer a,
   html.dark footer a:visited {
-      color: #6699ff !important;
-      transition: color 0.3s ease-in-out !important;
+    color: #6699ff !important;
+    transition: color 0.3s ease-in-out !important;
   }
 
   html.dark footer a:hover {
-      color: #ffffff !important;
+    color: #ffffff !important;
   }
 
   .font-futura-bold {
@@ -277,6 +330,7 @@
     letter-spacing: -0.01em;
     line-height: 1.2 !important;
   }
+
   .font-century-gothic {
     font-family: 'Century Gothic', sans-serif;
   }
@@ -295,8 +349,7 @@
     -moz-backface-visibility: hidden;
     -webkit-transform: translate3d(0, 0, 0);
     -moz-transform: translate3d(0, 0, 0);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background-color: rgba(0, 0, 0, 0.9);
     border-radius: 0.5rem;
   }
 
@@ -305,10 +358,10 @@
     -moz-backface-visibility: hidden;
     -webkit-transform: translate3d(0, 0, 0);
     -moz-transform: translate3d(0, 0, 0);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background-color: black;
     border-radius: 0;
   }
+
   @media (min-width: 768px) {
     .card-blur-player {
       border-radius: 0.75rem;
@@ -316,23 +369,27 @@
   }
 
   .shadow-card {
-     box-shadow: 0 6px 10px -2px var(--shadow-color), 0 3px 6px -3px var(--shadow-color);
+    box-shadow: 0 6px 10px -2px var(--shadow-color), 0 3px 6px -3px var(--shadow-color);
   }
+
   .shadow-player {
-     box-shadow: 0 12px 20px -4px var(--shadow-color), 0 5px 8px -5px var(--shadow-color);
+    box-shadow: 0 12px 20px -4px var(--shadow-color), 0 5px 8px -5px var(--shadow-color);
   }
+
   .shadow-thumbnail {
     box-shadow: 0 4px 6px -2px var(--shadow-color);
   }
+
   .shadow-header {
     box-shadow: 0 5px 8px -2px var(--shadow-color);
   }
+
   .shadow-footer {
     box-shadow: 0 -5px 8px -2px var(--shadow-color);
   }
 
   .shadow-pop {
-     box-shadow: 0 35px 60px -15px var(--shadow-color);
+    box-shadow: 0 35px 60px -15px var(--shadow-color);
   }
 
   .control-button {
@@ -340,9 +397,8 @@
   }
 
   .carousel-nav-button {
-    background-color: rgba(0, 0, 0, 0.15); /* Negro con 15% de opacidad */
-    backdrop-filter: blur(10px); /* Efecto blur */
-    -webkit-backdrop-filter: blur(10px); /* Para compatibilidad con navegadores Webkit */
+    background-color: rgba(0, 0, 0, 0.6);
+    /* Opacidad mayor sin blur */
   }
 
 
@@ -353,42 +409,49 @@
   .search-box {
     @apply bg-input text-foreground placeholder:text-foreground/70 border border-black dark:border-white;
   }
+
   .dark .search-box {
     @apply text-white placeholder:text-white/70;
   }
+
   .search-box-icon {
     @apply text-foreground;
   }
+
   .dark .search-box-icon {
     @apply text-white;
   }
 
   .ticker-background {
-    background-color: rgba(235, 241, 249, 0.60);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background-color: rgba(235, 241, 249, 0.9);
+    /* Más sólido */
   }
 
   .dark .ticker-background {
-    background-color: rgba(20, 20, 20, 0.60);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background-color: rgba(10, 10, 10, 0.95);
+    /* Casi negro sólido */
   }
 }
 
 @keyframes pulse-color-nav-dark {
-  0%, 100% {
+
+  0%,
+  100% {
     background-color: #212121;
   }
+
   50% {
     background-color: #3d3d3d;
   }
 }
 
 @keyframes pulse-color-nav-light {
-  0%, 100% {
+
+  0%,
+  100% {
     background-color: #3d3d3d;
   }
+
   50% {
     background-color: #aaaaaa;
   }
