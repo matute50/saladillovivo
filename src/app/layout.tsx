@@ -35,12 +35,29 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <Script
           src="/scripts/patch-events.js"
           strategy="beforeInteractive"
         />
         <link rel="preconnect" href="https://media.saladillovivo.com.ar" />
         <link rel="preconnect" href="https://www.youtube.com" />
+
+        {/* Resource Preloading for LCP and Layout Stability */}
+        <link
+          rel="preload"
+          href="/fonts/CenturyGothic.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preload"
+          href="/FONDO_OSCURO.png"
+          as="image"
+        />
       </head>
 
       <body className="bg-main-gradient antialiased overflow-x-hidden min-h-screen">

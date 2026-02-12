@@ -129,6 +129,21 @@
     scrollbar-color: hsl(var(--muted-foreground)) hsl(var(--muted)); /* thumb and track color */
   }
 
+  /* TV Native Experience: Hide cursor */
+  body.tv-cursor-hide,
+  body.tv-cursor-hide * {
+    cursor: none !important;
+  }
+
+  /* Remove default browser focus outline to use custom UI focus states */
+  :focus-visible {
+    outline: none !important;
+  }
+  
+  :focus {
+    outline: none !important;
+  }
+
   /* For Webkit browsers (Chrome, Safari, Edge) */
   body::-webkit-scrollbar {
     width: 8px; /* width of the entire scrollbar */
