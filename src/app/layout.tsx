@@ -46,6 +46,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <link rel="preconnect" href="https://www.youtube.com" />
 
         {/* Resource Preloading for LCP and Layout Stability */}
+        {/* Vercel Deployment Trigger: 2026-02-12 */}
         <link
           rel="preload"
           href="/fonts/CenturyGothic.woff2"
