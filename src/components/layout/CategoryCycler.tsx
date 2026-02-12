@@ -112,7 +112,7 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
             return (
               <div
                 style={{ transform: (activeCategory.dbCategory === '__NOTICIAS__' || activeCategory.dbCategory === 'search_results') ? 'translateY(-15px)' : 'translateY(-10px)' }}
-                className={`flex items-center justify-center gap-4 px-6 py-2 transition-all duration-300 rounded-xl bg-black/20 backdrop-blur-xl shadow-xl shadow-black/50 w-fit ${isFocused ? 'bg-white/10 scale-105' : ''
+                className={`flex items-center justify-center gap-4 px-6 py-2 transition-all duration-300 rounded-xl bg-gray-900 border border-white/10 shadow-lg shadow-black/80 w-fit ${isFocused ? 'bg-gray-800 scale-105 border-white/30' : ''
                   }`}>
                 <ChevronLeft
                   size={40}

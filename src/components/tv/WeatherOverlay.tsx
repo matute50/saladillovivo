@@ -87,10 +87,9 @@ const WeatherOverlay = () => {
                     transition={{ type: "spring", stiffness: 80, damping: 15 }}
                     className={cn(
                         "absolute top-0 left-0 w-full h-full z-[60] pointer-events-auto",
-                        "backdrop-blur-sm",
                         isDarkTheme
-                            ? "bg-black/50"
-                            : "bg-white/50"
+                            ? "bg-gray-950/90"
+                            : "bg-gray-100/90"
                     )}
                 >
                     <div className="p-4 md:p-6 h-full flex flex-col">
@@ -211,8 +210,8 @@ const WeatherOverlay = () => {
                                         <span className="text-[10px] font-medium opacity-50">%</span>
                                     </div>
                                     <div className={cn(
-                                        "flex flex-col items-center justify-center p-2 rounded-xl backdrop-blur-md transition-transform hover:scale-[1.02]",
-                                        isDarkTheme ? "bg-white/10 border border-white/10" : "bg-black/5 border border-black/5"
+                                        "flex flex-col items-center justify-center p-2 rounded-xl border transition-transform hover:scale-[1.02]",
+                                        isDarkTheme ? "bg-white/5 border-white/5" : "bg-black/5 border-black/5"
                                     )}>
                                         <div className="flex items-center gap-2 mb-0.5">
                                             <Umbrella className="opacity-90" size={22} />

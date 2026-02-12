@@ -182,7 +182,7 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({
                       <div className="absolute inset-0 border-8 border-white rounded-xl pointer-events-none z-50" />
                     )}
                     {/* Contenido de la miniatura */}
-                    <div className="relative w-[258px] cursor-pointer group rounded-xl overflow-hidden shadow-lg dark:shadow-none hover:shadow-[0_0_25px_10px_rgba(255,255,255,0.7)] transition-all duration-300 ease-in-out">
+                    <div className="relative w-[258px] cursor-pointer group rounded-xl overflow-hidden border border-white/5 transition-transform duration-200">
                       <div className="relative w-[258px] aspect-video flex items-center justify-center bg-black">
                         <Image
                           src={thumbUrl}

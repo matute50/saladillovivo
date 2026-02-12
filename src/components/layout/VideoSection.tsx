@@ -283,8 +283,8 @@ const VideoSection: React.FC = () => {
                 "video-universe absolute inset-0 w-full h-full transition-transform ease-in-out md:rounded-xl overflow-hidden"
               )}
               style={{
-                transform: areCinematicBarsActive ? 'scale(1.20)' : 'scale(1)',
-                transitionDuration: areCinematicBarsActive ? '75ms' : '5000ms'
+                transform: areCinematicBarsActive ? 'scale(1.08)' : 'scale(1)',
+                transitionDuration: areCinematicBarsActive ? '150ms' : '3000ms'
               }}
             >
 
@@ -468,14 +468,14 @@ const VideoSection: React.FC = () => {
               {isNewsContent && (
                 <>
                   <div className="absolute inset-x-0 top-0 top-safe-area z-[50] p-4 bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
-                    <div className="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 inline-block max-w-[90%] md:max-w-[70%] shadow-2xl">
+                    <div className="bg-black/90 px-3 py-1.5 rounded-lg border border-white/10 inline-block max-w-[90%] md:max-w-[70%] shadow-2xl">
                       <h2 className="text-white text-base md:text-xl font-bold leading-tight drop-shadow-lg break-words">
                         {displayTitle}
                       </h2>
                     </div>
                   </div>
 
-                  <div className="absolute inset-x-0 bottom-0 z-[50] pointer-events-auto h-8 bg-black/80 backdrop-blur-md border-t border-white/10 flex items-center">
+                  <div className="absolute inset-x-0 bottom-0 z-[50] pointer-events-auto h-8 bg-black/90 border-t border-white/10 flex items-center">
                     <NewsTicker tickerTexts={[displaySubtitle || '']} />
                   </div>
                 </>
@@ -500,7 +500,7 @@ const VideoSection: React.FC = () => {
                     className="absolute inset-0 flex items-center justify-center z-50 cursor-pointer pointer-events-auto"
                     onClick={() => setIsPlaying(true)}
                   >
-                    <div className="p-4 bg-black/40 rounded-full border border-white backdrop-blur-sm"><Play size={38} className="text-white/80" fill="white" strokeWidth={1.35} /></div>
+                    <div className="p-4 bg-black/60 rounded-full border border-white"><Play size={38} className="text-white/80" fill="white" strokeWidth={1.35} /></div>
                   </motion.div>
                 )}
               </AnimatePresence>
