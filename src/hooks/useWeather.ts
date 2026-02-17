@@ -38,8 +38,8 @@ export const useWeather = () => {
     const fetchWeather = useCallback(async (lat: number, lon: number, name: string) => {
         try {
             setLoading(true);
-            // WeatherAPI.com - Current and Forecast
-            const url = `https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${lat},${lon}&days=6&aqi=no&alerts=no&lang=es`;
+            // WeatherAPI.com - Current and Forecast (7 days to ensure 5+ future days)
+            const url = `https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${lat},${lon}&days=7&aqi=no&alerts=no&lang=es`;
 
             const response = await fetch(url);
             if (!response.ok) throw new Error('Error al obtener datos del clima');
