@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import SmartImage from '@/components/ui/SmartImage';
 import { motion } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
