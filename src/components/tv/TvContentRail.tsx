@@ -116,7 +116,7 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
           duration: duration,
           createdAt: new Date().toISOString(),
           novedad: false // Added to satisfy SlideMedia interface
-        });
+        }, volume, setVolume);
       }
     } else {
       playSpecificVideo(item as Video, volume, setVolume);

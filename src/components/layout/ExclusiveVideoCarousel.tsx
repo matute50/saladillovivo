@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import Image from 'next/image';
+import SmartImage from '@/components/ui/SmartImage';
 import { motion } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation } from 'swiper/modules';
+import { Navigation, Virtual, FreeMode } from 'swiper/modules';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import { usePlayerStore } from '@/store/usePlayerStore';
@@ -89,8 +89,8 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
   const displayVideos = React.useMemo(() => {
     if (!loop || !videos || videos.length === 0) return videos;
 
-    // Si se solicita loop, asegurar suficientes slides para Swiper (mínimo ~6-8 para evitar glitches visuales en pantallas anchas)
-    const MIN_SLIDES = 8;
+    // Si se solicita loop, asegurar suficientes slides para Swiper (mínimo ~24 para evitar glitches visuales en pantallas anchas y cubrir 4K)
+    const MIN_SLIDES = 24;
     let currentVideos = [...videos];
 
     // Duplicar hasta alcanzar el mínimo
@@ -104,6 +104,12 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
   const shouldLoop = loop || (videos.length > 3 && videos.length !== 2);
   const slidesToRender = displayVideos;
 
+  const isNewsCarousel = React.useMemo(() => {
+    return carouselId?.toLowerCase().includes('news') ||
+      carouselId?.toLowerCase().includes('noticias') ||
+      videos[0]?.categoria === 'Noticias';
+  }, [carouselId, videos]);
+
   if (isLoading) {
     return <div className="relative w-full flex items-center justify-center min-h-[126px] bg-muted/50 animate-pulse rounded-lg"></div>;
   }
@@ -113,57 +119,55 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
   }
 
   return (
-    <div className="relative w-full flex items-center justify-center rounded-xl p-4">
+    <div className="relative w-full flex items-center justify-center rounded-xl p-0">
       <Swiper
         ref={swiperRef}
         slidesPerView={!loop && videos.length === 2 ? 2 : 'auto'}
-        centeredSlides={!loop && videos.length === 2 ? false : true}
-        initialSlide={!loop && videos.length === 2 ? 0 : (videos.length > 1 ? 1 : 0)}
-        spaceBetween={12}
+        centeredSlides={false}
+        initialSlide={0}
+        spaceBetween={isNewsCarousel ? -40 : -80}
         loop={shouldLoop}
         navigation={{
           prevEl: `#prev-${carouselId}`,
           nextEl: `#next-${carouselId}`,
         }}
-        modules={[Navigation]}
+        modules={[Navigation, Virtual, FreeMode]}
+        freeMode={{
+          enabled: true,
+          sticky: false,
+          momentumBounce: false,
+        }}
+        virtual={{
+          enabled: true,
+          addSlidesBefore: 2,
+          addSlidesAfter: 2
+        }}
       >
         {slidesToRender.map((video, index) => {
+          // Virtualization requires stable keys!
+          const uniqueKey = `${video.id || video.url}-${index}`;
           const isLiveOrEvent = isLive || video.isLiveThumbnail || video.isEvent;
 
           const slideClasses = "transition-all duration-300 ease-in-out opacity-100 blur-none";
           const titleOverlayClasses = "absolute inset-0 p-2 bg-gradient-to-t from-black/80 to-transparent flex justify-center items-end text-center opacity-100 z-20 transition-opacity duration-300 ease-in-out";
 
-          // La lógica de clase para slideClasses y titleOverlayClasses se ha simplificado
-          // para que siempre estén visibles y sin blur/opacidad dinámica para el fondo y título.
-          // El z-index ya se gestiona en titleOverlayClasses.
-          if (!loop && videos.length === 2) {
-            const isActiveByHover = (hoveredIndex === null && index === 0) || hoveredIndex === index;
-            if (isActiveByHover) {
-              // No es necesario añadir z-20 aquí si ya está en titleOverlayClasses
-            } else {
-              // No es necesario opacity-0 aquí
-            }
-          } else {
-            // No es necesario opacity-0 o z-20 aquí
-          }
-
           const thumbUrl = getYoutubeThumbnail(video);
 
           return (
             <SwiperSlide
-              // Usar composite key para permitir duplicados en loop mode
-              key={`${video.id || video.url}-${index}`}
-              style={{ width: 'auto' }}
-              className={slideClasses}
+              key={uniqueKey}
+              virtualIndex={index}
+              style={{ width: 'auto', backfaceVisibility: 'hidden', transform: 'translate3d(0,0,0)' }}
+              className="opacity-100 blur-none"
               onMouseEnter={() => !loop && videos.length === 2 && setHoveredIndex(index)}
               onMouseLeave={() => !loop && videos.length === 2 && setHoveredIndex(null)}
             >
               <div
                 onClick={() => handleVideoClick(video)}
-                className="relative w-56 cursor-pointer group rounded-xl overflow-hidden shadow-lg dark:shadow-none hover:shadow-[0_0_25px_10px_rgba(255,255,255,0.7)] transition-all duration-300 ease-in-out"
+                className="relative w-[230px] cursor-pointer group rounded-xl overflow-hidden shadow-lg dark:shadow-none hover:shadow-[0_0_25px_10px_rgba(255,255,255,0.7)] transition-all duration-300 ease-in-out will-change-transform"
               >
-                <div className="relative w-56 aspect-video flex items-center justify-center bg-black">
-                  <Image
+                <div className="relative w-[230px] aspect-video flex items-center justify-center bg-black overflow-hidden">
+                  <SmartImage
                     src={thumbUrl}
                     alt={cleanTitle(video.nombre) || "Miniatura de video"}
                     fill
@@ -171,13 +175,10 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
                     priority={index === 0}
                     loading={index === 0 ? 'eager' : 'lazy'}
                     className={`${isLiveOrEvent ? 'object-contain' : 'object-cover'} transition-transform duration-300 group-hover:scale-110`}
-                    // LA SOLUCIÓN MÁGICA:
-                    unoptimized={true}
-                    onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='; }}
                   />
                 </div>
                 <div className={titleOverlayClasses}>
-                  <p className="text-white font-bold uppercase leading-tight text-sm drop-shadow-md">{cleanTitle(video.nombre)}</p>
+                  <p className="text-white font-bold uppercase leading-tight text-sm [text-shadow:0_4px_8px_black,0_0_20px_black,0_0_10px_black]">{cleanTitle(video.nombre)}</p>
                 </div>
               </div>
             </SwiperSlide>

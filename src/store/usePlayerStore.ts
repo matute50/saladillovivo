@@ -47,7 +47,7 @@ interface PlayerState {
 
     playMedia: (media: SlideMedia) => void;
     playSpecificVideo: (media: SlideMedia, currentVolume?: number, setVolume?: (v: number) => void) => void;
-    playTemporaryVideo: (media: SlideMedia) => void;
+    playTemporaryVideo: (media: SlideMedia, currentVolume?: number, setVolume?: (v: number) => void) => void;
     playLiveStream: (streamData: any) => void;
     playNextVideoInQueue: () => void;
     loadInitialPlaylist: (videoUrlToPlay: string | null) => Promise<void>;
@@ -135,10 +135,15 @@ export const usePlayerStore = create<PlayerState>()(
 
                 if (currentVolume !== undefined) set({ savedVolume: currentVolume });
 
-                // Rule: Start at 20% volume for user selection
-                if (setVolume) setVolume(0.2);
+                // Rule: Start at 100% volume for user selection (Always Active)
+                if (setVolume) {
+                    setVolume(1);
+                    // Force Unmute via store if possible, but setVolume usually handles it.
+                    // Ideally we should access useVolumeStore here but we are in PlayerStore.
+                    // The callback `setVolume` passed from component updates the VolumeStore.
+                }
 
-                set({ playbackState: 'USER_SELECTED' });
+                set({ playbackState: 'USER_SELECTED', savedVolume: 1 });
 
                 const introToPlay = get().getRandomIntro();
                 set({
@@ -152,13 +157,19 @@ export const usePlayerStore = create<PlayerState>()(
                 get().preloadNextVideo(media.id);
             },
 
-            playTemporaryVideo: (media) => {
+            playTemporaryVideo: (media, currentVolume, setVolume) => {
                 useNewsPlayerStore.getState().stopSlide();
                 const { currentVideo, playbackState, getRandomIntro } = get();
 
                 if (currentVideo && playbackState !== 'INTRO') {
                     set({ savedVideo: currentVideo, savedProgress: get().savedProgress }); // Ensure progress is saved separately if needed
                 }
+
+                // Rule: Start at 100% volume for user selection (Always Active)
+                if (setVolume) {
+                    setVolume(1);
+                }
+                set({ savedVolume: 1 });
 
                 const introToPlay = getRandomIntro();
                 set({

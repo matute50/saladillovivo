@@ -9,7 +9,98 @@ import { Button } from '@/components/ui/button';
 import SearchBar from '@/components/ui/SearchBar';
 import { usePlayerStore } from '@/store/usePlayerStore';
 import { useNewsStore } from '@/store/useNewsStore';
-import WeatherWidget from '@/components/ui/WeatherWidget';
+import dynamic from 'next/dynamic';
+
+const WeatherWidget = dynamic(() => import('@/components/ui/WeatherWidget'), {
+  loading: () => <div className="w-[100px] h-8 bg-black/5 dark:bg-white/5 rounded-md animate-pulse"></div>,
+  ssr: false
+});
+import { useNotifications } from '@/hooks/useNotifications';
+import { Bell, BellOff } from 'lucide-react';
+
+import { usePwaInstall } from '@/hooks/usePwaInstall';
+import { MonitorDown } from 'lucide-react';
+
+interface InstallPwaButtonProps {
+  isDarkTheme: boolean;
+}
+
+const InstallPwaButton = ({ isDarkTheme }: InstallPwaButtonProps) => {
+  const { isInstallable, promptInstall } = usePwaInstall();
+  // We use the store to detect the theme, assuming Header keeps it synced
+
+
+  if (!isInstallable) return null;
+
+  // Animation Colors Configuration
+  // Light Mode: Up (Red) / Down (Black)
+  // Dark Mode: Up (Red) / Down (White)
+  const colors = isDarkTheme
+    ? ['#ef4444', '#ffffff', '#ef4444']
+    : ['#ef4444', '#000000', '#ef4444'];
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={promptInstall}
+      className="hover:bg-black/10 dark:hover:bg-white/10 font-bold"
+      title="Instalar App en PC"
+    >
+      <motion.div
+        animate={{
+          y: [-4, 0, -4],
+          color: colors,
+        }}
+        transition={{
+          duration: 1.2,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+      >
+        <MonitorDown size={24} className="drop-shadow-lg" />
+      </motion.div>
+    </Button>
+  );
+};
+
+const NotificationButton = () => {
+  const { permission, requestPermission } = useNotifications();
+  // Simulación de notificaciones sin leer (esto debería venir de un store o API real)
+  // POR PEDIDO DEL USUARIO: Desactivado por defecto hasta tener lógica real
+  const [hasUnread, setHasUnread] = useState(false);
+
+  // Al hacer click, solicitamos permiso Y marcamos como leídas
+  const handleClick = () => {
+    requestPermission();
+    setHasUnread(false);
+  };
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={handleClick}
+      className="text-black dark:text-white hover:bg-black/10 dark:hover:bg-white/10 relative"
+      title="Notificaciones"
+    >
+      <Bell size={20} />
+      {hasUnread && (
+        <motion.span
+          className="absolute bottom-2 right-2 w-[9px] h-[9px] bg-red-500 rounded-full border border-white dark:border-black"
+          animate={{
+            y: [0, -3, 0], // Reduced movement slightly to match smaller size
+          }}
+          transition={{
+            duration: 1.5, // Slower bounce
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+      )}
+    </Button>
+  );
+};
 
 const Header = () => {
   const { viewMode, setViewMode } = usePlayerStore();
@@ -84,10 +175,16 @@ const Header = () => {
             {isDarkTheme ? <Sun size={20} /> : <Moon size={20} />}
           </Button>
 
+          {/* Notificaciones (Desktop) */}
+          <NotificationButton />
+
           {/* 2. Compartir */}
           <Button variant="ghost" size="icon" onClick={handleShare} className="text-black dark:text-white hover:bg-black/10 dark:hover:bg-white/10">
             <Share2 size={20} />
           </Button>
+
+          {/* 3. Instalar PWA (Monitor) - Ubicación solicitada */}
+          <InstallPwaButton isDarkTheme={isDarkTheme} />
 
           {/* Acceso Mobile (QR) */}
           <Button variant="ghost" size="icon" onClick={() => setIsQRModalOpen(true)} className="text-black dark:text-white hover:bg-black/10 dark:hover:bg-white/10">

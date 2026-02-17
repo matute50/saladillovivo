@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import AdsSection from './AdsSection';
 import dynamic from 'next/dynamic';
+
+const AdsSection = dynamic(() => import('./AdsSection'), { ssr: false });
 const VideoSection = dynamic(() => import('./VideoSection'), { ssr: false });
+const NewsTicker = dynamic(() => import('../NewsTicker'), { ssr: false });
 
 import type { PageData } from '@/lib/types';
 import CategoryCycler from './CategoryCycler';
@@ -13,7 +15,6 @@ import { usePlayerStore } from '@/store/usePlayerStore';
 import { useVolumeStore } from '@/store/useVolumeStore';
 import NoResultsCard from './NoResultsCard';
 import NewsCard from '../NewsCard';
-import NewsTicker from '../NewsTicker';
 import { shuffleArray } from '@/lib/utils'; // Import shuffleArray
 
 interface DesktopLayoutProps {
@@ -90,7 +91,7 @@ const DesktopLayout = ({ data }: DesktopLayoutProps) => {
   return (
     <>
 
-      <main className="w-full bg-gray-100 dark:bg-neutral-950 pt-[calc(var(--desktop-header-height)-65px)]">
+      <main className="w-full pt-[calc(var(--desktop-header-height)-65px)]">
         <div className="container mx-auto px-2">
           <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-4 relative">
 
@@ -147,6 +148,7 @@ const DesktopLayout = ({ data }: DesktopLayoutProps) => {
                         onNext={handleNextCategory}
                         onPrev={handlePrevCategory}
                         instanceId="1"
+                        loop={true}
                       />
                     )
                   )}

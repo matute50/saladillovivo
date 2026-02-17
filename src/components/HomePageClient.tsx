@@ -17,15 +17,10 @@ const HomePageClient = ({ initialData }: { initialData: PageData }) => {
   useEffect(() => {
     setMounted(true);
 
-    // 2. Debug de datos (Ayuda a detectar los "faltantes" en la consola del PC)
-    if (process.env.NODE_ENV === 'development') {
-      console.log("Saladillo Vivo - Datos cargados:", {
-        articulos: initialData?.articles?.secondaryNews?.length || 0,
-        noticiaPrincipal: !!initialData?.articles?.featuredNews,
-        videos: initialData?.videos?.recentVideos?.length || 0,
-        eventos: initialData?.events?.length || 0
-      });
-    }
+    // 2. Debug de datos (Opcional, comentado para producción)
+    /* if (process.env.NODE_ENV === 'development') {
+       console.log("Saladillo Vivo - Datos cargados:", { ... });
+    } */
 
     loadInitialPlaylist(null); // Call to initiate playback
   }, [initialData, loadInitialPlaylist]);

@@ -50,11 +50,15 @@ const VideoSection: React.FC = () => {
   const isNewsContent = !!(currentVideo?.categoria === 'Noticias' && !isLocalIntro);
 
   useEffect(() => {
-    if ((isNewsContent || isHtmlSlideActive) && isMuted) {
-      console.log("Unmuting for News content...");
-      unmute();
+    if ((isNewsContent || isHtmlSlideActive)) {
+      if (isMuted) {
+        console.log("Unmuting and forcing volumen 100% for News content...");
+        unmute();
+      }
+      // Force 100% Volume rule (User Request)
+      setVolume(1);
     }
-  }, [isNewsContent, isHtmlSlideActive, isMuted, unmute]);
+  }, [isNewsContent, isHtmlSlideActive, isMuted, unmute, setVolume]);
 
   const [showControls, setShowControls] = useState(false);
   const [thumbnailSrc, setThumbnailSrc] = useState<string>('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=');
@@ -515,7 +519,7 @@ const VideoSection: React.FC = () => {
           </div>
         </div>
       </div>
-      {viewMode === 'diario' && <VideoTitleBar className="mt-2" />}
+      {viewMode === 'diario' && <VideoTitleBar className="mt-0 rounded-t-none border-t-0" />}
     </div>
   );
 

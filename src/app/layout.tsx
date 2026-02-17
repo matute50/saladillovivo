@@ -19,6 +19,7 @@ export const metadata: Metadata = {
     locale: "es_AR",
     type: "website",
   },
+  manifest: '/manifest.json',
 };
 
 export const viewport: Viewport = {
@@ -36,6 +37,12 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#000000" />
+        <link rel="preconnect" href="https://img.youtube.com" />
+        <link rel="preconnect" href="https://storage.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" />
         <link rel="preconnect" href="https://media.saladillovivo.com.ar" />
         <link rel="preconnect" href="https://www.youtube.com" />
       </head>

@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import CreatorModal from './modals/CreatorModalNew';
-import ImageModal from './ImageModal';
+import dynamic from 'next/dynamic';
+
+const CreatorModal = dynamic(() => import('./modals/CreatorModalNew'), { ssr: false });
+const ImageModal = dynamic(() => import('./ImageModal'), { ssr: false });
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -73,8 +75,8 @@ const Footer = () => {
         </div>
       </div>
 
-      <CreatorModal isOpen={isCreatorModalOpen} onClose={() => setCreatorModalOpen(false)} />
-      <ImageModal isOpen={isDecretoModalOpen} onClose={() => setDecretoModalOpen(false)} imageUrl={decretoImageUrl} imageAlt="Decreto H.C.D. Nro. 37/2022" />
+      {isCreatorModalOpen && <CreatorModal isOpen={isCreatorModalOpen} onClose={() => setCreatorModalOpen(false)} />}
+      {isDecretoModalOpen && <ImageModal isOpen={isDecretoModalOpen} onClose={() => setDecretoModalOpen(false)} imageUrl={decretoImageUrl} imageAlt="Decreto H.C.D. Nro. 37/2022" />}
     </footer>
   );
 };

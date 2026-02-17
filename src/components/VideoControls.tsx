@@ -3,11 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { usePlayerStore } from '@/store/usePlayerStore';
 import { useNewsStore } from '@/store/useNewsStore'; // Use news store
-import { Play, Pause, Maximize, Minimize, VolumeX, Volume2, Volume1, Search, Newspaper, X, Cast } from 'lucide-react';
+import { Play, Pause, Maximize, Minimize, VolumeX, Volume2, Volume1, Search, Newspaper, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useVolumeStore } from '@/store/useVolumeStore'; // Use volume store
 import { useDebounce } from '@/hooks/useDebounce'; // Import useDebounce hook
-import { useChromecast } from '@/hooks/useChromecast'; // Imort useChromecast hook
+
 
 interface VideoControlsProps {
   showControls: boolean;
@@ -26,7 +26,7 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onToggleFul
   const { volume, isMuted, setVolume, toggleMute } = useVolumeStore();
   const { searchQuery } = useNewsStore();
 
-  const { isAvailable, isConnected, requestSession } = useChromecast(); // Use the hook
+
 
   const [localQuery, setLocalQuery] = useState(searchQuery);
   const debouncedQuery = useDebounce(localQuery, 400);
@@ -130,12 +130,7 @@ const VideoControls: React.FC<VideoControlsProps> = ({ showControls, onToggleFul
               {!localQuery && <Search size={20} className="absolute right-3 text-white/70" />}
             </div>
 
-            {/* Chromecast Button */}
-            {isAvailable && (
-              <button onClick={requestSession} className={`transition-colors ${isConnected ? 'text-blue-500' : 'text-white'}`}>
-                <Cast size={24} />
-              </button>
-            )}
+
 
             <button onClick={onSwitchToDailyMode} className="text-white transition-colors">
               <Newspaper size={24} />

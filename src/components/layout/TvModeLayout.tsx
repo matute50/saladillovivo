@@ -7,9 +7,9 @@ import TvContentRail from '../tv/TvContentRail';
 import { useNewsStore } from '@/store/useNewsStore';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { usePlayerStore } from '@/store/usePlayerStore'; // Importar el store del reproductor
-import { useNewsPlayerStore } from '@/store/useNewsPlayerStore'; // Importar store de noticias
-import { CategoryMapping } from '@/lib/categoryMappings'; // Importar CategoryMapping
+import { usePlayerStore } from '@/store/usePlayerStore';
+import { useNewsPlayerStore } from '@/store/useNewsPlayerStore';
+import { CategoryMapping } from '@/lib/categoryMappings';
 
 // Definir las categorías elegibles para el inicio aleatorio
 const INITIAL_TV_CATEGORIES: CategoryMapping[] = [
@@ -106,8 +106,7 @@ const TvModeLayout = () => {
 
 
 
-  // Detectar si hay un slide HTML reproduciéndose
-  // const isHtmlSlide = isSlidePlaying && currentSlide && currentSlide.type === 'html';
+
 
 
 
@@ -120,8 +119,8 @@ const TvModeLayout = () => {
     >
       <div className="absolute inset-0 z-0">
         <VideoSection />
-        {/* Capa transparente para capturar clicks y mostrar overlays */}
-        <div className="absolute inset-0 z-10" onClick={showOverlays} />
+        {/* Capa transparente para capturar clicks y mostrar/ocultar overlays */}
+        <div className="absolute inset-0 z-10" onClick={toggleOverlays} />
       </div>
 
 
@@ -149,21 +148,23 @@ const TvModeLayout = () => {
 
       {/* 3. UI Overlay - IMPORTANTE: pointer-events-none para no bloquear el fondo */}
       <div
-        className={`absolute inset-0 z-30 flex flex-col justify-between h-full transition-opacity duration-500 ease-in-out pointer-events-none ${isOverlayVisible ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 z-30 flex flex-col justify-between h-full transition-opacity duration-500 ease-in-out pointer-events-none will-change-[opacity] ${isOverlayVisible ? 'opacity-100' : 'opacity-0'}`}
 
       >
         <div
           className={`bg-gradient-to-b from-black/80 to-transparent p-8 ${isOverlayVisible ? 'pointer-events-auto' : 'pointer-events-none'}`}
 
         >
-          <Image
-            src="/FONDO_OSCURO.png"
-            alt="Saladillo Vivo Logo"
-            width={192}
-            height={48}
-            className="h-auto w-48 object-contain"
-            priority
-          />
+          <div className="bg-black/10 backdrop-blur-lg shadow-lg shadow-black/50 rounded-md p-4 inline-block">
+            <Image
+              src="/FONDO_OSCURO.png"
+              alt="Saladillo Vivo Logo"
+              width={288}
+              height={72}
+              className="h-auto w-72 object-contain"
+              priority
+            />
+          </div>
         </div>
 
         <div

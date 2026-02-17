@@ -118,8 +118,10 @@ export async function getVideosForHome(limitRecent: number = 4) {
   const { data, error } = await supabase
     .from('videos')
     .select('id, nombre, url, createdAt, categoria, imagen, novedad, forzar_video, volumen_extra')
+    .select('id, nombre, url, createdAt, categoria, imagen, novedad, forzar_video, volumen_extra')
     .not('categoria', 'ilike', '%HCD%')
-    .order('createdAt', { ascending: false });
+    .order('createdAt', { ascending: false })
+    .limit(200); // OPTIMIZACIÓN: Límite duro para evitar descarga masiva (carga inicial rápida)
 
   if (error) {
     console.error('Error fetching videos:', error);
@@ -193,60 +195,59 @@ export async function getRandomVideo(): Promise<Video | null> {
 }
 
 export async function getNewRandomVideo(currentId?: string, currentCategory?: string): Promise<Video | null> {
-  const { data, error } = await supabase
+  // OPTIMIZACIÓN: 1. Traer solo IDs y Categorías (Payload mínimo)
+  const { data: candidatesRaw, error } = await supabase
     .from('videos')
-    .select('id, nombre, url, createdAt, categoria, imagen, novedad, forzar_video, volumen_extra')
+    .select('id, categoria')
     .not('categoria', 'ilike', '%HCD%');
 
   if (error) {
-    console.error('Error fetching videos for random selection:', error);
+    console.error('Error fetching video IDs for random selection:', error);
     return null;
   }
 
-  if (!data || data.length === 0) {
-    return null; // No videos in DB
+  if (!candidatesRaw || candidatesRaw.length === 0) {
+    return null;
   }
 
-  const allAvailableVideos: Video[] = data as Video[];
-  let candidates: Video[] = [...allAvailableVideos]; // Start with all videos
+  let candidates = candidatesRaw;
 
-  // 1. Exclude currentId if provided
+  // 2. Filtrado en Memoria (Rápido porque son pocos bytes)
   if (currentId) {
     candidates = candidates.filter(video => video.id !== currentId);
   }
 
-  // 2. Filter by currentCategory if provided and if it leaves videos
-  if (currentCategory) { // Apply category filter only if currentCategory is provided
+  if (currentCategory) {
     const categoryFiltered = candidates.filter(video => video.categoria !== currentCategory);
+    // Solo aplicamos filtro si quedan videos (fallback a cualquier categoría si no hay)
     if (categoryFiltered.length > 0) {
       candidates = categoryFiltered;
     }
-    // If category filter left no videos, we stick with 'candidates' before category filter.
-    // This ensures we always have videos unless the initial fetch was empty or currentId removed all.
   }
 
-  // 3. If after all filtering, candidates list is empty, 
-  //    revert to playing any random video from original data (excluding currentId if possible)
+  // Fallback: Si nos quedamos sin candidatos (ej: solo había 1 video y era currentId), 
+  // volvemos a usar todos los IDs disponibles (excluyendo currentId si es posible)
   if (candidates.length === 0) {
-    if (allAvailableVideos.length > 0) {
-      // If currentId was the *only* video, then playing it again is the only option
-      if (allAvailableVideos.length === 1 && allAvailableVideos[0].id === currentId) {
-        return allAvailableVideos[0];
-      }
-      // Otherwise, pick a random from all available (excluding currentId if possible)
-      let finalFallbackCandidates = allAvailableVideos.filter(video => video.id !== currentId);
-      if (finalFallbackCandidates.length === 0) {
-        finalFallbackCandidates = allAvailableVideos; // If currentId excluded all, use all
-      }
-      const randomIndex = Math.floor(Math.random() * finalFallbackCandidates.length);
-      return finalFallbackCandidates[randomIndex];
-    } else {
-      return null; // No videos in DB at all (should be caught by initial data.length check)
-    }
+    candidates = candidatesRaw.filter(v => v.id !== currentId);
+    if (candidates.length === 0) candidates = candidatesRaw; // Último recurso: repetir el mismo
   }
 
-  const randomIndex = Math.floor(Math.random() * candidates.length);
-  return candidates[randomIndex];
+  // 3. Selección Aleatoria
+  const randomSelection = candidates[Math.floor(Math.random() * candidates.length)];
+
+  // 4. Fetch de Detalles (Solo 1 video real)
+  const { data: fullVideo, error: videoError } = await supabase
+    .from('videos')
+    .select('id, nombre, url, createdAt, categoria, imagen, novedad, forzar_video, volumen_extra')
+    .eq('id', randomSelection.id)
+    .single();
+
+  if (videoError) {
+    console.error('Error fetching details for random video:', videoError);
+    return null;
+  }
+
+  return fullVideo;
 }
 
 export async function getTickerTexts(): Promise<string[]> {

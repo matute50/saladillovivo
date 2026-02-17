@@ -58,7 +58,7 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
   if (!activeCategory) return null;
 
   return (
-    <div className="w-full flex flex-col gap-4 mt-[-1px] mb-2">
+    <div className="w-full flex flex-col gap-4 -mt-[11px] mb-2">
       <div className="flex items-baseline justify-center w-full z-10 mt-[10px]">
         {!isSearchResult && onPrev && (
           <motion.button
@@ -71,7 +71,7 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
             <ChevronLeft size="20" />
           </motion.button>
         )}
-        <h2 className="text-xl lg:text-3xl font-bold tracking-tight text-white truncate text-center mx-2 drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)]">
+        <h2 className={`text-xl lg:text-3xl font-bold tracking-tight text-white truncate text-center mx-2 drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)] ${instanceId.startsWith('tv') ? 'bg-black/10 backdrop-blur-lg shadow-lg shadow-black/50 rounded-md px-6 py-2' : ''}`}>
           {activeCategory.display}
         </h2>
         {!isSearchResult && onNext && (

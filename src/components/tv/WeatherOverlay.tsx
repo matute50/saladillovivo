@@ -13,24 +13,40 @@ import {
 import { cn } from '@/lib/utils';
 
 // Helper for icons (Duplicated from Widget for now, can be extracted to utils later)
+// Helper for icons (Duplicated from Widget for now, can be extracted to utils later)
 const getWeatherIcon = (code: number, isDay: boolean = true) => {
+    // Sunny / Clear
     if (code === 1000) {
         return isDay
-            ? <Sun size={50} className="text-yellow-400 fill-yellow-400 drop-shadow-[0_0_12px_rgba(250,204,21,0.6)]" />
-            : <Moon size={50} className="text-indigo-200 drop-shadow-[0_0_12px_rgba(199,210,254,0.3)]" />;
+            ? <Sun size={50} className="text-amber-500 dark:text-yellow-400 drop-shadow-[0_0_12px_rgba(250,204,21,0.6)]" />
+            : <Moon size={50} className="text-indigo-600 dark:text-indigo-200 drop-shadow-[0_0_12px_rgba(199,210,254,0.3)]" />;
     }
-    if (code === 1003) return <Cloud size={50} className={cn(isDay ? "text-sky-300" : "text-slate-400")} />;
-    if (code === 1006 || code === 1009) return <Cloud size={50} className="text-slate-400" />;
-    if (code === 1030 || code === 1135 || code === 1147) return <CloudFog size={50} className="text-slate-300/80" />;
-    if ([1063, 1150, 1153, 1180, 1183].includes(code)) return <CloudDrizzle size={50} className="text-cyan-400" />;
+
+    // Part cloudy (1003)
+    if (code === 1003) return <Cloud size={50} className={cn(isDay ? "text-sky-700 dark:text-sky-300" : "text-slate-600 dark:text-slate-400")} />;
+
+    // Cloudy / Overcast (1006, 1009)
+    if (code === 1006 || code === 1009) return <Cloud size={50} className="text-slate-600 dark:text-slate-400" />;
+
+    // Mist, Fog (1030, 1135, 1147)
+    if (code === 1030 || code === 1135 || code === 1147) return <CloudFog size={50} className="text-slate-500 dark:text-slate-300/80" />;
+
+    // Patchy rain, light drizzle (1063, 1150, 1153, 1180, 1183)
+    if ([1063, 1150, 1153, 1180, 1183].includes(code)) return <CloudDrizzle size={50} className="text-cyan-700 dark:text-cyan-400" />;
+
+    // Moderate/Heavy Rain (1186, 1189, 1192, 1195, 1240, 1243, 1246)
     if ([1186, 1189, 1192, 1195, 1240, 1243, 1246].includes(code)) {
-        return <CloudRain size={50} className="text-blue-500 drop-shadow-[0_0_8px_rgba(59,130,246,0.3)]" />;
+        return <CloudRain size={50} className="text-blue-700 dark:text-blue-500 drop-shadow-[0_0_8px_rgba(59,130,246,0.3)]" />;
     }
-    if (code >= 1210 && code <= 1258 || [1066, 1114, 1117].includes(code)) return <CloudSnow size={50} className="text-blue-50" />;
+
+    // Snow (1066, 1114, 1117, 1210-1225, 1255-1258)
+    if (code >= 1210 && code <= 1258 || [1066, 1114, 1117].includes(code)) return <CloudSnow size={50} className="text-sky-800 dark:text-blue-50" />;
+
+    // Thundery outbreaks (1087, 1273, 1276, 1279, 1282)
     if ([1087, 1273, 1276, 1279, 1282].includes(code)) {
-        return <CloudLightning size={50} className="text-amber-400 drop-shadow-[0_0_15px_rgba(251,191,36,0.6)]" />;
+        return <CloudLightning size={50} className="text-amber-600 dark:text-amber-400 drop-shadow-[0_0_15px_rgba(251,191,36,0.6)]" />;
     }
-    return <Wind size={50} className="text-teal-300" />;
+    return <Wind size={50} className="text-teal-700 dark:text-teal-300" />;
 };
 
 const WeatherOverlay = () => {

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
+import SmartImage from '@/components/ui/SmartImage';
 import { motion } from 'framer-motion';
 import { Play } from 'lucide-react';
 import { SlideMedia } from '@/lib/types';
@@ -10,7 +11,7 @@ import { useNewsPlayerStore } from '@/store/useNewsPlayerStore';
 import { cn, cleanTitle } from '@/lib/utils';
 import { usePlayerStore } from '@/store/usePlayerStore';
 
-// 1. CORRECCIÓN CLAVE: Aseguramos que la interfaz acepte 'onCardClick'
+
 interface NewsCardProps {
   newsItem: any;
   index?: number;
@@ -138,18 +139,17 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
         "cursor-pointer",
         className
       )}
-      onClick={handlePlaySlide} // 2. CORRECCIÓN UX: Clic general dispara video
+      onClick={handlePlaySlide}
     >
       <div className="relative w-full h-full aspect-video overflow-hidden bg-black">
-        <Image
+        <SmartImage
           src={finalImageUrl}
           alt={title || 'Noticia'}
           fill
-          className="object-cover transition-transform duration-700 group-hover:scale-110"
+          className="object-cover transition-transform duration-700 group-hover:scale-110 will-change-transform"
           priority={priority}
           loading={priority ? 'eager' : 'lazy'}
-          unoptimized={true}
-          onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='; }}
+
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-90" />
 
@@ -162,7 +162,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
         )}
 
         <div className="absolute bottom-0 left-0 w-full p-4 pr-12"> {/* pr-12 para dejar espacio al icono play */}
-          <h3 className={`font-bold ${titleSizeClass} text-white leading-tight drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] group-hover:text-blue-200 transition-colors line-clamp-3`}>
+          <h3 className={`font-bold ${titleSizeClass} text-white leading-tight [text-shadow:0_4px_8px_black,0_0_20px_black,0_0_10px_black] group-hover:text-blue-200 transition-colors line-clamp-3`}>
             {title}
           </h3>
         </div>
