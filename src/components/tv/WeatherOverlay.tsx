@@ -71,6 +71,15 @@ const WeatherOverlay = () => {
     const formatShortDate = (dateStr: string) => {
         const [year, month, day] = dateStr.split('-').map(Number);
         const dateObj = new Date(year, month - 1, day);
+        const today = new Date();
+
+        // Check if it's today
+        if (dateObj.getDate() === today.getDate() &&
+            dateObj.getMonth() === today.getMonth() &&
+            dateObj.getFullYear() === today.getFullYear()) {
+            return 'HOY';
+        }
+
         const weekday = dateObj.toLocaleDateString('es-ES', { weekday: 'short' }).toUpperCase().replace('.', '');
         const dayNum = day.toString().padStart(2, '0');
         const monthNum = month.toString().padStart(2, '0');

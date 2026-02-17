@@ -54,7 +54,7 @@ export const useWeather = () => {
                     isDay: !!data.current.is_day,
                     conditionText: data.current.condition.text,
                 },
-                forecast: data.forecast.forecastday.slice(1).map((day: any) => ({
+                forecast: data.forecast.forecastday.map((day: any) => ({
                     date: day.date,
                     maxTemp: Math.round(day.day.maxtemp_c),
                     minTemp: Math.round(day.day.mintemp_c),
