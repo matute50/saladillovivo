@@ -19,7 +19,7 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
   const { volume, setVolume } = useVolumeStore();
   const { toast } = useToast();
   const swiperRef = useRef(null);
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
   const { buttonColor, buttonBorderColor } = useThemeButtonColors();
 
 
@@ -148,7 +148,6 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
           const uniqueKey = `${video.id || video.url}-${index}`;
           const isLiveOrEvent = isLive || video.isLiveThumbnail || video.isEvent;
 
-          const slideClasses = "transition-all duration-300 ease-in-out opacity-100 blur-none";
           const titleOverlayClasses = "absolute inset-0 p-2 bg-gradient-to-t from-black/80 to-transparent flex justify-center items-end text-center opacity-100 z-20 transition-opacity duration-300 ease-in-out";
 
           const thumbUrl = getYoutubeThumbnail(video);
@@ -159,8 +158,6 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
               virtualIndex={index}
               style={{ width: 'auto', backfaceVisibility: 'hidden', transform: 'translate3d(0,0,0)' }}
               className="opacity-100 blur-none"
-              onMouseEnter={() => !loop && videos.length === 2 && setHoveredIndex(index)}
-              onMouseLeave={() => !loop && videos.length === 2 && setHoveredIndex(null)}
             >
               <div
                 onClick={() => handleVideoClick(video)}

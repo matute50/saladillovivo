@@ -16,7 +16,7 @@ const WeatherWidget = dynamic(() => import('@/components/ui/WeatherWidget'), {
   ssr: false
 });
 import { useNotifications } from '@/hooks/useNotifications';
-import { Bell, BellOff } from 'lucide-react';
+import { Bell } from 'lucide-react';
 
 import { usePwaInstall } from '@/hooks/usePwaInstall';
 import { MonitorDown } from 'lucide-react';
@@ -65,7 +65,7 @@ const InstallPwaButton = ({ isDarkTheme }: InstallPwaButtonProps) => {
 };
 
 const NotificationButton = () => {
-  const { permission, requestPermission } = useNotifications();
+  const { requestPermission } = useNotifications();
   // Simulación de notificaciones sin leer (esto debería venir de un store o API real)
   // POR PEDIDO DEL USUARIO: Desactivado por defecto hasta tener lógica real
   const [hasUnread, setHasUnread] = useState(false);

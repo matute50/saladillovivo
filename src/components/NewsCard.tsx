@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
+
 import SmartImage from '@/components/ui/SmartImage';
 import { motion } from 'framer-motion';
 import { Play } from 'lucide-react';

@@ -45,17 +45,15 @@ const TvModeLayout = () => {
     setIsCarouselVisible(prev => !prev);
   }, []);
 
+
+
   // Ocultar overlays (al elegir contenido)
   const hideOverlays = useCallback(() => {
     setIsOverlayVisible(false);
     setIsCarouselVisible(false);
   }, []);
 
-  // Mostrar overlays (al hacer click en video)
-  const showOverlays = useCallback(() => {
-    setIsOverlayVisible(true);
-    setIsCarouselVisible(true);
-  }, []);
+
 
   // Handler para tecla ENTER
   useEffect(() => {
