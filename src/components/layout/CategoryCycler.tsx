@@ -19,6 +19,7 @@ interface CategoryCyclerProps {
   instanceId: string;
   isSearchResult?: boolean;
   onCardClick?: (item: any) => void;
+  loop?: boolean;
 }
 
 const CategoryCycler: React.FC<CategoryCyclerProps> = ({
@@ -28,7 +29,8 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
   onPrev,
   instanceId,
   isSearchResult = false,
-  onCardClick
+  onCardClick,
+  loop = false
 }) => {
 
   const filteredVideos = useMemo(() => {
@@ -92,6 +94,7 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
           isLoading={false}
           carouselId={`category-cycler-${instanceId}`}
           onVideoClick={onCardClick}
+          loop={loop}
         />
       </div>
     </div>

@@ -14,7 +14,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Video, ExclusiveVideoCarouselProps } from '@/lib/types';
 import { cleanTitle } from '@/lib/utils';
 
-const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos, isLoading, carouselId, isLive = false, onVideoClick }) => {
+const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos, isLoading, carouselId, isLive = false, onVideoClick, loop = false }) => {
   const { playSpecificVideo, playLiveStream, streamStatus } = usePlayerStore();
   const { volume, setVolume } = useVolumeStore();
   const { toast } = useToast();
@@ -85,6 +85,25 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
     }
   };
 
+  // Lógica para loop infinito robusto
+  const displayVideos = React.useMemo(() => {
+    if (!loop || !videos || videos.length === 0) return videos;
+
+    // Si se solicita loop, asegurar suficientes slides para Swiper (mínimo ~6-8 para evitar glitches visuales en pantallas anchas)
+    const MIN_SLIDES = 8;
+    let currentVideos = [...videos];
+
+    // Duplicar hasta alcanzar el mínimo
+    while (currentVideos.length < MIN_SLIDES) {
+      currentVideos = [...currentVideos, ...videos];
+    }
+
+    return currentVideos;
+  }, [videos, loop]);
+
+  const shouldLoop = loop || (videos.length > 3 && videos.length !== 2);
+  const slidesToRender = displayVideos;
+
   if (isLoading) {
     return <div className="relative w-full flex items-center justify-center min-h-[126px] bg-muted/50 animate-pulse rounded-lg"></div>;
   }
@@ -93,24 +112,22 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
     return <div className="relative w-full flex items-center justify-center min-h-[126px] text-muted-foreground rounded-lg bg-muted/20">No hay contenido disponible.</div>;
   }
 
-
-
   return (
     <div className="relative w-full flex items-center justify-center rounded-xl p-4">
       <Swiper
         ref={swiperRef}
-        slidesPerView={videos.length === 2 ? 2 : 'auto'}
-        centeredSlides={videos.length === 2 ? false : true}
-        initialSlide={videos.length === 2 ? 0 : (videos.length > 1 ? 1 : 0)}
+        slidesPerView={!loop && videos.length === 2 ? 2 : 'auto'}
+        centeredSlides={!loop && videos.length === 2 ? false : true}
+        initialSlide={!loop && videos.length === 2 ? 0 : (videos.length > 1 ? 1 : 0)}
         spaceBetween={12}
-        loop={videos.length === 2 ? false : (videos.length > 3)}
+        loop={shouldLoop}
         navigation={{
           prevEl: `#prev-${carouselId}`,
           nextEl: `#next-${carouselId}`,
         }}
         modules={[Navigation]}
       >
-        {videos.map((video, index) => {
+        {slidesToRender.map((video, index) => {
           const isLiveOrEvent = isLive || video.isLiveThumbnail || video.isEvent;
 
           const slideClasses = "transition-all duration-300 ease-in-out opacity-100 blur-none";
@@ -119,7 +136,7 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
           // La lógica de clase para slideClasses y titleOverlayClasses se ha simplificado
           // para que siempre estén visibles y sin blur/opacidad dinámica para el fondo y título.
           // El z-index ya se gestiona en titleOverlayClasses.
-          if (videos.length === 2) {
+          if (!loop && videos.length === 2) {
             const isActiveByHover = (hoveredIndex === null && index === 0) || hoveredIndex === index;
             if (isActiveByHover) {
               // No es necesario añadir z-20 aquí si ya está en titleOverlayClasses
@@ -134,11 +151,12 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
 
           return (
             <SwiperSlide
-              key={video.id || video.url}
+              // Usar composite key para permitir duplicados en loop mode
+              key={`${video.id || video.url}-${index}`}
               style={{ width: 'auto' }}
               className={slideClasses}
-              onMouseEnter={() => videos.length === 2 && setHoveredIndex(index)}
-              onMouseLeave={() => videos.length === 2 && setHoveredIndex(null)}
+              onMouseEnter={() => !loop && videos.length === 2 && setHoveredIndex(index)}
+              onMouseLeave={() => !loop && videos.length === 2 && setHoveredIndex(null)}
             >
               <div
                 onClick={() => handleVideoClick(video)}

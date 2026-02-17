@@ -208,6 +208,7 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
           onPrev={undefined}
           onCardClick={handleCardClick}
           instanceId="tv-latest-news"
+          loop={true}
         />
 
         {/* Dynamic Category Cycler */}
@@ -219,6 +220,7 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
             onPrev={handlePrevCategory}
             onCardClick={handleCardClick}
             instanceId="tv-carousel"
+            loop={true}
           />
         )}
       </div>
