@@ -116,15 +116,12 @@ const TvModeLayout = () => {
   return (
 
     <div
-
       className="relative h-screen w-screen overflow-hidden bg-black"
-
-      onClick={showOverlays} // Click en cualquier lugar muestra overlays
-
     >
-
-      <div className="absolute inset-0 z-0" onClick={showOverlays}>
+      <div className="absolute inset-0 z-0">
         <VideoSection />
+        {/* Capa transparente para capturar clicks y mostrar overlays */}
+        <div className="absolute inset-0 z-10" onClick={showOverlays} />
       </div>
 
 
