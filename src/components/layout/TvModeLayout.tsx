@@ -153,7 +153,7 @@ const TvModeLayout = () => {
 
       >
         <div
-          className="bg-gradient-to-b from-black/80 to-transparent p-8 pointer-events-auto"
+          className={`bg-gradient-to-b from-black/80 to-transparent p-8 ${isOverlayVisible ? 'pointer-events-auto' : 'pointer-events-none'}`}
 
         >
           <Image
@@ -167,12 +167,12 @@ const TvModeLayout = () => {
         </div>
 
         <div
-          className="bg-gradient-to-t from-black/80 to-transparent p-8 pointer-events-auto"
+          className={`bg-gradient-to-t from-black/80 to-transparent p-8 ${isOverlayVisible ? 'pointer-events-auto' : 'pointer-events-none'}`}
 
         >
           <div className="flex justify-between items-end">
             <div
-              className="pointer-events-auto" // Permitir eventos de mouse en este div
+              className={isOverlayVisible ? 'pointer-events-auto' : 'pointer-events-none'} // Permitir eventos de mouse solo si es visible
 
             >
               <TvContentRail
@@ -188,7 +188,7 @@ const TvModeLayout = () => {
         </div>
 
         <div
-          className="absolute top-4 right-4 z-[60] flex items-center gap-2 pointer-events-auto"
+          className={`absolute top-4 right-4 z-[60] flex items-center gap-2 ${isOverlayVisible ? 'pointer-events-auto' : 'pointer-events-none'}`}
 
         >
           <div className="rounded-md p-2 bg-black/10 backdrop-blur-lg shadow-lg shadow-black/50">
