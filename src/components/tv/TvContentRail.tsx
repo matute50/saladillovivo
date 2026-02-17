@@ -21,9 +21,10 @@ interface TvContentRailProps {
   searchLoading: boolean;
   initialCategory?: CategoryMapping; // Nuevo prop para la categoría inicial
   isVisible?: boolean; // Nuevo prop para controlar la visibilidad
+  onVideoSelect?: () => void; // Callback cuando se elige un video
 }
 
-const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearching, searchLoading, initialCategory, isVisible = true }) => {
+const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearching, searchLoading, initialCategory, isVisible = true, onVideoSelect }) => {
   const { galleryVideos, allNews, isLoading: isLoadingNews } = useNewsStore();
   const { playSpecificVideo, playTemporaryVideo, setIsPlaying } = usePlayerStore();
   const { playSlide } = useNewsPlayerStore();
@@ -120,7 +121,10 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
     } else {
       playSpecificVideo(item as Video, volume, setVolume);
     }
-  }, [playSpecificVideo, playTemporaryVideo, playSlide, setIsPlaying, volume, setVolume]);
+
+    // Llamar callback para ocultar overlays
+    onVideoSelect?.();
+  }, [playSpecificVideo, playTemporaryVideo, playSlide, setIsPlaying, volume, setVolume, onVideoSelect]);
 
   const processThumbnails = useCallback((items: any[]) => {
     return items.map(item => {

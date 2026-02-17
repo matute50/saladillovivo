@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import VideoSection from './VideoSection';
 import VideoControls from '../VideoControls';
 import TvContentRail from '../tv/TvContentRail';
@@ -35,86 +35,42 @@ const TvModeLayout = () => {
     handleSearch(term);
   }, [handleSearch]);
 
-  const [isOverlayVisible, setIsOverlayVisible] = useState(false);
+  // Estado inicial: overlays visibles
+  const [isOverlayVisible, setIsOverlayVisible] = useState(true);
+  const [isCarouselVisible, setIsCarouselVisible] = useState(true);
 
-  const [isCarouselVisible, setIsCarouselVisible] = useState(false); // Nuevo estado para la visibilidad del carrusel
-
-
-
-  const hideOverlayTimer = useRef<NodeJS.Timeout | null>(null);
-
-  const hideCarouselTimer = useRef<NodeJS.Timeout | null>(null); // Nuevo timer para el carrusel
-
-
-
-  const [isFullScreen, setIsFullScreen] = useState(false);
-
-
-
-
-
-
-
-  const cancelHideTimer = () => {
-
-    if (hideOverlayTimer.current) {
-
-      clearTimeout(hideOverlayTimer.current);
-
-    }
-
-  };
-
-
-
-  const cancelHideCarouselTimer = () => { // Nueva función para cancelar el timer del carrusel
-
-    if (hideCarouselTimer.current) {
-
-      clearTimeout(hideCarouselTimer.current);
-
-    }
-
-  };
-
-
-
-  // Lógica Unificada de Inactividad (0.5s)
-  const resetIdleTimer = useCallback(() => {
-    cancelHideTimer();
-    cancelHideCarouselTimer();
-
-    setIsOverlayVisible(true);
-    setIsCarouselVisible(true);
-
-    // Timer único global: 500ms de inactividad ocultan todo
-    hideOverlayTimer.current = setTimeout(() => {
-      setIsOverlayVisible(false);
-      setIsCarouselVisible(false);
-    }, 500);
+  // Toggle overlays con tecla ENTER
+  const toggleOverlays = useCallback(() => {
+    setIsOverlayVisible(prev => !prev);
+    setIsCarouselVisible(prev => !prev);
   }, []);
 
+  // Ocultar overlays (al elegir contenido)
+  const hideOverlays = useCallback(() => {
+    setIsOverlayVisible(false);
+    setIsCarouselVisible(false);
+  }, []);
+
+  // Mostrar overlays (al hacer click en video)
+  const showOverlays = useCallback(() => {
+    setIsOverlayVisible(true);
+    setIsCarouselVisible(true);
+  }, []);
+
+  // Handler para tecla ENTER
   useEffect(() => {
-    // Listeners globales para detectar "actividad" real (mouse, teclado, toques)
-    const handleActivity = () => resetIdleTimer();
-
-    window.addEventListener('mousemove', handleActivity);
-    window.addEventListener('keydown', handleActivity);
-    window.addEventListener('click', handleActivity);
-    window.addEventListener('touchstart', handleActivity);
-
-    // Iniciar timer al montar
-    resetIdleTimer();
-
-    return () => {
-      window.removeEventListener('mousemove', handleActivity);
-      window.removeEventListener('keydown', handleActivity);
-      window.removeEventListener('click', handleActivity);
-      window.removeEventListener('touchstart', handleActivity);
-      cancelHideTimer();
-      cancelHideCarouselTimer();
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        toggleOverlays();
+      }
     };
-  }, [resetIdleTimer]);
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [toggleOverlays]);
+
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
 
 
@@ -163,11 +119,11 @@ const TvModeLayout = () => {
 
       className="relative h-screen w-screen overflow-hidden bg-black"
 
-      onMouseMove={resetIdleTimer} // El evento principal que controla la visibilidad
+      onClick={showOverlays} // Click en cualquier lugar muestra overlays
 
     >
 
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0 z-0" onClick={showOverlays}>
         <VideoSection />
       </div>
 
@@ -197,11 +153,11 @@ const TvModeLayout = () => {
       {/* 3. UI Overlay - IMPORTANTE: pointer-events-none para no bloquear el fondo */}
       <div
         className={`absolute inset-0 z-30 flex flex-col justify-between h-full transition-opacity duration-500 ease-in-out pointer-events-none ${isOverlayVisible ? 'opacity-100' : 'opacity-0'}`}
-        onMouseMove={resetIdleTimer}
+
       >
         <div
           className="bg-gradient-to-b from-black/80 to-transparent p-8 pointer-events-auto"
-          onMouseEnter={() => { cancelHideTimer(); setIsOverlayVisible(true); }}
+
         >
           <Image
             src="/FONDO_OSCURO.png"
@@ -215,12 +171,12 @@ const TvModeLayout = () => {
 
         <div
           className="bg-gradient-to-t from-black/80 to-transparent p-8 pointer-events-auto"
-          onMouseEnter={() => { cancelHideTimer(); setIsOverlayVisible(true); }}
+
         >
           <div className="flex justify-between items-end">
             <div
               className="pointer-events-auto" // Permitir eventos de mouse en este div
-              onMouseEnter={() => { cancelHideCarouselTimer(); setIsCarouselVisible(true); }}
+
             >
               <TvContentRail
                 searchResults={searchResults}
@@ -228,6 +184,7 @@ const TvModeLayout = () => {
                 searchLoading={searchLoading}
                 initialCategory={initialTvCategory} // Pasa la categoría inicial aleatoria
                 isVisible={isCarouselVisible} // Pasa la visibilidad al carrusel
+                onVideoSelect={hideOverlays} // Ocultar overlays al elegir video
               />
             </div>
           </div>
@@ -235,7 +192,7 @@ const TvModeLayout = () => {
 
         <div
           className="absolute top-4 right-4 z-[60] flex items-center gap-2 pointer-events-auto"
-          onMouseEnter={() => { cancelHideTimer(); setIsOverlayVisible(true); }}
+
         >
           <div className="rounded-md p-2 bg-black/10 backdrop-blur-lg shadow-lg shadow-black/50">
             <VideoControls
