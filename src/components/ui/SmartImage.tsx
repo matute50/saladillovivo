@@ -1,4 +1,4 @@
-
+import React from 'react';
 import Image, { ImageProps } from 'next/image';
 import { cn } from '@/lib/utils';
 
@@ -24,26 +24,30 @@ const SmartImage = ({
     isApk = false,
     ...props
 }: SmartImageProps) => {
-    // 1. Sanitize Source
-    let finalSrc = src;
+    const [currentSrc, setCurrentSrc] = React.useState<string | undefined | null>(src);
+    const [hasError, setHasError] = React.useState(false);
 
-    if (!finalSrc) finalSrc = fallbackSrc;
+    // Update currentSrc if the src prop changes
+    React.useEffect(() => {
+        setCurrentSrc(src);
+        setHasError(false);
+    }, [src]);
 
-    // 2. Determine Optimization Strategy
-    // Si estamos en modo APK o la imagen es un Data URI (placeholder), no optimizamos.
-    const isDataUri = finalSrc?.toString().startsWith('data:');
-    const shouldUnoptimize = isApk || isDataUri || props.unoptimized;
+    // 1. Determine Optimization Strategy
+    const isDataUri = currentSrc?.toString().startsWith('data:');
+    const isExternal = currentSrc?.toString().startsWith('http');
+    // Forzamos unoptimized si es APK, Data URI o una imagen externa que no sea de nuestro Supabase
+    const shouldUnoptimize = isApk || isDataUri || (isExternal && !currentSrc?.includes('supabase.co')) || props.unoptimized;
 
     return (
         <Image
-            src={finalSrc || fallbackSrc}
+            src={hasError ? fallbackSrc : (currentSrc || fallbackSrc)}
             alt={alt || "Imagen"}
             className={cn("transition-opacity duration-300", className)}
             unoptimized={shouldUnoptimize}
-            onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                if (target.src !== fallbackSrc) {
-                    target.src = fallbackSrc;
+            onError={() => {
+                if (!hasError) {
+                    setHasError(true);
                 }
             }}
             {...props}

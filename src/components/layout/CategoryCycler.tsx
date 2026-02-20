@@ -39,20 +39,26 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
     if (isSearchResult) return safeVideos;
     if (!activeCategory) return [];
 
-    // Si es NOTICIAS, devolvemos todo (TvContentRail ya lo filtró)
-    if (activeCategory.dbCategory === '__NOTICIAS__') {
+    const dbCategoryTarget = activeCategory.dbCategory;
+
+    // --- VIRTUAL CATEGORIES ---
+    if (dbCategoryTarget === '__NOTICIAS__') {
       return safeVideos;
     }
 
-    if (activeCategory.dbCategory === '__NOVEDADES__') {
+    if (dbCategoryTarget === '__NOVEDADES__') {
       return safeVideos.filter(video => video.novedad === true);
     }
 
-    const dbCategories = Array.isArray(activeCategory.dbCategory)
-      ? activeCategory.dbCategory
-      : [activeCategory.dbCategory];
+    // --- STANDARD CATEGORIES (ROBUST MATCHING) ---
+    const targetCategories = Array.isArray(dbCategoryTarget)
+      ? dbCategoryTarget.map(c => c.trim().toLowerCase())
+      : [dbCategoryTarget.trim().toLowerCase()];
 
-    return safeVideos.filter(video => dbCategories.includes(video.categoria));
+    return safeVideos.filter(video => {
+      const videoCat = (video.categoria || '').trim().toLowerCase();
+      return targetCategories.includes(videoCat);
+    });
   }, [allVideos, activeCategory, isSearchResult]);
 
   if (!activeCategory) return null;

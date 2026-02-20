@@ -40,10 +40,7 @@ export const usePwaInstall = () => {
         const choiceResult = await deferredPrompt.userChoice;
 
         if (choiceResult.outcome === 'accepted') {
-            console.log('User accepted the install prompt');
             setIsInstallable(false); // Hide button after install
-        } else {
-            console.log('User dismissed the install prompt');
         }
 
         // We've used the prompt, and can't use it again, throw it away

@@ -52,7 +52,7 @@ const VideoSection: React.FC = () => {
   useEffect(() => {
     if ((isNewsContent || isHtmlSlideActive)) {
       if (isMuted) {
-        console.log("Unmuting and forcing volumen 100% for News content...");
+
         unmute();
       }
       // Force 100% Volume rule (User Request)
@@ -186,7 +186,7 @@ const VideoSection: React.FC = () => {
       } else if (!isNewVideo) {
         // --- CASE: RESUME PLAY (Universal Anti-Branding V23.2) ---
         // Resume from Pause (or News) -> Hold Shield for 2s, then Zoom Out (1s)
-        console.log("Resuming -> Holding Shield for 2s");
+
         setAreCinematicBarsActive(true); // Ensure active
         clearTimer();
         cinematicTimerRef.current = setTimeout(() => {
@@ -200,7 +200,7 @@ const VideoSection: React.FC = () => {
       // --- CASE: PAUSED (Manual or Auto) ---
       // Force Shield + Over-Scaling immediately
       if (!isLocalIntro && !isHtmlSlideActive && !isPreRollOverlayActive && currentVideo) {
-        console.log("Paused -> Force Shield");
+
         setAreCinematicBarsActive(true);
         clearTimer(); // Keep active indefinitely while paused
       } else {
@@ -252,7 +252,7 @@ const VideoSection: React.FC = () => {
         !transitionSignaledRef.current &&
         isYouTubeVideo(currentVideo?.url || '')
       ) {
-        console.log("YouTube: Transición anticipada (1s antes del final)");
+
         transitionSignaledRef.current = true;
         handleOnEnded(setVolume);
       }
@@ -392,7 +392,7 @@ const VideoSection: React.FC = () => {
                       muted
                       className="w-full h-full object-cover"
                       onEnded={() => {
-                        console.log("Intro ended natively.");
+
                         finishIntro();
                       }}
                       onError={(e) => {

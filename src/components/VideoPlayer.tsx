@@ -62,7 +62,7 @@ export default function VideoPlayer({
     if (autoplay && playerRef.current) {
       const internal = playerRef.current.getInternalPlayer();
       if (internal && typeof internal.playVideo === 'function') {
-        console.log("VideoPlayer: Autoplay activated, forcing playVideo() immediately");
+
         internal.playVideo();
       }
     }
@@ -111,7 +111,7 @@ export default function VideoPlayer({
 
             // Si está pausado (2), canteado (5), no iniciado (-1, 0) o BUFFERING (3 - Force Kick)
             if (state === 2 || state === 5 || state === -1 || state === 0 || (state === 3 && !isPlayingInternal)) {
-              console.log(`VideoPlayer: Kicking player state: ${state} (Attempt ${kickAttemptsRef.current + 1})`);
+
 
               // AUTOPLAY POLICY FALLBACK:
               // If we are stuck in unstarted state for > 1s (4 attempts), usually means unmuted autoplay is blocked.

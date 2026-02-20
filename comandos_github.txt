@@ -1,3 +1,0 @@
-git add .
-git commit -m "fix: Corregir error de sintaxis en la importación de Metadata en layout.tsx"
-git push

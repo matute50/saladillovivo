@@ -42,8 +42,14 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
       if (category.dbCategory === '__NOTICIAS__') return allNews.length > 0;
       if (category.dbCategory === '__NOVEDADES__') return galleryVideos.some(video => video.novedad === true);
 
-      const dbCategories = Array.isArray(category.dbCategory) ? category.dbCategory : [category.dbCategory];
-      return galleryVideos.some(video => dbCategories.includes(video.categoria));
+      const targetCategories = Array.isArray(category.dbCategory)
+        ? category.dbCategory.map(c => c.trim().toLowerCase())
+        : [category.dbCategory.trim().toLowerCase()];
+
+      return galleryVideos.some(video => {
+        const videoCat = (video.categoria || '').trim().toLowerCase();
+        return targetCategories.includes(videoCat);
+      });
     });
   }, [galleryVideos, allNews, isLoadingNews]);
 

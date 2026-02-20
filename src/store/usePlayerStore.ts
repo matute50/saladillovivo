@@ -205,7 +205,7 @@ export const usePlayerStore = create<PlayerState>()(
             },
 
             loadInitialPlaylist: async (videoUrlToPlay) => {
-                console.log('PlayerStore: Initializing Zero-Branding Sequence...');
+
                 const intro = get().getRandomIntro();
 
                 if (videoUrlToPlay) {

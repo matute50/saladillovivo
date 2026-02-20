@@ -102,21 +102,6 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
         duration: duration,
         resumen: newsItem.resumen || newsItem.description
       };
-    } else if (hasAudioImage) {
-      mediaData = {
-        id: newsItem.id.toString(),
-        type: 'image',
-        url: "",
-        imageSourceUrl: finalImageUrl,
-        audioSourceUrl: audioUrl,
-        nombre: title,
-        createdAt: createdAt,
-        categoria: 'Noticias',
-        imagen: finalImageUrl,
-        novedad: true,
-        duration: duration,
-        resumen: newsItem.resumen || newsItem.description
-      };
     }
 
     if (mediaData) {

@@ -54,8 +54,17 @@ const DesktopLayout = ({ data }: DesktopLayoutProps) => {
       if (category.dbCategory === '__NOVEDADES__') {
         return shuffledVideos.some(video => video.novedad === true);
       }
-      const dbCategories = Array.isArray(category.dbCategory) ? category.dbCategory : [category.dbCategory];
-      return shuffledVideos.some(video => dbCategories.includes(video.categoria));
+      if (category.dbCategory === '__NOTICIAS__') {
+        return shuffledVideos.length > 0;
+      }
+      const targetCategories = Array.isArray(category.dbCategory)
+        ? category.dbCategory.map(c => c.trim().toLowerCase())
+        : [category.dbCategory.trim().toLowerCase()];
+
+      return shuffledVideos.some(video => {
+        const videoCat = (video.categoria || '').trim().toLowerCase();
+        return targetCategories.includes(videoCat);
+      });
     });
   }, [shuffledVideos]);
 

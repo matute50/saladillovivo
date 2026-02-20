@@ -22,8 +22,8 @@ export async function getArticlesForHome(limitTotal: number = 25) {
   const { supabaseUrl, supabaseAnonKey } = checkSupabaseCredentials();
   const now = new Date().toISOString();
 
-  // Aumentamos el límite para asegurar suficientes artículos para todas las categorías
-  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,image_url,featureStatus,updatedAt,created_at,slug,description,meta_title,meta_description,meta_keywords,published_at,audio_url,url_slide,animation_duration&or=(published_at.is.null,published_at.lte.${now})&order=created_at.desc&limit=${limitTotal}`;
+  // Optimization: Fetch only necessary columns for the home rail. Exclude 'text' to save bandwidth.
+  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,image_url,featureStatus,updatedAt,created_at,slug,description,meta_title,meta_description,meta_keywords,published_at,audio_url,url_slide,animation_duration&or=(published_at.is.null,published_at.lte.${now})&order=created_at.desc&limit=${limitTotal}`;
 
   try {
     const response = await fetch(apiUrl, {
@@ -49,9 +49,9 @@ export async function getArticlesForHome(limitTotal: number = 25) {
       id: item.id,
       titulo: item.title,
       slug: item.slug || item.id.toString(),
-      description: item.description || (item.text ? item.text.substring(0, 160) : 'Descripción no disponible.'),
-      resumen: item.text ? item.text.substring(0, 150) + (item.text.length > 150 ? '...' : '') : 'Resumen no disponible.',
-      contenido: item.text || 'Contenido no disponible.',
+      description: item.description || 'Descripción no disponible.',
+      resumen: item.description ? item.description.substring(0, 150) + (item.description.length > 150 ? '...' : '') : 'Resumen no disponible.',
+      contenido: item.description || 'Contenido no disponible.',
       fecha: item.updatedAt ? new Date(item.updatedAt).toISOString() : (item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString()),
       created_at: item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString(),
       updatedAt: item.updatedAt ? new Date(item.updatedAt).toISOString() : (item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString()),
@@ -115,20 +115,26 @@ export async function getArticlesForHome(limitTotal: number = 25) {
 }
 
 export async function getVideosForHome(limitRecent: number = 4) {
-  const { data, error } = await supabase
-    .from('videos')
-    .select('id, nombre, url, createdAt, categoria, imagen, novedad, forzar_video, volumen_extra')
-    .select('id, nombre, url, createdAt, categoria, imagen, novedad, forzar_video, volumen_extra')
-    .not('categoria', 'ilike', '%HCD%')
-    .order('createdAt', { ascending: false })
-    .limit(200); // OPTIMIZACIÓN: Límite duro para evitar descarga masiva (carga inicial rápida)
+  const { supabaseUrl, supabaseAnonKey } = checkSupabaseCredentials();
+  const apiUrl = `${supabaseUrl}/rest/v1/videos?select=id,nombre,url,createdAt,categoria,imagen,novedad,forzar_video,volumen_extra&order=createdAt.desc&limit=1000`;
 
-  if (error) {
+  let allVideos: Video[] = [];
+  try {
+    const response = await fetch(apiUrl, {
+      headers: {
+        'apikey': supabaseAnonKey,
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+      },
+      next: { revalidate: 60 }
+    });
+
+    if (response.ok) {
+      allVideos = await response.json();
+    }
+  } catch (error) {
     console.error('Error fetching videos:', error);
     return { featuredVideo: null, recentVideos: [], allVideos: [], videoCategories: [] };
   }
-
-  let allVideos: Video[] = data || [];
 
   const fourDaysAgo = new Date(Date.now() - 4 * 24 * 60 * 60 * 1000);
 
@@ -185,13 +191,28 @@ export async function getVideosForHome(limitRecent: number = 4) {
 }
 
 export async function getRandomVideo(): Promise<Video | null> {
-  const { data, error } = await supabase.rpc('get_random_video_excluding_sv');
+  const { supabaseUrl, supabaseAnonKey } = checkSupabaseCredentials();
+  const apiUrl = `${supabaseUrl}/rest/v1/rpc/get_random_video_excluding_sv`;
 
-  if (error) {
+  try {
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'apikey': supabaseAnonKey,
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+        'Content-Type': 'application/json'
+      },
+      next: { revalidate: 30 }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return data && data.length > 0 ? data[0] : null;
+    }
+  } catch (error) {
     console.error('Error fetching random video:', error);
-    return null;
   }
-  return data && data.length > 0 ? data[0] : null;
+  return null;
 }
 
 export async function getNewRandomVideo(currentId?: string, currentCategory?: string): Promise<Video | null> {
@@ -251,93 +272,125 @@ export async function getNewRandomVideo(currentId?: string, currentCategory?: st
 }
 
 export async function getTickerTexts(): Promise<string[]> {
-  const { data, error } = await supabase
-    .from('textos_ticker')
-    .select('text, isActive')
-    .eq('isActive', true)
-    .order('createdAt', { ascending: true });
+  const { supabaseUrl, supabaseAnonKey } = checkSupabaseCredentials();
+  const apiUrl = `${supabaseUrl}/rest/v1/textos_ticker?select=text,isActive&isActive=eq.true&order=createdAt.asc`;
 
-  if (error) {
+  try {
+    const response = await fetch(apiUrl, {
+      headers: {
+        'apikey': supabaseAnonKey,
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+      },
+      next: { revalidate: 60 }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data && data.length > 0) {
+        return data.map((t: any) => t.text).filter(Boolean);
+      }
+    }
+  } catch (error) {
     console.warn('Error fetching ticker texts:', error);
-    return ["Bienvenido a Saladillo Vivo - Manténgase informado."];
   }
-  if (data && data.length > 0) {
-    return data.map(t => t.text).filter(Boolean);
-  }
-  return ["Últimas noticias de última hora - Siga nuestra cobertura en vivo."];
+  return ["Bienvenido a Saladillo Vivo - Manténgase informado."];
 }
 
 export async function getInterviews(): Promise<Interview[]> {
-  const { data, error } = await supabase
-    .from('entrevistas')
-    .select('id, nombre, url, created_at, updated_at, categoria, imagen')
-    .order('created_at', { ascending: false });
+  const { supabaseUrl, supabaseAnonKey } = checkSupabaseCredentials();
+  const apiUrl = `${supabaseUrl}/rest/v1/entrevistas?select=id,nombre,url,created_at,updated_at,categoria,imagen&order=created_at.desc`;
 
-  if (error) {
+  try {
+    const response = await fetch(apiUrl, {
+      headers: {
+        'apikey': supabaseAnonKey,
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+      },
+      next: { revalidate: 60 }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return (data || []).map((item: any): Interview => ({
+        id: item.id,
+        nombre: item.nombre,
+        url: item.url,
+        createdAt: item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString(),
+        updatedAt: item.updated_at ? new Date(item.updated_at).toISOString() : (item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString()),
+        categoria: item.categoria,
+        imagen: item.imagen,
+      }));
+    }
+  } catch (error) {
     console.error('Error fetching interviews:', error);
-    return [];
   }
-  interface SupabaseInterviewData {
-    id: string;
-    nombre: string;
-    url: string;
-    created_at: string;
-    updated_at: string;
-    categoria: string;
-    imagen: string;
-  }
-
-  return (data as SupabaseInterviewData[] || []).map((item: SupabaseInterviewData): Interview => ({
-    id: item.id,
-    nombre: item.nombre,
-    url: item.url,
-    createdAt: item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString(),
-    updatedAt: item.updated_at ? new Date(item.updated_at).toISOString() : (item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString()),
-    categoria: item.categoria,
-    imagen: item.imagen,
-  }));
+  return [];
 }
 
 export async function getActiveBanners(): Promise<Banner[]> {
-  const { data, error } = await supabase
-    .from('banner')
-    .select('id, imageUrl, nombre, isActive')
-    .eq('isActive', true)
-    .order('createdAt', { ascending: false });
+  const { supabaseUrl, supabaseAnonKey } = checkSupabaseCredentials();
+  const apiUrl = `${supabaseUrl}/rest/v1/banner?select=id,imageUrl,nombre,isActive&isActive=eq.true&order=createdAt.desc`;
 
-  if (error) {
+  try {
+    const response = await fetch(apiUrl, {
+      headers: {
+        'apikey': supabaseAnonKey,
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+      },
+      next: { revalidate: 60 }
+    });
+
+    if (response.ok) {
+      return await response.json();
+    }
+  } catch (error) {
     console.error('Error fetching banners:', error);
-    return [];
   }
-  return data || [];
+  return [];
 }
 
 export async function getActiveAds(): Promise<Ad[]> {
-  const { data, error } = await supabase
-    .from('anuncios')
-    .select('id, imageUrl, name, isActive, linkUrl')
-    .eq('isActive', true)
-    .order('createdAt', { ascending: false });
+  const { supabaseUrl, supabaseAnonKey } = checkSupabaseCredentials();
+  const apiUrl = `${supabaseUrl}/rest/v1/anuncios?select=id,imageUrl,name,isActive,linkUrl&isActive=eq.true&order=createdAt.desc`;
 
-  if (error) {
+  try {
+    const response = await fetch(apiUrl, {
+      headers: {
+        'apikey': supabaseAnonKey,
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+      },
+      next: { revalidate: 60 }
+    });
+
+    if (response.ok) {
+      return await response.json();
+    }
+  } catch (error) {
     console.error('Error fetching ads:', error);
-    return [];
   }
-  return data || [];
+  return [];
 }
 
 export async function getCalendarEvents(): Promise<CalendarEvent[]> {
-  const { data, error } = await supabase
-    .from('eventos')
-    .select('nombre, fecha, hora')
-    .order('fecha', { ascending: true })
-    .order('hora', { ascending: true });
+  const { supabaseUrl, supabaseAnonKey } = checkSupabaseCredentials();
+  const apiUrl = `${supabaseUrl}/rest/v1/eventos?select=nombre,fecha,hora&order=fecha.asc,hora.asc`;
 
-  if (error) {
+  try {
+    const response = await fetch(apiUrl, {
+      headers: {
+        'apikey': supabaseAnonKey,
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+      },
+      next: { revalidate: 60 }
+    });
+
+    if (response.ok) {
+      return await response.json();
+    }
+  } catch (error) {
     console.warn('Error fetching calendar events:', error);
-    return [];
   }
-  return data || [];
+  return [];
 }
 
 export async function getArticles() {
@@ -408,20 +461,30 @@ export async function getArticlesForRss(limit: number = 50): Promise<Article[]> 
   }
 }
 
-export async function getVideos() {
-  const { data, error } = await supabase
-    .from('videos')
-    .select('id, nombre, url, createdAt, categoria, imagen, novedad')
-    .order('createdAt', { ascending: false });
+export async function getVideos(): Promise<Video[]> {
+  const { supabaseUrl, supabaseAnonKey } = checkSupabaseCredentials();
+  const apiUrl = `${supabaseUrl}/rest/v1/videos?select=id,nombre,url,createdAt,categoria,imagen,novedad&order=createdAt.desc`;
 
-  if (error) {
+  try {
+    const response = await fetch(apiUrl, {
+      headers: {
+        'apikey': supabaseAnonKey,
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+      },
+      next: { revalidate: 60 }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return (data || []).map((item: any) => ({
+        ...item,
+        createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
+      }));
+    }
+  } catch (error) {
     console.error('Error fetching videos:', error);
-    return [];
   }
-  return (data || []).map(item => ({
-    ...item,
-    createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
-  }));
+  return [];
 }
 
 function filterSearchTerms(query: string): string {
@@ -447,17 +510,26 @@ export async function fetchVideosBySearch(searchTerm: string): Promise<Video[]> 
     return [];
   }
 
-  const { data, error } = await supabase
-    .from('videos')
-    .select('id, nombre, url, createdAt, categoria, imagen, novedad')
-    .textSearch('nombre', processedTerm, { type: 'websearch' });
+  const { supabaseUrl, supabaseAnonKey } = checkSupabaseCredentials();
+  const apiUrl = `${supabaseUrl}/rest/v1/videos?select=id,nombre,url,createdAt,categoria,imagen,novedad&nombre=ilike.*${encodeURIComponent(searchTerm)}*`;
 
-  if (error) {
+  try {
+    const response = await fetch(apiUrl, {
+      headers: {
+        'apikey': supabaseAnonKey,
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+      },
+      next: { revalidate: 60 }
+    });
+
+    if (response.ok) {
+      return await response.json();
+    }
+  } catch (error) {
     console.error('Error searching videos:', error);
-    throw error;
   }
 
-  return data || [];
+  return [];
 }
 
 export async function getVideoByUrl(url: string): Promise<Video | null> {

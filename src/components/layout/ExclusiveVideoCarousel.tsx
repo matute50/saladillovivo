@@ -32,7 +32,8 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
     if (video.url) {
       const videoIdMatch = video.url.match(youTubeRegex);
       if (videoIdMatch) {
-        return `https://img.youtube.com/vi/${videoIdMatch[1]}/hqdefault.jpg`;
+        // Usamos mqdefault para máxima compatibilidad (HQ a veces falla en videos antiguos)
+        return `https://img.youtube.com/vi/${videoIdMatch[1]}/mqdefault.jpg`;
       }
     }
 
@@ -101,7 +102,7 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
     return currentVideos;
   }, [videos, loop]);
 
-  const shouldLoop = loop || (videos.length > 3 && videos.length !== 2);
+  const shouldLoop = videos.length > 1;
   const slidesToRender = displayVideos;
 
   const isNewsCarousel = React.useMemo(() => {
@@ -168,6 +169,7 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
                     src={thumbUrl}
                     alt={cleanTitle(video.nombre) || "Miniatura de video"}
                     fill
+                    unoptimized={true} // Forzado para miniaturas externas
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     priority={index === 0}
                     loading={index === 0 ? 'eager' : 'lazy'}
