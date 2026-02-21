@@ -8,7 +8,7 @@ const INTRO_VIDEOS = [
     '/videos_intro/intro3.mp4',
     '/videos_intro/intro4.mp4',
     '/videos_intro/intro5.mp4',
-    '/videos_intro/noticias.mp4',
+    '/videos_intro/noticias.mp4?v=20b',
 ];
 
 /**

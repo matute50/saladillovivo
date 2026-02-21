@@ -428,7 +428,7 @@ const VideoSection: React.FC = () => {
                     className="absolute inset-0 z-[998] bg-black"
                   >
                     <video
-                      src="/videos_intro/noticias.mp4"
+                      src="/videos_intro/noticias.mp4?v=20b"
                       autoPlay
                       playsInline
                       muted
