@@ -32,12 +32,8 @@ const InstallPwaButton = ({ isDarkTheme }: InstallPwaButtonProps) => {
 
   if (!isInstallable) return null;
 
-  // Animation Colors Configuration
-  // Light Mode: Up (Red) / Down (Black)
-  // Dark Mode: Up (Red) / Down (White)
-  const colors = isDarkTheme
-    ? ['#ef4444', '#ffffff', '#ef4444']
-    : ['#ef4444', '#000000', '#ef4444'];
+  // Animation Colors Configuration: Top (-4) = Red, Bottom (0) = White
+  const colors = ['#ef4444', '#ffffff', '#ef4444'];
 
   return (
     <Button

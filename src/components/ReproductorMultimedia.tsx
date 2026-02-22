@@ -66,8 +66,9 @@ export default function ReproductorMultimedia({ onComplete, videoToPlay }: Repro
             (videoToPlay as any)?.audioUrl ||
             null
           }
-          onClose={onComplete}
+          id={videoToPlay.id}
           autoplay={isPlaying}
+          onClose={onComplete}
         />
       ) : (
         <motion.div

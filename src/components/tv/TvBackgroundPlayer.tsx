@@ -65,12 +65,12 @@ const TvBackgroundPlayer = () => {
     isPlaying,
 
     // Zero-Branding State
+    // Zero-Branding State
     isPreRollOverlayActive,
     overlayIntroVideo,
     isContentPlaying,
 
     // Actions
-    startContentPlayback,
     finishIntro
   } = usePlayerStore();
 
@@ -79,7 +79,6 @@ const TvBackgroundPlayer = () => {
   // Combine actions for the timer callback
   const handleIntroFinish = () => {
     finishIntro();
-    startContentPlayback();
   };
 
   if (!currentVideo) {
@@ -120,8 +119,11 @@ const TvBackgroundPlayer = () => {
             videoUrl={currentVideo.url}
             autoplay={isPlaying && isContentPlaying}
             onClose={() => handleOnEnded(setVolume)}
-            playerVolume={isMuted || isPreRollOverlayActive ? 0 : volume}
-            muted={isPreRollOverlayActive}
+            imageUrl={currentVideo.imagen}
+            audioUrl={currentVideo.audioSourceUrl}
+            id={currentVideo.id}
+            playerVolume={isMuted || isPreRollOverlayActive || !isContentPlaying ? 0 : volume}
+            muted={isPreRollOverlayActive || !isContentPlaying}
             startAt={currentVideo.startAt}
           />
         </div>

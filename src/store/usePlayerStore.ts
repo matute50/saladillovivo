@@ -67,6 +67,8 @@ interface PlayerState {
     fetchRandomDbVideo: (excludeId?: string, excludeCategory?: string) => Promise<SlideMedia | null>;
     preloadNextVideo: (currentId: string) => Promise<void>;
     finishIntro: () => void;
+    activeContentId: string | null;
+    setActiveContentId: (id: string | null) => void;
 }
 
 // Next intro video preloaded
@@ -91,6 +93,9 @@ export const usePlayerStore = create<PlayerState>()(
             savedVolume: 1,
             lastKnownVolume: 1,
             historyVolume: 1,
+            activeContentId: null,
+
+            setActiveContentId: (id) => set({ activeContentId: id }),
 
             setViewMode: (mode) => set({ viewMode: mode }),
             setIsPlaying: (isPlaying) => set({ isPlaying }),
@@ -151,7 +156,8 @@ export const usePlayerStore = create<PlayerState>()(
                     isPlaying: true,
                     overlayIntroVideo: introToPlay,
                     isPreRollOverlayActive: true,
-                    // isContentPlaying: false, // Removed for revert
+                    isContentPlaying: false,
+                    activeContentId: media.id
                 });
 
                 get().preloadNextVideo(media.id);
@@ -178,7 +184,8 @@ export const usePlayerStore = create<PlayerState>()(
                     overlayIntroVideo: introToPlay,
                     isPreRollOverlayActive: true,
                     isContentPlaying: false,
-                    playbackState: 'USER_SELECTED'
+                    playbackState: 'USER_SELECTED',
+                    activeContentId: media.id
                 });
 
                 get().preloadNextVideo(media.id);

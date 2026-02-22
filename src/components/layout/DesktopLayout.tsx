@@ -22,6 +22,9 @@ interface DesktopLayoutProps {
 }
 
 const DesktopLayout = ({ data }: DesktopLayoutProps) => {
+  useEffect(() => {
+    console.log("%c DESKTOP LAYOUT EXECUTING (v24.5)", "color: yellow; font-size: 20px; font-weight: bold; background: black;");
+  }, []);
   const {
     articles,
     videos = { allVideos: [] },

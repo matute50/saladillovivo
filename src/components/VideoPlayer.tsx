@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import ReactPlayer from 'react-player';
+import { usePlayerStore } from '@/store/usePlayerStore';
 import { useVolumeStore } from '@/store/useVolumeStore';
-import { isYouTubeVideo } from '@/lib/utils';
+import { cn, isYouTubeVideo } from '@/lib/utils';
 
 interface VideoPlayerProps {
   videoUrl: string;
@@ -13,7 +14,8 @@ interface VideoPlayerProps {
   onDuration?: (duration: number) => void;
   startAt?: number;
   imageUrl?: string;
-  audioUrl?: string;
+  audioUrl?: string | null;
+  id?: string; // Mutex ID (v23.5)
   playerVolume?: number;
   volumen_extra?: number;
   muted?: boolean; // New prop to force mute locally
@@ -29,23 +31,30 @@ export default function VideoPlayer({
   playerVolume,
   volumen_extra = 1,
   audioUrl,
-  muted: forceMuted // Alias to avoid conflict with global isMuted
+  muted: forceMuted, // Alias to avoid conflict with global isMuted
+  id
 }: VideoPlayerProps) {
+  const { activeContentId } = usePlayerStore();
   const [isMounted, setIsMounted] = useState(false);
   const playerRef = useRef<ReactPlayer>(null);
   const hasSeeked = useRef(false);
-  const [localVolume, setLocalVolume] = useState(0); // Absolute zero volume start
-  const isFadingIn = useRef(false); // Ref to track if fade-in is active
+  const [localVolume, setLocalVolume] = useState(0);
+  const isFadingIn = useRef(false);
   const [isPlayingInternal, setIsPlayingInternal] = useState(false);
-  const [isFadingOut, setIsFadingOut] = useState(false); // Flag for fade-out at the end
+  const [isFadingOut, setIsFadingOut] = useState(false);
   const durationRef = useRef(0);
-  const playStartTimeRef = useRef<number | null>(null); // Track when playback actually started
+  const playStartTimeRef = useRef<number | null>(null);
   const [appOrigin, setAppOrigin] = useState('https://www.saladillovivo.com.ar');
   const [shouldPlay, setShouldPlay] = useState(autoplay);
   const sessionStartPlayedSecondsRef = useRef<number | null>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   // Consumimos el estado global del volumen
   const { volume, isMuted } = useVolumeStore();
+
+  const fadeIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const fadeOutIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const kickIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -54,147 +63,182 @@ export default function VideoPlayer({
     }
   }, []);
 
-  // Sync shouldPlay immediately when autoplay prop changes
+  // ATOMIC MUTEX: Only play if this is the active content ID (if ID provided)
+  const isMutexActive = !id || !activeContentId || id === activeContentId;
+  const finalPlaying = shouldPlay && isMutexActive;
+  const finalMuted = isMuted || forceMuted || !isMutexActive || !shouldPlay;
+
+  // Track player instances in console for debugging (v24.0)
+  useEffect(() => {
+    (window as any).__VIDEO_PLAYER_COUNT = ((window as any).__VIDEO_PLAYER_COUNT || 0) + 1;
+    console.log(`[VideoPlayer:${id}] MOUNTED. Total Players: ${(window as any).__VIDEO_PLAYER_COUNT}`);
+    return () => {
+      (window as any).__VIDEO_PLAYER_COUNT -= 1;
+      console.log(`[VideoPlayer:${id}] UNMOUNTED. Total Players: ${(window as any).__VIDEO_PLAYER_COUNT}`);
+    };
+  }, [id]);
+
+  // Sync shouldPlay strictly when autoplay prop changes
   useEffect(() => {
     setShouldPlay(autoplay);
+  }, [autoplay]);
 
-    // Immediate Force Play when autoplay becomes true
-    if (autoplay && playerRef.current) {
+  // Command Sync (v24.1) - Extreme manual enforcement for YouTube Iframe
+  useEffect(() => {
+    if (playerRef.current && isMounted) {
       const internal = playerRef.current.getInternalPlayer();
-      if (internal && typeof internal.playVideo === 'function') {
-
-        internal.playVideo();
+      if (internal) {
+        if (finalPlaying) {
+          console.log(`[VideoPlayer:${id}] Command: PLAY / UNMUTE`);
+          if (typeof internal.playVideo === 'function') internal.playVideo();
+          if (typeof internal.unMute === 'function') internal.unMute();
+          if (typeof internal.setVolume === 'function') internal.setVolume(localVolume * 100);
+        } else {
+          console.log(`[VideoPlayer:${id}] Command: PAUSE / MUTE`);
+          if (typeof internal.pauseVideo === 'function') internal.pauseVideo();
+          if (typeof internal.mute === 'function') internal.mute();
+          // Force volume 0 even if not muted
+          if (typeof internal.setVolume === 'function') internal.setVolume(0);
+        }
       }
     }
-  }, [autoplay]);
+  }, [finalPlaying, isMounted, id, localVolume]);
+
+  // Sync external audio
+  useEffect(() => {
+    if (audioRef.current) {
+      if (finalPlaying) {
+        audioRef.current.play().catch(() => { });
+        audioRef.current.muted = finalMuted;
+      } else {
+        audioRef.current.pause();
+        audioRef.current.muted = true;
+      }
+    }
+  }, [finalPlaying, finalMuted]);
 
   // RESET STATE ON VIDEO SWAP (Smart Slots Support)
   useEffect(() => {
+    // Cleanup any active intervals from previous video
+    if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
+    if (fadeOutIntervalRef.current) clearInterval(fadeOutIntervalRef.current);
+    if (kickIntervalRef.current) clearInterval(kickIntervalRef.current);
+
     setLocalVolume(0);
     setIsFadingOut(false);
     playStartTimeRef.current = null;
-    hasSeeked.current = false; // RESET ALWAYS ON URL/STARTAT CHANGE
-    sessionStartPlayedSecondsRef.current = null; // Reset session timer
-    // Initial seek attempt
+    hasSeeked.current = false;
+    sessionStartPlayedSecondsRef.current = null;
+
     if (startAt && startAt > 0 && playerRef.current) {
       playerRef.current.seekTo(startAt, 'seconds');
     }
-  }, [videoUrl, startAt, autoplay]);
 
-  // Determine the base volume based on props or global context
+    return () => {
+      // --- CHEMICAL DEATH (v23.8) ---
+      // Force kill internal YouTube processes before React unmounts
+      if (playerRef.current) {
+        const internal = playerRef.current.getInternalPlayer();
+        if (internal) {
+          try {
+            if (typeof internal.pauseVideo === 'function') internal.pauseVideo();
+            if (typeof internal.mute === 'function') internal.mute();
+            // Try to stop video to free resources
+            if (typeof internal.stopVideo === 'function') internal.stopVideo();
+          } catch (e) {
+            console.warn("Error during internal player cleanup:", e);
+          }
+        }
+      }
+
+      if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
+      if (fadeOutIntervalRef.current) clearInterval(fadeOutIntervalRef.current);
+      if (kickIntervalRef.current) clearInterval(kickIntervalRef.current);
+    };
+  }, [videoUrl, startAt]);
+
+  // Base volume logic
   const baseVolume = typeof playerVolume === 'number' ? playerVolume : volume;
-  // Apply the extra volume multiplier (normalization v23.1)
   const effectiveVolume = Math.min(1, baseVolume * (volumen_extra || 1));
 
-  // Efecto para sincronizar el volumen base cuando no hay fade activo
   useEffect(() => {
     const clampedVolume = Math.max(0, Math.min(1, effectiveVolume));
     if (!isFadingIn.current && !isFadingOut && localVolume !== clampedVolume) {
       setLocalVolume(clampedVolume);
     }
-  }, [effectiveVolume, localVolume, isFadingOut, isMuted, playerVolume, volumen_extra]);
+  }, [effectiveVolume, localVolume, isFadingOut]);
 
-  // --- REINTENTO AGRESIVO DE AUTOPLAY PARA YOUTUBE ---
-
-  const kickAttemptsRef = useRef(0);
-
+  // Autoplay Kick for YouTube
   useEffect(() => {
-    let retryInterval: NodeJS.Timeout;
-
-    if (isMounted && autoplay && isYouTubeVideo(videoUrl)) {
-      // INTERVALO AGRESIVO (250ms) - Para producción donde la latencia varía
-      retryInterval = setInterval(() => {
+    if (isMounted && finalPlaying && isYouTubeVideo(videoUrl)) {
+      kickIntervalRef.current = setInterval(() => {
         if (playerRef.current) {
           const internal = playerRef.current.getInternalPlayer();
           if (internal && typeof internal.playVideo === 'function') {
             const state = typeof internal.getPlayerState === 'function' ? internal.getPlayerState() : -1;
-
-            // Si está pausado (2), canteado (5), no iniciado (-1, 0) o BUFFERING (3 - Force Kick)
-            if (state === 2 || state === 5 || state === -1 || state === 0 || (state === 3 && !isPlayingInternal)) {
-
-
-              // AUTOPLAY POLICY FALLBACK:
-              // If we are stuck in unstarted state for > 1s (4 attempts), usually means unmuted autoplay is blocked.
-              // We try to MUTE and play again.
-              if (kickAttemptsRef.current >= 4) {
-                console.warn("VideoPlayer: Autoplay blocked? Attempting FORCE MUTE + PLAY.");
-                if (typeof internal.mute === 'function') internal.mute();
-                // Optionally update local state to reflect mute, though internal iframe update is priority
-              }
-
+            if (state === 2 || state === 5 || state === -1 || state === 0) {
               internal.playVideo();
-              kickAttemptsRef.current += 1;
             } else if (state === 1) {
-              kickAttemptsRef.current = 0; // Reset on success
-
               if (!isPlayingInternal) {
                 setIsPlayingInternal(true);
                 if (playStartTimeRef.current === null) playStartTimeRef.current = Date.now();
-
-                // Trigger Fade In explicitly (only if not already fading)
+                // Start Fade In
                 if (!isFadingIn.current) {
                   isFadingIn.current = true;
                   const fadeDuration = 1000;
                   const fadeSteps = 20;
-                  const targetVol = Math.min(1, (typeof playerVolume === 'number' ? playerVolume : useVolumeStore.getState().volume) * (volumen_extra || 1));
+                  const targetVol = effectiveVolume;
                   const increment = targetVol / fadeSteps;
                   let currentVol = 0;
                   let step = 0;
 
-                  const fadeInterval = setInterval(() => {
+                  if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
+                  fadeIntervalRef.current = setInterval(() => {
                     step++;
                     currentVol = Math.min(targetVol, currentVol + increment);
                     setLocalVolume(currentVol);
-
                     if (step >= fadeSteps) {
-                      clearInterval(fadeInterval);
+                      if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
                       isFadingIn.current = false;
                       setLocalVolume(targetVol);
                     }
                   }, fadeDuration / fadeSteps);
                 }
               }
-            } else if (state === 3) {
-              // En BUFFERING (3), mantenemos isPlayingInternal en true
-              if (!isPlayingInternal) setIsPlayingInternal(true);
-              // Reset kicks if buffering, as it means it accepted the command
-              kickAttemptsRef.current = 0;
             }
           }
         }
-      }, 250); // Restore to 250ms as intended
+      }, 500);
     }
 
     return () => {
-      if (retryInterval) clearInterval(retryInterval);
+      if (kickIntervalRef.current) {
+        clearInterval(kickIntervalRef.current);
+        kickIntervalRef.current = null;
+      }
     };
-  }, [isMounted, autoplay, videoUrl, isPlayingInternal, playerVolume, volumen_extra]);
+  }, [isMounted, finalPlaying, videoUrl, isPlayingInternal, effectiveVolume]);
 
-  // Handle Fade-out effect
   const handleProgressInternal = (state: { playedSeconds: number, loadedSeconds: number }) => {
     if (onProgress) onProgress(state);
 
-
     if (isYouTubeVideo(videoUrl) && durationRef.current > 0 && !isFadingOut) {
       const timeLeft = durationRef.current - state.playedSeconds;
-
-      // Start fade-out when 1 second remains
       if (timeLeft <= 1 && timeLeft > 0) {
         setIsFadingOut(true);
-
         const fadeDuration = 1000;
         const fadeSteps = 20;
         const decrement = localVolume / fadeSteps;
         let currentFadeVolume = localVolume;
         let step = 0;
 
-        const fadeOutInterval = setInterval(() => {
+        if (fadeOutIntervalRef.current) clearInterval(fadeOutIntervalRef.current);
+        fadeOutIntervalRef.current = setInterval(() => {
           step++;
           currentFadeVolume = Math.max(0, currentFadeVolume - decrement);
           setLocalVolume(currentFadeVolume);
-
           if (step >= fadeSteps || currentFadeVolume <= 0) {
-            clearInterval(fadeOutInterval);
+            if (fadeOutIntervalRef.current) clearInterval(fadeOutIntervalRef.current);
             setLocalVolume(0);
           }
         }, fadeDuration / fadeSteps);
@@ -207,21 +251,18 @@ export default function VideoPlayer({
     if (onDuration) onDuration(duration);
   };
 
-  // Handle player ready state and seeking
   const handleReady = useCallback(() => {
-    // Si es YouTube y debe ser autoplay, forzamos el play de forma explícita
-    if (autoplay && playerRef.current) {
+    if (finalPlaying && playerRef.current) {
       const internalPlayer = playerRef.current.getInternalPlayer();
       if (internalPlayer && typeof internalPlayer.playVideo === 'function') {
         internalPlayer.playVideo();
       }
     }
-
     if (startAt && startAt > 0 && playerRef.current) {
       playerRef.current.seekTo(startAt, 'seconds');
       hasSeeked.current = true;
     }
-  }, [autoplay, startAt]);
+  }, [finalPlaying, startAt]);
 
   const handleError = useCallback((e: any) => {
     console.error("VideoPlayer Error:", videoUrl, e);
@@ -232,18 +273,15 @@ export default function VideoPlayer({
 
   return (
     <div className="relative w-full h-full bg-black overflow-hidden">
-      {/* CAPA DE BLOQUEO (REGLA DE ORO) 
-          Evita cualquier interacción directa con el iframe de YouTube */}
       <div className="absolute inset-0 z-10 bg-transparent" />
-
       <div className="w-full h-full transform-gpu overflow-hidden">
         <ReactPlayer
           ref={playerRef}
           url={videoUrl}
-          playing={shouldPlay}
-          controls={false} // Desactivamos controles nativos
-          volume={localVolume}
-          muted={isMuted || forceMuted} // Merge global and local mute
+          playing={finalPlaying}
+          controls={false}
+          volume={finalMuted ? 0 : localVolume}
+          muted={finalMuted}
           width="100%"
           height="100%"
           progressInterval={500}
@@ -255,45 +293,16 @@ export default function VideoPlayer({
           onPlay={() => {
             setIsPlayingInternal(true);
             if (playStartTimeRef.current === null) playStartTimeRef.current = Date.now();
-
-            // RULE OF GOLD: Persistent seek on actual play start
             if (startAt && startAt > 0 && !hasSeeked.current && playerRef.current) {
               playerRef.current.seekTo(startAt, 'seconds');
               hasSeeked.current = true;
             }
-
-            // Trigger Fade In on normal Play
-            if (!isFadingIn.current && localVolume === 0) {
-              isFadingIn.current = true;
-              const fadeDuration = 1000;
-              const fadeSteps = 20;
-              const targetVol = Math.min(1, (typeof playerVolume === 'number' ? playerVolume : useVolumeStore.getState().volume) * (volumen_extra || 1));
-              const increment = targetVol / fadeSteps;
-              let currentVol = 0;
-              let step = 0;
-
-              const fadeInterval = setInterval(() => {
-                step++;
-                currentVol = Math.min(targetVol, currentVol + increment);
-                setLocalVolume(currentVol);
-
-                if (step >= fadeSteps) {
-                  clearInterval(fadeInterval);
-                  isFadingIn.current = false;
-                  setLocalVolume(targetVol);
-                }
-              }, fadeDuration / fadeSteps);
-            }
           }}
           onPause={() => {
-            if (autoplay) {
-              // BLOQUEADOR DE PAUSAS: Si se pausa durante los primeros 5 segundos de vida
-              // y es autoplay, es probable que sea un bloqueo del navegador o error de estado.
+            if (finalPlaying) {
               const now = Date.now();
               const playDuration = playStartTimeRef.current ? (now - playStartTimeRef.current) : 0;
-
               if (playDuration < 5000) {
-                console.warn("VideoPlayer: Pausa prematura detectada (" + playDuration + "ms). Forzando Play...");
                 if (playerRef.current) {
                   const internal = playerRef.current.getInternalPlayer();
                   if (internal && typeof internal.playVideo === 'function') internal.playVideo();
@@ -311,7 +320,6 @@ export default function VideoPlayer({
                 showinfo: 0,
                 modestbranding: 1,
                 rel: 0,
-                autoplay: 1,
                 playsinline: 1,
                 controls: 0,
                 disablekb: 1,
@@ -323,29 +331,19 @@ export default function VideoPlayer({
                 widget_referrer: appOrigin,
                 host: 'https://www.youtube.com'
               }
-            },
-            file: {
-              attributes: {
-                controlsList: 'nodownload',
-                playsInline: true,
-                style: { objectFit: 'contain', width: '100%', height: '100%' }
-              }
             }
           }}
         />
 
         {audioUrl && (
           <audio
+            ref={audioRef}
             src={audioUrl}
-            autoPlay={shouldPlay}
-            muted={isMuted || forceMuted}
+            autoPlay={finalPlaying}
+            muted={finalMuted}
             className="hidden"
-            onPlay={() => console.log(`VideoPlayer: Reproduciendo audio externo: ${audioUrl}`)}
-            onError={(e) => console.error("VideoPlayer: Error en audio externo:", e)}
           />
         )}
-
-        {/* SHIELD OF GOLD (Zero-Branding) */}
       </div>
     </div>
   );

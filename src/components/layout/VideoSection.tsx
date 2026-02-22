@@ -20,6 +20,14 @@ import AntiGravityLayer from './AntiGravityLayer';
 
 
 const VideoSection: React.FC = () => {
+  useEffect(() => {
+    (window as any).__VIDEO_SECTION_COUNT = ((window as any).__VIDEO_SECTION_COUNT || 0) + 1;
+    console.log(`[VideoSection] MOUNTED. Total Sections: ${(window as any).__VIDEO_SECTION_COUNT}`);
+    return () => {
+      (window as any).__VIDEO_SECTION_COUNT -= 1;
+      console.error(`[VideoSection] UNMOUNTED. Total Sections: ${(window as any).__VIDEO_SECTION_COUNT}`);
+    };
+  }, []);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const playerContainerRef = useRef<HTMLDivElement>(null);
 
@@ -71,48 +79,9 @@ const VideoSection: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement>(null);
 
 
-  // --- SMART SLOTS LOGIC (v18.0) ---
-  const [activeSlot, setActiveSlot] = useState<'A' | 'B'>('A');
-  const [slotA, setSlotA] = useState<SlideMedia | null>(null);
-  const [slotB, setSlotB] = useState<SlideMedia | null>(null);
-
-  // ZERO-BLACK Sync (v20)
-
-
-  // Determine which slot holds the current video (Target)
-  const isSlotATarget = slotA?.id === currentVideo?.id;
-  const isSlotBTarget = slotB?.id === currentVideo?.id;
-
-  // If neither holds it directly (e.g. init), fallback to active or next logic, 
-  // but usually one matches. If not, we wait for effect to load it.
-
-  useEffect(() => {
-    if (!currentVideo) return;
-
-    // Determine target based on state
-    // We prefer the 'other' slot if possible for A/B swap
-    const targetSlot = (isSlotATarget) ? 'A' :
-      (isSlotBTarget) ? 'B' :
-        (activeSlot === 'A' ? 'B' : 'A');
-
-    // Load content into target slot if needed - comparison by reference or URL to catch prop updates like startAt
-    // Load content into target slot if needed
-    if (targetSlot === 'A') {
-      if (slotA !== currentVideo) setSlotA(currentVideo);
-      if (slotB !== null) setSlotB(null); // STRICT CLEANUP for Ghost Audio
-    }
-    if (targetSlot === 'B') {
-      if (slotB !== currentVideo) setSlotB(currentVideo);
-      if (slotA !== null) setSlotA(null); // STRICT CLEANUP for Ghost Audio
-    }
-
-    // Transition Logic
-    if (targetSlot !== activeSlot) {
-      setActiveSlot(targetSlot);
-    }
-    // RESET CLEAN STATE ON NEW VIDEO WITH INTRO
-
-  }, [currentVideo, isPreRollOverlayActive, activeSlot, isSlotATarget, isSlotBTarget, slotA, slotB]);
+  // --- SINGLE PLAYER LOGIC (v23.9 - The Terminator) ---
+  // A/B Slots were keeping Zombies alive. We move to a Single Player architecture.
+  // The key={currentVideo?.id} ensures a total clean unmount/remount on every change.
 
   // ... (Other effects)
 
@@ -278,245 +247,225 @@ const VideoSection: React.FC = () => {
       <div className="relative aspect-video w-full">
         <div
           ref={playerContainerRef}
+          id="DEBUG_VIDEO_SECTION"
+          style={{ border: '5px solid red' }}
           className={cn(
             "relative w-full h-full aspect-video bg-black overflow-hidden border-0 md:border md:rounded-xl card-blur-player shadow-lg",
           )}
           onMouseEnter={() => setShowControls(true)}
           onMouseLeave={() => setShowControls(false)}
         >
-          <div className="absolute inset-0 w-full h-full md:rounded-xl overflow-hidden bg-black">
+          {/* === VIDEO UNIVERSE (SCALABLE & IMMERSIVE) === */}
+          {/* === VIDEO UNIVERSE (SCALABLE & IMMERSIVE) === */}
+          <div
+            className={cn(
+              "video-universe absolute inset-0 w-full h-full transition-transform ease-in-out md:rounded-xl overflow-hidden"
+            )}
+            style={{
+              transform: areCinematicBarsActive ? 'scale(1.20)' : 'scale(1)',
+              transitionDuration: areCinematicBarsActive ? '75ms' : '5000ms'
+            }}
+          >
 
-            {/* === VIDEO UNIVERSE (SCALABLE & IMMERSIVE) === */}
-            {/* === VIDEO UNIVERSE (SCALABLE & IMMERSIVE) === */}
-            <div
-              className={cn(
-                "video-universe absolute inset-0 w-full h-full transition-transform ease-in-out md:rounded-xl overflow-hidden"
-              )}
-              style={{
-                transform: areCinematicBarsActive ? 'scale(1.20)' : 'scale(1)',
-                transitionDuration: areCinematicBarsActive ? '75ms' : '5000ms'
-              }}
-            >
-
-              {/* HTML Slide (Considered Content/Video) */}
-              {isHtmlSlideActive && currentSlide && (
-                <div className="absolute inset-0 z-40 bg-black">
-                  <iframe
-                    src={currentSlide.url}
-                    className="w-full h-full border-none pointer-events-none"
-                    title="Slide"
-                    allow="autoplay"
-                  />
-                  {currentSlide.audioUrl && (
-                    <audio
-                      ref={audioRef}
-                      src={currentSlide.audioUrl}
-                      autoPlay
-                      className="hidden"
-                      muted={isMuted}
-                      onPlay={() => console.log(`Reproduciendo audio de slide: ${currentSlide.audioUrl}`)}
-                      onError={(e) => console.error("Error reproduciendo audio de noticia:", e, currentSlide.audioUrl)}
-                    />
-                  )}
-                </div>
-              )}
-
-              {/* === SMART SLOT A (v18.0) === */}
-              <div
-                className={cn(
-                  "absolute inset-0 bg-black transition-opacity duration-500",
-                  activeSlot === 'A' ? "z-20 opacity-100 pointer-events-auto" : "z-0 opacity-0 pointer-events-none"
-                )}
-              >
-                {slotA?.url && !isHtmlSlideActive && (
-                  <VideoPlayer
-                    videoUrl={slotA.url}
-                    autoplay={isPlaying && isContentPlaying && isSlotATarget}
-                    onClose={() => {
-                      if (activeSlot === 'A' && !transitionSignaledRef.current) handleOnEnded(setVolume);
-                    }}
-                    onProgress={(state) => {
-                      if (isSlotATarget) handleProgress(state);
-                    }}
-                    onDuration={(d) => {
-                      if (isSlotATarget) setCurrentDuration(d);
-                    }}
-                    startAt={(slotA as any).startAt || 0}
-                    volumen_extra={slotA.volumen_extra}
-                    audioUrl={slotA.audioSourceUrl}
+            {/* HTML Slide (Considered Content/Video) */}
+            {isHtmlSlideActive && currentSlide && (
+              <div className="absolute inset-0 z-40 bg-black">
+                <iframe
+                  src={currentSlide.url}
+                  className="w-full h-full border-none pointer-events-none"
+                  title="Slide"
+                  allow="autoplay"
+                />
+                {currentSlide.audioUrl && (
+                  <audio
+                    ref={audioRef}
+                    src={currentSlide.audioUrl}
+                    autoPlay
+                    className="hidden"
+                    muted={isMuted}
+                    onPlay={() => console.log(`Reproduciendo audio de slide: ${currentSlide.audioUrl}`)}
+                    onError={(e) => console.error("Error reproduciendo audio de noticia:", e, currentSlide.audioUrl)}
                   />
                 )}
               </div>
+            )}
 
-              {/* === SMART SLOT B (v18.0) === */}
-              <div
-                className={cn(
-                  "absolute inset-0 bg-black transition-opacity duration-500",
-                  activeSlot === 'B' ? "z-20 opacity-100 pointer-events-auto" : "z-0 opacity-0 pointer-events-none"
-                )}
-              >
-                {slotB?.url && !isHtmlSlideActive && (
-                  <VideoPlayer
-                    videoUrl={slotB.url}
-                    autoplay={isPlaying && isContentPlaying && isSlotBTarget}
-                    onClose={() => {
-                      if (activeSlot === 'B' && !transitionSignaledRef.current) handleOnEnded(setVolume);
-                    }}
-                    onProgress={(state) => {
-                      if (isSlotBTarget) handleProgress(state);
-                    }}
-                    onDuration={(d) => {
-                      if (isSlotBTarget) setCurrentDuration(d);
-                    }}
-                    startAt={(slotB as any).startAt || 0}
-                    volumen_extra={slotB.volumen_extra}
-                    audioUrl={slotB.audioSourceUrl}
-                  />
-                )}
-              </div>
-
-              {/* === PERSISTENT INTRO OVERLAY === */}
-              <AnimatePresence>
-                {isPreRollOverlayActive && overlayIntroVideo && (
+            {/* === SINGLE POWER PLAYER (v23.9) === */}
+            <div className="absolute inset-0 bg-black">
+              <AnimatePresence mode="wait">
+                {currentVideo?.url && !isHtmlSlideActive && (
                   <motion.div
-                    key="intro-overlay"
-                    initial={{ opacity: 1 }}
+                    key={currentVideo.id}
+                    initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="absolute inset-0 z-[999] bg-black"
+                    className="absolute inset-0"
+                    data-player-id={currentVideo.id}
                   >
-                    <video
-                      src={overlayIntroVideo.url}
-                      autoPlay
-                      playsInline
-                      muted
-                      className="w-full h-full object-cover"
-                      onEnded={() => {
-
-                        finishIntro();
+                    <VideoPlayer
+                      id={currentVideo.id}
+                      videoUrl={currentVideo.url}
+                      autoplay={isPlaying && isContentPlaying}
+                      muted={(!isPlaying || isPreRollOverlayActive || !isContentPlaying)}
+                      onClose={() => {
+                        if (!transitionSignaledRef.current) handleOnEnded(setVolume);
                       }}
-                      onError={(e) => {
-                        console.error("Intro Error:", e);
-                        finishIntro();
+                      onProgress={(state) => {
+                        handleProgress(state);
                       }}
+                      onDuration={(d) => {
+                        setCurrentDuration(d);
+                      }}
+                      startAt={(currentVideo as any).startAt || 0}
+                      volumen_extra={currentVideo.volumen_extra}
+                      audioUrl={currentVideo.audioSourceUrl}
                     />
                   </motion.div>
-                )}
-              </AnimatePresence>
-
-              {
-                (!isPlaying) && !isLocalIntro && !playBackgroundEarly && !isHtmlSlideActive && (
-                  <Image
-                    src={thumbnailSrc}
-                    alt="Fondo"
-                    fill
-                    className="absolute inset-0 z-10 object-contain opacity-60"
-                    priority
-                    onError={() => setThumbnailSrc('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=')}
-                  />
-                )
-              }
-
-              <AnimatePresence>
-                {isNewsIntroActive && (
-                  <motion.div
-                    key="news-intro"
-                    initial={{ opacity: 1 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 1 }}
-                    className="absolute inset-0 z-[998] bg-black"
-                  >
-                    <video
-                      src="/videos_intro/noticias.mp4?v=20b"
-                      autoPlay
-                      playsInline
-                      muted
-                      className="w-full h-full object-contain"
-                      onPlay={() => { }}
-                      onLoadedMetadata={handleIntroMetadata}
-                    />
-                  </motion.div>
-                )}
-
-                {areCinematicBarsActive && !isNewsContent && (
-                  <motion.div
-                    key="cinematic-bar-top-solid"
-                    className="absolute top-0 left-0 right-0 h-[14%] bg-black z-[45] pointer-events-auto"
-                    initial={{ y: 0 }}
-                    animate={{ y: 0 }}
-                    exit={{ y: "-100%" }}
-                    transition={{ duration: 1.2, ease: "easeInOut" }}
-                  />
-                )}
-                {areCinematicBarsActive && !isNewsContent && (
-                  <motion.div
-                    key="cinematic-bar-top-gradient"
-                    className="absolute top-0 left-0 right-0 h-[35%] bg-gradient-to-b from-black via-black/90 to-transparent z-[45] pointer-events-auto"
-                    initial={{ opacity: 1 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 2.0, ease: "easeOut" }}
-                  />
-                )}
-                {areCinematicBarsActive && (
-                  <motion.div
-                    key="cinematic-bar-bottom"
-                    className="absolute bottom-0 left-0 right-0 h-[35%] bg-gradient-to-t from-black via-black/90 to-transparent z-[45] pointer-events-auto"
-                    initial={{ opacity: 1 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 2.0, ease: "easeOut" }}
-                  />
                 )}
               </AnimatePresence>
             </div>
 
-            {/* === ANTI-GRAVITY UI LAYER (STATIC & PRESERVED) === */}
-            <AntiGravityLayer areCinematicBarsActive={areCinematicBarsActive}>
+            {/* === PERSISTENT INTRO OVERLAY === */}
+            <AnimatePresence>
+              {isPreRollOverlayActive && overlayIntroVideo && (
+                <motion.div
+                  key="intro-overlay"
+                  initial={{ opacity: 1 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 z-[999] bg-black"
+                >
+                  <video
+                    src={overlayIntroVideo.url}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full h-full object-cover"
+                    onEnded={() => {
 
-              {isNewsContent && (
-                <>
-                  <div className="absolute inset-x-0 top-0 top-safe-area z-[50] p-4 bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
-                    <div className="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 inline-block max-w-[90%] md:max-w-[70%] shadow-2xl">
-                      <h2 className="text-white text-base md:text-xl font-bold leading-tight drop-shadow-lg break-words">
-                        {displayTitle}
-                      </h2>
-                    </div>
-                  </div>
+                      finishIntro();
+                    }}
+                    onError={(e) => {
+                      console.error("Intro Error:", e);
+                      finishIntro();
+                    }}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-                  <div className="absolute inset-x-0 bottom-0 z-[50] pointer-events-auto h-8 bg-black/80 backdrop-blur-md border-t border-white/10 flex items-center">
-                    <NewsTicker tickerTexts={[displaySubtitle || '']} />
-                  </div>
-                </>
+            {
+              (!isPlaying) && !isLocalIntro && !playBackgroundEarly && !isHtmlSlideActive && (
+                <Image
+                  src={thumbnailSrc}
+                  alt="Fondo"
+                  fill
+                  className="absolute inset-0 z-10 object-contain opacity-60"
+                  priority
+                  onError={() => setThumbnailSrc('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=')}
+                />
+              )
+            }
+
+            <AnimatePresence>
+              {isNewsIntroActive && (
+                <motion.div
+                  key="news-intro"
+                  initial={{ opacity: 1 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 1 }}
+                  className="absolute inset-0 z-[998] bg-black"
+                >
+                  <video
+                    src="/videos_intro/noticias.mp4?v=20b"
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full h-full object-contain"
+                    onPlay={() => { }}
+                    onLoadedMetadata={handleIntroMetadata}
+                  />
+                </motion.div>
               )}
 
-              <WeatherOverlay />
-
-              <AnimatePresence>
-                {showControls && !isHtmlSlideActive && !isLocalIntro && !isPreRollOverlayActive && (
-                  <motion.div key="controls" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute bottom-0 left-0 right-0 w-full z-[51] pointer-events-auto">
-                    <CustomControls onToggleFullScreen={toggleFullScreen} isFullScreen={isFullScreen} />
-                  </motion.div>
-                )}
-
-
-                {!isPlaying && !isHtmlSlideActive && !isLocalIntro && !playBackgroundEarly && currentVideo && (
-                  <motion.div
-                    key="play"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="absolute inset-0 flex items-center justify-center z-50 cursor-pointer pointer-events-auto"
-                    onClick={() => setIsPlaying(true)}
-                  >
-                    <div className="p-4 bg-black/40 rounded-full border border-white backdrop-blur-sm"><Play size={38} className="text-white/80" fill="white" strokeWidth={1.35} /></div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-            </AntiGravityLayer>
+              {areCinematicBarsActive && !isNewsContent && (
+                <motion.div
+                  key="cinematic-bar-top-solid"
+                  className="absolute top-0 left-0 right-0 h-[14%] bg-black z-[45] pointer-events-auto"
+                  initial={{ y: 0 }}
+                  animate={{ y: 0 }}
+                  exit={{ y: "-100%" }}
+                  transition={{ duration: 1.2, ease: "easeInOut" }}
+                />
+              )}
+              {areCinematicBarsActive && !isNewsContent && (
+                <motion.div
+                  key="cinematic-bar-top-gradient"
+                  className="absolute top-0 left-0 right-0 h-[35%] bg-gradient-to-b from-black via-black/90 to-transparent z-[45] pointer-events-auto"
+                  initial={{ opacity: 1 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 2.0, ease: "easeOut" }}
+                />
+              )}
+              {areCinematicBarsActive && (
+                <motion.div
+                  key="cinematic-bar-bottom"
+                  className="absolute bottom-0 left-0 right-0 h-[35%] bg-gradient-to-t from-black via-black/90 to-transparent z-[45] pointer-events-auto"
+                  initial={{ opacity: 1 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 2.0, ease: "easeOut" }}
+                />
+              )}
+            </AnimatePresence>
           </div>
+
+          {/* === ANTI-GRAVITY UI LAYER (STATIC & PRESERVED) === */}
+          <AntiGravityLayer areCinematicBarsActive={areCinematicBarsActive}>
+
+            {isNewsContent && (
+              <>
+                <div className="absolute inset-x-0 top-0 top-safe-area z-[50] p-4 bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
+                  <div className="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 inline-block max-w-[90%] md:max-w-[70%] shadow-2xl">
+                    <h2 className="text-white text-base md:text-xl font-bold leading-tight drop-shadow-lg break-words">
+                      {displayTitle}
+                    </h2>
+                  </div>
+                </div>
+
+                <div className="absolute inset-x-0 bottom-0 z-[50] pointer-events-auto h-8 bg-black/80 backdrop-blur-md border-t border-white/10 flex items-center">
+                  <NewsTicker tickerTexts={[displaySubtitle || '']} />
+                </div>
+              </>
+            )}
+
+            <WeatherOverlay />
+
+            <AnimatePresence>
+              {showControls && !isHtmlSlideActive && !isLocalIntro && !isPreRollOverlayActive && (
+                <motion.div key="controls" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute bottom-0 left-0 right-0 w-full z-[51] pointer-events-auto">
+                  <CustomControls onToggleFullScreen={toggleFullScreen} isFullScreen={isFullScreen} />
+                </motion.div>
+              )}
+
+
+              {!isPlaying && !isHtmlSlideActive && !isLocalIntro && !playBackgroundEarly && currentVideo && (
+                <motion.div
+                  key="play"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 flex items-center justify-center z-50 cursor-pointer pointer-events-auto"
+                  onClick={() => setIsPlaying(true)}
+                >
+                  <div className="p-4 bg-black/40 rounded-full border border-white backdrop-blur-sm"><Play size={38} className="text-white/80" fill="white" strokeWidth={1.35} /></div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+          </AntiGravityLayer>
         </div>
       </div>
       {viewMode === 'diario' && <VideoTitleBar className="mt-0 rounded-t-none border-t-0" />}

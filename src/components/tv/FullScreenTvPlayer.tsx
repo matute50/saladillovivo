@@ -15,7 +15,8 @@ const FullScreenTvPlayer = () => {
           <VideoPlayer
             videoUrl={currentVideo.type === 'video' || currentVideo.type === 'stream' ? currentVideo.url : ""}
             imageUrl={currentVideo.type === 'image' ? currentVideo.imageSourceUrl : undefined}
-            audioUrl={currentVideo.type === 'image' ? currentVideo.audioSourceUrl : undefined}
+            audioUrl={currentVideo.audioSourceUrl}
+            id={currentVideo.id}
             autoplay={isPlaying}
             onClose={() => { }} // onClose is now a required prop for VideoPlayer. Add a no-op function.
           />
