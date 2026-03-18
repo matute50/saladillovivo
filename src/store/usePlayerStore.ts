@@ -4,6 +4,7 @@ import { getVideosForHome, getNewRandomVideo, getVideoByUrl } from '@/lib/data';
 import { SlideMedia } from '@/lib/types';
 
 import { useNewsPlayerStore } from './useNewsPlayerStore';
+import { useVolumeStore } from './useVolumeStore';
 
 const INTRO_VIDEOS = [
     '/videos_intro/intro1.mp4',
@@ -178,11 +179,19 @@ export const usePlayerStore = create<PlayerState>()(
             },
 
             playLiveStream: (streamData) => {
+                const volStore = useVolumeStore.getState();
+                if (volStore.volume < 0.4 || volStore.isMuted) {
+                    volStore.setVolume(0.4);
+                    if (volStore.isMuted) volStore.unmute();
+                }
+
                 set({ 
                     currentVideo: streamData, 
                     isPlaying: true, 
                     playbackState: 'USER_SELECTED',
-                    activeContentId: streamData.id 
+                    activeContentId: streamData.id,
+                    isPreRollOverlayActive: false, // Forzar eliminación de intro
+                    isContentPlaying: true
                 });
             },
 

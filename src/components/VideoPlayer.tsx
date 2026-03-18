@@ -278,7 +278,7 @@ export default function VideoPlayer({
   const handleProgressInternal = (state: { playedSeconds: number, loadedSeconds: number }) => {
     if (onProgress) onProgress(state);
 
-    if (isYouTubeVideo(videoUrl) && durationRef.current > 0 && !isFadingOut) {
+    if (id !== 'live-stream' && isYouTubeVideo(videoUrl) && durationRef.current > 0 && !isFadingOut) {
       const timeLeft = durationRef.current - state.playedSeconds;
       if (timeLeft <= 0.75 && timeLeft > 0) { // Adjusted to 0.75s (v27)
         setIsFadingOut(true);
@@ -341,7 +341,11 @@ export default function VideoPlayer({
           width="100%"
           height="100%"
           progressInterval={500}
-          onEnded={onClose}
+          onEnded={() => {
+            if (id !== 'live-stream' && onClose) {
+              onClose();
+            }
+          }}
           onProgress={handleProgressInternal}
           onDuration={handleDurationInternal}
           onReady={handleReady}

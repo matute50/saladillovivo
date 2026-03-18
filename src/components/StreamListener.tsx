@@ -12,66 +12,67 @@ export default function StreamListener() {
   const lastStartedAtRef = useRef<string | null>(null);
 
   useEffect(() => {
-    const pollStreaming = async () => {
+    const fetchInitial = async () => {
       try {
-        console.log('[StreamListener] Polling Supabase...');
-        const { data: currentStream, error } = await supabase
-          .from('streaming_config')
-          .select('stream_url, title, started_at, is_active')
-          .eq('is_active', true)
-          .order('started_at', { ascending: false })
-          .limit(1);
+        const { data } = await supabase.from('streaming').select('*').eq('id', 25).single();
+        if (data) processStreamData(data);
+      } catch (err) {}
+    };
 
-        const store = usePlayerStore.getState();
-        const isCurrentlyLiveInUI = store.currentVideo?.id === 'live-stream';
+    const processStreamData = (data: any) => {
+      const store = usePlayerStore.getState();
+      const isCurrentlyLiveInUI = store.currentVideo?.id === 'live-stream';
 
-        // MODO MANUAL DIRECTO (STUDIO PRO):
-        // Confiamos 100% en la base de datos (is_active). 
-        // Si el jefe apaga el switch, el reproductor vuelve a videos. 
-        // Si el jefe prende el switch, el reproductor va al vivo.
-
-        if (!error && currentStream && currentStream.is_active) {
-          const sessionKey = currentStream.started_at || 'active';
+      if (data && data.isActive) {
+        const sessionKey = data.updatedAt || 'active';
+        if (lastStartedAtRef.current !== sessionKey || !isCurrentlyLiveInUI) {
+          console.log('[StreamListener Realtime] ⚡ LIVE DETECTED', data.url);
+          lastStartedAtRef.current = sessionKey;
           
-          // Entrar al vivo SOLO si es una sesión nueva o no estamos en vivo todavía
-          if (lastStartedAtRef.current !== sessionKey || !isCurrentlyLiveInUI) {
-            console.log('[StreamListener] ⚡ ACTIVE STREAM detected in Studio Pro. Switching to Live.');
-            
-            lastStartedAtRef.current = sessionKey;
-            isStreamingRef.current = true;
+          const finalUrl = data.url.includes('/live/') 
+            ? `https://www.youtube.com/watch?v=${data.url.split('/live/')[1].split('?')[0]}` 
+            : data.url;
 
-            const streamMedia: SlideMedia = {
-              id: 'live-stream',
-              nombre: `EN VIVO - ${currentStream.title || 'SALADILLO VIVO'}`,
-              url: currentStream.stream_url,
-              categoria: 'Stream',
-              createdAt: currentStream.started_at || new Date().toISOString(),
-              type: 'video',
-              imagen: '',
-              novedad: true
-            };
+          const streamMedia: SlideMedia = {
+            id: 'live-stream',
+            nombre: `EN VIVO - ${data.nombre || 'SALADILLO VIVO'}`,
+            url: finalUrl,
+            categoria: 'Stream',
+            createdAt: data.updatedAt || new Date().toISOString(),
+            type: 'video',
+            imagen: data.imagen || '',
+            novedad: true
+          };
 
-            store.playLiveStream(streamMedia);
-          }
-        } 
-        else {
-          // Si no hay directo activo en la DB pero el UI sigue en vivo, volvemos a videos
-          if (isCurrentlyLiveInUI) {
-            console.log('[StreamListener] ⏹️ Stream deactivated in Studio Pro. Reverting to Auto-Playlist.');
-            isStreamingRef.current = false;
-            lastStartedAtRef.current = null;
-            store.playNextVideoInQueue();
-          }
+          store.playLiveStream(streamMedia);
         }
-      } catch (err) {
-        console.error('[StreamListener] Error polling:', err);
+      } else if (data && !data.isActive && isCurrentlyLiveInUI) {
+        console.log('[StreamListener Realtime] ⏹️ LIVE ENDED');
+        lastStartedAtRef.current = null;
+        store.playNextVideoInQueue();
       }
     };
 
-    const interval = setInterval(pollStreaming, 5000);
-    pollStreaming(); // Initial check
+    fetchInitial();
 
-    return () => clearInterval(interval);
+    // Suscripción Realtime
+    const channel = supabase
+      .channel('streaming-changes')
+      .on('postgres_changes', 
+        { event: 'UPDATE', schema: 'public', table: 'streaming', filter: 'id=eq.25' },
+        (payload) => {
+          console.log('[StreamListener] Realtime Update received:', payload.new);
+          processStreamData(payload.new);
+        }
+      )
+      .subscribe();
+
+    const backupInterval = setInterval(fetchInitial, 30000); // Polling de seguridad cada 30s
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(backupInterval);
+    };
   }, []);
 
   return null;

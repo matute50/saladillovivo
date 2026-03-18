@@ -149,6 +149,13 @@ const VideoSection: React.FC = () => {
       }
     };
 
+    if (currentVideo?.id === 'live-stream') {
+      setAreCinematicBarsActive(false);
+      clearTimer();
+      lastProcessedVideoIdRef.current = 'live-stream';
+      return;
+    }
+
     if (isPlaying) {
       if (isNewVideo && !isLocalIntro && !isPreRollOverlayActive) {
         // --- CASE: NEW VIDEO START (INTRO) ---
@@ -260,7 +267,8 @@ const VideoSection: React.FC = () => {
     }
 
     // Barras de Cine: 1s antes del fin de la intro (v25.1)
-    if (timeLeft <= 1 && !areCinematicBarsActive && isPreRollOverlayActive) {
+    // No activar si es un vivo
+    if (timeLeft <= 1 && !areCinematicBarsActive && isPreRollOverlayActive && currentVideo?.id !== 'live-stream') {
       setAreCinematicBarsActive(true);
     }
   };
