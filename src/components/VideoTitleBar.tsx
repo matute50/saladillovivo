@@ -32,7 +32,7 @@ const VideoTitleBar: React.FC<VideoTitleBarProps> = ({ className }) => {
   const currentDisplay = isSlideActive
     ? "ULTIMAS NOTICIAS"
     : (currentVideo?.id === 'live-stream'
-      ? `EN VIVO - ${currentVideoName}`
+      ? currentVideoName
       : (currentVideoName === 'ESPACIO PUBLICITARIO'
         ? currentDisplayCategory.toUpperCase()
         : `${currentDisplayCategory.toUpperCase()}, ${currentVideoName}`));
