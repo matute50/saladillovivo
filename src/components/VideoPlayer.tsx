@@ -45,7 +45,6 @@ export default function VideoPlayer({
   const [isFadingOut, setIsFadingOut] = useState(false);
   const durationRef = useRef(0);
   const playStartTimeRef = useRef<number | null>(null);
-  const [appOrigin, setAppOrigin] = useState('https://www.saladillovivo.com.ar');
   const [shouldPlay, setShouldPlay] = useState(autoplay);
   const sessionStartPlayedSecondsRef = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -62,9 +61,6 @@ export default function VideoPlayer({
 
   useEffect(() => {
     setIsMounted(true);
-    if (typeof window !== 'undefined') {
-      setAppOrigin(window.location.origin);
-    }
   }, []);
 
   // ATOMIC MUTEX: Only play if this is the active content ID (if ID provided)
@@ -386,10 +382,7 @@ export default function VideoPlayer({
                 fs: 0,
                 iv_load_policy: 3,
                 cc_load_policy: 0,
-                origin: appOrigin,
-                enablejsapi: 1,
-                widget_referrer: appOrigin,
-                host: 'https://www.youtube.com'
+                enablejsapi: 1
               }
             }
           }}
