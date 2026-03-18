@@ -1,8 +1,13 @@
 import { supabase } from './supabaseClient';
 import type { Article, Video, Interview, Banner, Ad, CalendarEvent, SupabaseArticle } from './types';
 
-// Helper to ensure Supabase credentials are set
+// Cached credentials to avoid repeated process.env reads
+let _cachedCredentials: { supabaseUrl: string; supabaseAnonKey: string } | null = null;
+
+// Helper to ensure Supabase credentials are set (cached)
 function checkSupabaseCredentials() {
+  if (_cachedCredentials) return _cachedCredentials;
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -10,7 +15,8 @@ function checkSupabaseCredentials() {
     console.error('Supabase URL or Anon Key is not defined.');
     throw new Error('Supabase configuration is missing.');
   }
-  return { supabaseUrl, supabaseAnonKey };
+  _cachedCredentials = { supabaseUrl, supabaseAnonKey };
+  return _cachedCredentials;
 }
 
 /**
@@ -114,80 +120,74 @@ export async function getArticlesForHome(limitTotal: number = 25) {
   }
 }
 
+/**
+ * getVideosForHome — OPTIMIZADO v24.9
+ * Usa la RPC `get_videos_prioritized` de Supabase para que el servidor aplique
+ * toda la lógica de priorización (forzados → novedades → random).
+ * Transfiere solo ~20 videos en lugar de 500, reduciendo el payload en ~96%.
+ */
 export async function getVideosForHome(limitRecent: number = 4) {
-  const { supabaseUrl, supabaseAnonKey } = checkSupabaseCredentials();
-  const apiUrl = `${supabaseUrl}/rest/v1/videos?select=id,nombre,url,createdAt,categoria,imagen,novedad,forzar_video,volumen_extra&order=createdAt.desc&limit=1000`;
-
-  let allVideos: Video[] = [];
   try {
-    const response = await fetch(apiUrl, {
-      headers: {
-        'apikey': supabaseAnonKey,
-        'Authorization': `Bearer ${supabaseAnonKey}`,
-      },
-      next: { revalidate: 60 }
-    });
+    const { data: videos, error } = await supabase
+      .rpc('get_videos_prioritized', { p_limit: 20 });
 
-    if (response.ok) {
-      allVideos = await response.json();
+    if (error || !videos) {
+      console.error('Error en get_videos_prioritized RPC:', error);
+      return { featuredVideo: null, recentVideos: [], allVideos: [], videoCategories: [] };
     }
+
+    const allVideos: Video[] = (videos as any[]).map(v => ({
+      ...v,
+      id: String(v.id),
+      createdAt: v.createdAt ? new Date(v.createdAt).toISOString() : new Date().toISOString(),
+    }));
+
+    const videoCategories = Array.from(new Set(allVideos
+      .map(v => v.categoria)
+      .filter((cat): cat is string => !!cat && cat !== 'NOVEDADES')))
+      .sort();
+
+    // featuredVideo: tier1 (forzado) > tier2 (novedad) > primero de la lista
+    const featuredVideo = allVideos[0] || null;
+    const recentVideos = allVideos.slice(1, 1 + limitRecent);
+
+    return { featuredVideo, recentVideos, allVideos, videoCategories };
+
   } catch (error) {
-    console.error('Error fetching videos:', error);
+    console.error('Error en getVideosForHome:', error);
     return { featuredVideo: null, recentVideos: [], allVideos: [], videoCategories: [] };
   }
+}
 
-  const fourDaysAgo = new Date(Date.now() - 4 * 24 * 60 * 60 * 1000);
+/**
+ * getVideosByCategory — NUEVO v24.9
+ * Fetch bajo demanda de videos de una categoría específica.
+ * Usa la RPC `get_videos_by_category` en Supabase con ILIKE para coincidencias flexibles.
+ * Solo se llama cuando el usuario navega a esa categoría en el carrusel.
+ *
+ * @param category - Término de categoría parcial (ej: 'cortos', 'clips', 'SEMBRANDO')
+ * @param limit    - Máximo de videos a devolver (default: 20)
+ */
+export async function getVideosByCategory(category: string, limit: number = 20): Promise<Video[]> {
+  try {
+    const { data, error } = await supabase
+      .rpc('get_videos_by_category', { p_category: category, p_limit: limit });
 
-  allVideos = allVideos.map(video => {
-    const videoCreatedAt = new Date(video.createdAt).toISOString();
-    if (video.novedad && new Date(videoCreatedAt) <= fourDaysAgo) {
-      return { ...video, novedad: false, createdAt: videoCreatedAt };
+    if (error || !data) {
+      console.error(`Error en get_videos_by_category (${category}):`, error);
+      return [];
     }
-    return { ...video, createdAt: videoCreatedAt };
-  });
 
-  const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
+    return (data as any[]).map(v => ({
+      ...v,
+      id: String(v.id),
+      createdAt: v.createdAt ? new Date(v.createdAt).toISOString() : new Date().toISOString(),
+    }));
 
-  const forcedVideos = allVideos.filter(video =>
-    video.forzar_video && new Date(video.createdAt) > twelveHoursAgo
-  );
-
-  const nonForcedVideos = allVideos.filter(video =>
-    !(video.forzar_video && new Date(video.createdAt) > twelveHoursAgo)
-  );
-
-  for (let i = nonForcedVideos.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [nonForcedVideos[i], nonForcedVideos[j]] = [nonForcedVideos[j], nonForcedVideos[i]];
+  } catch (error) {
+    console.error(`Error en getVideosByCategory (${category}):`, error);
+    return [];
   }
-
-  const videos: Video[] = [...forcedVideos, ...nonForcedVideos];
-  const videoCategories = [...new Set(videos.map(v => v.categoria).filter(Boolean))].sort();
-
-  let featuredVideo: Video | null = null;
-  const recentVideos: Video[] = [];
-  const mutableVideos = [...videos];
-
-  if (forcedVideos.length > 0) {
-    featuredVideo = forcedVideos[0];
-    mutableVideos.splice(mutableVideos.indexOf(featuredVideo), 1);
-  } else {
-    const featuredIndex = mutableVideos.findIndex(video => video.novedad === true);
-    if (featuredIndex !== -1) {
-      featuredVideo = mutableVideos.splice(featuredIndex, 1)[0];
-    } else if (mutableVideos.length > 0) {
-      featuredVideo = mutableVideos.shift()!;
-    }
-  }
-
-  recentVideos.push(...mutableVideos);
-
-  return {
-    featuredVideo,
-    recentVideos: recentVideos.slice(0, limitRecent),
-    allVideos: videos,
-    videoCategories,
-  };
 }
 
 export async function getRandomVideo(): Promise<Video | null> {
@@ -216,59 +216,43 @@ export async function getRandomVideo(): Promise<Video | null> {
 }
 
 export async function getNewRandomVideo(currentId?: string, currentCategory?: string): Promise<Video | null> {
-  // OPTIMIZACIÓN: 1. Traer solo IDs y Categorías (Payload mínimo)
-  const { data: candidatesRaw, error } = await supabase
-    .from('videos')
-    .select('id, categoria')
-    .not('categoria', 'ilike', '%HCD%');
+  try {
+    // 1. Base Query: Excluir estrictamente HCD (v25.2)
+    const query = supabase
+      .from('videos')
+      .select('id, nombre, url, createdAt, categoria, imagen, novedad, forzar_video, volumen_extra')
+      .not('categoria', 'ilike', '%HCD%');
 
-  if (error) {
-    console.error('Error fetching video IDs for random selection:', error);
-    return null;
-  }
-
-  if (!candidatesRaw || candidatesRaw.length === 0) {
-    return null;
-  }
-
-  let candidates = candidatesRaw;
-
-  // 2. Filtrado en Memoria (Rápido porque son pocos bytes)
-  if (currentId) {
-    candidates = candidates.filter(video => video.id !== currentId);
-  }
-
-  if (currentCategory) {
-    const categoryFiltered = candidates.filter(video => video.categoria !== currentCategory);
-    // Solo aplicamos filtro si quedan videos (fallback a cualquier categoría si no hay)
-    if (categoryFiltered.length > 0) {
-      candidates = categoryFiltered;
+    // 2. Intentar buscar videos de OTRA categoría (v25.2)
+    let candidatesQuery = query;
+    if (currentId) {
+      candidatesQuery = candidatesQuery.neq('id', currentId);
     }
-  }
 
-  // Fallback: Si nos quedamos sin candidatos (ej: solo había 1 video y era currentId), 
-  // volvemos a usar todos los IDs disponibles (excluyendo currentId si es posible)
-  if (candidates.length === 0) {
-    candidates = candidatesRaw.filter(v => v.id !== currentId);
-    if (candidates.length === 0) candidates = candidatesRaw; // Último recurso: repetir el mismo
-  }
+    if (currentCategory) {
+      const { data: switchCategoryData, error: switchError } = await candidatesQuery
+        .neq('categoria', currentCategory)
+        .limit(50); // Pool amplio para aleatoriedad
 
-  // 3. Selección Aleatoria
-  const randomSelection = candidates[Math.floor(Math.random() * candidates.length)];
+      if (!switchError && switchCategoryData && switchCategoryData.length > 0) {
+        return switchCategoryData[Math.floor(Math.random() * switchCategoryData.length)];
+      }
+    }
 
-  // 4. Fetch de Detalles (Solo 1 video real)
-  const { data: fullVideo, error: videoError } = await supabase
-    .from('videos')
-    .select('id, nombre, url, createdAt, categoria, imagen, novedad, forzar_video, volumen_extra')
-    .eq('id', randomSelection.id)
-    .single();
+    // 3. Fallback: Cualquier video (excepto actual e HCD) si no hay otras categorías disponibles
+    const { data: fallbackData, error: fallbackError } = await query
+      .limit(20);
 
-  if (videoError) {
-    console.error('Error fetching details for random video:', videoError);
+    if (fallbackError || !fallbackData || fallbackData.length === 0) return null;
+
+    let finalCandidates = fallbackData.filter(v => v.id !== currentId);
+    if (finalCandidates.length === 0) finalCandidates = fallbackData;
+
+    return finalCandidates[Math.floor(Math.random() * finalCandidates.length)];
+  } catch (error) {
+    console.error('Error in getNewRandomVideo:', error);
     return null;
   }
-
-  return fullVideo;
 }
 
 export async function getTickerTexts(): Promise<string[]> {
@@ -337,7 +321,7 @@ export async function getActiveBanners(): Promise<Banner[]> {
         'apikey': supabaseAnonKey,
         'Authorization': `Bearer ${supabaseAnonKey}`,
       },
-      next: { revalidate: 60 }
+      next: { revalidate: 300 }
     });
 
     if (response.ok) {
@@ -359,7 +343,7 @@ export async function getActiveAds(): Promise<Ad[]> {
         'apikey': supabaseAnonKey,
         'Authorization': `Bearer ${supabaseAnonKey}`,
       },
-      next: { revalidate: 60 }
+      next: { revalidate: 300 }
     });
 
     if (response.ok) {
@@ -544,4 +528,51 @@ export async function getVideoByUrl(url: string): Promise<Video | null> {
     return null;
   }
   return data;
+}
+
+export async function getVideoById(id: string): Promise<Video | null> {
+  const { data, error } = await supabase
+    .from('videos')
+    .select('id, nombre, url, createdAt, categoria, imagen, novedad, volumen_extra')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Error fetching video by ID:', error);
+    return null;
+  }
+  return data;
+}
+
+export async function getArticleById(id: string): Promise<Article | null> {
+  const { data, error } = await supabase
+    .from('articles')
+    .select('id, title, image_url, featureStatus, updatedAt, created_at, slug, description, audio_url, url_slide, animation_duration')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Error fetching article by ID:', error);
+    return null;
+  }
+  if (!data) return null;
+  const item = data as any;
+  return {
+    id: item.id,
+    titulo: item.title,
+    slug: item.slug || item.id.toString(),
+    description: item.description || '',
+    resumen: item.description ? item.description.substring(0, 150) : '',
+    contenido: item.description || '',
+    fecha: item.updatedAt ? new Date(item.updatedAt).toISOString() : new Date().toISOString(),
+    created_at: item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString(),
+    updatedAt: item.updatedAt ? new Date(item.updatedAt).toISOString() : new Date().toISOString(),
+    autor: 'Equipo Editorial',
+    categoria: item.featureStatus,
+    imageUrl: item.image_url || '',
+    featureStatus: item.featureStatus,
+    audio_url: item.audio_url,
+    url_slide: item.url_slide,
+    animation_duration: item.animation_duration,
+  } as Article;
 }

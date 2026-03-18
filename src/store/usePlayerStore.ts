@@ -24,9 +24,9 @@ interface PlayerState {
     streamStatus: any;
 
     // Zero-Branding States
-    isPreRollOverlayActive: boolean; // True when Intro is playing
+    isPreRollOverlayActive: boolean;
     overlayIntroVideo: SlideMedia | null;
-    isContentPlaying: boolean; // True when YouTube/Content underlying layer is playing
+    isContentPlaying: boolean;
 
     // Refs equivalents
     playbackState: PlaybackSource;
@@ -34,14 +34,11 @@ interface PlayerState {
     savedVideo: SlideMedia | null;
     savedVolume: number;
     lastKnownVolume: number;
-    historyVolume: number; // Volume captured 10s before end of previous video
+    historyVolume: number;
 
     // Actions
     setViewMode: (mode: 'diario' | 'tv') => void;
     setIsPlaying: (isPlaying: boolean) => void;
-    // New Action for Zero-Branding Sync (Call this when Intro has 4s left)
-    // startContentPlayback: () => void;
-
     togglePlayPause: () => void;
     setStreamStatus: (status: any) => void;
 
@@ -51,7 +48,7 @@ interface PlayerState {
     playLiveStream: (streamData: any) => void;
     playNextVideoInQueue: () => void;
     loadInitialPlaylist: (videoUrlToPlay: string | null) => Promise<void>;
-    handleOnEnded: (setVolume?: (v: number) => void, getCurrentVolume?: () => number) => Promise<void>;
+    handleOnEnded: (setVolume?: (v: number) => void, unmute?: () => void) => Promise<void>;
 
     // Resume Logic for Slides
     pauseForSlide: (currentTime?: number) => void;
@@ -59,8 +56,6 @@ interface PlayerState {
 
     saveCurrentProgress: (seconds: number, volume: number) => void;
     playRandomSequence: () => Promise<void>;
-
-    startIntroHideTimer: () => void;
 
     // Helpers
     getRandomIntro: () => SlideMedia;
@@ -80,14 +75,14 @@ export const usePlayerStore = create<PlayerState>()(
             currentVideo: null,
             nextVideo: null,
             playlist: [],
-            isPlaying: false,
+            isPlaying: true,
             viewMode: 'diario',
             streamStatus: null,
             isPreRollOverlayActive: false,
             overlayIntroVideo: null,
             isContentPlaying: false,
 
-            playbackState: 'INTRO',
+            playbackState: 'DB_RANDOM',
             savedProgress: 0,
             savedVideo: null,
             savedVolume: 1,
@@ -104,21 +99,18 @@ export const usePlayerStore = create<PlayerState>()(
             setStreamStatus: (status) => set({ streamStatus: status }),
 
             getRandomIntro: () => {
-                const generate = () => {
-                    const randomIndex = Math.floor(Math.random() * INTRO_VIDEOS.length);
-                    const url = INTRO_VIDEOS[randomIndex];
-                    return {
-                        id: `intro-${url}-${Date.now()}`, // Unique ID to force re-render/logic if needed, though we recycle node
-                        nombre: 'ESPACIO PUBLICITARIO',
-                        url,
-                        categoria: 'Institucional',
-                        createdAt: new Date().toISOString(),
-                        type: 'video' as const,
-                        imagen: '',
-                        novedad: false
-                    };
+                const randomIndex = Math.floor(Math.random() * INTRO_VIDEOS.length);
+                const url = INTRO_VIDEOS[randomIndex];
+                return {
+                    id: `intro-${url}-${Date.now()}`,
+                    nombre: 'ESPACIO PUBLICITARIO',
+                    url,
+                    categoria: 'Institucional',
+                    createdAt: new Date().toISOString(),
+                    type: 'video' as const,
+                    imagen: '',
+                    novedad: false
                 };
-                return generate();
             },
 
             fetchRandomDbVideo: async (excludeId, excludeCategory) => {
@@ -130,9 +122,6 @@ export const usePlayerStore = create<PlayerState>()(
                 }
             },
 
-            // Legacy direct play (might need update or deprecation if mostly unused)
-            playMedia: (media) => set({ currentVideo: media, isPlaying: true }),
-
             // User clicks a video in carousel
             playSpecificVideo: (media, currentVolume, setVolume) => {
                 // Stop News Slide if active
@@ -140,15 +129,12 @@ export const usePlayerStore = create<PlayerState>()(
 
                 if (currentVolume !== undefined) set({ savedVolume: currentVolume });
 
-                // Rule: Start at 100% volume for user selection (Always Active)
+                // Rule: Manual selection starts at 20% volume (v24.8)
                 if (setVolume) {
-                    setVolume(1);
-                    // Force Unmute via store if possible, but setVolume usually handles it.
-                    // Ideally we should access useVolumeStore here but we are in PlayerStore.
-                    // The callback `setVolume` passed from component updates the VolumeStore.
+                    setVolume(0.2);
                 }
 
-                set({ playbackState: 'USER_SELECTED', savedVolume: 1 });
+                set({ playbackState: 'USER_SELECTED', savedVolume: 0.2 });
 
                 const introToPlay = get().getRandomIntro();
                 set({
@@ -168,14 +154,14 @@ export const usePlayerStore = create<PlayerState>()(
                 const { currentVideo, playbackState, getRandomIntro } = get();
 
                 if (currentVideo && playbackState !== 'INTRO') {
-                    set({ savedVideo: currentVideo, savedProgress: get().savedProgress }); // Ensure progress is saved separately if needed
+                    set({ savedVideo: currentVideo, savedProgress: get().savedProgress });
                 }
 
-                // Rule: Start at 100% volume for user selection (Always Active)
+                // Rule: Manual selection starts at 20% volume (v24.8)
                 if (setVolume) {
-                    setVolume(1);
+                    setVolume(0.2);
                 }
-                set({ savedVolume: 1 });
+                set({ savedVolume: 0.2 });
 
                 const introToPlay = getRandomIntro();
                 set({
@@ -192,26 +178,27 @@ export const usePlayerStore = create<PlayerState>()(
             },
 
             playLiveStream: (streamData) => {
-                set({ currentVideo: streamData, isPlaying: true, playbackState: 'USER_SELECTED' });
+                set({ 
+                    currentVideo: streamData, 
+                    isPlaying: true, 
+                    playbackState: 'USER_SELECTED',
+                    activeContentId: streamData.id 
+                });
             },
 
             saveCurrentProgress: (seconds, volume) => {
-                // 10s Lookback Volume Persistence Logic
-                // We don't have duration here easily without passing it, but VideoPlayer calls this.
-                // Better approach: handleOnEnded calculates it if we track history.
-                // Simplified: Just allow set/get of historyVolume. 
-                // We'll update savedVolume constantly.
                 set({ savedProgress: seconds, savedVolume: volume });
             },
 
-            startIntroHideTimer: () => {
-                // Managed by VideoSection based on actual video time now, 
-                // but kept for fallback or specific logic if needed.
-                // In Zero-Branding, the Intro *Video* ending triggers the hide, not a timer.
-                // We will deprecate this strict timer in favor of 'onEnded' of Intro Video.
-            },
 
             loadInitialPlaylist: async (videoUrlToPlay) => {
+                const { currentVideo } = get();
+                
+                // CRITICAL: If a live stream is already playing (detected by StreamListener), do NOT reload.
+                if (currentVideo?.id === 'live-stream') {
+                    console.log('[PlayerStore] Stream already active, skipping initial load');
+                    return;
+                }
 
                 const intro = get().getRandomIntro();
 
@@ -249,44 +236,30 @@ export const usePlayerStore = create<PlayerState>()(
                 }
             },
 
-            handleOnEnded: async (setVolume) => {
-                // 1. Capture Volume for Persistence (History Volume)
-                // If provided, we assume this is the volume ~10s before end or close to it.
-                // Since this is called EXACTLY at end, we might be too late if user muted at 1s left.
-                // Requirement: "volume that it had 10 seconds before ending".
-                // We need to implement a history buffer in VideoPlayer or Store.
-                // Simpler compromise: The store uses `historyVolume` which VideoSection updates?
-                // Or just use `savedVolume` which acts as "last known human volume".
-                // Let's use `savedVolume` as the persistence source for now, assuming it updates frequently.
-
+            handleOnEnded: async (setVolume, unmute) => {
                 const { savedVolume } = get();
-                set({ historyVolume: savedVolume });
+                const restoredVolume = savedVolume > 0 ? savedVolume : 0.7;
+                set({ historyVolume: restoredVolume });
 
-                // 2. Prepare Next Loop
                 const { currentVideo } = get();
                 const intro = get().getRandomIntro();
 
-                // 3. Fetch Next Video
                 let nextV = nextDataVideo || await get().fetchRandomDbVideo(currentVideo?.id, currentVideo?.categoria);
-
-                // If we run out of videos/errors, get anything
                 if (!nextV) nextV = await get().fetchRandomDbVideo();
 
                 if (nextV) {
-                    // 4. Start Next Sequence: Intro -> Video
                     set({
                         currentVideo: nextV,
                         isPlaying: true,
                         overlayIntroVideo: intro,
                         isPreRollOverlayActive: true,
-                        isContentPlaying: false, // WAIT for T-4s
-                        playbackState: 'DB_RANDOM'
+                        isContentPlaying: false,
+                        playbackState: 'DB_RANDOM',
+                        activeContentId: nextV.id
                     });
 
-                    if (setVolume) {
-                        // Apply persisted volume
-                        setVolume(savedVolume);
-                    }
+                    if (setVolume) setVolume(restoredVolume);
+                    if (unmute) unmute();
 
                     nextDataVideo = null;
                     get().preloadNextVideo(nextV.id);
@@ -324,10 +297,7 @@ export const usePlayerStore = create<PlayerState>()(
                 }
             },
 
-            // ... other existing methods ... 
             playNextVideoInQueue: async () => {
-                // Triggered by "Next" button usually
-                // Use handleOnEnded logic essentially
                 get().handleOnEnded();
             },
 
@@ -350,7 +320,6 @@ export const usePlayerStore = create<PlayerState>()(
                 set({
                     isPreRollOverlayActive: false,
                     overlayIntroVideo: null,
-                    // Ensure content is marked playing if not already
                     isContentPlaying: true
                 });
             }

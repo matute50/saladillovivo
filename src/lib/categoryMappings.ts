@@ -6,13 +6,13 @@ export interface CategoryMapping {
 export const categoryMappings: CategoryMapping[] = [
   { display: 'Novedades', dbCategory: '__NOVEDADES__' }, // Nueva categoría
   { display: 'HCD de Saladillo', dbCategory: 'HCD DE SALADILLO  - Período 2025' },
-  { display: 'ITEC ¨Augusto Cicaré¨', dbCategory: 'ITEC ¨AUGUSTO CICARE¨ SALADILLO' },
+  { display: 'ITEC ¨Augusto Cicaré¨', dbCategory: ['ITEC ¨AUGUSTO CICARE¨ SALADILLO', 'iteccicare', 'itec'] },
   { display: 'Fierros de Saladillo', dbCategory: 'FIERROS' },
   { display: 'Gente de Acá', dbCategory: 'export' },
   { display: 'Sembrando Futuro', dbCategory: 'SEMBRANDO FUTURO' },
   { display: 'De Otros Tiempos', dbCategory: ['ARCHIVO SALADILLO VIVO', 'historia'] },
   { display: 'Saladillo Canta', dbCategory: 'clips' },
-  { display: 'Hacelo Corto', dbCategory: 'cortos' },
+  { display: 'Hacelo Corto', dbCategory: ['cortos', 'Hacelo Corto'] },
 ];
 
 export const getDisplayCategory = (dbCategory: string): string => {

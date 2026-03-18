@@ -5,14 +5,14 @@ import VideoPlayer from '@/components/VideoPlayer';
 import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
 import { usePlayerStore } from '@/store/usePlayerStore';
-import { SlideMedia } from '@/lib/types';
 import { useNewsPlayerStore } from '@/store/useNewsPlayerStore';
 import { useVolumeStore } from '@/store/useVolumeStore';
 import CustomControls from '@/components/CustomControls';
 import VideoTitleBar from '@/components/VideoTitleBar';
 import NewsTicker from '@/components/NewsTicker';
+import { useMediaPlayer } from '@/context/MediaPlayerContext';
 import WeatherOverlay from '@/components/tv/WeatherOverlay';
-import { cn, cleanTitle, isYouTubeVideo } from '@/lib/utils';
+import { cn, cleanTitle } from '@/lib/utils';
 import { Play } from 'lucide-react';
 import AntiGravityLayer from './AntiGravityLayer';
 
@@ -20,14 +20,6 @@ import AntiGravityLayer from './AntiGravityLayer';
 
 
 const VideoSection: React.FC = () => {
-  useEffect(() => {
-    (window as any).__VIDEO_SECTION_COUNT = ((window as any).__VIDEO_SECTION_COUNT || 0) + 1;
-    console.log(`[VideoSection] MOUNTED. Total Sections: ${(window as any).__VIDEO_SECTION_COUNT}`);
-    return () => {
-      (window as any).__VIDEO_SECTION_COUNT -= 1;
-      console.error(`[VideoSection] UNMOUNTED. Total Sections: ${(window as any).__VIDEO_SECTION_COUNT}`);
-    };
-  }, []);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const playerContainerRef = useRef<HTMLDivElement>(null);
 
@@ -43,11 +35,12 @@ const VideoSection: React.FC = () => {
     isContentPlaying,
     pauseForSlide,
     resumeAfterSlide,
-    finishIntro
+    finishIntro,
   } = usePlayerStore();
 
   const { currentSlide, isPlaying: isSlidePlaying, stopSlide, isNewsIntroActive, setIsNewsIntroActive } = useNewsPlayerStore();
   const { volume, setVolume, isMuted, unmute } = useVolumeStore(); // Added unmute
+  const { captureVolumeForHistory } = useMediaPlayer();
 
   // Auto-Unmute for News or HTML Slides
   const isHtmlSlideActive = isSlidePlaying && currentSlide && currentSlide.type === 'html';
@@ -77,13 +70,11 @@ const VideoSection: React.FC = () => {
   const transitionSignaledRef = useRef(false);
 
   const audioRef = useRef<HTMLAudioElement>(null);
+  const introVideoRef = useRef<HTMLVideoElement>(null);
+  const [isIntroFadingOut, setIsIntroFadingOut] = useState(false);
 
 
-  // --- SINGLE PLAYER LOGIC (v23.9 - The Terminator) ---
-  // A/B Slots were keeping Zombies alive. We move to a Single Player architecture.
-  // The key={currentVideo?.id} ensures a total clean unmount/remount on every change.
-
-  // ... (Other effects)
+  // --- SINGLE PLAYER LOGIC (v23.9) ---
 
   useEffect(() => {
     if (audioRef.current) {
@@ -93,12 +84,14 @@ const VideoSection: React.FC = () => {
 
   const [playBackgroundEarly, setPlayBackgroundEarly] = useState(false);
   const transitionTriggeredRef = useRef(false);
+  const introWatchdogRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setPlayBackgroundEarly(false);
     transitionTriggeredRef.current = false;
     transitionSignaledRef.current = false;
     setCurrentDuration(0);
+    setIsIntroFadingOut(false);
   }, [currentVideo?.id]);
 
   useEffect(() => {
@@ -115,6 +108,19 @@ const VideoSection: React.FC = () => {
     }
     return () => clearTimeout(timer);
   }, [isHtmlSlideActive, currentSlide, stopSlide, resumeAfterSlide, pauseForSlide]);
+
+  // FIX AUTOPLAY: Si isPreRollOverlayActive está activo pero no hay video de intro asignado,
+  // el reproductor quedaría bloqueado indefinidamente (isContentPlaying nunca se activaría).
+  // En ese caso, saltamos la intro directamente.
+  useEffect(() => {
+    if (isPreRollOverlayActive && !overlayIntroVideo && currentVideo) {
+      // Sin intro = sin overlay = activar contenido inmediatamente
+      const timer = setTimeout(() => {
+        finishIntro();
+      }, 100); // 100ms de gracia para evitar estados intermedios del store
+      return () => clearTimeout(timer);
+    }
+  }, [isPreRollOverlayActive, overlayIntroVideo, currentVideo, finishIntro]);
 
   // --- UNIVERSAL PAUSE-ZOOM STRATEGY (V23.2) ---
   // No specific "Return from News" detection needed.
@@ -160,7 +166,7 @@ const VideoSection: React.FC = () => {
         clearTimer();
         cinematicTimerRef.current = setTimeout(() => {
           setAreCinematicBarsActive(false); // Triggers Zoom Out transition
-        }, 3000); // 3s Hold (V23.3)
+        }, 5000); // 5s Hold (V23.3)
       } else if (isNewVideo) {
         // Backup: update ref even if we don't show bars
         lastProcessedVideoIdRef.current = currentVideo.id || null;
@@ -218,17 +224,46 @@ const VideoSection: React.FC = () => {
       if (
         currentDuration > 0 &&
         currentDuration - playedSeconds <= 1 &&
-        !transitionSignaledRef.current &&
-        isYouTubeVideo(currentVideo?.url || '')
+        !transitionSignaledRef.current
       ) {
 
         transitionSignaledRef.current = true;
-        handleOnEnded(setVolume);
+        handleOnEnded(setVolume, unmute);
+      }
+
+      // Capture volume 10s before end for persistence (v24.8)
+      if (
+        currentDuration > 0 &&
+        currentDuration - playedSeconds <= 10 &&
+        currentDuration - playedSeconds > 9.5
+      ) {
+        captureVolumeForHistory();
       }
     }
   };
 
-  // Now handled by <IntroLayer /> with Strict Timer.
+
+  const handleIntroTimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    const video = e.currentTarget;
+    if (!video.duration || !video.playbackRate) return;
+    const timeLeft = (video.duration - video.currentTime) / video.playbackRate;
+    if (timeLeft <= 1 && !video.muted) {
+      const fadeProgress = Math.max(0, 1 - timeLeft);
+      video.volume = Math.max(0, 1 - fadeProgress);
+    }
+    if (timeLeft <= 0.5 && !isIntroFadingOut) {
+      setIsIntroFadingOut(true);
+    }
+    // Sincronización 3s: Iniciar contenido oculto detrás de la intro (v24.9)
+    if (timeLeft <= 3 && !isContentPlaying && isPreRollOverlayActive) {
+      usePlayerStore.setState({ isContentPlaying: true });
+    }
+
+    // Barras de Cine: 1s antes del fin de la intro (v25.1)
+    if (timeLeft <= 1 && !areCinematicBarsActive && isPreRollOverlayActive) {
+      setAreCinematicBarsActive(true);
+    }
+  };
 
   const handleIntroMetadata = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     const video = e.currentTarget;
@@ -247,8 +282,6 @@ const VideoSection: React.FC = () => {
       <div className="relative aspect-video w-full">
         <div
           ref={playerContainerRef}
-          id="DEBUG_VIDEO_SECTION"
-          style={{ border: '5px solid red' }}
           className={cn(
             "relative w-full h-full aspect-video bg-black overflow-hidden border-0 md:border md:rounded-xl card-blur-player shadow-lg",
           )}
@@ -256,14 +289,14 @@ const VideoSection: React.FC = () => {
           onMouseLeave={() => setShowControls(false)}
         >
           {/* === VIDEO UNIVERSE (SCALABLE & IMMERSIVE) === */}
-          {/* === VIDEO UNIVERSE (SCALABLE & IMMERSIVE) === */}
           <div
             className={cn(
               "video-universe absolute inset-0 w-full h-full transition-transform ease-in-out md:rounded-xl overflow-hidden"
             )}
             style={{
               transform: areCinematicBarsActive ? 'scale(1.20)' : 'scale(1)',
-              transitionDuration: areCinematicBarsActive ? '75ms' : '5000ms'
+              transitionDuration: areCinematicBarsActive ? '75ms' : '2000ms',
+              willChange: 'transform'
             }}
           >
 
@@ -283,7 +316,7 @@ const VideoSection: React.FC = () => {
                     autoPlay
                     className="hidden"
                     muted={isMuted}
-                    onPlay={() => console.log(`Reproduciendo audio de slide: ${currentSlide.audioUrl}`)}
+                    onPlay={() => { }}
                     onError={(e) => console.error("Error reproduciendo audio de noticia:", e, currentSlide.audioUrl)}
                   />
                 )}
@@ -299,6 +332,7 @@ const VideoSection: React.FC = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
+                    transition={{ duration: 0.75 }}
                     className="absolute inset-0"
                     data-player-id={currentVideo.id}
                   >
@@ -306,9 +340,11 @@ const VideoSection: React.FC = () => {
                       id={currentVideo.id}
                       videoUrl={currentVideo.url}
                       autoplay={isPlaying && isContentPlaying}
-                      muted={(!isPlaying || isPreRollOverlayActive || !isContentPlaying)}
+                      muted={(!isPlaying || !isContentPlaying)}
                       onClose={() => {
-                        if (!transitionSignaledRef.current) handleOnEnded(setVolume);
+                        if (!transitionSignaledRef.current && currentVideo?.id !== 'live-stream') {
+                          handleOnEnded(setVolume, unmute);
+                        }
                       }}
                       onProgress={(state) => {
                         handleProgress(state);
@@ -325,34 +361,44 @@ const VideoSection: React.FC = () => {
               </AnimatePresence>
             </div>
 
-            {/* === PERSISTENT INTRO OVERLAY === */}
-            <AnimatePresence>
-              {isPreRollOverlayActive && overlayIntroVideo && (
-                <motion.div
-                  key="intro-overlay"
-                  initial={{ opacity: 1 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="absolute inset-0 z-[999] bg-black"
-                >
-                  <video
-                    src={overlayIntroVideo.url}
-                    autoPlay
-                    playsInline
-                    muted
-                    className="w-full h-full object-cover"
-                    onEnded={() => {
 
-                      finishIntro();
-                    }}
-                    onError={(e) => {
-                      console.error("Intro Error:", e);
-                      finishIntro();
-                    }}
-                  />
-                </motion.div>
+            {/* === PERSISTENT INTRO OVERLAY === */}
+            <div
+              className={cn(
+                "absolute inset-0 z-[999] bg-black transition-opacity duration-500",
+                (isPreRollOverlayActive && overlayIntroVideo && !isIntroFadingOut)
+                  ? "opacity-100"
+                  : "opacity-0 invisible pointer-events-none"
               )}
-            </AnimatePresence>
+            >
+              <video
+                ref={introVideoRef}
+                src={overlayIntroVideo?.url || ""}
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-full object-cover"
+                onTimeUpdate={handleIntroTimeUpdate}
+                onLoadedData={() => {
+                  // Watchdog: si la intro carga pero en 20s no termina, forzar finishIntro
+                  if (introWatchdogRef.current) clearTimeout(introWatchdogRef.current);
+                  introWatchdogRef.current = setTimeout(() => {
+                    console.warn('[VideoSection] Intro watchdog: forzando finishIntro()');
+                    finishIntro();
+                  }, 20000);
+                }}
+                onEnded={() => {
+                  if (introWatchdogRef.current) clearTimeout(introWatchdogRef.current);
+                  finishIntro();
+                }}
+                onError={(e) => {
+                  console.error("Intro Error:", e);
+                  if (introWatchdogRef.current) clearTimeout(introWatchdogRef.current);
+                  finishIntro();
+                }}
+              />
+            </div>
+
 
             {
               (!isPlaying) && !isLocalIntro && !playBackgroundEarly && !isHtmlSlideActive && (
@@ -411,7 +457,17 @@ const VideoSection: React.FC = () => {
               )}
               {areCinematicBarsActive && (
                 <motion.div
-                  key="cinematic-bar-bottom"
+                  key="cinematic-bar-bottom-solid"
+                  className="absolute bottom-0 left-0 right-0 h-[14%] bg-black z-[45] pointer-events-auto"
+                  initial={{ y: 0 }}
+                  animate={{ y: 0 }}
+                  exit={{ y: "100%" }}
+                  transition={{ duration: 1.2, ease: "easeInOut" }}
+                />
+              )}
+              {areCinematicBarsActive && (
+                <motion.div
+                  key="cinematic-bar-bottom-gradient"
                   className="absolute bottom-0 left-0 right-0 h-[35%] bg-gradient-to-t from-black via-black/90 to-transparent z-[45] pointer-events-auto"
                   initial={{ opacity: 1 }}
                   animate={{ opacity: 1 }}
@@ -467,9 +523,9 @@ const VideoSection: React.FC = () => {
 
           </AntiGravityLayer>
         </div>
-      </div>
+      </div >
       {viewMode === 'diario' && <VideoTitleBar className="mt-0 rounded-t-none border-t-0" />}
-    </div>
+    </div >
   );
 
 };

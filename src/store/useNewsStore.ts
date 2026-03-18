@@ -46,6 +46,7 @@ interface NewsState {
     handleSearch: (query: string) => Promise<void>;
     setSearchQuery: (query: string) => void;
     setIsDarkTheme: (isDark: boolean) => void;
+    hydrate: (data: any) => void;
 
     // Getters (functions that help access data)
     getNewsBySlug: (slug: string) => Article | undefined;
@@ -102,18 +103,11 @@ export const useNewsStore = create<NewsState>((set, get) => ({
                 getCalendarEvents(),
             ]);
 
-            const safeArticles = articlesResult || { allNews: [] };
-            const safeVideos = videosResult || { allVideos: [] };
-
-            set({
-                allNews: safeArticles.allNews,
-                featuredNews: safeArticles.allNews.filter(n => n.featureStatus === 'featured'),
-                secondaryNews: safeArticles.allNews.filter(n => n.featureStatus === 'secondary'),
-                tertiaryNews: safeArticles.allNews.filter(n => n.featureStatus === 'tertiary'),
-                otherNews: safeArticles.allNews.filter(n => !['featured', 'secondary', 'tertiary'].includes(n.featureStatus || '')),
+            get().hydrate({
+                allNews: articlesResult?.allNews || [],
                 allTickerTexts: tickerTexts,
-                galleryVideos: safeVideos.allVideos,
-                interviews: interviews,
+                allVideos: videosResult?.allVideos || [],
+                interviews,
                 activeBanners: banners,
                 activeAds: ads,
                 calendarEvents: events,
@@ -156,6 +150,32 @@ export const useNewsStore = create<NewsState>((set, get) => ({
 
     setSearchQuery: (query: string) => set({ searchQuery: query }),
     setIsDarkTheme: (isDark: boolean) => set({ isDarkTheme: isDark }),
+
+    hydrate: (data: any) => {
+        if (!data) return;
+        const allNews = data.allNews || [];
+
+        set({
+            allNews,
+            featuredNews: allNews.filter((n: any) => n.featureStatus === 'featured'),
+            secondaryNews: allNews.filter((n: any) => n.featureStatus === 'secondary'),
+            tertiaryNews: allNews.filter((n: any) => n.featureStatus === 'tertiary'),
+            otherNews: allNews.filter((n: any) => !['featured', 'secondary', 'tertiary'].includes(n.featureStatus || '')),
+            allTickerTexts: data.allTickerTexts || [],
+            galleryVideos: data.allVideos || [],
+            interviews: data.interviews || [],
+            activeBanners: data.activeBanners || [],
+            activeAds: data.activeAds || [],
+            calendarEvents: data.calendarEvents || [],
+            isLoading: false,
+            isLoadingVideos: false,
+            isLoadingInterviews: false,
+            isLoadingBanners: false,
+            adsLoading: false,
+            eventsLoading: false,
+            isLoadingConfig: false
+        });
+    },
 
     getNewsBySlug: (slug: string) => get().allNews.find(item => item.slug === slug),
     getNewsById: (id: string | number) => get().allNews.find(item => item.id.toString() === id.toString()),

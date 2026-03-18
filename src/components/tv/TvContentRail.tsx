@@ -11,7 +11,7 @@ import { useVolumeStore } from '@/store/useVolumeStore';
 import CategoryCycler from '@/components/layout/CategoryCycler';
 import { Video, Article } from '@/lib/types';
 import { categoryMappings, type CategoryMapping } from '@/lib/categoryMappings';
-import { cleanTitle } from '@/lib/utils';
+import { cleanTitle, shuffleArray } from '@/lib/utils';
 
 const TRANSPARENT_PNG_DATA_URI = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
 
@@ -31,16 +31,15 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
   const { volume, setVolume } = useVolumeStore();
 
   const [categoryIndex, setCategoryIndex] = useState(0);
+  const [shuffleNonce, setShuffleNonce] = useState(0); // v26.1: Forzar reshuffle en cada elección
 
   const availableCategoryMappings = useMemo(() => {
     if (isLoadingNews) return [];
 
     return categoryMappings.filter(category => {
-      // Excluir explícitamente la categoría "Noticias (Slides)" del modo TV
+      // Excluir explícitamente "Noticias (Slides)" y "Novedades" (Request v26)
       if (category.display === 'Noticias (Slides)') return false;
-
-      if (category.dbCategory === '__NOTICIAS__') return allNews.length > 0;
-      if (category.dbCategory === '__NOVEDADES__') return galleryVideos.some(video => video.novedad === true);
+      if (category.dbCategory === '__NOVEDADES__') return false;
 
       const targetCategories = Array.isArray(category.dbCategory)
         ? category.dbCategory.map(c => c.trim().toLowerCase())
@@ -69,18 +68,21 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
           setCategoryIndex(newsIndex !== -1 ? newsIndex : 0);
         }
       } else {
-        const newsIndex = availableCategoryMappings.findIndex(c => c.dbCategory === '__NOTICIAS__');
-        setCategoryIndex(newsIndex !== -1 ? newsIndex : 0);
+        // En cada inicio de la aplicación elegir al azar la categoría a mostrar (Request v26)
+        const randomIndex = Math.floor(Math.random() * availableCategoryMappings.length);
+        setCategoryIndex(randomIndex);
       }
     }
   }, [availableCategoryMappings, initialCategory]); // Add initialCategory to dependencies
 
   const handleNextCategory = useCallback(() => {
     setCategoryIndex(prev => (prev + 1) % availableCategoryMappings.length);
+    setShuffleNonce(n => n + 1); // Forzar nuevo orden en cada elección (v26.1)
   }, [availableCategoryMappings.length]);
 
   const handlePrevCategory = useCallback(() => {
     setCategoryIndex(prev => (prev - 1 + availableCategoryMappings.length) % availableCategoryMappings.length);
+    setShuffleNonce(n => n + 1); // Forzar nuevo orden en cada elección (v26.1)
   }, [availableCategoryMappings.length]);
 
   // Manejo de Clics
@@ -152,7 +154,10 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
     });
   }, []); // galleryVideos removed from dependencies as it's not directly used inside
 
-  const processedAllNews = useMemo(() => processThumbnails(allNews), [allNews, processThumbnails]);
+  const processedAllNews = useMemo(() => {
+    const processed = processThumbnails(allNews);
+    return shuffleArray(processed);
+  }, [allNews, processThumbnails]);
 
   // Determine activeCategory and rawItems only if availableCategoryMappings is not empty
   const activeCategory = availableCategoryMappings.length > 0 ? availableCategoryMappings[categoryIndex] : undefined;
@@ -161,7 +166,10 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
     return activeCategory ? (activeCategory.dbCategory === '__NOTICIAS__' ? allNews : galleryVideos) : [];
   }, [activeCategory, allNews, galleryVideos]);
 
-  const processedItems = useMemo(() => processThumbnails(rawItems), [rawItems, processThumbnails]);
+  const processedItems = useMemo(() => {
+    const processed = processThumbnails(rawItems);
+    return shuffleArray(processed);
+  }, [rawItems, processThumbnails, shuffleNonce]); // v26.1: Dependencia de shuffleNonce
 
   if (isLoadingNews || availableCategoryMappings.length === 0) {
     return <div className="text-white p-4 bg-white/10 rounded-lg flex justify-center items-center h-[126px]">Cargando...</div>;

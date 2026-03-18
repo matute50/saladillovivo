@@ -2,9 +2,10 @@
 
 import { useRef, useState, useEffect, useCallback } from 'react';
 import ReactPlayer from 'react-player';
+import { useIsPresent } from 'framer-motion';
 import { usePlayerStore } from '@/store/usePlayerStore';
 import { useVolumeStore } from '@/store/useVolumeStore';
-import { cn, isYouTubeVideo } from '@/lib/utils';
+import { isYouTubeVideo } from '@/lib/utils';
 
 interface VideoPlayerProps {
   videoUrl: string;
@@ -23,7 +24,7 @@ interface VideoPlayerProps {
 
 export default function VideoPlayer({
   videoUrl,
-  autoplay = false,
+  autoplay = true,
   onClose,
   onProgress,
   onDuration,
@@ -56,6 +57,9 @@ export default function VideoPlayer({
   const fadeOutIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const kickIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  const isPresent = useIsPresent();
+  const isPresentRef = useRef(true);
+
   useEffect(() => {
     setIsMounted(true);
     if (typeof window !== 'undefined') {
@@ -68,15 +72,7 @@ export default function VideoPlayer({
   const finalPlaying = shouldPlay && isMutexActive;
   const finalMuted = isMuted || forceMuted || !isMutexActive || !shouldPlay;
 
-  // Track player instances in console for debugging (v24.0)
-  useEffect(() => {
-    (window as any).__VIDEO_PLAYER_COUNT = ((window as any).__VIDEO_PLAYER_COUNT || 0) + 1;
-    console.log(`[VideoPlayer:${id}] MOUNTED. Total Players: ${(window as any).__VIDEO_PLAYER_COUNT}`);
-    return () => {
-      (window as any).__VIDEO_PLAYER_COUNT -= 1;
-      console.log(`[VideoPlayer:${id}] UNMOUNTED. Total Players: ${(window as any).__VIDEO_PLAYER_COUNT}`);
-    };
-  }, [id]);
+
 
   // Sync shouldPlay strictly when autoplay prop changes
   useEffect(() => {
@@ -89,12 +85,12 @@ export default function VideoPlayer({
       const internal = playerRef.current.getInternalPlayer();
       if (internal) {
         if (finalPlaying) {
-          console.log(`[VideoPlayer:${id}] Command: PLAY / UNMUTE`);
+
           if (typeof internal.playVideo === 'function') internal.playVideo();
           if (typeof internal.unMute === 'function') internal.unMute();
           if (typeof internal.setVolume === 'function') internal.setVolume(localVolume * 100);
         } else {
-          console.log(`[VideoPlayer:${id}] Command: PAUSE / MUTE`);
+
           if (typeof internal.pauseVideo === 'function') internal.pauseVideo();
           if (typeof internal.mute === 'function') internal.mute();
           // Force volume 0 even if not muted
@@ -163,10 +159,70 @@ export default function VideoPlayer({
 
   useEffect(() => {
     const clampedVolume = Math.max(0, Math.min(1, effectiveVolume));
-    if (!isFadingIn.current && !isFadingOut && localVolume !== clampedVolume) {
+    if (!isFadingIn.current && !isFadingOut && isPresent && localVolume !== clampedVolume) {
       setLocalVolume(clampedVolume);
     }
-  }, [effectiveVolume, localVolume, isFadingOut]);
+  }, [effectiveVolume, localVolume, isFadingOut, isPresent]);
+
+  // Sync Fade Out when and component is leaving (AnimatePresence exit)
+  useEffect(() => {
+    if (!isPresent && isPresentRef.current) {
+      // Component is starting its exit transition
+      setIsFadingOut(true);
+      const fadeDuration = 750; // 0.75s per user request
+      const fadeSteps = 15;
+      const decrement = localVolume / fadeSteps;
+      let currentFadeVolume = localVolume;
+      let step = 0;
+
+      if (fadeOutIntervalRef.current) clearInterval(fadeOutIntervalRef.current);
+      fadeOutIntervalRef.current = setInterval(() => {
+        step++;
+        currentFadeVolume = Math.max(0, currentFadeVolume - decrement);
+        setLocalVolume(currentFadeVolume);
+        if (step >= fadeSteps || currentFadeVolume <= 0) {
+          if (fadeOutIntervalRef.current) clearInterval(fadeOutIntervalRef.current);
+          setLocalVolume(0);
+        }
+      }, fadeDuration / fadeSteps);
+    }
+    isPresentRef.current = isPresent;
+  }, [isPresent, localVolume]);
+
+  // Sync Fade In when becoming unmuted or starts playing while unmuted (v25.1)
+  const prevMutedRef = useRef(finalMuted);
+  const prevPlayingRef = useRef(isPlayingInternal);
+
+  useEffect(() => {
+    const shouldStartFade = (
+      (prevMutedRef.current && !finalMuted && isPlayingInternal) || // Case A: Unmuted while playing
+      (!finalMuted && isPlayingInternal && !prevPlayingRef.current) // Case B: Starts playing while already unmuted
+    );
+
+    if (shouldStartFade && !isFadingIn.current) {
+      isFadingIn.current = true;
+      const fadeDuration = 1000;
+      const fadeSteps = 20;
+      const targetVol = effectiveVolume;
+      const increment = targetVol / fadeSteps;
+      let currentVol = 0;
+      let step = 0;
+
+      if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
+      fadeIntervalRef.current = setInterval(() => {
+        step++;
+        currentVol = Math.min(targetVol, currentVol + increment);
+        setLocalVolume(currentVol);
+        if (step >= fadeSteps) {
+          if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
+          isFadingIn.current = false;
+          setLocalVolume(targetVol);
+        }
+      }, fadeDuration / fadeSteps);
+    }
+    prevMutedRef.current = finalMuted;
+    prevPlayingRef.current = isPlayingInternal;
+  }, [finalMuted, isPlayingInternal, effectiveVolume]);
 
   // Autoplay Kick for YouTube
   useEffect(() => {
@@ -224,10 +280,10 @@ export default function VideoPlayer({
 
     if (isYouTubeVideo(videoUrl) && durationRef.current > 0 && !isFadingOut) {
       const timeLeft = durationRef.current - state.playedSeconds;
-      if (timeLeft <= 1 && timeLeft > 0) {
+      if (timeLeft <= 0.75 && timeLeft > 0) { // Adjusted to 0.75s (v27)
         setIsFadingOut(true);
-        const fadeDuration = 1000;
-        const fadeSteps = 20;
+        const fadeDuration = 750; // Adjusted to 0.75s (v27)
+        const fadeSteps = 15;
         const decrement = localVolume / fadeSteps;
         let currentFadeVolume = localVolume;
         let step = 0;

@@ -17,7 +17,6 @@ export default function ReproductorMultimedia({ onComplete, videoToPlay }: Repro
   const videoPlayerRef = React.useRef<HTMLVideoElement>(null);
 
   const handleVideoEnd = () => {
-    console.log('Video de introducción terminado. Finalizando secuencia.');
     onComplete();
   };
 

@@ -27,8 +27,6 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
 
   if (!newsItem) return null;
 
-  if (!newsItem) return null;
-
   const title = cleanTitle(newsItem.title || newsItem.titulo);
 
   const getProcessedImageUrl = (inputUrl: string | undefined | null): string => {
@@ -114,9 +112,9 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 20 }}
+      initial={index < 8 ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
+      transition={index < 8 ? { duration: 0.5, delay: index * 0.1 } : { duration: 0 }}
       className={cn(
         "group relative flex flex-col rounded-xl overflow-hidden transition-all duration-300 h-full",
         "shadow-[0_4px_20px_rgba(0,0,0,0.5)] dark:shadow-[0_0_20px_rgba(255,255,255,0.3)]",

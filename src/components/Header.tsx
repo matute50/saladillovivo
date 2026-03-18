@@ -21,19 +21,16 @@ import { Bell } from 'lucide-react';
 import { usePwaInstall } from '@/hooks/usePwaInstall';
 import { MonitorDown } from 'lucide-react';
 
+const MotionMonitorDown = motion.create(MonitorDown);
+
 interface InstallPwaButtonProps {
   isDarkTheme: boolean;
 }
 
-const InstallPwaButton = ({ isDarkTheme }: InstallPwaButtonProps) => {
+const InstallPwaButton = React.memo(({ isDarkTheme }: InstallPwaButtonProps) => {
   const { isInstallable, promptInstall } = usePwaInstall();
-  // We use the store to detect the theme, assuming Header keeps it synced
-
 
   if (!isInstallable) return null;
-
-  // Animation Colors Configuration: Top (-4) = Red, Bottom (0) = White
-  const colors = ['#ef4444', '#ffffff', '#ef4444'];
 
   return (
     <Button
@@ -43,30 +40,31 @@ const InstallPwaButton = ({ isDarkTheme }: InstallPwaButtonProps) => {
       className="hover:bg-black/10 dark:hover:bg-white/10 font-bold"
       title="Instalar App en PC"
     >
-      <motion.div
+      <MotionMonitorDown
+        size={24}
+        className="drop-shadow-lg"
         animate={{
           y: [-4, 0, -4],
-          color: colors,
+          color: isDarkTheme
+            ? ['#ef4444', '#ffffff', '#ef4444'] // Dark mode: Rojo (arriba) -> Blanco (abajo)
+            : ['#ef4444', '#000000', '#ef4444']  // Light mode: Rojo (arriba) -> Negro (abajo)
         }}
         transition={{
           duration: 1.2,
           repeat: Infinity,
           ease: "easeInOut"
         }}
-      >
-        <MonitorDown size={24} className="drop-shadow-lg" />
-      </motion.div>
+      />
     </Button>
   );
-};
+});
 
-const NotificationButton = () => {
+InstallPwaButton.displayName = 'InstallPwaButton';
+
+const NotificationButton = React.memo(() => {
   const { requestPermission } = useNotifications();
-  // Simulación de notificaciones sin leer (esto debería venir de un store o API real)
-  // POR PEDIDO DEL USUARIO: Desactivado por defecto hasta tener lógica real
   const [hasUnread, setHasUnread] = useState(false);
 
-  // Al hacer click, solicitamos permiso Y marcamos como leídas
   const handleClick = () => {
     requestPermission();
     setHasUnread(false);
@@ -85,10 +83,10 @@ const NotificationButton = () => {
         <motion.span
           className="absolute bottom-2 right-2 w-[9px] h-[9px] bg-red-500 rounded-full border border-white dark:border-black"
           animate={{
-            y: [0, -3, 0], // Reduced movement slightly to match smaller size
+            y: [0, -3, 0],
           }}
           transition={{
-            duration: 1.5, // Slower bounce
+            duration: 1.5,
             repeat: Infinity,
             ease: "easeInOut"
           }}
@@ -96,7 +94,9 @@ const NotificationButton = () => {
       )}
     </Button>
   );
-};
+});
+
+NotificationButton.displayName = 'NotificationButton';
 
 const Header = () => {
   const { viewMode, setViewMode } = usePlayerStore();
@@ -158,7 +158,7 @@ const Header = () => {
             width={216}
             height={58}
             style={{ width: 'auto', height: 'auto' }}
-            className='object-contain'
+            className="object-contain"
           />
         </Link>
 

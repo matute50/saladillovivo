@@ -88,9 +88,10 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
 
   // Lógica para loop infinito robusto
   const displayVideos = React.useMemo(() => {
-    if (!loop || !videos || videos.length === 0) return videos;
+    // Si no hay videos o solo hay uno, no duplicar (el loop no es necesario/posible)
+    if (!loop || !videos || videos.length <= 1) return videos;
 
-    // Si se solicita loop, asegurar suficientes slides para Swiper (mínimo ~24 para evitar glitches visuales en pantallas anchas y cubrir 4K)
+    // Si se solicita loop, asegurar suficientes slides para Swiper (mínimo ~24 para evitar glitches visuales)
     const MIN_SLIDES = 24;
     let currentVideos = [...videos];
 

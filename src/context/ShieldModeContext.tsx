@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 
 interface ShieldModeContextType {
   isShieldActive: boolean;
@@ -20,14 +20,14 @@ export const useShieldMode = () => {
 export const ShieldModeProvider = ({ children }: { children: ReactNode }) => {
   const [isShieldActive, setIsShieldActive] = useState(false);
 
-  const toggleShield = useCallback(() => {
+  const toggleShield = () => {
     setIsShieldActive(prev => !prev);
-  }, []);
+  };
 
-  const value = useMemo(() => ({
+  const value = {
     isShieldActive,
     toggleShield,
-  }), [isShieldActive, toggleShield]);
+  };
 
   return (
     <ShieldModeContext.Provider value={value}>

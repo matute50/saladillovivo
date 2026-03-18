@@ -9,8 +9,11 @@ import {
   getActiveBanners,
   getCalendarEvents,
   getInterviews,
-  getTickerTexts
+  getTickerTexts,
+  getVideoById,
+  getVideoByUrl
 } from "@/lib/data";
+import { Video } from "@/lib/types";
 
 export const revalidate = 60; // Revalida cada minuto
 
@@ -39,7 +42,11 @@ export async function generateMetadata(): Promise<Metadata> {
 
 
 
-export default async function Page() {
+export default async function Page(props: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+  const searchParams = await props.searchParams;
+  const requestedVideoId = typeof searchParams.v === 'string' ? searchParams.v : undefined;
+  const requestedVideoUrl = typeof searchParams.url === 'string' ? searchParams.url : undefined;
+
   // Fetch seguro: si falla, devolvemos objetos vacíos en lugar de undefined
   let articles: any = { featuredNews: null, secondaryNews: [], tertiaryNews: [], otherNews: [], allNews: [] };
   let videos: any = { featuredVideo: null, recentVideos: [], allVideos: [], videoCategories: [] };
@@ -50,7 +57,7 @@ export default async function Page() {
   let events: any[] = [];
 
   try {
-    const [resArticles, resVideos, resTicker, resInterviews, resBanners, resAds, resEvents] = await Promise.all([
+    const [resArticles, resVideos, resTicker, resInterviews, resBanners, resAds, resEvents, requestedVideo] = await Promise.all([
       getArticlesForHome(),
       getVideosForHome(),
       getTickerTexts(),
@@ -58,6 +65,7 @@ export default async function Page() {
       getActiveBanners(),
       getActiveAds(),
       getCalendarEvents(),
+      requestedVideoId ? getVideoById(requestedVideoId) : (requestedVideoUrl ? getVideoByUrl(requestedVideoUrl) : Promise.resolve(null))
     ]);
 
     // Asignamos solo si el resultado existe
@@ -68,6 +76,14 @@ export default async function Page() {
     banners = resBanners || [];
     ads = resAds || [];
     events = resEvents || [];
+
+    // OPTIMIZACIÓN VERCEL: Si hay un video solicitado, lo inyectamos como prioridad
+    if (requestedVideo) {
+      // Evitar duplicados si ya estaba en el fetch general
+      const otherVideos = videos.allVideos.filter((v: Video) => v.id !== requestedVideo.id);
+      videos.allVideos = [requestedVideo, ...otherVideos];
+      videos.featuredVideo = requestedVideo; // Lo marcamos como destacado para que sea el primero en sonar
+    }
   } catch (error) {
     console.error("Error cargando datos en Page:", error);
   }

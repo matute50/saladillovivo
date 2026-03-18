@@ -20,15 +20,15 @@ const INITIAL_TV_CATEGORIES: CategoryMapping[] = [
 
 const TvModeLayout = () => {
   const { handleSearch, searchResults, isSearching, searchLoading } = useNewsStore();
-  const { isPlaying, setViewMode } = usePlayerStore(); // Obtener el video actual y el estado de reproducción
-  const { isPlaying: isNewsPlaying } = useNewsPlayerStore(); // Estado de reproducción de noticias
-  const [initialTvCategory, setInitialTvCategory] = useState<CategoryMapping | undefined>(undefined); // Nuevo estado
+  const { isPlaying, setViewMode, loadInitialPlaylist } = usePlayerStore();
+  const { isPlaying: isNewsPlaying } = useNewsPlayerStore();
+  const [initialTvCategory, setInitialTvCategory] = useState<CategoryMapping | undefined>(undefined);
 
   useEffect(() => {
-    // Seleccionar una categoría aleatoria al montar
     const randomIndex = Math.floor(Math.random() * INITIAL_TV_CATEGORIES.length);
     setInitialTvCategory(INITIAL_TV_CATEGORIES[randomIndex]);
-  }, []); // El array vacío asegura que se ejecute solo una vez al montar
+    loadInitialPlaylist(null);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
 
   const onSearchSubmit = useCallback((term: string) => {
@@ -82,7 +82,7 @@ const TvModeLayout = () => {
 
         .then(() => setIsFullScreen(true))
 
-        .catch((e) => console.log("Fullscreen requiere interacción:", e));
+        .catch((e) => console.error("Fullscreen requiere interacción:", e));
 
     } else {
 

@@ -25,19 +25,13 @@ const IntroLayer = ({
 
   useEffect(() => {
     // STRICT TIMER: 4100ms Hard Cut
-    // This effect runs EXACTLY ONCE when the component mounts.
-    // We intentionally ignore dependency changes to prevent timer reset.
-    console.log("[IntroLayer] MOUNTED. Timer started: 4100ms (Immutable)");
-
     const timer = setTimeout(() => {
-      console.log("[IntroLayer] TIMER DONE. Executing Finish (via Ref).");
       if (onFinishRef.current) {
         onFinishRef.current();
       }
     }, 4100);
 
     return () => {
-      console.log("[IntroLayer] UNMOUNTED. Clearing Timer.");
       clearTimeout(timer);
     };
   }, []); // EMPTY ARRAY: NEVER RESET
@@ -64,7 +58,6 @@ const TvBackgroundPlayer = () => {
     handleOnEnded,
     isPlaying,
 
-    // Zero-Branding State
     // Zero-Branding State
     isPreRollOverlayActive,
     overlayIntroVideo,

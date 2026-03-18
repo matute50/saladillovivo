@@ -96,4 +96,5 @@ Al seleccionar contenido desde interfaces complejas (Búsquedas, Listas filtrada
     -   Esto da tiempo al motor de JS para procesar el evento de media antes de calcular el nuevo layout.
 
 ---
-*Estándar actualizado a v23.2 - Saladillo Vivo Mobile*
+---
+*Estándar actualizado a v24.8 - Saladillo Vivo Master Plan*

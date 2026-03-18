@@ -50,14 +50,17 @@ const CategoryCycler: React.FC<CategoryCyclerProps> = ({
       return safeVideos.filter(video => video.novedad === true);
     }
 
-    // --- STANDARD CATEGORIES (ROBUST MATCHING) ---
+    // --- STANDARD CATEGORIES (ROBUST FLEXIBLE MATCHING) ---
     const targetCategories = Array.isArray(dbCategoryTarget)
       ? dbCategoryTarget.map(c => c.trim().toLowerCase())
       : [dbCategoryTarget.trim().toLowerCase()];
 
     return safeVideos.filter(video => {
       const videoCat = (video.categoria || '').trim().toLowerCase();
-      return targetCategories.includes(videoCat);
+      // Matching bidireccional: videoCat contiene target O target contiene videoCat
+      return targetCategories.some(target =>
+        videoCat.includes(target) || target.includes(videoCat)
+      );
     });
   }, [allVideos, activeCategory, isSearchResult]);
 

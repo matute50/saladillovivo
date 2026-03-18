@@ -31,9 +31,11 @@ const VideoTitleBar: React.FC<VideoTitleBarProps> = ({ className }) => {
 
   const currentDisplay = isSlideActive
     ? "ULTIMAS NOTICIAS"
-    : (currentVideoName === 'ESPACIO PUBLICITARIO'
-      ? currentDisplayCategory.toUpperCase()
-      : `${currentDisplayCategory.toUpperCase()}, ${currentVideoName}`);
+    : (currentVideo?.id === 'live-stream'
+      ? `EN VIVO - ${currentVideoName}`
+      : (currentVideoName === 'ESPACIO PUBLICITARIO'
+        ? currentDisplayCategory.toUpperCase()
+        : `${currentDisplayCategory.toUpperCase()}, ${currentVideoName}`));
 
   // --- DATOS PRÓXIMOS / CONTINUAR ---
   // --- DATOS PRÓXIMOS / CONTINUAR ---
@@ -81,7 +83,7 @@ const VideoTitleBar: React.FC<VideoTitleBarProps> = ({ className }) => {
             {/* LÍNEA 1: TÍTULO ACTUAL */}
             <div className="flex items-center justify-end gap-2 w-full min-w-0">
               <p className="font-semibold text-black dark:text-white truncate uppercase text-[10px] drop-shadow-sm leading-tight flex-1 min-w-0">
-                <span className="force-legend-color font-bold">ESTÁS VIENDO:</span> {currentDisplay}
+                <span className="force-legend-color font-bold">ESTAS VIENDO:</span> {currentDisplay}
               </p>
               <button
                 onClick={isSlideActive ? handleCloseSlide : playNextVideoInQueue}
@@ -96,7 +98,7 @@ const VideoTitleBar: React.FC<VideoTitleBarProps> = ({ className }) => {
             {showNextVideoLine && (
               <div className="flex items-center justify-end gap-2">
                 <p className="font-semibold text-black dark:text-white truncate uppercase text-[10px] drop-shadow-sm leading-tight">
-                  <span className="force-legend-color font-bold">PRÓXIMO VIDEO:</span> {nextVideoDisplay}
+                  <span className="force-legend-color font-bold">PROXIMO VIDEO:</span> {nextVideoDisplay}
                 </p>
               </div>
             )}

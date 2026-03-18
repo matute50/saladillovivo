@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useMemo, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 
 // 1. Interface for Geometry Data
 export interface PlayerGeometry {
@@ -13,7 +13,7 @@ export interface PlayerGeometry {
 
 // 2. Interfaz para el Contexto
 export interface PlayerGeometryContextType extends PlayerGeometry {
-  setCoordinates: (rect: DOMRect | null) => void; 
+  setCoordinates: (rect: DOMRect | null) => void;
   playerRect: PlayerGeometry;
 }
 
@@ -42,7 +42,7 @@ export const usePlayerGeometry = () => {
 export const PlayerGeometryProvider = ({ children }: { children: ReactNode }) => {
   const [playerGeometry, setPlayerGeometry] = useState<PlayerGeometry>(DEFAULT_GEOMETRY);
 
-  const setCoordinates = useCallback((rect: DOMRect | null) => {
+  const setCoordinates = (rect: DOMRect | null) => {
     if (rect) {
       setPlayerGeometry({
         top: rect.top,
@@ -54,13 +54,13 @@ export const PlayerGeometryProvider = ({ children }: { children: ReactNode }) =>
     } else {
       setPlayerGeometry(DEFAULT_GEOMETRY);
     }
-  }, []);
+  };
 
-  const value = useMemo(() => ({
+  const value = {
     ...playerGeometry,
     setCoordinates,
     playerRect: playerGeometry,
-  }), [playerGeometry, setCoordinates]);
+  };
 
   return (
     <PlayerGeometryContext.Provider value={value}>

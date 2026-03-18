@@ -7,7 +7,7 @@ const AdsSection = dynamic(() => import('./AdsSection'), { ssr: false });
 const VideoSection = dynamic(() => import('./VideoSection'), { ssr: false });
 const NewsTicker = dynamic(() => import('../NewsTicker'), { ssr: false });
 
-import type { PageData } from '@/lib/types';
+import type { PageData, Video } from '@/lib/types';
 import CategoryCycler from './CategoryCycler';
 import { categoryMappings, type CategoryMapping } from '@/lib/categoryMappings';
 import { useNewsStore } from '@/store/useNewsStore';
@@ -15,94 +15,119 @@ import { usePlayerStore } from '@/store/usePlayerStore';
 import { useVolumeStore } from '@/store/useVolumeStore';
 import NoResultsCard from './NoResultsCard';
 import NewsCard from '../NewsCard';
-import { shuffleArray } from '@/lib/utils'; // Import shuffleArray
+import { shuffleArray } from '@/lib/utils';
 
 interface DesktopLayoutProps {
   data: PageData;
 }
 
 const DesktopLayout = ({ data }: DesktopLayoutProps) => {
-  useEffect(() => {
-    console.log("%c DESKTOP LAYOUT EXECUTING (v24.5)", "color: yellow; font-size: 20px; font-weight: bold; background: black;");
-  }, []);
   const {
     articles,
-    videos = { allVideos: [] },
     ads,
     tickerTexts = []
   } = data || {};
 
   const { isSearching, searchResults, searchLoading, handleSearch } = useNewsStore();
-  const { allVideos: rawVideos } = videos; // Rename to rawVideos
 
-  // --- RANDOMIZATION LOGIC (V.SHUFFLE) ---
-  // 1. Shuffle Videos on Mount (so every reload feels different)
-  const shuffledVideos = useMemo(() => {
-    return shuffleArray(rawVideos || []);
-  }, [rawVideos]);
-
-  const { playSpecificVideo } = usePlayerStore();
+  const { playSpecificVideo, loadInitialPlaylist } = usePlayerStore();
   const { volume, setVolume } = useVolumeStore();
 
-  const handleSearchResultClick = (video: any) => {
-    // Interaction Stability (v23.2) - 500ms Rule
-    playSpecificVideo(video, volume, setVolume);
-    setTimeout(() => {
-      handleSearch('');
-    }, 500);
-  };
-
-  const availableCategoryMappings = useMemo(() => {
-    return categoryMappings.filter(category => {
-      if (category.dbCategory === '__NOVEDADES__') {
-        return shuffledVideos.some(video => video.novedad === true);
-      }
-      if (category.dbCategory === '__NOTICIAS__') {
-        return shuffledVideos.length > 0;
-      }
-      const targetCategories = Array.isArray(category.dbCategory)
-        ? category.dbCategory.map(c => c.trim().toLowerCase())
-        : [category.dbCategory.trim().toLowerCase()];
-
-      return shuffledVideos.some(video => {
-        const videoCat = (video.categoria || '').trim().toLowerCase();
-        return targetCategories.includes(videoCat);
-      });
-    });
-  }, [shuffledVideos]);
-
-
-  // 2. Random Start Category
-  const [categoryIndex, setCategoryIndex] = useState(0);
-  const [hasInitializedPosition, setHasInitializedPosition] = useState(false);
+  // --- VIDEOS PARA EL CARRUSEL (cargados en el cliente) ---
+  const [carouselVideos, setCarouselVideos] = useState<Video[]>([]);
 
   useEffect(() => {
-    // Only randomize if we haven't done it yet and have categories
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseAnonKey) return;
+
+    fetch(
+      `${supabaseUrl}/rest/v1/videos?select=id,nombre,url,createdAt,categoria,imagen,novedad,forzar_video,volumen_extra&order=createdAt.desc&limit=500`,
+      {
+        headers: {
+          'apikey': supabaseAnonKey,
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+        },
+      }
+    )
+      .then(r => r.ok ? r.json() : [])
+      .then((data: any[]) => {
+        const videos: Video[] = (data || []).map((v: any) => ({
+          ...v,
+          id: String(v.id),
+          createdAt: v.createdAt ? new Date(v.createdAt).toISOString() : new Date().toISOString(),
+        }));
+        setCarouselVideos(shuffleArray(videos));
+      })
+      .catch(() => { });
+  }, []);
+
+  // AUTOPLAY: Lanzar playlist al montar el layout (modo diario)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const requestedUrl = urlParams.get('url');
+    const requestedId = urlParams.get('v');
+    const videoUrl = requestedUrl || requestedId || null;
+    loadInitialPlaylist(videoUrl);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleSearchResultClick = (video: any) => {
+    playSpecificVideo(video, volume, setVolume);
+    setTimeout(() => { handleSearch(''); }, 500);
+  };
+
+  // Categorías disponibles (según los videos del carrusel)
+  const availableCategoryMappings = useMemo(() => {
+    if (carouselVideos.length === 0) return categoryMappings; // Mostrar todas mientras carga
+    return categoryMappings.filter(category => {
+      // Bloqueo total de NOVEDADES y NOTICIAS
+      if (category.dbCategory === '__NOVEDADES__' || category.dbCategory === '__NOTICIAS__') return false;
+
+      const targets = Array.isArray(category.dbCategory)
+        ? category.dbCategory.map(c => c.trim().toLowerCase())
+        : [category.dbCategory.trim().toLowerCase()];
+      const present = new Set(carouselVideos.map(v => (v.categoria || '').trim().toLowerCase()));
+      return targets.some(t => Array.from(present).some(pc => pc.includes(t) || t.includes(pc)));
+    });
+  }, [carouselVideos]);
+
+  const [categoryIndex, setCategoryIndex] = useState(0);
+  const [shuffleNonce, setShuffleNonce] = useState(0); // v26.1: Forzar reshuffle
+  const [hasInitializedPosition, setHasInitializedPosition] = useState(false);
+
+  // Mezclar videos cada vez que cambia la categoría o el nonce
+  const currentCategoryVideos = useMemo(() => {
+    if (carouselVideos.length === 0) return [];
+    return shuffleArray([...carouselVideos]);
+  }, [carouselVideos, categoryIndex, shuffleNonce]);
+
+  useEffect(() => {
     if (!hasInitializedPosition && availableCategoryMappings.length > 0) {
       const randomIndex = Math.floor(Math.random() * availableCategoryMappings.length);
       setCategoryIndex(randomIndex);
-      setHasInitializedPosition(true); // Lock it so re-renders don't jump around
+      setHasInitializedPosition(true);
     }
   }, [availableCategoryMappings, hasInitializedPosition]);
 
   const handleNextCategory = useCallback(() => {
     const total = availableCategoryMappings.length;
     setCategoryIndex(prevIndex => (prevIndex + 1) % total);
+    setShuffleNonce(n => n + 1); // Forzar nuevo orden
   }, [availableCategoryMappings.length]);
 
   const handlePrevCategory = useCallback(() => {
     const total = availableCategoryMappings.length;
     setCategoryIndex(prevIndex => (prevIndex - 1 + total) % total);
+    setShuffleNonce(n => n + 1); // Forzar nuevo orden
   }, [availableCategoryMappings.length]);
 
   const searchCategoryMapping: CategoryMapping = {
-    display: "Tu Búsqueda",
-    dbCategory: "search",
+    display: 'Tu Búsqueda',
+    dbCategory: 'search',
   };
 
   return (
     <>
-
       <main className="w-full pt-[calc(var(--desktop-header-height)-65px)]">
         <div className="container mx-auto px-2">
           <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-4 relative">
@@ -155,7 +180,7 @@ const DesktopLayout = ({ data }: DesktopLayoutProps) => {
                   ) : (
                     availableCategoryMappings[categoryIndex] && (
                       <CategoryCycler
-                        allVideos={shuffledVideos}
+                        allVideos={currentCategoryVideos}
                         activeCategory={availableCategoryMappings[categoryIndex]}
                         onNext={handleNextCategory}
                         onPrev={handlePrevCategory}
