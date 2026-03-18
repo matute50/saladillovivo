@@ -1,91 +1,403 @@
 'use client';
 
-import React from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import ReactPlayer from 'react-player';
+import { useIsPresent } from 'framer-motion';
+import { usePlayerStore } from '@/store/usePlayerStore';
+import { useVolumeStore } from '@/store/useVolumeStore';
+import { isYouTubeVideo } from '@/lib/utils';
 
-const VideoPlayer = ({ 
-  playerRef,
-  src, 
-  onReady, 
-  onPlay, 
-  onPause, 
-  onEnded, 
-  onError,
+interface VideoPlayerProps {
+  videoUrl: string;
+  autoplay?: boolean;
+  onClose?: () => void;
+  onProgress?: (state: { playedSeconds: number, loadedSeconds: number }) => void;
+  onDuration?: (duration: number) => void;
+  startAt?: number;
+  imageUrl?: string;
+  audioUrl?: string | null;
+  id?: string; // Mutex ID (v23.5)
+  playerVolume?: number;
+  volumen_extra?: number;
+  muted?: boolean; // New prop to force mute locally
+}
+
+export default function VideoPlayer({
+  videoUrl,
+  autoplay = true,
+  onClose,
   onProgress,
   onDuration,
-  playing = false, 
-  volume = 1,
-  muted = false,
-  isMobile = false,
-  width = "100%", 
-  height = "100%"
-}) => {
-  
-  const [playerConfig, setPlayerConfig] = React.useState({});
+  startAt,
+  playerVolume,
+  volumen_extra = 1,
+  audioUrl,
+  muted: forceMuted, // Alias to avoid conflict with global isMuted
+  id
+}: VideoPlayerProps) {
+  const { activeContentId } = usePlayerStore();
+  const [isMounted, setIsMounted] = useState(false);
+  const playerRef = useRef<ReactPlayer>(null);
+  const hasSeeked = useRef(false);
+  const [localVolume, setLocalVolume] = useState(0);
+  const isFadingIn = useRef(false);
+  const [isPlayingInternal, setIsPlayingInternal] = useState(false);
+  const [isFadingOut, setIsFadingOut] = useState(false);
+  const durationRef = useRef(0);
+  const playStartTimeRef = useRef<number | null>(null);
+  const [shouldPlay, setShouldPlay] = useState(autoplay);
+  const sessionStartPlayedSecondsRef = useRef<number | null>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
-  React.useEffect(() => {
-    setPlayerConfig({
-      youtube: {
-        playerVars: {
-          showinfo: 0,
-          controls: 0,
-          modestbranding: 1,
-          rel: 0,
-          iv_load_policy: 3,
-          fs: 0,
-          disablekb: 1,
-          cc_load_policy: 0,
-          autohide: 1,
-          playsinline: 1,
-          origin: window.location.origin
-        },
-      },
-      file: {
-        forceHLS: true,
-        hlsVersion: '1.5.8',
-        attributes: {
-          poster: "", 
-          controlsList: 'nodownload noremoteplayback', 
-          disablePictureInPicture: true,
-          playsInline: true
-        }
-      }
-    });
+  // Consumimos el estado global del volumen
+  const { volume, isMuted } = useVolumeStore();
+
+  const fadeIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const fadeOutIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const kickIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const isPresent = useIsPresent();
+  const isPresentRef = useRef(true);
+
+  useEffect(() => {
+    setIsMounted(true);
   }, []);
 
-  const playerStyle = { position: 'absolute', top: 0, left: 0 };
-  const wrapperClass = isMobile ? "w-full h-full relative bg-black" : "w-full h-full relative bg-black rounded-xl overflow-hidden";
+  // ATOMIC MUTEX: Only play if this is the active content ID (if ID provided)
+  const isMutexActive = !id || !activeContentId || id === activeContentId;
+  const finalPlaying = shouldPlay && isMutexActive;
+  const finalMuted = isMuted || forceMuted || !isMutexActive || !shouldPlay;
+
+
+
+  // Sync shouldPlay strictly when autoplay prop changes
+  useEffect(() => {
+    setShouldPlay(autoplay);
+  }, [autoplay]);
+
+  // Command Sync (v24.1) - Extreme manual enforcement for YouTube Iframe
+  useEffect(() => {
+    if (playerRef.current && isMounted) {
+      const internal = playerRef.current.getInternalPlayer();
+      if (internal) {
+        if (finalPlaying) {
+
+          if (typeof internal.playVideo === 'function') internal.playVideo();
+          if (typeof internal.unMute === 'function') internal.unMute();
+          if (typeof internal.setVolume === 'function') internal.setVolume(localVolume * 100);
+        } else {
+
+          if (typeof internal.pauseVideo === 'function') internal.pauseVideo();
+          if (typeof internal.mute === 'function') internal.mute();
+          // Force volume 0 even if not muted
+          if (typeof internal.setVolume === 'function') internal.setVolume(0);
+        }
+      }
+    }
+  }, [finalPlaying, isMounted, id, localVolume]);
+
+  // Sync external audio
+  useEffect(() => {
+    if (audioRef.current) {
+      if (finalPlaying) {
+        audioRef.current.play().catch(() => { });
+        audioRef.current.muted = finalMuted;
+      } else {
+        audioRef.current.pause();
+        audioRef.current.muted = true;
+      }
+    }
+  }, [finalPlaying, finalMuted]);
+
+  // RESET STATE ON VIDEO SWAP (Smart Slots Support)
+  useEffect(() => {
+    // Cleanup any active intervals from previous video
+    if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
+    if (fadeOutIntervalRef.current) clearInterval(fadeOutIntervalRef.current);
+    if (kickIntervalRef.current) clearInterval(kickIntervalRef.current);
+
+    setLocalVolume(0);
+    setIsFadingOut(false);
+    playStartTimeRef.current = null;
+    hasSeeked.current = false;
+    sessionStartPlayedSecondsRef.current = null;
+
+    if (startAt && startAt > 0 && playerRef.current) {
+      playerRef.current.seekTo(startAt, 'seconds');
+    }
+
+    return () => {
+      // --- CHEMICAL DEATH (v23.8) ---
+      // Force kill internal YouTube processes before React unmounts
+      if (playerRef.current) {
+        const internal = playerRef.current.getInternalPlayer();
+        if (internal) {
+          try {
+            if (typeof internal.pauseVideo === 'function') internal.pauseVideo();
+            if (typeof internal.mute === 'function') internal.mute();
+            // Try to stop video to free resources
+            if (typeof internal.stopVideo === 'function') internal.stopVideo();
+          } catch (e) {
+            console.warn("Error during internal player cleanup:", e);
+          }
+        }
+      }
+
+      if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
+      if (fadeOutIntervalRef.current) clearInterval(fadeOutIntervalRef.current);
+      if (kickIntervalRef.current) clearInterval(kickIntervalRef.current);
+    };
+  }, [videoUrl, startAt]);
+
+  // Base volume logic
+  const baseVolume = typeof playerVolume === 'number' ? playerVolume : volume;
+  const effectiveVolume = Math.min(1, baseVolume * (volumen_extra || 1));
+
+  useEffect(() => {
+    const clampedVolume = Math.max(0, Math.min(1, effectiveVolume));
+    if (!isFadingIn.current && !isFadingOut && isPresent && localVolume !== clampedVolume) {
+      setLocalVolume(clampedVolume);
+    }
+  }, [effectiveVolume, localVolume, isFadingOut, isPresent]);
+
+  // Sync Fade Out when and component is leaving (AnimatePresence exit)
+  useEffect(() => {
+    if (!isPresent && isPresentRef.current) {
+      // Component is starting its exit transition
+      setIsFadingOut(true);
+      const fadeDuration = 750; // 0.75s per user request
+      const fadeSteps = 15;
+      const decrement = localVolume / fadeSteps;
+      let currentFadeVolume = localVolume;
+      let step = 0;
+
+      if (fadeOutIntervalRef.current) clearInterval(fadeOutIntervalRef.current);
+      fadeOutIntervalRef.current = setInterval(() => {
+        step++;
+        currentFadeVolume = Math.max(0, currentFadeVolume - decrement);
+        setLocalVolume(currentFadeVolume);
+        if (step >= fadeSteps || currentFadeVolume <= 0) {
+          if (fadeOutIntervalRef.current) clearInterval(fadeOutIntervalRef.current);
+          setLocalVolume(0);
+        }
+      }, fadeDuration / fadeSteps);
+    }
+    isPresentRef.current = isPresent;
+  }, [isPresent, localVolume]);
+
+  // Sync Fade In when becoming unmuted or starts playing while unmuted (v25.1)
+  const prevMutedRef = useRef(finalMuted);
+  const prevPlayingRef = useRef(isPlayingInternal);
+
+  useEffect(() => {
+    const shouldStartFade = (
+      (prevMutedRef.current && !finalMuted && isPlayingInternal) || // Case A: Unmuted while playing
+      (!finalMuted && isPlayingInternal && !prevPlayingRef.current) // Case B: Starts playing while already unmuted
+    );
+
+    if (shouldStartFade && !isFadingIn.current) {
+      isFadingIn.current = true;
+      const fadeDuration = 1000;
+      const fadeSteps = 20;
+      const targetVol = effectiveVolume;
+      const increment = targetVol / fadeSteps;
+      let currentVol = 0;
+      let step = 0;
+
+      if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
+      fadeIntervalRef.current = setInterval(() => {
+        step++;
+        currentVol = Math.min(targetVol, currentVol + increment);
+        setLocalVolume(currentVol);
+        if (step >= fadeSteps) {
+          if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
+          isFadingIn.current = false;
+          setLocalVolume(targetVol);
+        }
+      }, fadeDuration / fadeSteps);
+    }
+    prevMutedRef.current = finalMuted;
+    prevPlayingRef.current = isPlayingInternal;
+  }, [finalMuted, isPlayingInternal, effectiveVolume]);
+
+  // Autoplay Kick for YouTube
+  useEffect(() => {
+    if (isMounted && finalPlaying && isYouTubeVideo(videoUrl)) {
+      kickIntervalRef.current = setInterval(() => {
+        if (playerRef.current) {
+          const internal = playerRef.current.getInternalPlayer();
+          if (internal && typeof internal.playVideo === 'function') {
+            const state = typeof internal.getPlayerState === 'function' ? internal.getPlayerState() : -1;
+            if (state === 2 || state === 5 || state === -1 || state === 0) {
+              internal.playVideo();
+            } else if (state === 1) {
+              if (!isPlayingInternal) {
+                setIsPlayingInternal(true);
+                if (playStartTimeRef.current === null) playStartTimeRef.current = Date.now();
+                // Start Fade In
+                if (!isFadingIn.current) {
+                  isFadingIn.current = true;
+                  const fadeDuration = 1000;
+                  const fadeSteps = 20;
+                  const targetVol = effectiveVolume;
+                  const increment = targetVol / fadeSteps;
+                  let currentVol = 0;
+                  let step = 0;
+
+                  if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
+                  fadeIntervalRef.current = setInterval(() => {
+                    step++;
+                    currentVol = Math.min(targetVol, currentVol + increment);
+                    setLocalVolume(currentVol);
+                    if (step >= fadeSteps) {
+                      if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
+                      isFadingIn.current = false;
+                      setLocalVolume(targetVol);
+                    }
+                  }, fadeDuration / fadeSteps);
+                }
+              }
+            }
+          }
+        }
+      }, 500);
+    }
+
+    return () => {
+      if (kickIntervalRef.current) {
+        clearInterval(kickIntervalRef.current);
+        kickIntervalRef.current = null;
+      }
+    };
+  }, [isMounted, finalPlaying, videoUrl, isPlayingInternal, effectiveVolume]);
+
+  const handleProgressInternal = (state: { playedSeconds: number, loadedSeconds: number }) => {
+    if (onProgress) onProgress(state);
+
+    if (id !== 'live-stream' && isYouTubeVideo(videoUrl) && durationRef.current > 0 && !isFadingOut) {
+      const timeLeft = durationRef.current - state.playedSeconds;
+      if (timeLeft <= 0.75 && timeLeft > 0) { // Adjusted to 0.75s (v27)
+        setIsFadingOut(true);
+        const fadeDuration = 750; // Adjusted to 0.75s (v27)
+        const fadeSteps = 15;
+        const decrement = localVolume / fadeSteps;
+        let currentFadeVolume = localVolume;
+        let step = 0;
+
+        if (fadeOutIntervalRef.current) clearInterval(fadeOutIntervalRef.current);
+        fadeOutIntervalRef.current = setInterval(() => {
+          step++;
+          currentFadeVolume = Math.max(0, currentFadeVolume - decrement);
+          setLocalVolume(currentFadeVolume);
+          if (step >= fadeSteps || currentFadeVolume <= 0) {
+            if (fadeOutIntervalRef.current) clearInterval(fadeOutIntervalRef.current);
+            setLocalVolume(0);
+          }
+        }, fadeDuration / fadeSteps);
+      }
+    }
+  };
+
+  const handleDurationInternal = (duration: number) => {
+    durationRef.current = duration;
+    if (onDuration) onDuration(duration);
+  };
+
+  const handleReady = useCallback(() => {
+    if (finalPlaying && playerRef.current) {
+      const internalPlayer = playerRef.current.getInternalPlayer();
+      if (internalPlayer && typeof internalPlayer.playVideo === 'function') {
+        internalPlayer.playVideo();
+      }
+    }
+    if (startAt && startAt > 0 && playerRef.current) {
+      playerRef.current.seekTo(startAt, 'seconds');
+      hasSeeked.current = true;
+    }
+  }, [finalPlaying, startAt]);
+
+  const handleError = useCallback((e: any) => {
+    console.error("VideoPlayer Error:", videoUrl, e);
+    if (onClose) onClose();
+  }, [videoUrl, onClose]);
+
+  if (!isMounted) return null;
 
   return (
-    <div className={wrapperClass}>
-      <ReactPlayer
-        ref={playerRef}
-        url={src || ""}
-        playing={playing}
-        controls={false} 
-        width={width}
-        height={height}
-        className="react-player"
-        playsInline={true}
-        volume={volume}
-        muted={muted}
-        onReady={() => onReady(playerRef.current)}
-        onPlay={onPlay}
-        onPause={onPause}
-        onEnded={onEnded}
-        onError={onError}
-        onProgress={onProgress}
-        onDuration={onDuration}
-        config={playerConfig}
-        style={playerStyle}
-      />
-      {/* Overlay to prevent clicks on the player itself */}
-      <div
-        className="absolute inset-0 z-10"
-        onClick={(e) => e.stopPropagation()}
-      ></div>
+    <div className="relative w-full h-full bg-black overflow-hidden">
+      <div className="absolute inset-0 z-10 bg-transparent" />
+      <div className="w-full h-full transform-gpu overflow-hidden">
+        <ReactPlayer
+          ref={playerRef}
+          url={videoUrl}
+          playing={finalPlaying}
+          controls={false}
+          volume={finalMuted ? 0 : localVolume}
+          muted={finalMuted}
+          width="100%"
+          height="100%"
+          progressInterval={500}
+          onEnded={() => {
+            if (id !== 'live-stream' && onClose) {
+              onClose();
+            }
+          }}
+          onProgress={handleProgressInternal}
+          onDuration={handleDurationInternal}
+          onReady={handleReady}
+          onError={handleError}
+          onPlay={() => {
+            setIsPlayingInternal(true);
+            if (playStartTimeRef.current === null) playStartTimeRef.current = Date.now();
+            if (startAt && startAt > 0 && !hasSeeked.current && playerRef.current) {
+              playerRef.current.seekTo(startAt, 'seconds');
+              hasSeeked.current = true;
+            }
+          }}
+          onPause={() => {
+            if (finalPlaying) {
+              const now = Date.now();
+              const playDuration = playStartTimeRef.current ? (now - playStartTimeRef.current) : 0;
+              if (playDuration < 5000) {
+                if (playerRef.current) {
+                  const internal = playerRef.current.getInternalPlayer();
+                  if (internal && typeof internal.playVideo === 'function') internal.playVideo();
+                }
+              } else {
+                setIsPlayingInternal(false);
+              }
+            } else {
+              setIsPlayingInternal(false);
+            }
+          }}
+          config={{
+            youtube: {
+              playerVars: {
+                showinfo: 0,
+                modestbranding: 1,
+                rel: 0,
+                playsinline: 1,
+                controls: 0,
+                disablekb: 1,
+                fs: 0,
+                iv_load_policy: 3,
+                cc_load_policy: 0,
+                enablejsapi: 1
+              }
+            }
+          }}
+        />
+
+        {audioUrl && (
+          <audio
+            ref={audioRef}
+            src={audioUrl}
+            autoPlay={finalPlaying}
+            muted={finalMuted}
+            className="hidden"
+          />
+        )}
+      </div>
     </div>
   );
-};
-
-export default VideoPlayer;
+}
