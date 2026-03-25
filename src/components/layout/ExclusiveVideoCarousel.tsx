@@ -185,7 +185,7 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
                   )}
                 </div>
                 <div className={titleOverlayClasses}>
-                  <p className={`text-white font-bold uppercase ${isNewsCarousel ? '!leading-[0.9]' : 'leading-tight'} text-sm [text-shadow:0_4px_8px_black,0_0_20px_black,0_0_10px_black] z-30`}>{cleanTitle(video.nombre)}</p>
+                  <p className={`text-white font-bold uppercase ${isNewsCarousel ? '!leading-[1.1]' : 'leading-tight'} text-sm [text-shadow:0_4px_8px_black,0_0_20px_black,0_0_10px_black] z-30`}>{cleanTitle(video.nombre)}</p>
                 </div>
               </div>
             </SwiperSlide>
