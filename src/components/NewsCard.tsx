@@ -148,7 +148,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
         )}
 
         <div className="absolute bottom-0 left-0 w-full p-4 pr-12 z-30"> {/* z-30 para estar por encima de la viñeta */}
-          <h3 className={`font-bold ${titleSizeClass} text-white leading-[1.1] [text-shadow:0_4px_8px_black,0_0_20px_black,0_0_10px_black] group-hover:text-blue-200 transition-colors line-clamp-4`}>
+          <h3 className={`font-bold ${titleSizeClass} text-white leading-[0.9] [text-shadow:0_4px_8px_black,0_0_20px_black,0_0_10px_black] group-hover:text-blue-200 transition-colors line-clamp-4`}>
             {title}
           </h3>
         </div>
