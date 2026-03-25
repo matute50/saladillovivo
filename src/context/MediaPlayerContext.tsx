@@ -119,7 +119,7 @@ export const MediaPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     initPlayer();
   }, []);
 
-  const fetchRandomVideo = async (categoria?: string): Promise<VideoData | null> => {
+  const fetchRandomVideo = async (categoria?: string, excludeId?: string): Promise<VideoData | null> => {
     let query = supabase
       .from('videos')
       .select('id, url, nombre, categoria');
@@ -127,11 +127,19 @@ export const MediaPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     if (categoria) {
       query = query.eq('categoria', categoria);
     }
+    
+    if (excludeId) {
+      query = query.neq('id', excludeId);
+    }
 
     const { data, error } = await query;
 
     if (error || !data || data.length === 0) {
-      // Fallback: si falla o no hay de esa categoría, busca cualquiera general
+      // Fallback: si falla o no hay más de esa categoría, buscar sin excluir
+      if (excludeId) {
+        return fetchRandomVideo(categoria);
+      }
+      // Fallback: buscar en general si ya nada sirve
       if (categoria) {
          return fetchRandomVideo();
       }
@@ -142,7 +150,7 @@ export const MediaPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const initPlayer = async () => {
     const first = await fetchRandomVideo();
-    const second = await fetchRandomVideo(first?.categoria);
+    const second = await fetchRandomVideo(first?.categoria, first?.id);
     setCurrentVideo(first);
     setNextVideo(second);
     startIntro();
@@ -168,8 +176,8 @@ export const MediaPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
       return;
     }
 
-    const next = nextVideo || await fetchRandomVideo(currentVideo?.categoria);
-    const prefetch = await fetchRandomVideo(next?.categoria);
+    const next = nextVideo || await fetchRandomVideo(currentVideo?.categoria, currentVideo?.id);
+    const prefetch = await fetchRandomVideo(next?.categoria, next?.id);
 
     setCurrentVideo(next);
     setNextVideo(prefetch);
@@ -209,7 +217,7 @@ export const MediaPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setIsPlaying(true);
     startIntro();
     // Preparar el siguiente acorde a esta nueva categoría
-    const prefetch = await fetchRandomVideo(video.categoria);
+    const prefetch = await fetchRandomVideo(video.categoria, video.id);
     setNextVideo(prefetch);
   };
 
@@ -218,7 +226,7 @@ export const MediaPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setIsPlaying(true);
     startIntro();
     // Preparar el siguiente acorde a esta nueva categoría
-    const prefetch = await fetchRandomVideo(video.categoria);
+    const prefetch = await fetchRandomVideo(video.categoria, video.id);
     setNextVideo(prefetch);
   };
 
