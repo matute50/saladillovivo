@@ -73,5 +73,9 @@ export function shuffleArray<T>(array: T[]): T[] {
 
 export const cleanTitle = (title: string | undefined | null): string => {
   if (!title) return '';
-  return title.replace(/\|/g, '').trim();
+  // Elimina comillas de todo tipo y el carácter ¨ solicitado, además de pipes
+  return title
+    .replace(/[¨"'“”‘’«»|]/g, '')
+    .trim()
+    .toUpperCase();
 };

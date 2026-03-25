@@ -158,10 +158,6 @@ export const usePlayerStore = create<PlayerState>()(
                     set({ savedVideo: currentVideo, savedProgress: get().savedProgress });
                 }
 
-                // Rule: Manual selection starts at 20% volume (v24.8)
-                if (setVolume) {
-                    setVolume(0.2);
-                }
                 set({ savedVolume: 0.2 });
 
                 const introToPlay = getRandomIntro();
@@ -180,10 +176,8 @@ export const usePlayerStore = create<PlayerState>()(
 
             playLiveStream: (streamData) => {
                 const volStore = useVolumeStore.getState();
-                if (volStore.volume < 0.4 || volStore.isMuted) {
-                    volStore.setVolume(0.4);
-                    if (volStore.isMuted) volStore.unmute();
-                }
+                // Rule: Live stream starts (v24.8) - Stay muted initially for autoplay
+                set({ savedVolume: 0.4 });
 
                 set({ 
                     currentVideo: streamData, 

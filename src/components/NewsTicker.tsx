@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, useAnimationControls } from 'framer-motion';
+import { cleanTitle } from '@/lib/utils';
 
 interface NewsTickerProps {
   tickerTexts: string[];
@@ -68,8 +69,8 @@ const NewsTicker: React.FC<NewsTickerProps> = ({ tickerTexts }) => {
   }, [tickerTexts]);
 
   const concatenatedTickerText = tickerTexts && tickerTexts.length > 0
-    ? tickerTexts.join("  ---  ")
-    : "Bienvenido a Saladillo Vivo - Manténgase informado.";
+    ? tickerTexts.map(t => cleanTitle(t)).join("  ---  ")
+    : "BIENVENIDO A SALADILLO VIVO - MANTÉNGASE INFORMADO.";
 
   // Duplicar el contenido solo si el texto es más grande que el contenedor
   const needsScrolling = textWidth > containerWidth;

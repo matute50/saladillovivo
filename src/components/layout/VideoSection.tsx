@@ -51,15 +51,14 @@ const VideoSection: React.FC = () => {
   const isNewsContent = !!(currentVideo?.categoria === 'Noticias' && !isLocalIntro);
 
   useEffect(() => {
+    // Solo forzamos volumen si YA está reproduciendo y NO es el inicio (para cumplir con Autoplay Muted)
+    // Pero la regla de oro de Noticias/HTML dice que deben sonar si se puede.
+    // Para simplificar y cumplir con "iniciar muted", dejaremos que el estado inicial de Mute mande.
     if ((isNewsContent || isHtmlSlideActive)) {
-      if (isMuted) {
-
-        unmute();
-      }
-      // Force 100% Volume rule (User Request)
+      // Rule: News content should have 100% volume if unmuted
       setVolume(1);
     }
-  }, [isNewsContent, isHtmlSlideActive, isMuted, unmute, setVolume]);
+  }, [isNewsContent, isHtmlSlideActive, setVolume]);
 
   const [showControls, setShowControls] = useState(false);
   const [thumbnailSrc, setThumbnailSrc] = useState<string>('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=');
