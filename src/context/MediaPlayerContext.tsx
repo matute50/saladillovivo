@@ -1,258 +1,281 @@
-'use client';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { supabase } from '@/lib/supabaseClient'; // Ajusta según tu configuración
 
-import React, { createContext, useContext, useState, useCallback, useMemo, useRef, useEffect } from 'react'; 
-import { getVideosForHome, getNewRandomVideo } from '@/lib/data';
-import { SlideMedia } from '@/lib/types';
-import { useVolume } from '@/context/VolumeContext';
+interface VideoData {
+  id: string;
+  url: string;
+  nombre: string;
+  categoria: string;
+  type?: string; 
+}
 
-// LISTA ACTUALIZADA DE INTROS (Ubicación: /public/videos_intro/)
+interface MediaPlayerContextType {
+  currentVideo: VideoData | null;
+  nextVideo: VideoData | null;
+  isIntroPlaying: boolean;
+  currentIntro: string | null;
+  isSlidePlaying: boolean;
+  currentSlideUrl: string | null;
+  isPlaying: boolean;
+  volume: number;
+  lastVolumeBeforeEnd: number;
+  isLiveStreamActive: boolean;
+  viewMode: 'diario' | 'tv';
+  setViewMode: (mode: 'diario' | 'tv') => void;
+  streamingUrl: string | null;
+  playNext: () => void;
+  playSlide: (url: string, duration: number) => void;
+  playUserSelected: (video: VideoData) => void;
+  playSpecificVideo: (video: any) => void;
+  playTemporaryVideo: (video: any) => void;
+  togglePlayPause: () => void;
+  setIsPlaying: (playing: boolean) => void;
+  setIsIntroPlaying: (playing: boolean) => void;
+  playLiveStream: (status: any) => void;
+  streamStatus: any;
+  handleOnEnded: () => void;
+}
+
 const INTRO_VIDEOS = [
   '/videos_intro/intro1.mp4',
   '/videos_intro/intro2.mp4',
   '/videos_intro/intro3.mp4',
   '/videos_intro/intro4.mp4',
-  '/videos_intro/intro5.mp4',
+  '/videos_intro/intro5.mp4'
 ];
-
-type PlaybackSource = 'INTRO' | 'DB_RANDOM' | 'USER_SELECTED' | 'RESUMING';
-
-interface MediaPlayerContextType {
-  currentVideo: SlideMedia | null;
-  nextVideo: SlideMedia | null;
-  playlist: SlideMedia[]; 
-  isPlaying: boolean;
-  viewMode: 'diario' | 'tv';
-  setViewMode: (mode: 'diario' | 'tv') => void;
-  playMedia: (media: SlideMedia) => void;
-  playSpecificVideo: (media: SlideMedia) => void;
-  playTemporaryVideo: (media: SlideMedia) => void;
-  resumeAfterSlide: () => void;
-  saveCurrentProgress: (seconds: number) => void;
-  setIsPlaying: (isPlaying: boolean) => void;
-  togglePlayPause: () => void;
-  loadInitialPlaylist: (videoUrlToPlay: string | null) => Promise<void>;
-  handleOnEnded: () => void;
-  playNextVideoInQueue: () => void;
-  playLiveStream: (streamData: any) => void; 
-  streamStatus: any; 
-  setStreamStatus: (status: any) => void; // Added to allow external components to update stream status 
-  videoPlayerRef: React.RefObject<HTMLVideoElement>; 
-  reactPlayerRef: React.RefObject<any>; 
-}
 
 const MediaPlayerContext = createContext<MediaPlayerContextType | undefined>(undefined);
 
-export const useMediaPlayer = () => {
-  const context = useContext(MediaPlayerContext);
-  if (!context) throw new Error('useMediaPlayer must be used within a MediaPlayerProvider');
-  return context;
-};
+export const MediaPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [currentVideo, setCurrentVideo] = useState<VideoData | null>(null);
+  const [nextVideo, setNextVideo] = useState<VideoData | null>(null);
+  const [interruptedVideo, setInterruptedVideo] = useState<{ video: VideoData, time: number } | null>(null);
 
-export const MediaPlayerProvider = ({ children }: { children: React.ReactNode }) => {
-  const { setVolume, volume: currentVolume } = useVolume();
-  
-  const [currentVideo, setCurrentVideo] = useState<SlideMedia | null>(null);
-  const [nextVideo, setNextVideo] = useState<SlideMedia | null>(null);
-  const [playlist] = useState<SlideMedia[]>([]); 
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isIntroPlaying, setIsIntroPlaying] = useState(false);
+  const [currentIntro, setCurrentIntro] = useState('');
+
+  const [isSlidePlaying, setIsSlidePlaying] = useState(false);
+  const [currentSlideUrl, setCurrentSlideUrl] = useState<string | null>(null);
+
+  const [volume, setVolume] = useState(0.2); // Default inicial 20%
+  const [lastVolumeBeforeEnd, setLastVolumeBeforeEnd] = useState(0.2);
+  const [isPlaying, setIsPlaying] = useState(true);
   const [viewMode, setViewMode] = useState<'diario' | 'tv'>('diario');
-  const [streamStatus, setStreamStatus] = useState<any>(null); // State for live stream status
+  const [isLiveStreamActive, setIsLiveStreamActive] = useState(false);
+  const [streamingUrl, setStreamingUrl] = useState<string | null>(null);
 
-  const videoPlayerRef = useRef<HTMLVideoElement>(null);
-  const reactPlayerRef = useRef<any>(null);
+  const videoRef = useRef<any>(null);
 
-  const isInitialized = useRef(false);
-  const playbackState = useRef<PlaybackSource>('INTRO');
-  const savedProgress = useRef<number>(0);
-  const savedVideo = useRef<SlideMedia | null>(null);
-  const savedVolume = useRef<number>(1);
-  const nextDataVideoRef = useRef<SlideMedia | null>(null); 
-  const preloadGuard = useRef<string>(""); 
+  const [rawStreamStatus, setRawStreamStatus] = useState<any>(null);
 
-  // --- HELPERS ---
-
-  const getRandomIntro = useCallback((): SlideMedia => {
-    if (INTRO_VIDEOS.length === 0) {
-        console.warn("No hay videos de intro definidos");
-        return { id: 'fallback', nombre: 'Intro', url: '', categoria: 'Inst', type: 'video', createdAt: '', imagen: '', novedad: false };
-    }
-
-    const randomIndex = Math.floor(Math.random() * INTRO_VIDEOS.length);
-    const url = INTRO_VIDEOS[randomIndex];
-    const safeUrl = encodeURI(url); 
-    
-    return {
-      id: `intro-${Date.now()}-${Math.random()}`,
-      nombre: 'ESPACIO PUBLICITARIO',
-      url: safeUrl, 
-      categoria: 'Institucional',
-      createdAt: new Date().toISOString(),
-      type: 'video',
-      imagen: '', // Added to satisfy SlideMedia interface
-      novedad: false // Added to satisfy SlideMedia interface
+  // 1. Detección de Streaming (Realtime)
+  useEffect(() => {
+    const fetchInitial = async () => {
+      try {
+        const { data } = await supabase.from('streaming').select('*').eq('id', 25).single();
+        if (data) processData(data);
+      } catch (err) {}
     };
+
+    const processData = (data: any) => {
+      const isActive = data.isActive;
+      const rawUrl = data.url;
+      const normalizedUrl = (rawUrl && rawUrl.includes('/live/')) 
+        ? `https://www.youtube.com/watch?v=${rawUrl.split('/live/')[1].split('?')[0]}` 
+        : rawUrl;
+
+      setIsLiveStreamActive(isActive);
+      setStreamingUrl(isActive ? normalizedUrl : null);
+      setRawStreamStatus(data);
+      
+      if (isActive && viewMode === 'diario') {
+        setViewMode('tv');
+      }
+    };
+
+    fetchInitial();
+
+    const channel = supabase
+      .channel('streaming-web-realtime')
+      .on('postgres_changes', 
+        { event: 'UPDATE', schema: 'public', table: 'streaming', filter: 'id=eq.25' },
+        (payload) => {
+          console.log('[Realtime Web] Syncing:', payload.new);
+          processData(payload.new);
+        }
+      )
+      .subscribe();
+
+    const backup = setInterval(fetchInitial, 30000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(backup);
+    };
+  }, [viewMode]);
+
+  // 2. Cargar video aleatorio inicial y el siguiente (solo al montar)
+  useEffect(() => {
+    initPlayer();
   }, []);
 
-  const fetchRandomDbVideo = useCallback(async (excludeId?: string): Promise<SlideMedia | null> => {
-    try {
-      const video = await getNewRandomVideo(excludeId);
-      return video;
-    } catch (error) {
-      console.error("Error fetching DB video:", error);
+  const fetchRandomVideo = async (categoria?: string): Promise<VideoData | null> => {
+    let query = supabase
+      .from('videos')
+      .select('id, url, nombre, categoria');
+
+    if (categoria) {
+      query = query.eq('categoria', categoria);
+    }
+
+    const { data, error } = await query;
+
+    if (error || !data || data.length === 0) {
+      // Fallback: si falla o no hay de esa categoría, busca cualquiera general
+      if (categoria) {
+         return fetchRandomVideo();
+      }
       return null;
     }
-  }, []);
+    return data[Math.floor(Math.random() * data.length)];
+  };
 
-  // --- FUNCIONES ---
+  const initPlayer = async () => {
+    const first = await fetchRandomVideo();
+    const second = await fetchRandomVideo(first?.categoria);
+    setCurrentVideo(first);
+    setNextVideo(second);
+    startIntro();
+  };
 
-  const playMedia = useCallback((media: SlideMedia) => {
-      setCurrentVideo(media);
-      setIsPlaying(true);
-  }, []);
+  const startIntro = () => {
+    const list = INTRO_VIDEOS;
+    const randomIntro = list[Math.floor(Math.random() * list.length)];
+    setCurrentIntro(randomIntro);
+    setIsIntroPlaying(true);
+  };
 
-  const playSpecificVideo = useCallback((media: SlideMedia) => {
-      savedVolume.current = currentVolume;
-      setVolume(0.2); 
-      playbackState.current = 'USER_SELECTED';
-      setCurrentVideo(media);
-      setIsPlaying(true);
-  }, [currentVolume, setVolume]);
+  // Lógica de reproducción infinita
+  const playNext = async () => {
+    setLastVolumeBeforeEnd(volume); // Guardar volumen actual
 
-  const playTemporaryVideo = useCallback((media: SlideMedia) => {
-      if (currentVideo && playbackState.current !== 'INTRO') {
-          savedVideo.current = currentVideo;
-      }
-      playMedia(media); 
-  }, [currentVideo, playMedia]);
-
-  const playLiveStream = useCallback((streamData: any) => {
-      // Assuming streamData is a SlideMedia compatible object or has a URL
-      setCurrentVideo(streamData);
-      setIsPlaying(true);
-      playbackState.current = 'USER_SELECTED'; // Treat live stream as user selected
-  }, []);
-
-  const togglePlayPause = useCallback(() => setIsPlaying(p => !p), []);
-
-  const saveCurrentProgress = useCallback((seconds: number) => {
-      savedProgress.current = seconds;
-  }, []);
-
-  const loadInitialPlaylist = useCallback(async (videoUrlToPlay: string | null) => {
-      if (isInitialized.current) return;
-      isInitialized.current = true;
-
-      console.log('MediaPlayer: Iniciando secuencia...');
-      
-      if (videoUrlToPlay) {
-         const { allVideos } = await getVideosForHome(10);
-         const requested = allVideos.find(v => v.url === videoUrlToPlay);
-         if (requested) {
-           playSpecificVideo(requested);
-           return;
-         }
-      }
-
-      const intro = getRandomIntro();
-      playbackState.current = 'INTRO';
-      setCurrentVideo(intro);
-      setIsPlaying(true);
-  }, [getRandomIntro, playSpecificVideo]); 
-
-  const handleOnEnded = useCallback(async () => {
-      console.log('Video Ended. State:', playbackState.current);
-
-      if (playbackState.current === 'INTRO') {
-          let nextV = nextDataVideoRef.current;
-          
-          if (!nextV) {
-              console.log("Fallback: Buscando video ahora...");
-              nextV = await fetchRandomDbVideo(currentVideo?.id);
-          }
-
-          if (nextV) {
-              playbackState.current = 'DB_RANDOM';
-              setCurrentVideo(nextV);
-              setIsPlaying(true);
-          } else {
-              setCurrentVideo(getRandomIntro());
-              setIsPlaying(true);
-          }
-      } 
-      else {
-          if (playbackState.current === 'USER_SELECTED') setVolume(savedVolume.current); 
-          
-          playbackState.current = 'INTRO';
-          setCurrentVideo(getRandomIntro());
-          setIsPlaying(true);
-      }
-  }, [setVolume, getRandomIntro, fetchRandomDbVideo, currentVideo]);
-
-  const playNextVideoInQueue = useCallback(() => {
-      handleOnEnded();
-  }, [handleOnEnded]);
-
-  const resumeAfterSlide = useCallback(() => {
-      if (savedVideo.current) {
-          const videoToResume = { ...savedVideo.current, startAt: savedProgress.current };
-          playbackState.current = 'RESUMING';
-          setCurrentVideo(videoToResume);
-          setIsPlaying(true);
-      } else {
-          handleOnEnded();
-      }
-  }, [handleOnEnded]);
-
-  // --- PRECARGA ---
-  useEffect(() => {
-    if (!currentVideo) return;
-
-    if (preloadGuard.current === currentVideo.id) return;
-    preloadGuard.current = currentVideo.id;
-
-    if (playbackState.current === 'INTRO') {
-        if (!nextDataVideoRef.current) {
-             setNextVideo({ id: 'loading', nombre: 'Cargando...', categoria: 'Youtube', url: '', createdAt: '', type: 'video', imagen: '', novedad: false });
-             fetchRandomDbVideo(currentVideo.id).then((video) => {
-                if (video) {
-                    nextDataVideoRef.current = video;
-                    setNextVideo(video); 
-                }
-            });
-        } else {
-            setNextVideo(nextDataVideoRef.current);
-        }
-    } 
-    else {
-        nextDataVideoRef.current = null;
-        fetchRandomDbVideo(currentVideo.id).then((video) => {
-             if (video) {
-                 nextDataVideoRef.current = video;
-                 setNextVideo(video); 
-             }
-        });
+    // Si había un video interrumpido (e.g. por un video temporal), lo restauramos
+    if (interruptedVideo) {
+      setCurrentVideo(interruptedVideo.video);
+      setInterruptedVideo(null);
+      // Opcionalmente: no disparamos Intro para restauraciones manuales?
+      // startIntro(); 
+      return;
     }
-  }, [currentVideo, getRandomIntro, fetchRandomDbVideo]);
 
-  const value = useMemo(() => ({
-      currentVideo, nextVideo, playlist, isPlaying, viewMode, streamStatus,
-      setViewMode, playMedia, playSpecificVideo, playTemporaryVideo, playLiveStream,
-      setIsPlaying, togglePlayPause, loadInitialPlaylist, handleOnEnded, playNextVideoInQueue,
-      saveCurrentProgress, resumeAfterSlide, setStreamStatus,
-      videoPlayerRef,
-      reactPlayerRef,
-  }), [
-      currentVideo, nextVideo, playlist, isPlaying, viewMode, streamStatus,
-      setViewMode, playMedia, playSpecificVideo, playTemporaryVideo, playLiveStream,
-      togglePlayPause, loadInitialPlaylist, handleOnEnded, playNextVideoInQueue,
-      saveCurrentProgress, resumeAfterSlide, setStreamStatus,
-      videoPlayerRef,
-      reactPlayerRef,
-  ]);
+    const next = nextVideo || await fetchRandomVideo(currentVideo?.categoria);
+    const prefetch = await fetchRandomVideo(next?.categoria);
+
+    setCurrentVideo(next);
+    setNextVideo(prefetch);
+    startIntro();
+  };
+
+  // Lógica de Slides (Noticias)
+  const playSlide = (url: string, duration: number) => {
+    if (currentVideo) {
+      setInterruptedVideo({ video: currentVideo, time: 0 });
+    }
+
+    setCurrentSlideUrl(url);
+    setIsSlidePlaying(true);
+
+    // PRE-FETCHING: Cargar el siguiente ítem 3 segundos antes de que termine el slide
+    const prefetchTime = Math.max(0, (duration - 3) * 1000);
+    setTimeout(async () => {
+      // Normal flow prediction (if daily show is gone, we don't predict slides for now as they are videos)
+    }, prefetchTime);
+
+    // Al terminar el slide
+    setTimeout(() => {
+      setIsSlidePlaying(false);
+      setCurrentSlideUrl(null);
+
+      if (interruptedVideo) {
+        setCurrentVideo(interruptedVideo.video);
+      }
+    }, duration * 1000);
+  };
+
+  // Selección manual desde Carrusel
+  const playUserSelected = async (video: VideoData) => {
+    setVolume(0.2); // Política: 20% en selección manual
+    setCurrentVideo(video);
+    setIsPlaying(true);
+    startIntro();
+    // Preparar el siguiente acorde a esta nueva categoría
+    const prefetch = await fetchRandomVideo(video.categoria);
+    setNextVideo(prefetch);
+  };
+
+  const playSpecificVideo = async (video: any) => {
+    setCurrentVideo(video);
+    setIsPlaying(true);
+    startIntro();
+    // Preparar el siguiente acorde a esta nueva categoría
+    const prefetch = await fetchRandomVideo(video.categoria);
+    setNextVideo(prefetch);
+  };
+
+  const playTemporaryVideo = (video: any) => {
+    // Guardamos el video actual para restaurarlo después
+    if (currentVideo) {
+      setInterruptedVideo({ video: currentVideo, time: 0 });
+    }
+
+    setCurrentVideo(video);
+    setIsPlaying(true);
+    // Nota: Aquí no llamamos a startIntro() para que el cambio sea directo, 
+    // pero si se prefiere intro se puede agregar.
+  };
+
+  const togglePlayPause = () => setIsPlaying(prev => !prev);
 
   return (
-    <MediaPlayerContext.Provider value={value}>
+    <MediaPlayerContext.Provider value={{
+      currentVideo,
+      nextVideo,
+      isIntroPlaying,
+      currentIntro,
+      isSlidePlaying,
+      currentSlideUrl,
+      isPlaying,
+      volume,
+      lastVolumeBeforeEnd,
+      isLiveStreamActive,
+      viewMode,
+      setViewMode,
+      streamingUrl,
+      playNext,
+      playSlide,
+      playUserSelected,
+      playSpecificVideo,
+      playTemporaryVideo,
+      togglePlayPause,
+      setIsPlaying,
+      setIsIntroPlaying,
+      playLiveStream: (status: any) => {
+        setIsLiveStreamActive(true);
+        setViewMode('tv');
+      },
+      streamStatus: rawStreamStatus,
+      handleOnEnded: () => {
+        if (isIntroPlaying) setIsIntroPlaying(false);
+        playNext();
+      }
+    }}>
       {children}
     </MediaPlayerContext.Provider>
   );
+};
+
+export const useMediaPlayer = () => {
+  const context = useContext(MediaPlayerContext);
+  if (!context) throw new Error('useMediaPlayer debe usarse dentro de MediaPlayerProvider');
+  return context;
 };
