@@ -26,10 +26,11 @@ function checkSupabaseCredentials() {
  */
 export async function getArticlesForHome(limitTotal: number = 25) {
   const { supabaseUrl, supabaseAnonKey } = checkSupabaseCredentials();
-  const now = new Date().toISOString();
+  const now = new Date();
+  const fortyEightHoursAgo = new Date(now.getTime() - (48 * 60 * 60 * 1000)).toISOString();
 
   // Optimization: Fetch only necessary columns for the home rail. Exclude 'text' to save bandwidth.
-  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,image_url,featureStatus,updatedAt,created_at,slug,description,meta_title,meta_description,meta_keywords,published_at,audio_url,url_slide,animation_duration&or=(published_at.is.null,published_at.lte.${now})&order=created_at.desc&limit=${limitTotal}`;
+  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,image_url,featureStatus,updatedAt,created_at,slug,description,meta_title,meta_description,meta_keywords,published_at,audio_url,url_slide,animation_duration&or=(published_at.is.null,published_at.lte.${now.toISOString()})&created_at=gte.${fortyEightHoursAgo}&order=created_at.desc&limit=${limitTotal}`;
 
   try {
     const response = await fetch(apiUrl, {
@@ -95,12 +96,11 @@ export async function getArticlesForHome(limitTotal: number = 25) {
       }
     }
 
-    // Re-ordenar las secundarias y terciarias por fecha de creación descendente
     secondaryNews.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     tertiaryNews.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-    // Ordenar las "otras" noticias de derecha a izquierda (más viejas primero)
-    otherNews.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    // Ordenar las "otras" noticias siguiendo la misma jerarquía (más nuevas primero)
+    otherNews.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
     // Filtrar la noticia destacada de las otras listas para evitar duplicados
     const allButFeatured = [...secondaryNews, ...tertiaryNews, ...otherNews].filter(n => n.id !== featuredNews?.id);
@@ -396,10 +396,11 @@ export async function getArticles() {
 
 export async function getArticlesForRss(limit: number = 50): Promise<Article[]> {
   const { supabaseUrl, supabaseAnonKey } = checkSupabaseCredentials();
-  const now = new Date().toISOString();
+  const now = new Date();
+  const fortyEightHoursAgo = new Date(now.getTime() - (48 * 60 * 60 * 1000)).toISOString();
 
   // CORRECCIÓN: Agregado 'animation_duration' también aquí por consistencia
-  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,image_url,featureStatus,updatedAt,created_at,slug,description,meta_title,meta_description,meta_keywords,published_at,audio_url,url_slide,animation_duration&or=(published_at.is.null,published_at.lte.${now})&order=created_at.desc&limit=${limit}`;
+  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,image_url,featureStatus,updatedAt,created_at,slug,description,meta_title,meta_description,meta_keywords,published_at,audio_url,url_slide,animation_duration&or=(published_at.is.null,published_at.lte.${now.toISOString()})&created_at=gte.${fortyEightHoursAgo}&order=created_at.desc&limit=${limit}`;
 
   try {
     const response = await fetch(apiUrl, {
