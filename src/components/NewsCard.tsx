@@ -108,7 +108,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
   };
 
   const priority = index < 4;
-  const titleSizeClass = isFeatured ? 'text-2xl md:text-3xl' : 'text-lg md:text-xl';
+  const titleSizeClass = isFeatured ? 'text-2xl md:text-3xl' : 'text-[17px] md:text-[19px]';
 
   return (
     <motion.article
