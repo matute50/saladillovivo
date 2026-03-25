@@ -161,7 +161,7 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
                   <p className="text-white font-thin uppercase leading-tight text-xs">{video.nombre}</p>
                 </div>
               </div>
- SwiperSlide>
+            </SwiperSlide>
           );
         })}
       </Swiper>
