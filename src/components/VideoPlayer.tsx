@@ -46,6 +46,8 @@ export default function VideoPlayer({
   const durationRef = useRef(0);
   const playStartTimeRef = useRef<number | null>(null);
   const [shouldPlay, setShouldPlay] = useState(autoplay);
+  const [internalMuted, setInternalMuted] = useState(true);
+  const [hasStartedPlaying, setHasStartedPlaying] = useState(false);
   const sessionStartPlayedSecondsRef = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -66,14 +68,29 @@ export default function VideoPlayer({
   // ATOMIC MUTEX: Only play if this is the active content ID (if ID provided)
   const isMutexActive = !id || !activeContentId || id === activeContentId;
   const finalPlaying = shouldPlay && isMutexActive;
-  const finalMuted = isMuted || forceMuted || !isMutexActive || !shouldPlay;
-
+  // finalMuted force rules:
+  // 1. Must be muted if the store says so
+  // 2. Must be muted if forced by parent (intro phase)
+  // 3. Must be muted if not the active player in mutex
+  // 4. MUST be muted if it hasn't successfully started playing yet (Golden Rule for Autoplay)
+  const finalMuted = isMuted || forceMuted || !isMutexActive || !shouldPlay || !hasStartedPlaying || internalMuted;
 
 
   // Sync shouldPlay strictly when autoplay prop changes
   useEffect(() => {
     setShouldPlay(autoplay);
   }, [autoplay]);
+
+  // Handle internal muted state transition
+  useEffect(() => {
+    if (hasStartedPlaying) {
+      // Once it started, we follow the store's muted state
+      setInternalMuted(isMuted);
+    } else {
+      // Before starting, we MUST be muted to satisfy browser policies
+      setInternalMuted(true);
+    }
+  }, [hasStartedPlaying, isMuted]);
 
   // Command Sync (v24.1) - Extreme manual enforcement for YouTube Iframe
   useEffect(() => {
@@ -121,6 +138,8 @@ export default function VideoPlayer({
     playStartTimeRef.current = null;
     hasSeeked.current = false;
     sessionStartPlayedSecondsRef.current = null;
+    setHasStartedPlaying(false); // Reset this state on video swap
+    setInternalMuted(true); // Ensure it's muted on new video load
 
     if (startAt && startAt > 0 && playerRef.current) {
       playerRef.current.seekTo(startAt, 'seconds');
@@ -220,56 +239,30 @@ export default function VideoPlayer({
     prevPlayingRef.current = isPlayingInternal;
   }, [finalMuted, isPlayingInternal, effectiveVolume]);
 
-  // Autoplay Kick for YouTube
+  // Autoplay Kick for YouTube (v25.4)
   useEffect(() => {
     if (isMounted && finalPlaying && isYouTubeVideo(videoUrl)) {
       kickIntervalRef.current = setInterval(() => {
         if (playerRef.current) {
-          const internal = playerRef.current.getInternalPlayer();
-          if (internal && typeof internal.playVideo === 'function') {
-            const state = typeof internal.getPlayerState === 'function' ? internal.getPlayerState() : -1;
-            if (state === 2 || state === 5 || state === -1 || state === 0) {
-              internal.playVideo();
-            } else if (state === 1) {
-              if (!isPlayingInternal) {
-                setIsPlayingInternal(true);
-                if (playStartTimeRef.current === null) playStartTimeRef.current = Date.now();
-                // Start Fade In
-                if (!isFadingIn.current) {
-                  isFadingIn.current = true;
-                  const fadeDuration = 1000;
-                  const fadeSteps = 20;
-                  const targetVol = effectiveVolume;
-                  const increment = targetVol / fadeSteps;
-                  let currentVol = 0;
-                  let step = 0;
-
-                  if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
-                  fadeIntervalRef.current = setInterval(() => {
-                    step++;
-                    currentVol = Math.min(targetVol, currentVol + increment);
-                    setLocalVolume(currentVol);
-                    if (step >= fadeSteps) {
-                      if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
-                      isFadingIn.current = false;
-                      setLocalVolume(targetVol);
-                    }
-                  }, fadeDuration / fadeSteps);
-                }
+          try {
+            const internal = playerRef.current.getInternalPlayer();
+            if (internal && typeof internal.getPlayerState === 'function') {
+              const state = internal.getPlayerState();
+              // Si está pausado (2) o cued (5) o no iniciado (-1) o terminado (0) mientras debería sonar: KICK!
+              if (state === 2 || state === 5 || state === -1 || state === 0) {
+                internal.playVideo();
               }
             }
+          } catch (e) {
+            // Silencio en errores de API de YouTube
           }
         }
-      }, 500);
-    }
-
-    return () => {
-      if (kickIntervalRef.current) {
-        clearInterval(kickIntervalRef.current);
-        kickIntervalRef.current = null;
+      }, 1000);
+      return () => {
+        if (kickIntervalRef.current) clearInterval(kickIntervalRef.current);
       }
-    };
-  }, [isMounted, finalPlaying, videoUrl, isPlayingInternal, effectiveVolume]);
+    }
+  }, [isMounted, finalPlaying, videoUrl]);
 
   const handleProgressInternal = (state: { playedSeconds: number, loadedSeconds: number }) => {
     if (onProgress) onProgress(state);
@@ -347,6 +340,7 @@ export default function VideoPlayer({
           onReady={handleReady}
           onError={handleError}
           onPlay={() => {
+            setHasStartedPlaying(true);
             setIsPlayingInternal(true);
             if (playStartTimeRef.current === null) playStartTimeRef.current = Date.now();
             if (startAt && startAt > 0 && !hasSeeked.current && playerRef.current) {
@@ -355,20 +349,16 @@ export default function VideoPlayer({
             }
           }}
           onPause={() => {
+            // Si el video se pausa solo en los primeros segundos de vida, 
+            // es probable que sea el navegador bloqueando el autoplay.
+            // NO cambiamos el estado global de isPlaying para no mostrar el botón de play.
             if (finalPlaying) {
-              const now = Date.now();
-              const playDuration = playStartTimeRef.current ? (now - playStartTimeRef.current) : 0;
-              if (playDuration < 5000) {
-                if (playerRef.current) {
-                  const internal = playerRef.current.getInternalPlayer();
-                  if (internal && typeof internal.playVideo === 'function') internal.playVideo();
-                }
-              } else {
-                setIsPlayingInternal(false);
+              const internal = playerRef.current?.getInternalPlayer();
+              if (internal && typeof internal.playVideo === 'function') {
+                setTimeout(() => internal.playVideo(), 500);
               }
-            } else {
-              setIsPlayingInternal(false);
             }
+            setIsPlayingInternal(false);
           }}
           config={{
             youtube: {

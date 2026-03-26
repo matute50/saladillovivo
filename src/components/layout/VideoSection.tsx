@@ -352,10 +352,13 @@ const VideoSection: React.FC = () => {
                     data-player-id={currentVideo.id}
                   >
                     <VideoPlayer
+                      key={currentVideo.id}
                       id={currentVideo.id}
                       videoUrl={currentVideo.url}
-                      autoplay={isPlaying && isContentPlaying}
+                      // Forzamos autoplay incluso durante el overlay de intro para pre-buffer masivo (v25.3)
+                      autoplay={isPlaying && (isContentPlaying || isInitialLoadRef.current)}
                       muted={(!isPlaying || !isContentPlaying)}
+                      imageUrl={currentVideo.imagen}
                       onClose={() => {
                         if (!transitionSignaledRef.current && currentVideo?.id !== 'live-stream') {
                           handleOnEnded(setVolume, unmute);
@@ -367,7 +370,7 @@ const VideoSection: React.FC = () => {
                       onDuration={(d) => {
                         setCurrentDuration(d);
                       }}
-                      startAt={(currentVideo as any).startAt || 0}
+                      startAt={currentVideo.id === lastProcessedVideoIdRef.current ? undefined : (currentVideo.novedad ? 0 : undefined)}
                       volumen_extra={currentVideo.volumen_extra}
                       audioUrl={currentVideo.audioSourceUrl}
                     />
