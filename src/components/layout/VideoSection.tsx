@@ -53,18 +53,21 @@ const VideoSection: React.FC = () => {
 
   useEffect(() => {
     // Solo forzamos volumen si YA está reproduciendo y NO es el inicio (para cumplir con Autoplay Muted)
-    // Pero la regla de oro de Noticias/HTML dice que deben sonar si se puede.
-    // Para cumplir con "iniciar muted" (Regla de Oro), ignoramos la primera carga.
     if ((isNewsContent || isHtmlSlideActive) && !isInitialLoadRef.current) {
-      // Rule: News content should have 100% volume if unmuted
       setVolume(1);
     }
-    
-    // Una vez procesado el primer estado, permitimos volumen para los siguientes cambios
+  }, [isNewsContent, isHtmlSlideActive, setVolume]);
+
+  // Limpiamos el flag de carga inicial solo después de que el primer video haya tenido tiempo de empezar
+  // o cuando cambie el video por segunda vez.
+  useEffect(() => {
     if (isInitialLoadRef.current && currentVideo) {
-      isInitialLoadRef.current = false;
+      const timer = setTimeout(() => {
+        // isInitialLoadRef.current = false; // No lo limpiamos aquí aún, dejamos que handleOnEnded lo haga mejor
+      }, 5000);
+      return () => clearTimeout(timer);
     }
-  }, [isNewsContent, isHtmlSlideActive, setVolume, currentVideo]);
+  }, [currentVideo]);
 
   const [showControls, setShowControls] = useState(false);
   const [thumbnailSrc, setThumbnailSrc] = useState<string>('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=');
@@ -265,8 +268,8 @@ const VideoSection: React.FC = () => {
     if (timeLeft <= 0.5 && !isIntroFadingOut) {
       setIsIntroFadingOut(true);
     }
-    // Sincronización 3s: Iniciar contenido oculto detrás de la intro (v24.9)
-    if (timeLeft <= 3 && !isContentPlaying && isPreRollOverlayActive) {
+    // Sincronización 2s: Iniciar contenido oculto detrás de la intro (v25.1)
+    if (timeLeft <= 2 && !isContentPlaying && isPreRollOverlayActive) {
       usePlayerStore.setState({ isContentPlaying: true });
     }
 
@@ -400,6 +403,9 @@ const VideoSection: React.FC = () => {
                   }, 20000);
                 }}
                 onEnded={() => {
+                  if (isInitialLoadRef.current) {
+                    isInitialLoadRef.current = false; // El primer video ya pasó su fase crítica de intro
+                  }
                   if (introWatchdogRef.current) clearTimeout(introWatchdogRef.current);
                   finishIntro();
                 }}
