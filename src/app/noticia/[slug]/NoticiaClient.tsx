@@ -57,7 +57,7 @@ export default function NoticiaClient({ article }: { article: Article }) {
               className="w-full h-full object-cover rounded-lg"
             />
             {/* Viñeta Negra Intensificada con Efecto Blur Superior */}
-            <div className="absolute inset-0 z-10 pointer-events-none rounded-lg bg-black/10 backdrop-blur-[3px] [mask-image:radial-gradient(circle,transparent_30%,black_100%)] shadow-[inset_0_0_120px_rgba(0,0,0,0.8)]" />
+            <div className="absolute inset-0 z-10 pointer-events-none rounded-lg bg-black/10 [mask-image:radial-gradient(circle,transparent_30%,black_100%)] shadow-[inset_0_0_120px_rgba(0,0,0,0.8)]" />
             <div className="absolute inset-x-0 top-0 h-[40%] bg-gradient-to-b from-black/95 via-black/40 to-transparent z-10 pointer-events-none rounded-t-lg" />
 
           </div>
