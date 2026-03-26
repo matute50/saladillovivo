@@ -135,8 +135,8 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
 
         />
         {/* Viñeta Negra con Efecto Blur y Refuerzo Superior Intensificado */}
-        <div className="absolute inset-0 z-10 pointer-events-none bg-black/10 backdrop-blur-[3px] [mask-image:radial-gradient(circle,transparent_30%,black_100%)] shadow-[inset_0_0_100px_rgba(0,0,0,0.8)]" />
-        <div className="absolute inset-x-0 top-0 h-[50%] bg-gradient-to-b from-black/95 via-black/50 to-transparent backdrop-blur-[2px] opacity-100 z-10 pointer-events-none" />
+        <div className="absolute inset-0 z-10 pointer-events-none bg-black/10 [mask-image:radial-gradient(circle,transparent_30%,black_100%)] shadow-[inset_0_0_100px_rgba(0,0,0,0.8)]" />
+        <div className="absolute inset-x-0 top-0 h-[50%] bg-gradient-to-b from-black/95 via-black/50 to-transparent opacity-100 z-10 pointer-events-none" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent opacity-90 z-20" />
 
         {createdAt && (

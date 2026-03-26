@@ -179,7 +179,7 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
                   {/* Viñeta Intensificada para Noticias en carrusel */}
                   {isNewsCarousel && (
                     <>
-                      <div className="absolute inset-0 z-10 pointer-events-none bg-black/10 backdrop-blur-[2.5px] [mask-image:radial-gradient(circle,transparent_40%,black_100%)] shadow-[inset_0_0_80px_rgba(0,0,0,0.8)]" />
+                      <div className="absolute inset-0 z-10 pointer-events-none bg-black/10 [mask-image:radial-gradient(circle,transparent_40%,black_100%)] shadow-[inset_0_0_80px_rgba(0,0,0,0.8)]" />
                       <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-black/90 via-black/40 to-transparent z-10 pointer-events-none opacity-80" />
                     </>
                   )}
