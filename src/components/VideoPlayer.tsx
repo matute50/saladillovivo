@@ -382,7 +382,9 @@ export default function VideoPlayer({
                 fs: 0,
                 iv_load_policy: 3,
                 cc_load_policy: 0,
-                enablejsapi: 1
+                enablejsapi: 1,
+                mute: 1,
+                autoplay: 1
               }
             }
           }}

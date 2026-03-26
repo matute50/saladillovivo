@@ -22,6 +22,8 @@ import AntiGravityLayer from './AntiGravityLayer';
 const VideoSection: React.FC = () => {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const playerContainerRef = useRef<HTMLDivElement>(null);
+  const [areCinematicBarsActive, setAreCinematicBarsActive] = useState(false);
+  const isInitialLoadRef = useRef(true);
 
   const {
     currentVideo,
@@ -40,7 +42,6 @@ const VideoSection: React.FC = () => {
 
   const { currentSlide, isPlaying: isSlidePlaying, stopSlide, isNewsIntroActive, setIsNewsIntroActive } = useNewsPlayerStore();
   const { volume, setVolume, isMuted, unmute } = useVolumeStore(); // Added unmute
-  const { captureVolumeForHistory } = useMediaPlayer();
 
   // Auto-Unmute for News or HTML Slides
   const isHtmlSlideActive = isSlidePlaying && currentSlide && currentSlide.type === 'html';
@@ -53,17 +54,21 @@ const VideoSection: React.FC = () => {
   useEffect(() => {
     // Solo forzamos volumen si YA está reproduciendo y NO es el inicio (para cumplir con Autoplay Muted)
     // Pero la regla de oro de Noticias/HTML dice que deben sonar si se puede.
-    // Para simplificar y cumplir con "iniciar muted", dejaremos que el estado inicial de Mute mande.
-    if ((isNewsContent || isHtmlSlideActive)) {
+    // Para cumplir con "iniciar muted" (Regla de Oro), ignoramos la primera carga.
+    if ((isNewsContent || isHtmlSlideActive) && !isInitialLoadRef.current) {
       // Rule: News content should have 100% volume if unmuted
       setVolume(1);
     }
-  }, [isNewsContent, isHtmlSlideActive, setVolume]);
+    
+    // Una vez procesado el primer estado, permitimos volumen para los siguientes cambios
+    if (isInitialLoadRef.current && currentVideo) {
+      isInitialLoadRef.current = false;
+    }
+  }, [isNewsContent, isHtmlSlideActive, setVolume, currentVideo]);
 
   const [showControls, setShowControls] = useState(false);
   const [thumbnailSrc, setThumbnailSrc] = useState<string>('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=');
-  const [areCinematicBarsActive, setAreCinematicBarsActive] = useState(false);
-  const cinematicTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const cinematicTimerRef = useRef<NodeJS.Timeout|null>(null);
   const lastProcessedVideoIdRef = useRef<string | null>(null);
   const [currentDuration, setCurrentDuration] = useState(0);
   const transitionSignaledRef = useRef(false);
@@ -243,7 +248,7 @@ const VideoSection: React.FC = () => {
         currentDuration - playedSeconds <= 10 &&
         currentDuration - playedSeconds > 9.5
       ) {
-        captureVolumeForHistory();
+        // captureVolumeForHistory(); // Function missing in context v24.8
       }
     }
   };
@@ -311,7 +316,7 @@ const VideoSection: React.FC = () => {
             {isHtmlSlideActive && currentSlide && (
               <div className="absolute inset-0 z-40 bg-black">
                 <iframe
-                  src={currentSlide.url}
+                  src={`${currentSlide.url}${currentSlide.url.includes('?') ? '&' : '?'}mute=1&autoplay=1&enablejsapi=1`}
                   className="w-full h-full border-none pointer-events-none"
                   title="Slide"
                   allow="autoplay"
