@@ -140,14 +140,14 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
         <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent opacity-90 z-20" />
 
         {createdAt && (
-          <div className="absolute top-3 left-3">
+          <div className="absolute top-3 left-3 z-30">
             <span className="bg-black/60 backdrop-blur-md text-white text-[9px] md:text-[11px] font-medium px-2 py-1 rounded border border-white/10 shadow-sm">
                 {format(new Date(createdAt), "dd/MM/yyyy")}
             </span>
           </div>
         )}
 
-        <div className="absolute bottom-0 left-0 w-full p-4 pr-12"> {/* pr-12 para dejar espacio al icono play */}
+        <div className="absolute bottom-0 left-0 w-full p-4 pr-12 z-30"> {/* pr-12 para dejar espacio al icono play */}
             <h3 className={`font-bold ${titleSizeClass} text-white leading-tight drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] group-hover:text-blue-200 transition-colors line-clamp-3`}>
               {title}
             </h3>
@@ -156,7 +156,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
         {/* Indicador de Play sutil en esquina inferior derecha */}
         {isPlayable && (
             <div className={cn(
-                "absolute bottom-2 right-2 flex items-center justify-center rounded-full p-0.5 border border-white shadow-lg shadow-black/50 backdrop-blur-md bg-black/40 group-hover:!bg-[#003399] group-hover:bg-opacity-100",
+                "absolute bottom-2 right-2 flex items-center justify-center rounded-full p-0.5 border border-white shadow-lg shadow-black/50 backdrop-blur-md bg-black/40 group-hover:!bg-[#003399] group-hover:bg-opacity-100 z-30",
                 isFeatured ? "w-11 h-11" : "w-8 h-8"
             )}>
                  <Play

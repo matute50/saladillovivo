@@ -106,7 +106,7 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
           const isLiveOrEvent = isLive || video.isLiveThumbnail || video.isEvent;
 
           const slideClasses = "transition-all duration-300 ease-in-out opacity-100 blur-none";
-          const titleOverlayClasses = "absolute inset-0 p-2 bg-gradient-to-t from-black/80 to-transparent flex justify-center items-end text-center opacity-100 z-20 transition-opacity duration-300 ease-in-out";
+          const titleOverlayClasses = "absolute inset-0 p-2 bg-gradient-to-t from-black/80 to-transparent flex justify-center items-end text-center opacity-100 z-30 transition-opacity duration-300 ease-in-out";
 
           // La lógica de clase para slideClasses y titleOverlayClasses se ha simplificado
           // para que siempre estén visibles y sin blur/opacidad dinámica para el fondo y título.
