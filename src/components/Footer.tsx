@@ -41,6 +41,7 @@ const Footer = () => {
               alt="Logo Saladillo Vivo"
               width={105}
               height={30}
+              style={{ width: 'auto', height: 'auto' }}
               className="object-contain"
               unoptimized // Evita errores 403 en Vercel con imágenes externas
             />
