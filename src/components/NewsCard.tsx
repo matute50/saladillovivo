@@ -141,7 +141,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
 
         {createdAt && (
           <div className="absolute top-3 left-3 z-30">
-            <span className="bg-black/60 backdrop-blur-md text-white text-[9px] md:text-[11px] font-medium px-2 py-1 rounded border border-white/10 shadow-sm">
+            <span className="bg-black/60 backdrop-blur-md text-white text-[9px] md:text-[11px] font-medium px-2 py-1 rounded shadow-sm">
                 {format(new Date(createdAt), "dd/MM/yyyy")}
             </span>
           </div>
@@ -156,7 +156,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
         {/* Indicador de Play sutil en esquina inferior derecha */}
         {isPlayable && (
             <div className={cn(
-                "absolute bottom-2 right-2 flex items-center justify-center rounded-full p-0.5 border border-white shadow-lg shadow-black/50 backdrop-blur-md bg-black/40 group-hover:!bg-[#003399] group-hover:bg-opacity-100 z-30",
+                "absolute bottom-2 right-2 flex items-center justify-center rounded-full p-0.5 border border-white/70 shadow-lg shadow-black/50 backdrop-blur-md bg-black/40 group-hover:!bg-[#003399] group-hover:border-white group-hover:bg-opacity-100 z-30",
                 isFeatured ? "w-11 h-11" : "w-8 h-8"
             )}>
                  <Play

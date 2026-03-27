@@ -389,35 +389,37 @@ const VideoSection: React.FC = () => {
                   : "opacity-0 invisible pointer-events-none"
               )}
             >
-              <video
-                ref={introVideoRef}
-                src={overlayIntroVideo?.url || ""}
-                autoPlay
-                playsInline
-                muted
-                className="w-full h-full object-cover"
-                onTimeUpdate={handleIntroTimeUpdate}
-                onLoadedData={() => {
-                  // Watchdog: si la intro carga pero en 20s no termina, forzar finishIntro
-                  if (introWatchdogRef.current) clearTimeout(introWatchdogRef.current);
-                  introWatchdogRef.current = setTimeout(() => {
-                    console.warn('[VideoSection] Intro watchdog: forzando finishIntro()');
+              {overlayIntroVideo?.url && (
+                <video
+                  ref={introVideoRef}
+                  src={overlayIntroVideo.url}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-full object-cover"
+                  onTimeUpdate={handleIntroTimeUpdate}
+                  onLoadedData={() => {
+                    // Watchdog: si la intro carga pero en 20s no termina, forzar finishIntro
+                    if (introWatchdogRef.current) clearTimeout(introWatchdogRef.current);
+                    introWatchdogRef.current = setTimeout(() => {
+                      console.warn('[VideoSection] Intro watchdog: forzando finishIntro()');
+                      finishIntro();
+                    }, 20000);
+                  }}
+                  onEnded={() => {
+                    if (isInitialLoadRef.current) {
+                      isInitialLoadRef.current = false; // El primer video ya pasó su fase crítica de intro
+                    }
+                    if (introWatchdogRef.current) clearTimeout(introWatchdogRef.current);
                     finishIntro();
-                  }, 20000);
-                }}
-                onEnded={() => {
-                  if (isInitialLoadRef.current) {
-                    isInitialLoadRef.current = false; // El primer video ya pasó su fase crítica de intro
-                  }
-                  if (introWatchdogRef.current) clearTimeout(introWatchdogRef.current);
-                  finishIntro();
-                }}
-                onError={(e) => {
-                  console.error("Intro Error:", e);
-                  if (introWatchdogRef.current) clearTimeout(introWatchdogRef.current);
-                  finishIntro();
-                }}
-              />
+                  }}
+                  onError={(e) => {
+                    console.error("Intro Error:", e);
+                    if (introWatchdogRef.current) clearTimeout(introWatchdogRef.current);
+                    finishIntro();
+                  }}
+                />
+              )}
             </div>
 
 

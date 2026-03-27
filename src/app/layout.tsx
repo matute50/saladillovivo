@@ -47,7 +47,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <link rel="preconnect" href="https://www.youtube.com" />
       </head>
 
-      <body className="bg-main-gradient antialiased overflow-x-hidden min-h-screen">
+      <body className="bg-main-gradient antialiased overflow-x-hidden min-h-screen" suppressHydrationWarning>
         <Script
           src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"
           strategy="afterInteractive"
