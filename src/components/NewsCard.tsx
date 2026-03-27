@@ -117,14 +117,14 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
       transition={{ duration: 0.5, delay: index * 0.1 }}
       className={cn(
         "group relative flex flex-col rounded-xl overflow-hidden transition-all duration-300 h-full",
-        "border-0 outline-none",
-        "hover:scale-[1.02]",
+        "border-0 border-transparent shadow-none outline-none",
+        "hover:scale-[1.02] hover:shadow-none",
         "cursor-pointer", 
         className
       )}
-      onClick={handlePlaySlide} // 2. CORRECCIÓN UX: Clic general dispara video
+      onClick={handlePlaySlide} 
     >
-      <div className="relative w-full h-full aspect-video overflow-hidden bg-black">
+      <div className="relative w-full h-full aspect-video overflow-hidden bg-black border-0">
         <Image
           src={finalImageUrl}
           alt={title || 'Noticia'}
