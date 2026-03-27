@@ -117,6 +117,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
       transition={{ duration: 0.5, delay: index * 0.1 }}
       className={cn(
         "group relative flex flex-col rounded-xl overflow-hidden transition-all duration-300 h-full",
+        "border-0 outline-none",
         "hover:scale-[1.02]",
         "cursor-pointer", 
         className
