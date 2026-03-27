@@ -26,7 +26,9 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
 
   if (!newsItem) return null;
 
-  const title = newsItem.title || newsItem.titulo;
+  const rawTitle = newsItem.title || newsItem.titulo;
+  const title = rawTitle ? rawTitle.replace(/\|/g, '').replace(/\s{2,}/g, ' ').trim().toUpperCase() : '';
+
   
   const getProcessedImageUrl = (inputUrl: string | undefined | null): string => {
       if (!inputUrl) return '/placeholder.png';
