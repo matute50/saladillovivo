@@ -66,7 +66,8 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
             playSlide({
                 url: urlSlide,
                 type: 'html',
-                duration: duration
+                duration: duration,
+                audioUrl: audioUrl || null // <-- Audio de locución del estudio
             });
         }
         return;
@@ -108,7 +109,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
   };
 
   const priority = index < 4;
-  const titleSizeClass = isFeatured ? 'text-2xl md:text-3xl' : 'text-lg md:text-xl';
+  const titleSizeClass = isFeatured ? 'text-2xl md:text-3xl' : 'text-base md:text-lg';
 
   return (
     <motion.article
@@ -134,7 +135,16 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
           unoptimized={true} 
           onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-90" />
+        {/* Capa de Blur (Viñeta) - Solo en el área del texto para no empañar el contenido principal */}
+        <div 
+          className="absolute inset-x-0 bottom-0 h-2/3 backdrop-blur-md z-10 pointer-events-none" 
+          style={{ 
+            maskImage: 'linear-gradient(to top, black 15%, transparent 80%)',
+            WebkitMaskImage: 'linear-gradient(to top, black 15%, transparent 80%)'
+          }} 
+        />
+        {/* Viñeta oscura clásica para contraste del texto */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent opacity-100 z-10" />
 
         {createdAt && (
           <div className="absolute top-3 left-3">

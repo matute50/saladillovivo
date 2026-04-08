@@ -1,57 +1,186 @@
-'use client';
-
-import React, { useState, useRef, useEffect } from 'react';
-import VideoPlayer from '@/components/VideoPlayer';
-import { AnimatePresence, motion } from 'framer-motion';
-import Image from 'next/image';
+import React, { useState, useEffect, useRef } from 'react';
+import ReactPlayer from 'react-player';
 import { useMediaPlayer } from '@/context/MediaPlayerContext';
-import CustomControls from '@/components/CustomControls';
-import VideoTitleBar from '@/components/VideoTitleBar';
-import { cn } from '@/lib/utils';
-import { Play } from 'lucide-react';
+import { useNewsPlayer } from '@/context/NewsPlayerContext';
 
-const VideoSection = ({ isMobile }: { isMobile: boolean }) => {
-  const playerContainerRef = useRef<HTMLDivElement>(null);
-  const { currentVideo, isPlaying, handleOnEnded, setIsPlaying } = useMediaPlayer();
-  const [thumbnailSrc, setThumbnailSrc] = useState<string>('/placeholder.png');
+const VideoSection: React.FC = () => {
+  const {
+    currentVideo,
+    nextVideo,
+    isIntroPlaying,
+    setIsIntroPlaying, // Asegúrate de exponer este setter en el Context
+    volume,
+    playNext,
+    isSlidePlaying,
+    currentSlideUrl,
+    isPlaying,
+    isLiveStreamActive,
+    streamingUrl
+  } = useMediaPlayer();
 
-  // Forzar autoplay al cargar
+  const { currentSlide, stopSlide } = useNewsPlayer();
+  const slideAudioRef = useRef<HTMLAudioElement>(null);
+
+  const [youtubePlaying, setYoutubePlaying] = useState(false);
+  const [introSrc, setIntroSrc] = useState('');
+  const introVideoRef = useRef<HTMLVideoElement>(null);
+
+  // Lista de intros actualizada según tu instrucción
+  const INTRO_VIDEOS = [
+    '/videos_intro/intro1.mp4',
+    '/videos_intro/intro2.mp4',
+    '/videos_intro/intro3.mp4',
+    '/videos_intro/intro4.mp4',
+    '/videos_intro/intro5.mp4'
+  ];
+
+  // Cada vez que cambia el video actual, preparamos la Intro
   useEffect(() => {
-    if (currentVideo) setIsPlaying(true);
-  }, [currentVideo, setIsPlaying]);
+    if (currentVideo && !isSlidePlaying) {
+      const randomIntro = INTRO_VIDEOS[Math.floor(Math.random() * INTRO_VIDEOS.length)];
+      setIntroSrc(randomIntro);
 
-  useEffect(() => {
-    if (currentVideo?.url) {
-      const match = currentVideo.url.match(/(?:youtu\.be\/|youtube\.com\/.*v=)([^&]+)/);
-      if (match) setThumbnailSrc(`https://img.youtube.com/vi/${match[1]}/maxresdefault.jpg`);
+      // v25.5: Si isIntroPlaying ya es false (cambio directo/restauración), 
+      // encendemos YouTube inmediatamente. De lo contrario, YouTube empieza pausado.
+      setYoutubePlaying(!isIntroPlaying);
     }
-  }, [currentVideo]);
+  }, [currentVideo, isSlidePlaying, isIntroPlaying]);
 
-  return (
-    <div className="w-full">
-      <div 
-        ref={playerContainerRef}
-        className="relative w-full aspect-video bg-black overflow-hidden md:rounded-xl shadow-lg"
-      >
-        <div className="absolute inset-0 w-full h-full">
-          {currentVideo?.url && (
-             <VideoPlayer
-                key={currentVideo.url} 
-                videoUrl={currentVideo.url}
-                autoplay={true}
-                muted={true} // NECESARIO PARA AUTOPLAY EN PC
-                onClose={handleOnEnded}
-             />
-          )}
+  // Manejador de tiempo de la Intro para "pre-encender" YouTube
+  const handleIntroTimeUpdate = () => {
+    if (introVideoRef.current) {
+      const { currentTime, duration } = introVideoRef.current;
+      // Cuando faltan 4 segundos para terminar la intro, activamos YouTube en la capa inferior
+      if (duration - currentTime <= 4 && !youtubePlaying) {
+        setYoutubePlaying(true);
+      }
+    }
+  };
 
-          {!isPlaying && currentVideo && (
-            <div className="absolute inset-0 flex items-center justify-center z-50 bg-black/40">
-               <Play size={48} className="text-white" fill="white" />
-            </div>
-          )}
+  const handleIntroEnded = () => {
+    setIsIntroPlaying(false);
+  };
+
+  if (isLiveStreamActive && streamingUrl) {
+    return (
+      <div className="relative w-full h-full aspect-video bg-black">
+        <ReactPlayer
+          url={streamingUrl.includes('/live/') ? `https://www.youtube.com/watch?v=${streamingUrl.split('/live/')[1].split('?')[0]}` : streamingUrl}
+          playing={true} // Forzado a true para evitar bloqueos por estado isPlaying
+          volume={volume}
+          width="100%"
+          height="100%"
+          config={{
+            youtube: {
+              playerVars: {
+                controls: 0,
+                showinfo: 0,
+                rel: 0,
+                modestbranding: 1,
+                autoplay: 1,   // REGLA DE ORO: siempre autoplay
+                mute: 1,       // REGLA DE ORO: primer video muted
+                enablejsapi: 1,
+                playsinline: 1
+              }
+            }
+          }}
+        />
+        <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1.5 bg-red-600 text-white rounded-lg shadow-2xl animate-pulse">
+            <div className="w-2 h-2 rounded-full bg-white"></div>
+            <span className="text-xs font-black">EN VIVO</span>
         </div>
       </div>
-      <VideoTitleBar className="mt-2" />
+    );
+  }
+
+  // Flujo 1: Slide disparado desde NewsCard (NewsPlayerContext)
+  const newsSlideIsActive = currentSlide?.type === 'html' && !!currentSlide?.url;
+  // Flujo 2: Slide disparado desde MediaPlayerContext (legado)  
+  const legacySlideIsActive = isSlidePlaying && !!currentSlideUrl;
+
+  const activeSlideUrl = newsSlideIsActive ? currentSlide!.url : (legacySlideIsActive ? currentSlideUrl : null);
+
+  if (activeSlideUrl) {
+    return (
+      <div className="relative w-full h-full aspect-video">
+        <iframe
+          src={activeSlideUrl}
+          className="w-full h-full border-none"
+          title="Noticia Saladillo Vivo"
+        />
+        {/* Audio de locución del Estudio de Locución (solo si existe) */}
+        {currentSlide?.audioUrl && (
+          <audio
+            ref={slideAudioRef}
+            key={currentSlide.audioUrl}
+            src={currentSlide.audioUrl}
+            autoPlay
+            onEnded={() => stopSlide()}
+            className="hidden"
+          />
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative w-full h-full aspect-video bg-black overflow-hidden group">
+      
+
+
+      {/* CAPA SUPERIOR (Z-INDEX 20): VIDEO INTRO */}
+      {isIntroPlaying && (
+        <video
+          ref={introVideoRef}
+          src={introSrc}
+          autoPlay
+          muted={false}
+          onTimeUpdate={handleIntroTimeUpdate}
+          onEnded={handleIntroEnded}
+          className="absolute inset-0 w-full h-full object-cover z-[20]"
+        />
+      )}
+
+      {/* CAPA INFERIOR (Z-INDEX 10): YOUTUBE */}
+      {currentVideo && (
+        <div className="absolute inset-0 w-full h-full z-[10]">
+          <ReactPlayer
+            url={currentVideo.url}
+            playing={youtubePlaying}
+            volume={volume}
+            muted={isIntroPlaying} // REGLA DE ORO: muted solo durante la intro, con audio cuando termina
+            width="100%"
+            height="100%"
+            onEnded={playNext}
+            config={{
+              youtube: {
+                playerVars: {
+                  controls: 0,          // Anti-branding: sin controles
+                  showinfo: 0,          // Anti-branding
+                  rel: 0,               // No mostrar videos relacionados
+                  modestbranding: 1,    // Minimizar logo YouTube
+                  iv_load_policy: 3,    // Ocultar anotaciones
+                  disablekb: 1,         // Deshabilitar teclado
+                  autoplay: 1,          // REGLA DE ORO: siempre autoplay
+                  mute: 1,              // REGLA DE ORO: primer video muted (política de navegadores)
+                  enablejsapi: 1,       // Habilitar API de YouTube para control programático
+                  playsinline: 1        // Evitar pantalla completa en iOS
+                }
+              },
+              file: {
+                attributes: {
+                  controlsList: 'nodownload',
+                  style: { objectFit: 'cover', width: '100%', height: '100%' }
+                }
+              }
+            }}
+          />
+        </div>
+      )}
+
+
+      {/* Overlay para bloquear clicks derechos o interacciones directas con el iframe */}
+      <div className="absolute inset-0 w-full h-full z-[15] pointer-events-none" />
     </div>
   );
 };

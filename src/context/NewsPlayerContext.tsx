@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
 
 export type SlideType = 'html' | 'video' | 'image';
 
@@ -8,7 +8,8 @@ export interface SlideData {
   url: string;
   type: SlideType;
   duration?: number;
-  title?: string; // <--- CAMPO AGREGADO
+  title?: string;
+  audioUrl?: string | null; // Audio de locución del estudio
 }
 
 interface NewsPlayerContextType {
@@ -33,6 +34,23 @@ export const NewsPlayerProvider = ({ children }: { children: ReactNode }) => {
     setIsPlaying(false);
     setCurrentSlide(null);
   }, []);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isPlaying && currentSlide) {
+      if (currentSlide.duration && currentSlide.duration > 0) {
+        // Agregamos tiempo extra (2s) de colchón si sabemos que hay audio, así priorizamos `onEnded`.
+        // Si no hay audio, seremos precisos a la duración.
+        const margin = currentSlide.audioUrl ? 2 : 0;
+        const totalDuration = (currentSlide.duration + margin) * 1000;
+        timer = setTimeout(() => {
+          stopSlide();
+        }, totalDuration);
+      }
+    }
+    return () => clearTimeout(timer);
+  }, [isPlaying, currentSlide, stopSlide]);
+
 
   return (
     <NewsPlayerContext.Provider value={{ playSlide, stopSlide, currentSlide, isPlaying }}>
