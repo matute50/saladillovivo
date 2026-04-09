@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 'use client';
 
 import React, { useRef, useState, useEffect } from 'react';
@@ -11,14 +10,10 @@ import { useVolumeStore } from '@/store/useVolumeStore';
 import CustomControls from '@/components/CustomControls';
 import VideoTitleBar from '@/components/VideoTitleBar';
 import NewsTicker from '@/components/NewsTicker';
-import { useMediaPlayer } from '@/context/MediaPlayerContext';
 import WeatherOverlay from '@/components/tv/WeatherOverlay';
 import { cn, cleanTitle } from '@/lib/utils';
 import { Play } from 'lucide-react';
 import AntiGravityLayer from './AntiGravityLayer';
-
-// Simplified VideoSection for Desktop Only
-
 
 const VideoSection: React.FC = () => {
   const [isFullScreen, setIsFullScreen] = useState(false);
@@ -39,12 +34,13 @@ const VideoSection: React.FC = () => {
     pauseForSlide,
     resumeAfterSlide,
     finishIntro,
+    setIsNewsIntroActive,
+    isNewsIntroActive
   } = usePlayerStore();
 
-  const { currentSlide, isPlaying: isSlidePlaying, stopSlide, isNewsIntroActive, setIsNewsIntroActive } = useNewsPlayerStore();
-  const { volume, setVolume, isMuted, unmute } = useVolumeStore(); // Added unmute
+  const { currentSlide, isPlaying: isSlidePlaying, stopSlide } = useNewsPlayerStore();
+  const { volume, setVolume, isMuted, unmute } = useVolumeStore();
 
-  // Auto-Unmute for News or HTML Slides
   const isHtmlSlideActive = isSlidePlaying && currentSlide && currentSlide.type === 'html';
   const isLocalIntro = currentVideo?.url && (
     currentVideo.url.startsWith('/') ||
@@ -53,24 +49,11 @@ const VideoSection: React.FC = () => {
   const isNewsContent = !!(currentVideo?.categoria === 'Noticias' && !isLocalIntro);
 
   useEffect(() => {
-    // Forzamos volumen al detectar contenido de audio crítico (Noticias o Slides)
-    // Eliminamos la restricción de isInitialLoad ya que el clic del usuario es interacción suficiente
     if (isNewsContent || isHtmlSlideActive) {
       setVolume(1);
       unmute(); 
     }
   }, [isNewsContent, isHtmlSlideActive, setVolume, unmute]);
-
-  // Limpiamos el flag de carga inicial solo después de que el primer video haya tenido tiempo de empezar
-  // o cuando cambie el video por segunda vez.
-  useEffect(() => {
-    if (isInitialLoadRef.current && currentVideo) {
-      const timer = setTimeout(() => {
-        // isInitialLoadRef.current = false; // No lo limpiamos aquí aún, dejamos que handleOnEnded lo haga mejor
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [currentVideo]);
 
   const [showControls, setShowControls] = useState(false);
   const [thumbnailSrc, setThumbnailSrc] = useState<string>('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=');
@@ -83,61 +66,16 @@ const VideoSection: React.FC = () => {
   const introVideoRef = useRef<HTMLVideoElement>(null);
   const [isIntroFadingOut, setIsIntroFadingOut] = useState(false);
 
-
-  // --- SINGLE PLAYER LOGIC (v23.9) ---
-
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = isMuted ? 0 : volume;
     }
   }, [volume, isMuted]);
 
-  const [playBackgroundEarly, setPlayBackgroundEarly] = useState(false);
   const transitionTriggeredRef = useRef(false);
   const introWatchdogRef = useRef<NodeJS.Timeout | null>(null);
-=======
-import React, { useState, useEffect, useRef } from 'react';
-import ReactPlayer from 'react-player';
-import { useMediaPlayer } from '@/context/MediaPlayerContext';
-import { useNewsPlayer } from '@/context/NewsPlayerContext';
 
-const VideoSection: React.FC = () => {
-  const {
-    currentVideo,
-    nextVideo,
-    isIntroPlaying,
-    setIsIntroPlaying, // Asegúrate de exponer este setter en el Context
-    volume,
-    playNext,
-    isSlidePlaying,
-    currentSlideUrl,
-    isPlaying,
-    isLiveStreamActive,
-    streamingUrl
-  } = useMediaPlayer();
-
-  const { currentSlide, stopSlide } = useNewsPlayer();
-  const slideAudioRef = useRef<HTMLAudioElement>(null);
-
-  const [youtubePlaying, setYoutubePlaying] = useState(false);
-  const [introSrc, setIntroSrc] = useState('');
-  const introVideoRef = useRef<HTMLVideoElement>(null);
-  const [autoplayAllowed, setAutoplayAllowed] = useState(false);
-
-  // Lista de intros actualizada según tu instrucción
-  const INTRO_VIDEOS = [
-    '/videos_intro/intro1.mp4',
-    '/videos_intro/intro2.mp4',
-    '/videos_intro/intro3.mp4',
-    '/videos_intro/intro4.mp4',
-    '/videos_intro/intro5.mp4'
-  ];
->>>>>>> f79c05b1de757249d336ae1a1955d3cb762736f4
-
-  // Cada vez que cambia el video actual, preparamos la Intro
   useEffect(() => {
-<<<<<<< HEAD
-    setPlayBackgroundEarly(false);
     transitionTriggeredRef.current = false;
     transitionSignaledRef.current = false;
     setCurrentDuration(0);
@@ -147,9 +85,7 @@ const VideoSection: React.FC = () => {
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (isHtmlSlideActive && currentSlide) {
-      // RULE OF GOLD: Pause and save background state
-      pauseForSlide(); // Uses internal savedProgress automatically
-
+      pauseForSlide();
       const duration = (currentSlide.duration || 15) * 1000;
       timer = setTimeout(() => {
         stopSlide();
@@ -159,26 +95,21 @@ const VideoSection: React.FC = () => {
     return () => clearTimeout(timer);
   }, [isHtmlSlideActive, currentSlide, stopSlide, resumeAfterSlide, pauseForSlide]);
 
-  // Sincronización de Audio para Slides (v25.2)
   useEffect(() => {
     if (isHtmlSlideActive && currentSlide?.audioUrl && audioRef.current) {
       const audio = audioRef.current;
-      
-      // Forzado inmediato de estados para bypass de autoplay
       audio.muted = false;
       audio.volume = volume > 0 ? volume : 1; 
       
       const attemptPlay = () => {
         audio.play().catch(err => {
           console.warn("[VideoSection] Audio play initial attempt failed, retrying...", err);
-          // Re-intento en el siguiente frame si el DOM no estaba listo
           requestAnimationFrame(() => {
             audio.play().catch(() => {});
           });
         });
       };
 
-      // Si el src ya cambió, disparamos. Si no, esperamos a que cargue.
       if (audio.readyState >= 2) {
         attemptPlay();
       } else {
@@ -190,24 +121,16 @@ const VideoSection: React.FC = () => {
     } else if (!isHtmlSlideActive && audioRef.current) {
       audioRef.current.pause();
     }
-  }, [isHtmlSlideActive, currentSlide?.audioUrl, volume]);
+  }, [isHtmlSlideActive, currentSlide, volume]);
 
-  // FIX AUTOPLAY: Si isPreRollOverlayActive está activo pero no hay video de intro asignado,
-  // el reproductor quedaría bloqueado indefinidamente (isContentPlaying nunca se activaría).
-  // En ese caso, saltamos la intro directamente.
   useEffect(() => {
     if (isPreRollOverlayActive && !overlayIntroVideo && currentVideo) {
-      // Sin intro = sin overlay = activar contenido inmediatamente
       const timer = setTimeout(() => {
         finishIntro();
-      }, 100); // 100ms de gracia para evitar estados intermedios del store
+      }, 100);
       return () => clearTimeout(timer);
     }
   }, [isPreRollOverlayActive, overlayIntroVideo, currentVideo, finishIntro]);
-
-  // --- UNIVERSAL PAUSE-ZOOM STRATEGY (V23.2) ---
-  // No specific "Return from News" detection needed.
-  // The Pause state itself triggers the shield.
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -224,7 +147,6 @@ const VideoSection: React.FC = () => {
   useEffect(() => {
     const isNewVideo = !!(currentVideo && currentVideo.id !== lastProcessedVideoIdRef.current);
 
-    // Clear any previous timer
     const clearTimer = () => {
       if (cinematicTimerRef.current) {
         clearTimeout(cinematicTimerRef.current);
@@ -241,33 +163,25 @@ const VideoSection: React.FC = () => {
 
     if (isPlaying) {
       if (isNewVideo && !isLocalIntro && !isPreRollOverlayActive) {
-        // --- CASE: NEW VIDEO START (INTRO) ---
         lastProcessedVideoIdRef.current = currentVideo.id;
         setAreCinematicBarsActive(true);
         clearTimer();
         cinematicTimerRef.current = setTimeout(() => {
           setAreCinematicBarsActive(false);
-        }, 5000); // 5s Anti-Branding Shield
+        }, 5000);
       } else if (!isNewVideo) {
-        // --- CASE: RESUME PLAY (Universal Anti-Branding V23.2) ---
-        // Resume from Pause (or News) -> Hold Shield for 2s, then Zoom Out (1s)
-
-        setAreCinematicBarsActive(true); // Ensure active
+        setAreCinematicBarsActive(true);
         clearTimer();
         cinematicTimerRef.current = setTimeout(() => {
-          setAreCinematicBarsActive(false); // Triggers Zoom Out transition
-        }, 5000); // 5s Hold (V23.3)
+          setAreCinematicBarsActive(false);
+        }, 5000);
       } else if (isNewVideo) {
-        // Backup: update ref even if we don't show bars
         lastProcessedVideoIdRef.current = currentVideo.id || null;
       }
     } else {
-      // --- CASE: PAUSED (Manual or Auto) ---
-      // Force Shield + Over-Scaling immediately
       if (!isLocalIntro && !isHtmlSlideActive && !isPreRollOverlayActive && currentVideo) {
-
         setAreCinematicBarsActive(true);
-        clearTimer(); // Keep active indefinitely while paused
+        clearTimer();
       } else {
         setAreCinematicBarsActive(false);
         clearTimer();
@@ -275,7 +189,7 @@ const VideoSection: React.FC = () => {
     }
 
     return () => clearTimer();
-  }, [isPlaying, currentVideo?.id, isLocalIntro, isHtmlSlideActive, isPreRollOverlayActive, currentVideo]);
+  }, [isPlaying, currentVideo, isLocalIntro, isHtmlSlideActive, isPreRollOverlayActive]);
 
   useEffect(() => {
     if (!currentVideo?.url || isLocalIntro) {
@@ -307,51 +221,18 @@ const VideoSection: React.FC = () => {
 
   const handleProgress = (state: { playedSeconds: number, loadedSeconds: number }) => {
     const { playedSeconds } = state;
-
     if (!isLocalIntro && !isPreRollOverlayActive) {
       saveCurrentProgress(playedSeconds, volume);
-
       if (
         currentDuration > 0 &&
         currentDuration - playedSeconds <= 1 &&
         !transitionSignaledRef.current
       ) {
-
         transitionSignaledRef.current = true;
         handleOnEnded(setVolume, unmute);
       }
-
-      // Capture volume 10s before end for persistence (v24.8)
-      if (
-        currentDuration > 0 &&
-        currentDuration - playedSeconds <= 10 &&
-        currentDuration - playedSeconds > 9.5
-      ) {
-        // captureVolumeForHistory(); // Function missing in context v24.8
-=======
-    if (currentVideo && !isSlidePlaying) {
-      const randomIntro = INTRO_VIDEOS[Math.floor(Math.random() * INTRO_VIDEOS.length)];
-      setIntroSrc(randomIntro);
-
-      // v25.5: Si isIntroPlaying ya es false (cambio directo/restauración), 
-      // encendemos YouTube inmediatamente. De lo contrario, YouTube empieza pausado.
-      setYoutubePlaying(!isIntroPlaying);
-    }
-  }, [currentVideo, isSlidePlaying, isIntroPlaying]);
-
-  // Manejador de tiempo de la Intro para "pre-encender" YouTube
-  const handleIntroTimeUpdate = () => {
-    if (introVideoRef.current) {
-      const { currentTime, duration } = introVideoRef.current;
-      // Cuando faltan 4 segundos para terminar la intro, activamos YouTube en la capa inferior
-      if (duration - currentTime <= 4 && !youtubePlaying) {
-        setYoutubePlaying(true);
->>>>>>> f79c05b1de757249d336ae1a1955d3cb762736f4
-      }
     }
   };
-
-<<<<<<< HEAD
 
   const handleIntroTimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     const video = e.currentTarget;
@@ -364,13 +245,9 @@ const VideoSection: React.FC = () => {
     if (timeLeft <= 0.5 && !isIntroFadingOut) {
       setIsIntroFadingOut(true);
     }
-    // Sincronización 2s: Iniciar contenido oculto detrás de la intro (v25.1)
     if (timeLeft <= 2 && !isContentPlaying && isPreRollOverlayActive) {
-      usePlayerStore.setState({ isContentPlaying: true });
+        usePlayerStore.setState({ isContentPlaying: true });
     }
-
-    // Barras de Cine: 1s antes del fin de la intro (v25.1)
-    // No activar si es un vivo
     if (timeLeft <= 1 && !areCinematicBarsActive && isPreRollOverlayActive && currentVideo?.id !== 'live-stream') {
       setAreCinematicBarsActive(true);
     }
@@ -383,7 +260,6 @@ const VideoSection: React.FC = () => {
       video.playbackRate = rate;
     }
   };
-
 
   const displayTitle = cleanTitle(currentVideo?.nombre);
   const displaySubtitle = (currentVideo as any)?.resumen || (currentVideo as any)?.description;
@@ -399,7 +275,6 @@ const VideoSection: React.FC = () => {
           onMouseEnter={() => setShowControls(true)}
           onMouseLeave={() => setShowControls(false)}
         >
-          {/* === VIDEO UNIVERSE (SCALABLE & IMMERSIVE) === */}
           <div
             className={cn(
               "video-universe absolute inset-0 w-full h-full transition-transform ease-in-out md:rounded-xl overflow-hidden"
@@ -410,8 +285,6 @@ const VideoSection: React.FC = () => {
               willChange: 'transform'
             }}
           >
-
-            {/* HTML Slide (Considered Content/Video) */}
             {isHtmlSlideActive && currentSlide && (
               <div className="absolute inset-0 z-40 bg-black">
                 <iframe
@@ -423,17 +296,14 @@ const VideoSection: React.FC = () => {
               </div>
             )}
 
-            {/* Audio Persistente para Slides (Fuera del condicional para mantener el estado del contexto de audio en PC) */}
             <audio
               ref={audioRef}
               src={isHtmlSlideActive ? currentSlide?.audioUrl || undefined : undefined}
               className="hidden"
               autoPlay
               crossOrigin="anonymous"
-              onError={(e) => isHtmlSlideActive && console.error("Error reproduciendo audio de noticia:", e, currentSlide?.audioUrl)}
             />
 
-            {/* === SINGLE POWER PLAYER (v23.9) === */}
             <div className="absolute inset-0 bg-black">
               <AnimatePresence mode="wait">
                 {currentVideo?.url && !isHtmlSlideActive && (
@@ -444,13 +314,11 @@ const VideoSection: React.FC = () => {
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.75 }}
                     className="absolute inset-0"
-                    data-player-id={currentVideo.id}
                   >
                     <VideoPlayer
                       key={currentVideo.id}
                       id={currentVideo.id}
                       videoUrl={currentVideo.url}
-                      // Forzamos autoplay incluso durante el overlay de intro para pre-buffer masivo (v25.3)
                       autoplay={isPlaying && (isContentPlaying || isInitialLoadRef.current)}
                       muted={(!isPlaying || !isContentPlaying)}
                       imageUrl={currentVideo.imagen}
@@ -459,12 +327,8 @@ const VideoSection: React.FC = () => {
                           handleOnEnded(setVolume, unmute);
                         }
                       }}
-                      onProgress={(state) => {
-                        handleProgress(state);
-                      }}
-                      onDuration={(d) => {
-                        setCurrentDuration(d);
-                      }}
+                      onProgress={handleProgress}
+                      onDuration={setCurrentDuration}
                       startAt={currentVideo.id === lastProcessedVideoIdRef.current ? undefined : (currentVideo.novedad ? 0 : undefined)}
                       volumen_extra={currentVideo.volumen_extra}
                       audioUrl={currentVideo.audioSourceUrl}
@@ -474,8 +338,6 @@ const VideoSection: React.FC = () => {
               </AnimatePresence>
             </div>
 
-
-            {/* === PERSISTENT INTRO OVERLAY === */}
             <div
               className={cn(
                 "absolute inset-0 z-[999] bg-black transition-opacity duration-500",
@@ -493,43 +355,11 @@ const VideoSection: React.FC = () => {
                   muted
                   className="w-full h-full object-cover"
                   onTimeUpdate={handleIntroTimeUpdate}
-                  onLoadedData={() => {
-                    // Watchdog: si la intro carga pero en 20s no termina, forzar finishIntro
-                    if (introWatchdogRef.current) clearTimeout(introWatchdogRef.current);
-                    introWatchdogRef.current = setTimeout(() => {
-                      console.warn('[VideoSection] Intro watchdog: forzando finishIntro()');
-                      finishIntro();
-                    }, 20000);
-                  }}
-                  onEnded={() => {
-                    if (isInitialLoadRef.current) {
-                      isInitialLoadRef.current = false; // El primer video ya pasó su fase crítica de intro
-                    }
-                    if (introWatchdogRef.current) clearTimeout(introWatchdogRef.current);
-                    finishIntro();
-                  }}
-                  onError={(e) => {
-                    console.error("Intro Error:", e);
-                    if (introWatchdogRef.current) clearTimeout(introWatchdogRef.current);
-                    finishIntro();
-                  }}
+                  onEnded={() => finishIntro()}
+                  onError={() => finishIntro()}
                 />
               )}
             </div>
-
-
-            {
-              (!isPlaying) && !isLocalIntro && !playBackgroundEarly && !isHtmlSlideActive && (
-                <Image
-                  src={thumbnailSrc}
-                  alt="Fondo"
-                  fill
-                  className="absolute inset-0 z-10 object-contain opacity-60"
-                  priority
-                  onError={() => setThumbnailSrc('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=')}
-                />
-              )
-            }
 
             <AnimatePresence>
               {isNewsIntroActive && (
@@ -547,7 +377,6 @@ const VideoSection: React.FC = () => {
                     playsInline
                     muted
                     className="w-full h-full object-contain"
-                    onPlay={() => { }}
                     onLoadedMetadata={handleIntroMetadata}
                   />
                 </motion.div>
@@ -557,48 +386,24 @@ const VideoSection: React.FC = () => {
                 <motion.div
                   key="cinematic-bar-top-solid"
                   className="absolute top-0 left-0 right-0 h-[14%] bg-black z-[45] pointer-events-auto"
-                  initial={{ y: 0 }}
                   animate={{ y: 0 }}
                   exit={{ y: "-100%" }}
                   transition={{ duration: 1.2, ease: "easeInOut" }}
-                />
-              )}
-              {areCinematicBarsActive && !isNewsContent && (
-                <motion.div
-                  key="cinematic-bar-top-gradient"
-                  className="absolute top-0 left-0 right-0 h-[35%] bg-gradient-to-b from-black via-black/90 to-transparent z-[45] pointer-events-auto"
-                  initial={{ opacity: 1 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 2.0, ease: "easeOut" }}
                 />
               )}
               {areCinematicBarsActive && (
                 <motion.div
                   key="cinematic-bar-bottom-solid"
                   className="absolute bottom-0 left-0 right-0 h-[14%] bg-black z-[45] pointer-events-auto"
-                  initial={{ y: 0 }}
                   animate={{ y: 0 }}
                   exit={{ y: "100%" }}
                   transition={{ duration: 1.2, ease: "easeInOut" }}
                 />
               )}
-              {areCinematicBarsActive && (
-                <motion.div
-                  key="cinematic-bar-bottom-gradient"
-                  className="absolute bottom-0 left-0 right-0 h-[35%] bg-gradient-to-t from-black via-black/90 to-transparent z-[45] pointer-events-auto"
-                  initial={{ opacity: 1 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 2.0, ease: "easeOut" }}
-                />
-              )}
             </AnimatePresence>
           </div>
 
-          {/* === ANTI-GRAVITY UI LAYER (STATIC & PRESERVED) === */}
           <AntiGravityLayer areCinematicBarsActive={areCinematicBarsActive}>
-
             {isNewsContent && (
               <>
                 <div className="absolute inset-x-0 top-0 top-safe-area z-[50] p-4 bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
@@ -608,7 +413,6 @@ const VideoSection: React.FC = () => {
                     </h2>
                   </div>
                 </div>
-
                 <div className="absolute inset-x-0 bottom-0 z-[50] pointer-events-auto h-8 bg-black/80 backdrop-blur-md border-t border-white/10 flex items-center">
                   <NewsTicker tickerTexts={[displaySubtitle || '']} />
                 </div>
@@ -624,8 +428,7 @@ const VideoSection: React.FC = () => {
                 </motion.div>
               )}
 
-
-              {!isPlaying && !isHtmlSlideActive && !isLocalIntro && !playBackgroundEarly && currentVideo && (
+              {!isPlaying && !isHtmlSlideActive && !isLocalIntro && currentVideo && (
                 <motion.div
                   key="play"
                   initial={{ opacity: 0 }}
@@ -638,158 +441,12 @@ const VideoSection: React.FC = () => {
                 </motion.div>
               )}
             </AnimatePresence>
-
           </AntiGravityLayer>
         </div>
       </div >
       {viewMode === 'diario' && <VideoTitleBar className="mt-0 rounded-t-none border-t-0" />}
     </div >
-=======
-  const handleIntroEnded = () => {
-    setIsIntroPlaying(false);
-    setAutoplayAllowed(true); // Una vez que termina la intro, asumimos que hubo interacción o ya es seguro
-  };
-
-  // Manejar errores de Autoplay en el video intro
-  useEffect(() => {
-    if (isIntroPlaying && introVideoRef.current) {
-        introVideoRef.current.play().catch(err => {
-            console.warn("Autoplay bloqueado en Intro, reintentando muted:", err);
-            if (introVideoRef.current) {
-                introVideoRef.current.muted = true;
-                introVideoRef.current.play();
-            }
-        });
-    }
-  }, [isIntroPlaying, introSrc]);
-
-  if (isLiveStreamActive && streamingUrl) {
-    return (
-      <div className="relative w-full h-full aspect-video bg-black">
-        <ReactPlayer
-          url={streamingUrl}
-          playing={true} 
-          volume={volume}
-          width="100%"
-          height="100%"
-          config={{
-            youtube: {
-              playerVars: {
-                controls: 0,
-                showinfo: 0,
-                rel: 0,
-                modestbranding: 1,
-                autoplay: 1,
-                mute: 1,
-                enablejsapi: 1,
-                playsinline: 1
-              }
-            }
-          }}
-        />
-        <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1.5 bg-red-600 text-white rounded-lg shadow-2xl animate-pulse">
-            <div className="w-2 h-2 rounded-full bg-white"></div>
-            <span className="text-xs font-black">EN VIVO</span>
-        </div>
-      </div>
-    );
-  }
-
-  // Flujo 1: Slide disparado desde NewsCard (NewsPlayerContext)
-  const newsSlideIsActive = (currentSlide?.type === 'html' || currentSlide?.type === 'image') && !!currentSlide?.url;
-  // Flujo 2: Slide disparado desde MediaPlayerContext (legado)  
-  const legacySlideIsActive = isSlidePlaying && !!currentSlideUrl;
-
-  const activeSlideUrl = newsSlideIsActive ? currentSlide!.url : (legacySlideIsActive ? currentSlideUrl : null);
-
-  // Sincronizar el volumen del audio maestro global
-  useEffect(() => {
-    const audioEl = document.getElementById('global-slide-audio') as HTMLAudioElement;
-    if (audioEl) {
-      audioEl.volume = volume;
-    }
-  }, [volume, activeSlideUrl]);
-
-  if (activeSlideUrl) {
-    const isImageSlide = currentSlide?.type === 'image' || (!activeSlideUrl.endsWith('.html') && !activeSlideUrl.includes('.mp4'));
-
-    return (
-      <div className="relative w-full h-full aspect-video bg-black overflow-hidden">
-        {isImageSlide ? (
-           <img 
-              src={activeSlideUrl} 
-              className="w-full h-full object-cover" 
-              alt="Slide Imagen" 
-           />
-        ) : (
-           <iframe
-             src={activeSlideUrl.includes('?') ? `${activeSlideUrl}&playAudio=true` : `${activeSlideUrl}?playAudio=true`}
-             className="w-full h-full border-none"
-             title="Noticia Saladillo Vivo"
-           />
-        )}
-      </div>
-    );
-  }
-
-  return (
-    <div className="relative w-full h-full aspect-video bg-black overflow-hidden group">
-      {/* CAPA SUPERIOR (Z-INDEX 20): VIDEO INTRO */}
-      {isIntroPlaying && (
-        <video
-          ref={introVideoRef}
-          src={introSrc}
-          autoPlay
-          muted={!autoplayAllowed} 
-          onTimeUpdate={handleIntroTimeUpdate}
-          onEnded={handleIntroEnded}
-          className="absolute inset-0 w-full h-full object-cover z-[20] pointer-events-none"
-        />
-      )}
-
-      {/* CAPA INFERIOR (Z-INDEX 10): YOUTUBE */}
-      {currentVideo && currentVideo.url && (
-        <div className="absolute inset-0 w-full h-full z-[10]">
-          <ReactPlayer
-            url={currentVideo.url}
-            playing={youtubePlaying}
-            volume={volume}
-            muted={isIntroPlaying} // Muted solo mientras la intro lo tapa
-            width="100%"
-            height="100%"
-            onEnded={playNext}
-            config={{
-              youtube: {
-                playerVars: {
-                  controls: 0,
-                  showinfo: 0,
-                  rel: 0,
-                  modestbranding: 1,
-                  iv_load_policy: 3,
-                  disablekb: 1,
-                  autoplay: 1,
-                  mute: 1,
-                  enablejsapi: 1,
-                  playsinline: 1
-                }
-              },
-              file: {
-                attributes: {
-                  controlsList: 'nodownload',
-                  style: { objectFit: 'cover', width: '100%', height: '100%' }
-                }
-              }
-            }}
-          />
-        </div>
-      )}
-
-      {/* Overlay para bloquear clicks derechos o interacciones directas con el iframe */}
-      <div className="absolute inset-0 w-full h-full z-[15] pointer-events-none" />
-    </div>
->>>>>>> f79c05b1de757249d336ae1a1955d3cb762736f4
   );
-
 };
 
 export default VideoSection;

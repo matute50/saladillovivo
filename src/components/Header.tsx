@@ -4,23 +4,19 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sun, Moon, Share2, Tv, Newspaper, Smartphone, X } from 'lucide-react';
+import { Sun, Moon, Share2, Tv, Newspaper, Smartphone, X, Bell, MonitorDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import SearchBar from '@/components/ui/SearchBar';
 import { usePlayerStore } from '@/store/usePlayerStore';
 import { useNewsStore } from '@/store/useNewsStore';
 import dynamic from 'next/dynamic';
+import { useNotifications } from '@/hooks/useNotifications';
+import { usePwaInstall } from '@/hooks/usePwaInstall';
 
-<<<<<<< HEAD
 const WeatherWidget = dynamic(() => import('@/components/ui/WeatherWidget'), {
   loading: () => <div className="w-[100px] h-8 bg-black/5 dark:bg-white/5 rounded-md animate-pulse"></div>,
   ssr: false
 });
-import { useNotifications } from '@/hooks/useNotifications';
-import { Bell } from 'lucide-react';
-
-import { usePwaInstall } from '@/hooks/usePwaInstall';
-import { MonitorDown } from 'lucide-react';
 
 const MotionMonitorDown = motion.create(MonitorDown);
 
