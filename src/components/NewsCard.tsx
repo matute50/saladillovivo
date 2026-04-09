@@ -22,9 +22,14 @@ interface NewsCardProps {
 const YOUTUBE_REGEX = new RegExp('(?:youtube\\.com\\/(?:[^/]+\\/.+\\/|(?:v|e(?:mbed)?)\\/|.*[?&]v=)|youtu\\.be\\/)([^"&?/\\s]{11})');
 
 const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = '', isFeatured = false }) => {
+<<<<<<< HEAD
   const { playSlide } = useNewsPlayerStore();
   const { playTemporaryVideo } = usePlayerStore();
   const { unmute, setVolume } = useVolumeStore();
+=======
+  const { playSlide } = useNewsPlayer();
+  const { playTemporaryVideo, volume } = useMediaPlayer();
+>>>>>>> f79c05b1de757249d336ae1a1955d3cb762736f4
 
   if (!newsItem) return null;
 
@@ -51,6 +56,13 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
   const finalAudioUrl = getProcessedImageUrl(newsItem.audio_url || newsItem.audioUrl);
   
   const createdAt = newsItem.created_at || newsItem.fecha;
+<<<<<<< HEAD
+=======
+  const rawAudioUrl = newsItem.audio_url || newsItem.audioUrl;
+  const audioUrl = rawAudioUrl && rawAudioUrl.includes('pub-5b294f92f42e4cbda687d0122e15bc72.r2.dev') 
+      ? rawAudioUrl.replace('pub-5b294f92f42e4cbda687d0122e15bc72.r2.dev', 'media.saladillovivo.com.ar') 
+      : rawAudioUrl;
+>>>>>>> f79c05b1de757249d336ae1a1955d3cb762736f4
   const urlSlide = newsItem.url_slide || newsItem.urlSlide;
   const duration = newsItem.animation_duration || 15;
 
@@ -65,6 +77,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
   const handlePlaySlide = (e: React.MouseEvent) => {
     e.preventDefault();
     
+<<<<<<< HEAD
     // Des-muteo proactivo para capturar la bendición del navegador (PC Autoplay fix)
     unmute();
     setVolume(1);
@@ -77,6 +90,29 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
                 duration: duration,
                 audioUrl: finalAudioUrl,
                 title: title
+=======
+    // Play synchronously in the click handler to bypass Safari/Chrome autoplay restrictions!
+    if (audioUrl) {
+      const audioEl = document.getElementById('global-slide-audio') as HTMLAudioElement;
+      if (audioEl) {
+         audioEl.volume = volume;
+         audioEl.src = audioUrl;
+         const playPromise = audioEl.play();
+         if (playPromise !== undefined) {
+            playPromise.catch(err => console.warn("AutoPlay still blocked:", err));
+         }
+      }
+    }
+
+    // Reproducir a través del Slide Player si es HTML o puramente Imagen+Audio
+    if (isHtmlSlide || (!hasSlide && hasAudioImage)) {
+        if (playSlide) {
+            playSlide({
+                url: isHtmlSlide ? urlSlide : finalImageUrl,
+                type: isHtmlSlide ? 'html' : 'image',
+                duration: duration || 15,
+                audioUrl: audioUrl || null
+>>>>>>> f79c05b1de757249d336ae1a1955d3cb762736f4
             });
         }
         return;
@@ -96,6 +132,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
             novedad: true,
             duration: duration
         };
+<<<<<<< HEAD
     } else if (hasAudioImage) {
         mediaData = {
             id: newsItem.id.toString(),
@@ -110,6 +147,8 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
             novedad: true,
             duration: duration
         };
+=======
+>>>>>>> f79c05b1de757249d336ae1a1955d3cb762736f4
     }
 
     if (mediaData) {
@@ -144,10 +183,23 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
           unoptimized={true} 
           onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
         />
+<<<<<<< HEAD
         {/* Viñeta Negra Intensificada sin blur sobre la imagen */}
         <div className="absolute inset-0 z-10 pointer-events-none bg-black/10 [mask-image:radial-gradient(circle,transparent_30%,black_100%)] shadow-[inset_0_0_100px_rgba(0,0,0,0.8)]" />
         <div className="absolute inset-x-0 top-0 h-[50%] bg-gradient-to-b from-black/95 via-black/50 to-transparent opacity-100 z-10 pointer-events-none" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent opacity-90 z-20" />
+=======
+        {/* Capa de Blur (Viñeta) - Solo en el área del texto para no empañar el contenido principal */}
+        <div 
+          className="absolute inset-x-0 bottom-0 h-2/3 backdrop-blur-md z-10 pointer-events-none" 
+          style={{ 
+            maskImage: 'linear-gradient(to top, black 15%, transparent 80%)',
+            WebkitMaskImage: 'linear-gradient(to top, black 15%, transparent 80%)'
+          }} 
+        />
+        {/* Viñeta oscura clásica para contraste del texto */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent opacity-100 z-10" />
+>>>>>>> f79c05b1de757249d336ae1a1955d3cb762736f4
 
         {createdAt && (
           <div className="absolute top-3 left-3 z-30">

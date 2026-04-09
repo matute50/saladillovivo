@@ -11,6 +11,7 @@ import { usePlayerStore } from '@/store/usePlayerStore';
 import { useNewsStore } from '@/store/useNewsStore';
 import dynamic from 'next/dynamic';
 
+<<<<<<< HEAD
 const WeatherWidget = dynamic(() => import('@/components/ui/WeatherWidget'), {
   loading: () => <div className="w-[100px] h-8 bg-black/5 dark:bg-white/5 rounded-md animate-pulse"></div>,
   ssr: false
@@ -101,13 +102,14 @@ NotificationButton.displayName = 'NotificationButton';
 const Header = () => {
   const { viewMode, setViewMode } = usePlayerStore();
   const setIsDarkThemeGlobal = useNewsStore(state => state.setIsDarkTheme);
+
   const [isDarkTheme, setIsDarkTheme] = useState(true);
   const [isQRModalOpen, setIsQRModalOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('theme');
-      const initialTheme = savedTheme === 'dark';
+      const initialTheme = savedTheme === 'dark' || !savedTheme; // Default dark
       setIsDarkTheme(initialTheme);
       if (initialTheme) {
         document.documentElement.classList.add('dark');

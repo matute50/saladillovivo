@@ -50,10 +50,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Matcher actualizado para excluir explícitamente _next/data y archivos estáticos.
-     * Esto permite que la versión de PC cargue sus noticias y configuraciones.
-     */
     '/((?!api|_next/static|_next/data|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.[\\w]+$).*)',
   ],
 }

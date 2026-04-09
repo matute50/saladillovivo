@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { supabase } from '@/lib/supabaseClient'; // Ajusta según tu configuración
+import { supabase } from '@/lib/supabaseClient';
 
 interface VideoData {
   id: string;
@@ -119,18 +119,32 @@ export const MediaPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     initPlayer();
   }, []);
 
-  const fetchRandomVideo = async (): Promise<VideoData | null> => {
-    const { data, error } = await supabase
+  const fetchRandomVideo = async (categoria?: string, excludeId?: string): Promise<VideoData | null> => {
+    let query = supabase
       .from('videos')
       .select('id, url, nombre, categoria');
 
-    if (error || !data) return null;
+    if (categoria) {
+      query = query.eq('categoria', categoria);
+    }
+    
+    if (excludeId) {
+      query = query.neq('id', excludeId);
+    }
+
+    const { data, error } = await query;
+
+    if (error || !data || data.length === 0) {
+      if (excludeId) return fetchRandomVideo(categoria);
+      if (categoria) return fetchRandomVideo();
+      return null;
+    }
     return data[Math.floor(Math.random() * data.length)];
   };
 
   const initPlayer = async () => {
     const first = await fetchRandomVideo();
-    const second = await fetchRandomVideo();
+    const second = await fetchRandomVideo(first?.categoria, first?.id);
     setCurrentVideo(first);
     setNextVideo(second);
     startIntro();
@@ -143,28 +157,23 @@ export const MediaPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setIsIntroPlaying(true);
   };
 
-  // Lógica de reproducción infinita
   const playNext = async () => {
-    setLastVolumeBeforeEnd(volume); // Guardar volumen actual
+    setLastVolumeBeforeEnd(volume);
 
-    // Si había un video interrumpido (e.g. por un video temporal), lo restauramos
     if (interruptedVideo) {
       setCurrentVideo(interruptedVideo.video);
       setInterruptedVideo(null);
-      // Opcionalmente: no disparamos Intro para restauraciones manuales?
-      // startIntro(); 
       return;
     }
 
-    const next = nextVideo || await fetchRandomVideo();
-    const prefetch = await fetchRandomVideo();
+    const next = nextVideo || await fetchRandomVideo(currentVideo?.categoria, currentVideo?.id);
+    const prefetch = await fetchRandomVideo(next?.categoria, next?.id);
 
     setCurrentVideo(next);
     setNextVideo(prefetch);
     startIntro();
   };
 
-  // Lógica de Slides (Noticias)
   const playSlide = (url: string, duration: number) => {
     if (currentVideo) {
       setInterruptedVideo({ video: currentVideo, time: 0 });
@@ -173,13 +182,6 @@ export const MediaPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setCurrentSlideUrl(url);
     setIsSlidePlaying(true);
 
-    // PRE-FETCHING: Cargar el siguiente ítem 3 segundos antes de que termine el slide
-    const prefetchTime = Math.max(0, (duration - 3) * 1000);
-    setTimeout(async () => {
-      // Normal flow prediction (if daily show is gone, we don't predict slides for now as they are videos)
-    }, prefetchTime);
-
-    // Al terminar el slide
     setTimeout(() => {
       setIsSlidePlaying(false);
       setCurrentSlideUrl(null);
@@ -190,33 +192,34 @@ export const MediaPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }, duration * 1000);
   };
 
-  // Selección manual desde Carrusel
-  const playUserSelected = (video: VideoData) => {
-    setVolume(0.2); // Política: 20% en selección manual
+  const playUserSelected = async (video: VideoData) => {
+    setVolume(0.2);
     setCurrentVideo(video);
     setIsPlaying(true);
     startIntro();
+
+    const prefetch = await fetchRandomVideo(video.categoria, video.id);
+    setNextVideo(prefetch);
   };
 
-  const playSpecificVideo = (video: any) => {
+  const playSpecificVideo = async (video: any) => {
     setCurrentVideo(video);
     setIsPlaying(true);
     startIntro();
+    const prefetch = await fetchRandomVideo(video.categoria, video.id);
+    setNextVideo(prefetch);
   };
 
   const playTemporaryVideo = (video: any) => {
     // Proactive unmuting for PC autoplay blessing
     setVolume(1);
     
-    // Guardamos el video actual para restaurarlo después
     if (currentVideo) {
       setInterruptedVideo({ video: currentVideo, time: 0 });
     }
 
     setCurrentVideo(video);
     setIsPlaying(true);
-    // Nota: Aquí no llamamos a startIntro() para que el cambio sea directo, 
-    // pero si se prefiere intro se puede agregar.
   };
 
   const togglePlayPause = () => setIsPlaying(prev => !prev);

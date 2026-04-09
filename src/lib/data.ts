@@ -122,9 +122,6 @@ export async function getArticlesForHome(limitTotal: number = 25) {
 
 /**
  * getVideosForHome — OPTIMIZADO v24.9
- * Usa la RPC `get_videos_prioritized` de Supabase para que el servidor aplique
- * toda la lógica de priorización (forzados → novedades → random).
- * Transfiere solo ~20 videos en lugar de 500, reduciendo el payload en ~96%.
  */
 export async function getVideosForHome(limitRecent: number = 4) {
   try {
@@ -147,7 +144,6 @@ export async function getVideosForHome(limitRecent: number = 4) {
       .filter((cat): cat is string => !!cat && cat !== 'NOVEDADES')))
       .sort();
 
-    // featuredVideo: tier1 (forzado) > tier2 (novedad) > primero de la lista
     const featuredVideo = allVideos[0] || null;
     const recentVideos = allVideos.slice(1, 1 + limitRecent);
 
@@ -159,15 +155,6 @@ export async function getVideosForHome(limitRecent: number = 4) {
   }
 }
 
-/**
- * getVideosByCategory — NUEVO v24.9
- * Fetch bajo demanda de videos de una categoría específica.
- * Usa la RPC `get_videos_by_category` en Supabase con ILIKE para coincidencias flexibles.
- * Solo se llama cuando el usuario navega a esa categoría en el carrusel.
- *
- * @param category - Término de categoría parcial (ej: 'cortos', 'clips', 'SEMBRANDO')
- * @param limit    - Máximo de videos a devolver (default: 20)
- */
 export async function getVideosByCategory(category: string, limit: number = 20): Promise<Video[]> {
   try {
     const { data, error } = await supabase
@@ -217,13 +204,11 @@ export async function getRandomVideo(): Promise<Video | null> {
 
 export async function getNewRandomVideo(currentId?: string, currentCategory?: string): Promise<Video | null> {
   try {
-    // 1. Base Query: Excluir estrictamente HCD (v25.2)
     const query = supabase
       .from('videos')
       .select('id, nombre, url, createdAt, categoria, imagen, novedad, forzar_video, volumen_extra')
       .not('categoria', 'ilike', '%HCD%');
 
-    // 2. Intentar buscar videos de OTRA categoría (v25.2)
     let candidatesQuery = query;
     if (currentId) {
       candidatesQuery = candidatesQuery.neq('id', currentId);
@@ -232,14 +217,13 @@ export async function getNewRandomVideo(currentId?: string, currentCategory?: st
     if (currentCategory) {
       const { data: switchCategoryData, error: switchError } = await candidatesQuery
         .neq('categoria', currentCategory)
-        .limit(50); // Pool amplio para aleatoriedad
+        .limit(50); 
 
       if (!switchError && switchCategoryData && switchCategoryData.length > 0) {
         return switchCategoryData[Math.floor(Math.random() * switchCategoryData.length)];
       }
     }
 
-    // 3. Fallback: Cualquier video (excepto actual e HCD) si no hay otras categorías disponibles
     const { data: fallbackData, error: fallbackError } = await query
       .limit(20);
 
@@ -377,144 +361,47 @@ export async function getCalendarEvents(): Promise<CalendarEvent[]> {
   return [];
 }
 
-export async function getArticles() {
-  const { allNews } = await getArticlesForHome(100);
-
-  const destacada = allNews.find(a => a.featureStatus === 'featured') || null;
-  const noticias2 = allNews.filter(a => a.featureStatus === 'secondary');
-  const noticias3 = allNews.filter(a => a.featureStatus === 'tertiary');
-  const otrasNoticias = allNews.filter(a => !a.featureStatus);
-
-  return {
-    destacada,
-    noticias2,
-    noticias3,
-    otrasNoticias,
-    allNews,
-  };
-}
-
-export async function getArticlesForRss(limit: number = 50): Promise<Article[]> {
-  const { supabaseUrl, supabaseAnonKey } = checkSupabaseCredentials();
-  const now = new Date();
-  const fortyEightHoursAgo = new Date(now.getTime() - (48 * 60 * 60 * 1000)).toISOString();
-
-  // CORRECCIÓN: Agregado 'animation_duration' también aquí por consistencia
-  const apiUrl = `${supabaseUrl}/rest/v1/articles?select=id,title,text,image_url,featureStatus,updatedAt,created_at,slug,description,meta_title,meta_description,meta_keywords,published_at,audio_url,url_slide,animation_duration&or=(published_at.is.null,published_at.lte.${now.toISOString()})&created_at=gte.${fortyEightHoursAgo}&order=created_at.desc&limit=${limit}`;
-
-  try {
-    const response = await fetch(apiUrl, {
-      headers: {
-        'apikey': supabaseAnonKey,
-        'Authorization': `Bearer ${supabaseAnonKey}`
-      },
-      next: { revalidate: 60 }
-    });
-
-    if (!response.ok) {
-      console.error('Supabase fetch failed for RSS articles. Status:', response.status, 'Text:', await response.text());
-      throw new Error(`Supabase fetch failed: ${response.statusText}`);
-    }
-
-    const articles: SupabaseArticle[] = await response.json();
-
-    return articles.map((item: SupabaseArticle): Article => ({
-      id: item.id,
-      titulo: item.title,
-      slug: item.slug || item.id.toString(),
-      description: item.description || (item.text ? item.text.substring(0, 160) : 'Descripción no disponible.'),
-      resumen: item.text ? item.text.substring(0, 150) + (item.text.length > 150 ? '...' : '') : 'Resumen no disponible.',
-      contenido: item.text || 'Contenido no disponible.',
-      fecha: item.updatedAt ? new Date(item.updatedAt).toISOString() : (item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString()),
-      created_at: item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString(),
-      updatedAt: item.updatedAt ? new Date(item.updatedAt).toISOString() : (item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString()),
-      autor: 'Equipo Editorial',
-      categoria: item.featureStatus,
-      imageUrl: item.image_url || 'https://saladillovivo.vercel.app/default-og-image.png',
-      featureStatus: item.featureStatus,
-      meta_title: item.meta_title,
-      meta_description: item.meta_description,
-      meta_keywords: item.meta_keywords,
-      audio_url: item.audio_url,
-      url_slide: item.url_slide,
-      animation_duration: (item as any).animation_duration,
-    }));
-
-  } catch (error) {
-    console.error('Error in getArticlesForRss:', error);
-    return [];
-  }
-}
-
-export async function getVideos(): Promise<Video[]> {
-  const { supabaseUrl, supabaseAnonKey } = checkSupabaseCredentials();
-  const apiUrl = `${supabaseUrl}/rest/v1/videos?select=id,nombre,url,createdAt,categoria,imagen,novedad&order=createdAt.desc`;
-
-  try {
-    const response = await fetch(apiUrl, {
-      headers: {
-        'apikey': supabaseAnonKey,
-        'Authorization': `Bearer ${supabaseAnonKey}`,
-      },
-      next: { revalidate: 60 }
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      return (data || []).map((item: any) => ({
-        ...item,
-        createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
-      }));
-    }
-  } catch (error) {
-    console.error('Error fetching videos:', error);
-  }
-  return [];
-}
-
-function filterSearchTerms(query: string): string {
+function filterSearchTerms(query: string): string[] {
   const stopWords = new Set([
     'el', 'la', 'los', 'las', 'un', 'una', 'y', 'o', 'pero', 'a', 'en', 'de', 'del', 'al',
     'por', 'para', 'con', 'buscar', 'encontrar', 'explorar', 'ver', 'video', 'videos'
   ]);
 
-  const cleanedQuery = query
+  return query
     .toLowerCase()
     .split(/\s+/)
-    .filter(word => word.length > 1 && !stopWords.has(word))
-    .join(' & ');
-
-  return cleanedQuery;
+    .filter(word => word.length > 2 && !stopWords.has(word));
 }
 
 
 export async function fetchVideosBySearch(searchTerm: string): Promise<Video[]> {
-  const processedTerm = filterSearchTerms(searchTerm);
+  const words = filterSearchTerms(searchTerm);
 
-  if (!processedTerm) {
+  if (words.length === 0) {
     return [];
   }
 
-  const { supabaseUrl, supabaseAnonKey } = checkSupabaseCredentials();
-  const apiUrl = `${supabaseUrl}/rest/v1/videos?select=id,nombre,url,createdAt,categoria,imagen,novedad&nombre=ilike.*${encodeURIComponent(searchTerm)}*`;
+  let query = supabase
+    .from('videos')
+    .select('id, nombre, url, createdAt, categoria, imagen, novedad')
+    .limit(30);
 
-  try {
-    const response = await fetch(apiUrl, {
-      headers: {
-        'apikey': supabaseAnonKey,
-        'Authorization': `Bearer ${supabaseAnonKey}`,
-      },
-      next: { revalidate: 60 }
-    });
+  words.forEach(word => {
+    query = query.ilike('nombre', `%${word}%`);
+  });
 
-    if (response.ok) {
-      return await response.json();
-    }
-  } catch (error) {
+  const { data, error } = await query;
+
+  if (error) {
     console.error('Error searching videos:', error);
+    return [];
   }
 
-  return [];
+  return (data || []).map(v => ({
+    ...v,
+    id: String(v.id),
+    createdAt: v.createdAt ? new Date(v.createdAt).toISOString() : new Date().toISOString(),
+  }));
 }
 
 export async function getVideoByUrl(url: string): Promise<Video | null> {

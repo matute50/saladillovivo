@@ -40,8 +40,6 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-
-
 export default async function Page(props: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const searchParams = await props.searchParams;
   const requestedVideoId = typeof searchParams.v === 'string' ? searchParams.v : undefined;
@@ -103,4 +101,4 @@ export default async function Page(props: { searchParams: Promise<{ [key: string
       <ClientPageWrapper initialData={pageData} />
     </main>
   );
-}
+}
