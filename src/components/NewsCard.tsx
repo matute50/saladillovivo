@@ -46,7 +46,10 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
   const finalImageUrl = getProcessedImageUrl(newsItem.image_url || newsItem.imageUrl);
   
   const createdAt = newsItem.created_at || newsItem.fecha;
-  const audioUrl = newsItem.audio_url || newsItem.audioUrl;
+  const rawAudioUrl = newsItem.audio_url || newsItem.audioUrl;
+  const audioUrl = rawAudioUrl && rawAudioUrl.includes('pub-5b294f92f42e4cbda687d0122e15bc72.r2.dev') 
+      ? rawAudioUrl.replace('pub-5b294f92f42e4cbda687d0122e15bc72.r2.dev', 'media.saladillovivo.com.ar') 
+      : rawAudioUrl;
   const urlSlide = newsItem.url_slide || newsItem.urlSlide;
   const duration = newsItem.animation_duration || 15;
 

@@ -100,22 +100,12 @@ const VideoSection: React.FC = () => {
 
   const activeSlideUrl = newsSlideIsActive ? currentSlide!.url : (legacySlideIsActive ? currentSlideUrl : null);
 
-  // ─────────────────────────────────────────────────────────────
-  // REPRODUCCIÓN FORZADA DE AUDIO EN SLIDES (EVITA BLOQUEOS)
-  // ─────────────────────────────────────────────────────────────
+  // Eliminar el useEffect imperativo y confiar en autoPlay
   useEffect(() => {
-    if (activeSlideUrl && currentSlide?.audioUrl && slideAudioRef.current) {
-      // Forzar carga y reproducción al cambiar la fuente del slide
-      slideAudioRef.current.src = currentSlide.audioUrl;
-      slideAudioRef.current.load();
-      const playPromise = slideAudioRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          console.warn("Navegador bloqueó el autoplay del slide (política de interacción):", error);
-        });
-      }
+    if (slideAudioRef.current) {
+      slideAudioRef.current.volume = volume;
     }
-  }, [activeSlideUrl, currentSlide?.audioUrl]);
+  }, [volume, activeSlideUrl]);
 
   if (activeSlideUrl) {
     return (
@@ -126,11 +116,15 @@ const VideoSection: React.FC = () => {
           title="Noticia Saladillo Vivo"
         />
         {/* Audio de locución del Estudio de Locución (siempre en el DOM pero oculto) */}
-        <audio
-          ref={slideAudioRef}
-          onEnded={() => stopSlide()}
-          className="hidden"
-        />
+        {currentSlide?.audioUrl && (
+          <audio
+            ref={slideAudioRef}
+            src={currentSlide.audioUrl}
+            onEnded={() => stopSlide()}
+            autoPlay
+            className="hidden"
+          />
+        )}
       </div>
     );
   }
