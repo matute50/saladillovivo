@@ -77,13 +77,14 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
       }
     }
 
-    if (isHtmlSlide) {
+    // Reproducir a través del Slide Player si es HTML o puramente Imagen+Audio
+    if (isHtmlSlide || (!hasSlide && hasAudioImage)) {
         if (playSlide) {
             playSlide({
-                url: urlSlide,
-                type: 'html',
-                duration: duration,
-                audioUrl: audioUrl || null // <-- Audio de locución del estudio
+                url: isHtmlSlide ? urlSlide : finalImageUrl,
+                type: isHtmlSlide ? 'html' : 'image',
+                duration: duration || 15,
+                audioUrl: audioUrl || null
             });
         }
         return;
@@ -96,20 +97,6 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
             id: newsItem.id.toString(),
             type: 'video', 
             url: urlSlide,
-            nombre: title,
-            createdAt: createdAt,
-            categoria: 'Noticias',
-            imagen: finalImageUrl,
-            novedad: true,
-            duration: duration
-        };
-    } else if (hasAudioImage) {
-        mediaData = {
-            id: newsItem.id.toString(),
-            type: 'image',
-            url: "", 
-            imageSourceUrl: finalImageUrl,
-            audioSourceUrl: audioUrl,
             nombre: title,
             createdAt: createdAt,
             categoria: 'Noticias',

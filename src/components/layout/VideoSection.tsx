@@ -94,7 +94,7 @@ const VideoSection: React.FC = () => {
   }
 
   // Flujo 1: Slide disparado desde NewsCard (NewsPlayerContext)
-  const newsSlideIsActive = currentSlide?.type === 'html' && !!currentSlide?.url;
+  const newsSlideIsActive = (currentSlide?.type === 'html' || currentSlide?.type === 'image') && !!currentSlide?.url;
   // Flujo 2: Slide disparado desde MediaPlayerContext (legado)  
   const legacySlideIsActive = isSlidePlaying && !!currentSlideUrl;
 
@@ -108,14 +108,24 @@ const VideoSection: React.FC = () => {
     }
   }, [volume, activeSlideUrl]);
 
-  if (activeSlideUrl) {
+  if (activeSlideUrl || currentSlide?.type === 'image') {
+    const isImageSlide = currentSlide?.type === 'image';
+
     return (
-      <div className="relative w-full h-full aspect-video">
-        <iframe
-          src={activeSlideUrl}
-          className="w-full h-full border-none"
-          title="Noticia Saladillo Vivo"
-        />
+      <div className="relative w-full h-full aspect-video bg-black">
+        {isImageSlide ? (
+           <img 
+              src={activeSlideUrl || currentSlide!.url} 
+              className="w-full h-full object-contain" 
+              alt="Slide Imagen" 
+           />
+        ) : (
+           <iframe
+             src={activeSlideUrl!}
+             className="w-full h-full border-none"
+             title="Noticia Saladillo Vivo"
+           />
+        )}
       </div>
     );
   }
@@ -139,7 +149,7 @@ const VideoSection: React.FC = () => {
       )}
 
       {/* CAPA INFERIOR (Z-INDEX 10): YOUTUBE */}
-      {currentVideo && (
+      {currentVideo && currentVideo.url && (
         <div className="absolute inset-0 w-full h-full z-[10]">
           <ReactPlayer
             url={currentVideo.url}
