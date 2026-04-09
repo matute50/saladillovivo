@@ -8,7 +8,8 @@ import { SlideMedia } from '@/lib/types';
 import { format } from 'date-fns';
 import { useNewsPlayerStore } from '@/store/useNewsPlayerStore';
 import { cn } from '@/lib/utils';
-import { useMediaPlayer } from '@/context/MediaPlayerContext';
+import { usePlayerStore } from '@/store/usePlayerStore';
+import { useVolumeStore } from '@/store/useVolumeStore';
 
 // 1. CORRECCIÓN CLAVE: Aseguramos que la interfaz acepte 'onCardClick'
 interface NewsCardProps {
@@ -22,7 +23,8 @@ const YOUTUBE_REGEX = new RegExp('(?:youtube\\.com\\/(?:[^/]+\\/.+\\/|(?:v|e(?:m
 
 const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = '', isFeatured = false }) => {
   const { playSlide } = useNewsPlayerStore();
-  const { playTemporaryVideo } = useMediaPlayer();
+  const { playTemporaryVideo } = usePlayerStore();
+  const { unmute, setVolume } = useVolumeStore();
 
   if (!newsItem) return null;
 
@@ -46,15 +48,15 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
   };
 
   const finalImageUrl = getProcessedImageUrl(newsItem.image_url || newsItem.imageUrl);
+  const finalAudioUrl = getProcessedImageUrl(newsItem.audio_url || newsItem.audioUrl);
   
   const createdAt = newsItem.created_at || newsItem.fecha;
-  const audioUrl = newsItem.audio_url || newsItem.audioUrl;
   const urlSlide = newsItem.url_slide || newsItem.urlSlide;
   const duration = newsItem.animation_duration || 15;
 
   const hasSlide = !!urlSlide;
   const isHtmlSlide = hasSlide && urlSlide.endsWith('.html');
-  const hasAudioImage = !!finalImageUrl && !!audioUrl;
+  const hasAudioImage = !!finalImageUrl && !!finalAudioUrl;
   const isPlayable = hasSlide || hasAudioImage;
 
 
@@ -63,12 +65,18 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
   const handlePlaySlide = (e: React.MouseEvent) => {
     e.preventDefault();
     
+    // Des-muteo proactivo para capturar la bendición del navegador (PC Autoplay fix)
+    unmute();
+    setVolume(1);
+
     if (isHtmlSlide) {
         if (playSlide) {
             playSlide({
                 url: urlSlide,
                 type: 'html',
-                duration: duration
+                duration: duration,
+                audioUrl: finalAudioUrl,
+                title: title
             });
         }
         return;
@@ -94,7 +102,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
             type: 'image',
             url: "", 
             imageSourceUrl: finalImageUrl,
-            audioSourceUrl: audioUrl,
+            audioSourceUrl: finalAudioUrl,
             nombre: title,
             createdAt: createdAt,
             categoria: 'Noticias',
@@ -105,7 +113,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
     }
 
     if (mediaData) {
-        playTemporaryVideo(mediaData);
+        playTemporaryVideo(mediaData, 1, setVolume);
     }
   };
 

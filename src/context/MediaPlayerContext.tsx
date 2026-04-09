@@ -205,6 +205,9 @@ export const MediaPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   const playTemporaryVideo = (video: any) => {
+    // Proactive unmuting for PC autoplay blessing
+    setVolume(1);
+    
     // Guardamos el video actual para restaurarlo después
     if (currentVideo) {
       setInterruptedVideo({ video: currentVideo, time: 0 });

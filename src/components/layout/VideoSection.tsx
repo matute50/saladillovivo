@@ -52,11 +52,13 @@ const VideoSection: React.FC = () => {
   const isNewsContent = !!(currentVideo?.categoria === 'Noticias' && !isLocalIntro);
 
   useEffect(() => {
-    // Solo forzamos volumen si YA está reproduciendo y NO es el inicio (para cumplir con Autoplay Muted)
-    if ((isNewsContent || isHtmlSlideActive) && !isInitialLoadRef.current) {
+    // Forzamos volumen al detectar contenido de audio crítico (Noticias o Slides)
+    // Eliminamos la restricción de isInitialLoad ya que el clic del usuario es interacción suficiente
+    if (isNewsContent || isHtmlSlideActive) {
       setVolume(1);
+      unmute(); 
     }
-  }, [isNewsContent, isHtmlSlideActive, setVolume]);
+  }, [isNewsContent, isHtmlSlideActive, setVolume, unmute]);
 
   // Limpiamos el flag de carga inicial solo después de que el primer video haya tenido tiempo de empezar
   // o cuando cambie el video por segunda vez.
@@ -115,6 +117,39 @@ const VideoSection: React.FC = () => {
     }
     return () => clearTimeout(timer);
   }, [isHtmlSlideActive, currentSlide, stopSlide, resumeAfterSlide, pauseForSlide]);
+
+  // Sincronización de Audio para Slides (v25.2)
+  useEffect(() => {
+    if (isHtmlSlideActive && currentSlide?.audioUrl && audioRef.current) {
+      const audio = audioRef.current;
+      
+      // Forzado inmediato de estados para bypass de autoplay
+      audio.muted = false;
+      audio.volume = volume > 0 ? volume : 1; 
+      
+      const attemptPlay = () => {
+        audio.play().catch(err => {
+          console.warn("[VideoSection] Audio play initial attempt failed, retrying...", err);
+          // Re-intento en el siguiente frame si el DOM no estaba listo
+          requestAnimationFrame(() => {
+            audio.play().catch(() => {});
+          });
+        });
+      };
+
+      // Si el src ya cambió, disparamos. Si no, esperamos a que cargue.
+      if (audio.readyState >= 2) {
+        attemptPlay();
+      } else {
+        audio.oncanplay = () => {
+          attemptPlay();
+          audio.oncanplay = null;
+        };
+      }
+    } else if (!isHtmlSlideActive && audioRef.current) {
+      audioRef.current.pause();
+    }
+  }, [isHtmlSlideActive, currentSlide?.audioUrl, volume]);
 
   // FIX AUTOPLAY: Si isPreRollOverlayActive está activo pero no hay video de intro asignado,
   // el reproductor quedaría bloqueado indefinidamente (isContentPlaying nunca se activaría).
@@ -319,24 +354,23 @@ const VideoSection: React.FC = () => {
             {isHtmlSlideActive && currentSlide && (
               <div className="absolute inset-0 z-40 bg-black">
                 <iframe
-                  src={`${currentSlide.url}${currentSlide.url.includes('?') ? '&' : '?'}mute=1&autoplay=1&enablejsapi=1`}
+                  src={`${currentSlide.url}${currentSlide.url.includes('?') ? '&' : '?'}autoplay=1&enablejsapi=1`}
                   className="w-full h-full border-none pointer-events-none"
                   title="Slide"
                   allow="autoplay"
                 />
-                {currentSlide.audioUrl && (
-                  <audio
-                    ref={audioRef}
-                    src={currentSlide.audioUrl}
-                    autoPlay
-                    className="hidden"
-                    muted={isMuted}
-                    onPlay={() => { }}
-                    onError={(e) => console.error("Error reproduciendo audio de noticia:", e, currentSlide.audioUrl)}
-                  />
-                )}
               </div>
             )}
+
+            {/* Audio Persistente para Slides (Fuera del condicional para mantener el estado del contexto de audio en PC) */}
+            <audio
+              ref={audioRef}
+              src={isHtmlSlideActive ? currentSlide?.audioUrl || undefined : undefined}
+              className="hidden"
+              autoPlay
+              crossOrigin="anonymous"
+              onError={(e) => isHtmlSlideActive && console.error("Error reproduciendo audio de noticia:", e, currentSlide?.audioUrl)}
+            />
 
             {/* === SINGLE POWER PLAYER (v23.9) === */}
             <div className="absolute inset-0 bg-black">
