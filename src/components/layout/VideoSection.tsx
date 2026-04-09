@@ -116,7 +116,7 @@ const VideoSection: React.FC = () => {
         {isImageSlide ? (
            <img 
               src={activeSlideUrl || currentSlide!.url} 
-              className="w-full h-full object-contain" 
+              className="w-full h-full object-cover" 
               alt="Slide Imagen" 
            />
         ) : (
