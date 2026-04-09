@@ -55,6 +55,7 @@ export const NewsPlayerProvider = ({ children }: { children: ReactNode }) => {
   return (
     <NewsPlayerContext.Provider value={{ playSlide, stopSlide, currentSlide, isPlaying }}>
       {children}
+      <audio id="global-slide-audio" onEnded={stopSlide} className="hidden" />
     </NewsPlayerContext.Provider>
   );
 };

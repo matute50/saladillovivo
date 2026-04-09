@@ -100,10 +100,11 @@ const VideoSection: React.FC = () => {
 
   const activeSlideUrl = newsSlideIsActive ? currentSlide!.url : (legacySlideIsActive ? currentSlideUrl : null);
 
-  // Eliminar el useEffect imperativo y confiar en autoPlay
+  // Sincronizar el volumen del audio maestro global
   useEffect(() => {
-    if (slideAudioRef.current) {
-      slideAudioRef.current.volume = volume;
+    const audioEl = document.getElementById('global-slide-audio') as HTMLAudioElement;
+    if (audioEl) {
+      audioEl.volume = volume;
     }
   }, [volume, activeSlideUrl]);
 
@@ -115,16 +116,6 @@ const VideoSection: React.FC = () => {
           className="w-full h-full border-none"
           title="Noticia Saladillo Vivo"
         />
-        {/* Audio de locución del Estudio de Locución (siempre en el DOM pero oculto) */}
-        {currentSlide?.audioUrl && (
-          <audio
-            ref={slideAudioRef}
-            src={currentSlide.audioUrl}
-            onEnded={() => stopSlide()}
-            autoPlay
-            className="hidden"
-          />
-        )}
       </div>
     );
   }

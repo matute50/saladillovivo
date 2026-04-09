@@ -22,7 +22,7 @@ const YOUTUBE_REGEX = new RegExp('(?:youtube\\.com\\/(?:[^/]+\\/.+\\/|(?:v|e(?:m
 
 const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = '', isFeatured = false }) => {
   const { playSlide } = useNewsPlayer();
-  const { playTemporaryVideo } = useMediaPlayer();
+  const { playTemporaryVideo, volume } = useMediaPlayer();
 
   if (!newsItem) return null;
 
@@ -64,6 +64,19 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
   const handlePlaySlide = (e: React.MouseEvent) => {
     e.preventDefault();
     
+    // Play synchronously in the click handler to bypass Safari/Chrome autoplay restrictions!
+    if (audioUrl) {
+      const audioEl = document.getElementById('global-slide-audio') as HTMLAudioElement;
+      if (audioEl) {
+         audioEl.volume = volume;
+         audioEl.src = audioUrl;
+         const playPromise = audioEl.play();
+         if (playPromise !== undefined) {
+            playPromise.catch(err => console.warn("AutoPlay still blocked:", err));
+         }
+      }
+    }
+
     if (isHtmlSlide) {
         if (playSlide) {
             playSlide({
