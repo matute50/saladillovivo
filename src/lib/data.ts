@@ -407,32 +407,37 @@ export async function getVideos() {
   }));
 }
 
-function filterSearchTerms(query: string): string {
+function filterSearchTerms(query: string): string[] {
   const stopWords = new Set([
     'el', 'la', 'los', 'las', 'un', 'una', 'y', 'o', 'pero', 'a', 'en', 'de', 'del', 'al',
     'por', 'para', 'con', 'buscar', 'encontrar', 'explorar', 'ver', 'video', 'videos'
   ]);
 
-  const cleanedQuery = query
+  return query
     .toLowerCase()
     .split(/\s+/)
-    .filter(word => word.length > 1 && !stopWords.has(word))
-    .join(' & '); 
-
-  return cleanedQuery;
+    .filter(word => word.length > 2 && !stopWords.has(word));
 }
 
 export async function fetchVideosBySearch(searchTerm: string): Promise<Video[]> {
-  const processedTerm = filterSearchTerms(searchTerm);
+  const words = filterSearchTerms(searchTerm);
 
-  if (!processedTerm) {
+  if (words.length === 0) {
     return [];
   }
 
-  const { data, error } = await supabase
+  // Mejorar rendimiento evitando textSearch sin índice (que levanta la DB). 
+  // Usamos un simple patrón ilike encadenado.
+  let query = supabase
     .from('videos')
     .select('id, nombre, url, createdAt, categoria, imagen, novedad')
-    .textSearch('nombre', processedTerm, { type: 'websearch' });
+    .limit(30);
+
+  words.forEach(word => {
+    query = query.ilike('nombre', `%${word}%`);
+  });
+
+  const { data, error } = await query;
 
   if (error) {
     console.error('Error searching videos:', error);

@@ -100,6 +100,23 @@ const VideoSection: React.FC = () => {
 
   const activeSlideUrl = newsSlideIsActive ? currentSlide!.url : (legacySlideIsActive ? currentSlideUrl : null);
 
+  // ─────────────────────────────────────────────────────────────
+  // REPRODUCCIÓN FORZADA DE AUDIO EN SLIDES (EVITA BLOQUEOS)
+  // ─────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (activeSlideUrl && currentSlide?.audioUrl && slideAudioRef.current) {
+      // Forzar carga y reproducción al cambiar la fuente del slide
+      slideAudioRef.current.src = currentSlide.audioUrl;
+      slideAudioRef.current.load();
+      const playPromise = slideAudioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.warn("Navegador bloqueó el autoplay del slide (política de interacción):", error);
+        });
+      }
+    }
+  }, [activeSlideUrl, currentSlide?.audioUrl]);
+
   if (activeSlideUrl) {
     return (
       <div className="relative w-full h-full aspect-video">
@@ -108,17 +125,12 @@ const VideoSection: React.FC = () => {
           className="w-full h-full border-none"
           title="Noticia Saladillo Vivo"
         />
-        {/* Audio de locución del Estudio de Locución (solo si existe) */}
-        {currentSlide?.audioUrl && (
-          <audio
-            ref={slideAudioRef}
-            key={currentSlide.audioUrl}
-            src={currentSlide.audioUrl}
-            autoPlay
-            onEnded={() => stopSlide()}
-            className="hidden"
-          />
-        )}
+        {/* Audio de locución del Estudio de Locución (siempre en el DOM pero oculto) */}
+        <audio
+          ref={slideAudioRef}
+          onEnded={() => stopSlide()}
+          className="hidden"
+        />
       </div>
     );
   }
