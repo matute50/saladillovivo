@@ -1,0 +1,9 @@
+{
+  "installCommand": "npm install --legacy-peer-deps",
+  "crons": [
+    {
+      "path": "/api/revisar-noticias",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}
