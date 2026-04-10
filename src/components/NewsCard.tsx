@@ -8,7 +8,8 @@ import { SlideMedia } from '@/lib/types';
 import { format } from 'date-fns';
 import { useNewsPlayerStore } from '@/store/useNewsPlayerStore';
 import { cn } from '@/lib/utils';
-import { useMediaPlayer } from '@/context/MediaPlayerContext';
+import { usePlayerStore } from '@/store/usePlayerStore';
+import { useVolumeStore } from '@/store/useVolumeStore';
 
 // 1. CORRECCIÓN CLAVE: Aseguramos que la interfaz acepte 'onCardClick'
 interface NewsCardProps {
@@ -22,7 +23,8 @@ const YOUTUBE_REGEX = new RegExp('(?:youtube\\.com\\/(?:[^/]+\\/.+\\/|(?:v|e(?:m
 
 const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = '', isFeatured = false }) => {
   const { playSlide } = useNewsPlayerStore();
-  const { playTemporaryVideo } = useMediaPlayer();
+  const { playTemporaryVideo } = usePlayerStore();
+  const { setVolume } = useVolumeStore();
 
   if (!newsItem) return null;
 
@@ -65,10 +67,34 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
     
     if (isHtmlSlide) {
         if (playSlide) {
+            // EXTRACCIÓN AGRESIVA (v27.3)
+            const rawAudio = newsItem.audio_url || newsItem.audioUrl || newsItem.audioSourceUrl || newsItem.media_url || (newsItem.audio ? newsItem.audio.url : undefined);
+            
+            console.group('[NewsCard-Extraction]');
+            console.log('Item Original:', newsItem);
+            console.log('Claves encontradas:', Object.keys(newsItem));
+            console.log('Valor crudo audio:', rawAudio);
+            
+            let finalAudioUrl = null;
+            if (rawAudio) {
+                const clean = rawAudio.trim();
+                if (clean.startsWith('http')) {
+                    finalAudioUrl = clean;
+                } else {
+                    const mediaUrl = process.env.NEXT_PUBLIC_MEDIA_URL || '';
+                    finalAudioUrl = `${mediaUrl}${clean.startsWith('/') ? '' : '/'}${clean}`;
+                }
+            }
+
+            console.log('URL Final Calculada:', finalAudioUrl);
+            console.groupEnd();
+
             playSlide({
                 url: urlSlide,
                 type: 'html',
-                duration: duration
+                duration: duration,
+                audioUrl: finalAudioUrl, // Ya es null si no hay nada
+                title: title
             });
         }
         return;
@@ -105,7 +131,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItem, index = 0, className = ''
     }
 
     if (mediaData) {
-        playTemporaryVideo(mediaData);
+        playTemporaryVideo(mediaData, undefined, setVolume);
     }
   };
 

@@ -132,6 +132,25 @@ const Header = () => {
     localStorage.setItem('theme', newThemeState ? 'dark' : 'light');
   };
 
+  const handleToggleTvMode = () => {
+    const nextMode = viewMode === 'diario' ? 'tv' : 'diario';
+    setViewMode(nextMode);
+    
+    if (nextMode === 'tv') {
+      // Intentar pantalla completa automáticamente al entrar en modo TV
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          console.warn("Pantalla completa bloqueada (requiere interacción directa):", err);
+        });
+      }
+    } else {
+      // Salir de pantalla completa al volver a modo diario si estaba activa
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+  };
+
   const handleShare = () => {
     if (typeof window !== 'undefined') {
       const whatsappUrl = 'https://wa.me/?text=Descubr%C3%AD%20Saladillo%20Vivo.com,%20mucho%20m%C3%A1s%20que%20noticias';
@@ -191,7 +210,7 @@ const Header = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setViewMode(viewMode === 'diario' ? 'tv' : 'diario')}
+            onClick={handleToggleTvMode}
             aria-label="Cambiar modo"
             className="text-black dark:text-white hover:bg-black/10 dark:hover:bg-white/10"
           >

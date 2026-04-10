@@ -7,13 +7,15 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-import { useMediaPlayer } from '@/context/MediaPlayerContext';
+import { usePlayerStore } from '@/store/usePlayerStore';
+import { useVolumeStore } from '@/store/useVolumeStore';
 import { useThemeButtonColors } from '@/hooks/useThemeButtonColors';
 import { useToast } from '@/components/ui/use-toast';
 import { Video, ExclusiveVideoCarouselProps } from '@/lib/types';
 
 const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos, isLoading, carouselId, isLive = false, onVideoClick }) => {
-  const { playSpecificVideo, playLiveStream, streamStatus } = useMediaPlayer();
+  const { playSpecificVideo, playLiveStream, streamStatus } = usePlayerStore();
+  const { setVolume } = useVolumeStore();
   const { toast } = useToast();
   const swiperRef = useRef(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
@@ -73,7 +75,7 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
         description: "Este es un evento futuro. ¡Vuelve pronto para verlo en vivo!",
       });
     } else {
-      playSpecificVideo(video);
+      playSpecificVideo(video as any, undefined, setVolume);
     }
   };
 
@@ -95,7 +97,7 @@ const ExclusiveVideoCarousel: React.FC<ExclusiveVideoCarouselProps> = ({ videos,
         centeredSlides={true}
         initialSlide={videos.length > 1 ? 1 : 0}
         spaceBetween={10}
-        loop={videos.length > 1}
+        loop={videos.length > 5}
         navigation={{
           prevEl: `#prev-${carouselId}`,
           nextEl: `#next-${carouselId}`,

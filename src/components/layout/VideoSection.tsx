@@ -10,14 +10,12 @@ import { useVolumeStore } from '@/store/useVolumeStore';
 import CustomControls from '@/components/CustomControls';
 import VideoTitleBar from '@/components/VideoTitleBar';
 import NewsTicker from '@/components/NewsTicker';
-import { useMediaPlayer } from '@/context/MediaPlayerContext';
 import WeatherOverlay from '@/components/tv/WeatherOverlay';
 import { cn, cleanTitle } from '@/lib/utils';
 import { Play } from 'lucide-react';
 import AntiGravityLayer from './AntiGravityLayer';
 
 // Simplified VideoSection for Desktop Only
-
 
 const VideoSection: React.FC = () => {
   const [isFullScreen, setIsFullScreen] = useState(false);
@@ -51,12 +49,8 @@ const VideoSection: React.FC = () => {
   ) || false;
   const isNewsContent = !!(currentVideo?.categoria === 'Noticias' && !isLocalIntro);
 
-  useEffect(() => {
-    // Solo forzamos volumen si YA está reproduciendo y NO es el inicio (para cumplir con Autoplay Muted)
-    if ((isNewsContent || isHtmlSlideActive) && !isInitialLoadRef.current) {
-      setVolume(1);
-    }
-  }, [isNewsContent, isHtmlSlideActive, setVolume]);
+  // P2-fix: el volumen y unmute se gestionan ahora directamente en el useEffect de activación del slide
+  // para mayor precisión y cumplimiento de políticas de autoplay.
 
   // Limpiamos el flag de carga inicial solo después de que el primer video haya tenido tiempo de empezar
   // o cuando cambie el video por segunda vez.
@@ -85,9 +79,16 @@ const VideoSection: React.FC = () => {
 
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.volume = isMuted ? 0 : volume;
+      // Si hay un slide de noticias activo, forzamos volumen 1 independientemente del store global
+      if (isHtmlSlideActive) {
+        audioRef.current.volume = 1;
+        audioRef.current.muted = false;
+      } else {
+        audioRef.current.volume = isMuted ? 0 : volume;
+      }
     }
-  }, [volume, isMuted]);
+  }, [volume, isMuted, isHtmlSlideActive]);
+
 
   const [playBackgroundEarly, setPlayBackgroundEarly] = useState(false);
   const transitionTriggeredRef = useRef(false);
@@ -95,26 +96,130 @@ const VideoSection: React.FC = () => {
 
   useEffect(() => {
     setPlayBackgroundEarly(false);
-    transitionTriggeredRef.current = false;
     transitionSignaledRef.current = false;
     setCurrentDuration(0);
     setIsIntroFadingOut(false);
   }, [currentVideo?.id]);
 
+  const hasStartedAudioRef = useRef(false);
+
+  // DIAGNÓSTICO DE SLIDES
+  useEffect(() => {
+    if (isSlidePlaying || currentSlide) {
+      console.log("[AudioSlide-Status]", {
+        isSlidePlaying,
+        isHtmlSlideActive,
+        type: currentSlide?.type,
+        audioUrl: currentSlide?.audioUrl,
+        embedsAudio: currentSlide?.embedsAudio,
+        hasStartedAudio: hasStartedAudioRef.current
+      });
+    }
+  }, [isSlidePlaying, isHtmlSlideActive, currentSlide]);
+
+  // 1. Gestión de duración y limpieza del slide
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (isHtmlSlideActive && currentSlide) {
-      // RULE OF GOLD: Pause and save background state
-      pauseForSlide(); // Uses internal savedProgress automatically
+      pauseForSlide();
+      hasStartedAudioRef.current = false; 
 
       const duration = (currentSlide.duration || 15) * 1000;
+      const fadeOutDuration = 1000; // 1 segundo de fade out
+      
+      // Timer para el fade out
+      const fadeOutTimer = setTimeout(() => {
+        if (audioRef.current) {
+          const steps = 20;
+          const intervalTime = fadeOutDuration / steps;
+          let currentStep = 0;
+          const startVolume = audioRef.current.volume;
+
+          const fadeInterval = setInterval(() => {
+            currentStep++;
+            if (audioRef.current) {
+              audioRef.current.volume = Math.max(0, startVolume * (1 - currentStep / steps));
+            }
+            if (currentStep >= steps) clearInterval(fadeInterval);
+          }, intervalTime);
+        }
+      }, Math.max(0, duration - fadeOutDuration));
+
       timer = setTimeout(() => {
         stopSlide();
         resumeAfterSlide();
       }, duration);
+
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(fadeOutTimer);
+      };
     }
-    return () => clearTimeout(timer);
-  }, [isHtmlSlideActive, currentSlide, stopSlide, resumeAfterSlide, pauseForSlide]);
+  }, [isHtmlSlideActive, currentSlide?.url, stopSlide, resumeAfterSlide, pauseForSlide]);
+
+  // 2. Sincronización de Audio (Efectos secundarios independientes)
+  useEffect(() => {
+    // Si es un slide HTML y no hemos empezado el audio
+    if (isHtmlSlideActive && currentSlide && !hasStartedAudioRef.current) {
+      const audioUrl = currentSlide.audioUrl;
+
+      if (!audioUrl || audioUrl === 'NO_AUDIO_URL') {
+        console.warn('[AudioSlide] Reproducción de audio cancelada:', { 
+          motivo: !audioUrl ? 'audioUrl no existe en el objeto slide' : 'audioUrl es NO_AUDIO_URL',
+          slideData: currentSlide,
+          isHtmlActive: isHtmlSlideActive
+        });
+        return;
+      }
+
+      console.log('[AudioSlide] Preparando audio:', audioUrl);
+
+      hasStartedAudioRef.current = true; 
+      const playTimer = setTimeout(() => {
+        if (audioRef.current) {
+          audioRef.current.muted = false;
+          audioRef.current.volume = 1;
+          audioRef.current.src = audioUrl; // <--- FUNDAMENTAL: Asignar la fuente
+
+          const playAudio = () => {
+             console.log("[AudioSlide] Evento canplay recibido. Ejecutando .play()");
+             audioRef.current?.play()
+              .then(() => console.log("[AudioSlide] Reproducción iniciada correctamente"))
+              .catch((err) => console.error('[AudioSlide] ERROR CRÍTICO PLAY:', err));
+             audioRef.current?.removeEventListener('canplay', playAudio);
+          };
+
+          audioRef.current.addEventListener('canplay', playAudio);
+          audioRef.current.load();
+        }
+      }, 500); 
+
+      return () => {
+        clearTimeout(playTimer);
+        // NO reseteamos aquí el ref para evitar re-triggers por re-renders,
+        // el reseteo real ocurre abajo cuando cambia el slide.
+      };
+    }
+  }, [isHtmlSlideActive, currentSlide, unmute, setVolume]);
+
+  // RESET de audio-ref cuando cambia el contenido o se desactiva
+  useEffect(() => {
+    if (!isHtmlSlideActive) {
+      hasStartedAudioRef.current = false;
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+      }
+    }
+  }, [isHtmlSlideActive]);
+
+  // Reset del ref cuando el contenido específico cambia (ej: de un slide .html a otro)
+  useEffect(() => {
+    hasStartedAudioRef.current = false;
+  }, [currentSlide?.url]);
+
+
+
 
   // FIX AUTOPLAY: Si isPreRollOverlayActive está activo pero no hay video de intro asignado,
   // el reproductor quedaría bloqueado indefinidamente (isContentPlaying nunca se activaría).
@@ -136,14 +241,18 @@ const VideoSection: React.FC = () => {
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (isNewsIntroActive) {
+      // P3-fix: duración dinámica — nunca superar el 30% del slide ni los 4s fijos
+      const slideDurationMs = currentSlide ? (currentSlide.duration || 15) * 1000 : 15000;
+      const introDuration = Math.min(4000, slideDurationMs * 0.3);
       timer = setTimeout(() => {
         setIsNewsIntroActive(false);
-      }, 4000);
+      }, introDuration);
     }
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, [isNewsIntroActive, setIsNewsIntroActive]);
+  }, [isNewsIntroActive, setIsNewsIntroActive, currentSlide]);
+
 
   useEffect(() => {
     const isNewVideo = !!(currentVideo && currentVideo.id !== lastProcessedVideoIdRef.current);
@@ -318,25 +427,29 @@ const VideoSection: React.FC = () => {
             {/* HTML Slide (Considered Content/Video) */}
             {isHtmlSlideActive && currentSlide && (
               <div className="absolute inset-0 z-40 bg-black">
+                {/* Fix: quitado mute=1 (silenciaba el audio HTML). allow="autoplay" es suficiente para HTML slides */}
                 <iframe
-                  src={`${currentSlide.url}${currentSlide.url.includes('?') ? '&' : '?'}mute=1&autoplay=1&enablejsapi=1`}
+                  src={`${currentSlide.url}${currentSlide.url.includes('?') ? '&' : '?'}autoplay=1`}
                   className="w-full h-full border-none pointer-events-none"
                   title="Slide"
                   allow="autoplay"
                 />
-                {currentSlide.audioUrl && (
-                  <audio
-                    ref={audioRef}
-                    src={currentSlide.audioUrl}
-                    autoPlay
-                    className="hidden"
-                    muted={isMuted}
-                    onPlay={() => { }}
-                    onError={(e) => console.error("Error reproduciendo audio de noticia:", e, currentSlide.audioUrl)}
-                  />
-                )}
               </div>
             )}
+
+            {/* P2-fix: Audio presente si es Slide HTML, la URL se gestiona por efecto AudioSync (v27.2) */}
+            {isHtmlSlideActive && !currentSlide?.embedsAudio && (
+              <audio
+                ref={audioRef}
+                className="opacity-0 pointer-events-none absolute"
+                preload="auto"
+                crossOrigin="anonymous"
+                onError={(e) => console.error("Error reproduciendo audio de noticia:", e, currentSlide?.audioUrl)}
+              />
+            )}
+
+
+
 
             {/* === SINGLE POWER PLAYER (v23.9) === */}
             <div className="absolute inset-0 bg-black">
@@ -379,7 +492,6 @@ const VideoSection: React.FC = () => {
               </AnimatePresence>
             </div>
 
-
             {/* === PERSISTENT INTRO OVERLAY === */}
             <div
               className={cn(
@@ -421,7 +533,6 @@ const VideoSection: React.FC = () => {
                 />
               )}
             </div>
-
 
             {
               (!isPlaying) && !isLocalIntro && !playBackgroundEarly && !isHtmlSlideActive && (
@@ -528,7 +639,6 @@ const VideoSection: React.FC = () => {
                   <CustomControls onToggleFullScreen={toggleFullScreen} isFullScreen={isFullScreen} />
                 </motion.div>
               )}
-
 
               {!isPlaying && !isHtmlSlideActive && !isLocalIntro && !playBackgroundEarly && currentVideo && (
                 <motion.div

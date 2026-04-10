@@ -26,7 +26,7 @@ interface TvContentRailProps {
 
 const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearching, searchLoading, initialCategory, isVisible = true, onVideoSelect }) => {
   const { galleryVideos, allNews, isLoading: isLoadingNews } = useNewsStore();
-  const { playSpecificVideo, playTemporaryVideo, setIsPlaying } = usePlayerStore();
+  const { playSpecificVideo, playTemporaryVideo } = usePlayerStore();
   const { playSlide } = useNewsPlayerStore();
   const { volume, setVolume } = useVolumeStore();
 
@@ -102,16 +102,33 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
       const newsItem = item as any;
       const title = cleanTitle(newsItem.title || newsItem.titulo);
       const imageUrl = newsItem.imageUrl || newsItem.image_url || newsItem.imagen || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+      const rawAudio = newsItem.audio_url || newsItem.audioUrl || newsItem.audioSourceUrl || newsItem.media_url || (newsItem.audio ? newsItem.audio.url : undefined);
+      const audioUrl = getProcessedAudioUrl(rawAudio);
       const urlSlide = newsItem.url_slide || newsItem.urlSlide;
-      const audioUrl = getProcessedAudioUrl(newsItem.audio_url || newsItem.audioUrl);
-      const duration = newsItem.animation_duration || 15;
+      const duration = newsItem.animation_duration || newsItem.duration || 15;
       const isHtmlSlide = urlSlide && urlSlide.endsWith('.html');
 
+      console.group(`[TvRail-Click] ${title}`);
+      console.log('Item Original:', { 
+        audio_url: newsItem.audio_url, 
+        audioUrl: newsItem.audioUrl, 
+        audioSourceUrl: newsItem.audioSourceUrl 
+      });
+      console.log('Dato Crudo seleccionado:', rawAudio);
+      console.log('URL Procesada:', audioUrl);
+      console.groupEnd();
+
       if (isHtmlSlide) {
-        // Pausar video de fondo y reproducir slide
-        setIsPlaying(false);
-        // AQUÍ PASAMOS EL TÍTULO Y EL AUDIO
-        playSlide({ url: urlSlide, type: 'html', duration, title, audioUrl });
+        // pauseForSlide() en VideoSection.tsx gestiona la pausa automáticamente (P4-fix)
+        const slideToPlay = { 
+          url: urlSlide, 
+          type: 'html' as const, 
+          duration, 
+          audioUrl: audioUrl || null, // Forzar a null si es falsy para evitar undefined
+          title 
+        };
+        console.log('[TvRail-Click] Ejecutando playSlide con:', slideToPlay);
+        playSlide(slideToPlay);
       } else if (urlSlide) {
         // Video temporal
         playTemporaryVideo({
@@ -132,7 +149,7 @@ const TvContentRail: React.FC<TvContentRailProps> = ({ searchResults, isSearchin
 
     // Llamar callback para ocultar overlays
     onVideoSelect?.();
-  }, [playSpecificVideo, playTemporaryVideo, playSlide, setIsPlaying, volume, setVolume, onVideoSelect]);
+  }, [playSpecificVideo, playTemporaryVideo, playSlide, volume, setVolume, onVideoSelect]);
 
   const processThumbnails = useCallback((items: any[]) => {
     return items.map(item => {

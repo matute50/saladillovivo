@@ -5,7 +5,6 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import PreloadIntros from '@/components/PreloadIntros';
 import { usePlayerStore } from '@/store/usePlayerStore';
-import { MediaPlayerProvider } from '@/context/MediaPlayerContext';
 
 import StreamListener from '@/components/StreamListener';
 
@@ -21,12 +20,12 @@ export default function ClientLayoutWrapper({ children }: ClientLayoutWrapperPro
   const viewMode = usePlayerStore(state => state.viewMode);
 
   return (
-    <MediaPlayerProvider>
+    <>
       <PreloadIntros />
       <StreamListener />
       {viewMode === 'diario' && <Header />}
       {children}
       {viewMode === 'diario' && <Footer />}
-    </MediaPlayerProvider>
+    </>
   );
 }

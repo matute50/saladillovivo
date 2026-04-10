@@ -31,17 +31,17 @@ const Footer = () => {
   return (
     <footer className="bg-gradient-to-b from-[hsl(var(--footer-bg-start))] to-[hsl(var(--footer-bg-end))] dark:bg-[hsl(var(--footer-bg-color))] text-foreground h-[var(--footer-height)]">
       <div className="container mx-auto px-4 h-full flex justify-center items-center">
-        <div className="flex flex-col md:flex-row justify-center items-center text-center gap-2 md:gap-4 w-full">
+        <div className="flex flex-col md:flex-row justify-center items-center text-center gap-2 md:gap-4 w-full h-full">
 
           {/* 1. LOGO */}
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 h-full flex items-center">
             <Image
               loading="lazy"
               src={isDarkTheme ? banerClaro : banerOscuro}
               alt="Logo Saladillo Vivo"
               width={105}
               height={30}
-              style={{ width: 'auto', height: 'auto' }}
+              style={{ width: 'auto', height: 'calc(100% - 5px)', maxHeight: 'calc(100% - 5px)' }}
               className="object-contain"
               unoptimized // Evita errores 403 en Vercel con imágenes externas
             />

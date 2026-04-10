@@ -79,3 +79,46 @@ export const cleanTitle = (title: string | undefined | null): string => {
     .trim()
     .toUpperCase();
 };
+
+export const normalizeYoutubeUrl = (url: string | null | undefined): string => {
+  if (!url) return '';
+  
+  // Clean potential corruption (v25.5 Guard)
+  // If the url contains the prefix twice or starts with the corruption pattern
+  if (url.includes('https://www.yhttps://www.youtube.com')) {
+    url = url.replace('https://www.yhttps://www.youtube.com', 'https://www.youtube.com');
+  }
+
+  // Extraer ID de YouTube (soporta /watch?v=, /live/, youtu.be/)
+  let videoId = '';
+  
+  try {
+    const watchMatch = url.match(/[?&]v=([^&/?]+)/);
+    if (watchMatch) videoId = watchMatch[1];
+    
+    if (!videoId) {
+      const liveMatch = url.match(/\/live\/([^/?]+)/);
+      if (liveMatch) videoId = liveMatch[1];
+    }
+    
+    if (!videoId) {
+      const shortMatch = url.match(/youtu\.be\/([^/?]+)/);
+      if (shortMatch) videoId = shortMatch[1];
+    }
+    
+    if (!videoId) {
+      const embedMatch = url.match(/\/embed\/([^/?]+)/);
+      if (embedMatch) videoId = embedMatch[1];
+    }
+
+    // Si encontramos un ID, reconstruimos la URL oficial de visualización
+    if (videoId) {
+      return `https://www.youtube.com/watch?v=${videoId}`;
+    }
+  } catch (e) {
+    console.error("Error normalizing YouTube URL:", url, e);
+  }
+
+  return url; // Fallback al original si no se reconoce o hay error
+};
+

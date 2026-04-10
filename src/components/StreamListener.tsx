@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { usePlayerStore } from '@/store/usePlayerStore';
 import { SlideMedia } from '@/lib/types';
+import { normalizeYoutubeUrl } from '@/lib/utils';
 
 const LIVE_THRESHOLD_MS = 10000; // 10 segundos de cortesía
 
@@ -29,9 +30,7 @@ export default function StreamListener() {
           console.log('[StreamListener Realtime] ⚡ LIVE DETECTED', data.url);
           lastStartedAtRef.current = sessionKey;
           
-          const finalUrl = data.url.includes('/live/') 
-            ? `https://www.youtube.com/watch?v=${data.url.split('/live/')[1].split('?')[0]}` 
-            : data.url;
+          const finalUrl = normalizeYoutubeUrl(data.url);
 
           const streamMedia: SlideMedia = {
             id: 'live-stream',
@@ -44,7 +43,9 @@ export default function StreamListener() {
             novedad: true
           };
 
+
           store.playLiveStream(streamMedia);
+          store.setViewMode('tv');
         }
       } else if (data && !data.isActive && isCurrentlyLiveInUI) {
         console.log('[StreamListener Realtime] ⏹️ LIVE ENDED');

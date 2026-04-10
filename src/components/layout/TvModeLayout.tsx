@@ -30,85 +30,89 @@ const TvModeLayout = () => {
     loadInitialPlaylist(null);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-
   const onSearchSubmit = useCallback((term: string) => {
     handleSearch(term);
   }, [handleSearch]);
 
-  // Estado inicial: overlays visibles
   const [isOverlayVisible, setIsOverlayVisible] = useState(true);
   const [isCarouselVisible, setIsCarouselVisible] = useState(true);
 
-  // Toggle overlays con tecla ENTER
   const toggleOverlays = useCallback(() => {
     setIsOverlayVisible(prev => !prev);
     setIsCarouselVisible(prev => !prev);
   }, []);
 
-
-
-  // Ocultar overlays (al elegir contenido)
   const hideOverlays = useCallback(() => {
     setIsOverlayVisible(false);
     setIsCarouselVisible(false);
   }, []);
 
-
-
-  // Handler para tecla ENTER
+  // Gestión de inactividad: Ocultar controles tras 1 segundo (v28.0)
   useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        toggleOverlays();
-      }
+    let timeoutId: NodeJS.Timeout;
+
+    const resetInactivityTimer = () => {
+      setIsOverlayVisible(true);
+      setIsCarouselVisible(true);
+      
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        setIsOverlayVisible(false);
+        setIsCarouselVisible(false);
+      }, 1000); // 1 segundo de gracia
     };
 
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [toggleOverlays]);
+    // Eventos que "despiertan" la UI
+    window.addEventListener('mousemove', resetInactivityTimer);
+    window.addEventListener('keydown', resetInactivityTimer);
+    window.addEventListener('mousedown', resetInactivityTimer);
+    window.addEventListener('touchstart', resetInactivityTimer);
 
-  const [isFullScreen, setIsFullScreen] = useState(false);
+    // Arrancar el timer al inicio
+    resetInactivityTimer();
 
-
-
-
-
-  const toggleFullScreen = useCallback(() => {
-
-    if (!document.fullscreenElement) {
-
-      document.documentElement.requestFullscreen()
-
-        .then(() => setIsFullScreen(true))
-
-        .catch((e) => console.error("Fullscreen requiere interacción:", e));
-
-    } else {
-
-      document.exitFullscreen().then(() => setIsFullScreen(false)).catch(() => { });
-
-    }
-
+    return () => {
+      window.removeEventListener('mousemove', resetInactivityTimer);
+      window.removeEventListener('keydown', resetInactivityTimer);
+      window.removeEventListener('mousedown', resetInactivityTimer);
+      window.removeEventListener('touchstart', resetInactivityTimer);
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, []);
 
 
+  // Volver a modo diario al salir de pantalla completa (ESC o manual) (v28.2)
+  useEffect(() => {
+    const handleFSChange = () => {
+      const isCurrentlyFS = !!document.fullscreenElement;
+      setIsFullScreen(isCurrentlyFS);
+      
+      if (!isCurrentlyFS) {
+        setViewMode('diario');
+      }
+    };
 
+    document.addEventListener('fullscreenchange', handleFSChange);
+    return () => document.removeEventListener('fullscreenchange', handleFSChange);
+  }, [setViewMode]);
 
+  const [isFullScreen, setIsFullScreen] = useState(false);
+
+  const toggleFullScreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen()
+        .catch((e) => console.error("Fullscreen requiere interacción:", e));
+    } else {
+      document.exitFullscreen().catch(() => { });
+    }
+  }, []);
 
   const handleSwitchToDailyMode = useCallback(() => {
     setViewMode('diario');
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    }
   }, [setViewMode]);
-
-
-
-
-
-
-
-
-
-
 
   return (
 
@@ -120,15 +124,8 @@ const TvModeLayout = () => {
         {/* Capa transparente para capturar clicks y mostrar/ocultar overlays */}
         <div className="absolute inset-0 z-10" onClick={toggleOverlays} />
       </div>
-
-
-
-      {/* Cinematic bars */}
-
-
-
       <AnimatePresence>
-        {!isPlaying && !isNewsPlaying && (
+        {!isPlaying && !isNewsPlaying && isOverlayVisible && (
           <motion.div
             initial={{ opacity: 1 }}
             animate={{ opacity: 1 }}
@@ -141,9 +138,6 @@ const TvModeLayout = () => {
           </motion.div>
         )}
       </AnimatePresence>
-
-
-
       {/* 3. UI Overlay - IMPORTANTE: pointer-events-none para no bloquear el fondo */}
       <div
         className={`absolute inset-0 z-30 flex flex-col justify-between h-full transition-opacity duration-500 ease-in-out pointer-events-none will-change-[opacity] ${isOverlayVisible ? 'opacity-100' : 'opacity-0'}`}

@@ -10,7 +10,10 @@ export interface SlideData {
     title?: string;
     subtitle?: string;
     audioUrl?: string | null;
+    /** P2-fix: true si el HTML ya embebe su propio <audio>. En ese caso VideoSection omite el <audio> externo. */
+    embedsAudio?: boolean;
 }
+
 
 interface NewsPlayerState {
     currentSlide: SlideData | null;
@@ -28,9 +31,12 @@ export const useNewsPlayerStore = create<NewsPlayerState>()(
             isPlaying: false,
             isNewsIntroActive: false,
             playSlide: (slide) => {
-                // Interrumpir video principal dinámicamente si es posible sin require prohibido
-                // Nota: La circularidad se maneja en los componentes o mediante eventos si es necesario
-                set({ currentSlide: slide, isPlaying: true, isNewsIntroActive: true });
+                const normalizedSlide = {
+                    ...slide,
+                    audioUrl: slide.audioUrl === undefined ? null : slide.audioUrl
+                };
+                console.log('[NewsPlayerStore] playSlide invocado con:', normalizedSlide);
+                set({ currentSlide: normalizedSlide, isPlaying: true, isNewsIntroActive: true });
             },
             stopSlide: () => set({ currentSlide: null, isPlaying: false, isNewsIntroActive: false }),
             setIsNewsIntroActive: (active) => set({ isNewsIntroActive: active }),
