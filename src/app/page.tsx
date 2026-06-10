@@ -1,61 +1,106 @@
-import HomePageClient from "@/components/HomePageClient";
-import type { Metadata } from 'next';
 
-export const revalidate = 60; // Revalidate this page every 60 seconds
+import type { Metadata } from "next";
+import ClientPageWrapper from "@/components/ClientPageWrapper";
 
 import {
-  getArticles,
+  getArticlesForHome,
+  getVideosForHome,
   getActiveAds,
   getActiveBanners,
   getCalendarEvents,
   getInterviews,
   getTickerTexts,
-  getVideos
+  getVideoById,
+  getVideoByUrl
 } from "@/lib/data";
+import { Video } from "@/lib/types";
 
-// This function generates metadata on the server.
+export const revalidate = 60; // Revalida cada minuto
+
+// Generación de Metadatos con manejo de errores
 export async function generateMetadata(): Promise<Metadata> {
-  const { allNews } = await getArticles();
-  // Use the first 'featured' article, or the first article overall as a fallback for metadata.
-  const mainFeaturedNews = allNews.find(n => n.featureStatus === 'featured') || allNews[0] || null;
- 
-  return {
-    title: mainFeaturedNews?.meta_title || 'Saladillo Vivo - Noticias, Eventos y Cultura',
-    description: mainFeaturedNews?.meta_description || 'Saladillo Vivo es el canal temático de noticias, eventos y cultura de Saladillo. Mirá streaming en vivo y contenido on demand las 24hs.',
-    keywords: mainFeaturedNews?.meta_keywords || 'Saladillo, noticias, actualidad, vivo, streaming, eventos, cultura, HCD',
-    openGraph: {
-      title: mainFeaturedNews?.meta_title || 'Saladillo Vivo - Noticias y Actualidad',
-      description: mainFeaturedNews?.meta_description || 'Saladillo Vivo es el canal temático de noticias, eventos y cultura de Saladillo.',
-      images: [mainFeaturedNews?.imageUrl || 'https://www.saladillovivo.com.ar/default-og-image.png'],
-      url: `https://www.saladillovivo.com.ar${mainFeaturedNews?.slug ? '/noticia/' + mainFeaturedNews.slug : ''}`,
-      type: mainFeaturedNews ? 'article' : 'website',
-    },
-  };
+  try {
+    const data = await getArticlesForHome();
+    const featuredNews = data?.featuredNews;
+
+    return {
+      title: featuredNews?.meta_title || 'Saladillo Vivo - Noticias, Eventos y Cultura',
+      description: featuredNews?.meta_description || 'Saladillo Vivo es el canal temático de noticias, eventos y cultura de Saladillo.',
+      keywords: featuredNews?.meta_keywords || 'Saladillo, noticias, actualidad, vivo, streaming, eventos, cultura',
+      openGraph: {
+        title: featuredNews?.meta_title || 'Saladillo Vivo - Noticias y Actualidad',
+        description: featuredNews?.meta_description || 'Saladillo Vivo es el canal temático de noticias, eventos y cultura de Saladillo.',
+        images: [featuredNews?.imageUrl || 'https://saladillovivo.vercel.app/default-og-image.png'],
+        url: `https://saladillovivo.vercel.app${featuredNews?.slug ? '/noticia/' + featuredNews.slug : ''}`,
+        type: featuredNews ? 'article' : 'website',
+      },
+    };
+  } catch {
+    return { title: 'Saladillo Vivo' };
+  }
 }
 
-// This is the main page component, rendered on the server.
-export default async function Page() {
-  // Fetch all data concurrently for performance.
-  const [{ allNews }, tickerTexts, videos, interviews, banners, ads, events] = await Promise.all([
-    getArticles(),
-    getTickerTexts(),
-    getVideos(),
-    getInterviews(),
-    getActiveBanners(),
-    getActiveAds(),
-    getCalendarEvents(),
-  ]);
+
+
+export default async function Page(props: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+  const searchParams = await props.searchParams;
+  const requestedVideoId = typeof searchParams.v === 'string' ? searchParams.v : undefined;
+  const requestedVideoUrl = typeof searchParams.url === 'string' ? searchParams.url : undefined;
+
+  // Fetch seguro: si falla, devolvemos objetos vacíos en lugar de undefined
+  let articles: any = { featuredNews: null, secondaryNews: [], tertiaryNews: [], otherNews: [], allNews: [] };
+  let videos: any = { featuredVideo: null, recentVideos: [], allVideos: [], videoCategories: [] };
+  let tickerTexts: string[] = [];
+  let interviews: any[] = [];
+  let banners: any[] = [];
+  let ads: any[] = [];
+  let events: any[] = [];
+
+  try {
+    const [resArticles, resVideos, resTicker, resInterviews, resBanners, resAds, resEvents, requestedVideo] = await Promise.all([
+      getArticlesForHome(),
+      getVideosForHome(),
+      getTickerTexts(),
+      getInterviews(),
+      getActiveBanners(),
+      getActiveAds(),
+      getCalendarEvents(),
+      requestedVideoId ? getVideoById(requestedVideoId) : (requestedVideoUrl ? getVideoByUrl(requestedVideoUrl) : Promise.resolve(null))
+    ]);
+
+    // Asignamos solo si el resultado existe
+    articles = resArticles || articles;
+    videos = resVideos || videos;
+    tickerTexts = resTicker || [];
+    interviews = resInterviews || [];
+    banners = resBanners || [];
+    ads = resAds || [];
+    events = resEvents || [];
+
+    // OPTIMIZACIÓN VERCEL: Si hay un video solicitado, lo inyectamos como prioridad
+    if (requestedVideo) {
+      // Evitar duplicados si ya estaba en el fetch general
+      const otherVideos = videos.allVideos.filter((v: Video) => v.id !== requestedVideo.id);
+      videos.allVideos = [requestedVideo, ...otherVideos];
+      videos.featuredVideo = requestedVideo; // Lo marcamos como destacado para que sea el primero en sonar
+    }
+  } catch (error) {
+    console.error("Error cargando datos en Page:", error);
+  }
 
   const pageData = {
-    articles: { allNews }, // Pass the articles object as is
-    tickerTexts,
+    articles,
     videos,
+    tickerTexts,
     interviews,
     banners,
     ads,
     events,
   };
 
-  // Pass the server-fetched data to the client component.
-  return <HomePageClient data={pageData} />;
+  return (
+    <main>
+      <ClientPageWrapper initialData={pageData} />
+    </main>
+  );
 }

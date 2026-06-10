@@ -2,7 +2,7 @@
 import { MetadataRoute } from 'next';
 import { supabase } from '@/lib/supabaseClient';
 
-const BASE_URL = 'https://www.saladillovivo.com'; // Replace with your actual domain
+const BASE_URL = 'https://saladillovivo.vercel.app'; // Replace with your actual domain
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Fetch articles for dynamic routes
